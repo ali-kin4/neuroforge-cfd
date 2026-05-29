@@ -149,12 +149,19 @@ def _sim_to_pair(data: np.ndarray, name: str, resolution: int) -> tuple[FlowCase
     return case, field
 
 
+def _cache_path(cache_dir: str, task: str, train: bool, resolution: int, limit) -> str:
+    split = "train" if train else "test"
+    return os.path.join(cache_dir, f"airfrans_{task}_{split}_r{resolution}_n{limit}.pkl")
+
+
 def load_airfrans(
     root: str = "data",
     task: str = "scarce",
     train: bool = True,
     resolution: int = 128,
     limit: int | None = None,
+    cache_dir: str | None = None,
+    progress: bool = True,
 ) -> list[tuple[FlowCase, FlowField]]:
     """Load AirfRANS simulations as ``(FlowCase, FlowField)`` pairs.
 
@@ -170,12 +177,43 @@ def load_airfrans(
         Structured-grid resolution to rasterise onto.
     limit : int, optional
         Cap the number of simulations loaded (useful for quick experiments).
+    cache_dir : str, optional
+        If given, the rasterised pairs are pickled here keyed by
+        ``(task, split, resolution, limit)`` and reused on the next call. This
+        makes repeated Colab sessions fast (rasterisation is the slow step).
+    progress : bool
+        Show a tqdm bar while rasterising.
     """
+    # Fast path: reuse a cached rasterisation.
+    if cache_dir is not None:
+        cpath = _cache_path(cache_dir, task, train, resolution, limit)
+        if os.path.exists(cpath):
+            import pickle
+
+            with open(cpath, "rb") as fh:
+                return pickle.load(fh)
+
     af = _require_airfrans()
     dataset, names = af.dataset.load(root=root, task=task, train=train)
+    n = len(names) if limit is None else min(limit, len(names))
+
+    iterator = range(n)
+    if progress:
+        try:
+            from tqdm.auto import tqdm  # type: ignore
+
+            iterator = tqdm(iterator, desc=f"rasterise airfrans/{task}/{'train' if train else 'test'}")
+        except Exception:
+            pass
+
     pairs: list[tuple[FlowCase, FlowField]] = []
-    for i, (data, name) in enumerate(zip(dataset, names)):
-        if limit is not None and i >= limit:
-            break
-        pairs.append(_sim_to_pair(np.asarray(data), str(name), resolution))
+    for i in iterator:
+        pairs.append(_sim_to_pair(np.asarray(dataset[i]), str(names[i]), resolution))
+
+    if cache_dir is not None:
+        import pickle
+
+        os.makedirs(cache_dir, exist_ok=True)
+        with open(_cache_path(cache_dir, task, train, resolution, limit), "wb") as fh:
+            pickle.dump(pairs, fh)
     return pairs

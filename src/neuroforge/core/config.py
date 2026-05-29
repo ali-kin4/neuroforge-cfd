@@ -78,6 +78,7 @@ class DataConfig:
     seed: int = 0
     # AirfRANS-specific
     task: str = "scarce"                    # full | scarce | reynolds | aoa
+    cache_dir: str | None = None            # cache rasterised AirfRANS pairs here
 
 
 @dataclass

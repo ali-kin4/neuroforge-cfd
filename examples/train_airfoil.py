@@ -1,9 +1,9 @@
-"""NeuroForge CFD — training on the AirfRANS dataset.
+"""NeuroForge CFD — training on the real AirfRANS dataset.
 
-This example mirrors ``demo_synthetic.py`` but uses the real **AirfRANS**
-dataset of RANS simulations over airfoils. AirfRANS is an optional dependency
-and the dataset is a sizeable download, so both are guarded: the script prints
-clear instructions and exits gracefully if ``airfrans`` is not installed.
+Uses the high-level :func:`neuroforge.train.train_recipe` (the same code path as
+``scripts/train_airfrans.py`` and the Colab notebook). AirfRANS is an optional
+dependency and a sizeable download, so both are guarded: the script prints clear
+instructions and exits gracefully if ``airfrans`` is not installed.
 
 Prerequisites
 -------------
@@ -11,13 +11,16 @@ Prerequisites
 
        pip install 'neuroforge-cfd[data]'      # pulls in `airfrans`
 
-2. The dataset is downloaded automatically on first use via
-   ``neuroforge.data.airfrans_loader.download_airfrans`` (you can also point the
-   loader at an existing copy via ``DataConfig.root``).
+2. The dataset downloads automatically on first use (``download=True`` below),
+   or point ``DataConfig.root`` at an existing copy.
 
 Run it with::
 
     python examples/train_airfoil.py
+
+For a serious run prefer the CLI script (more knobs, caching, GPU auto-detect)::
+
+    python scripts/train_airfrans.py --download --task scarce --epochs 80 --out checkpoints/airfrans.pt
 """
 
 from __future__ import annotations
@@ -39,53 +42,29 @@ def main() -> None:
         )
         return
 
-    # Heavy imports are local so the module imports without the training stack.
-    from neuroforge.core.config import Config, DataConfig
-    from neuroforge.data.datamodule import build_dataloaders
-    from neuroforge.models.base import build_model
-    from neuroforge.physics.metrics import field_errors
-    from neuroforge.train.trainer import Trainer
+    from neuroforge.core.config import Config, DataConfig, ModelConfig
+    from neuroforge.train import train_recipe
 
-    # Optional explicit download step (build_dataloaders will also fetch lazily):
-    #
-    #     from neuroforge.data.airfrans_loader import download_airfrans
-    #     download_airfrans(root="data")
-
-    # 1) Configure the AirfRANS data source. The 'scarce' task is the smallest.
+    # Configure a small AirfRANS run (the 'scarce' task is the smallest split).
     cfg = Config()
     cfg.data = DataConfig(
-        source="airfrans",
-        root="data",
-        task="scarce",
-        resolution=128,
-        batch_size=2,
+        source="airfrans", root="data", task="scarce", resolution=128,
+        n_train=100, n_val=50, batch_size=4, cache_dir="data/cache",
     )
-    cfg.model.name = "transformer"   # Transolver-style physics-attention backbone
-    cfg.train.epochs = 10
+    cfg.model = ModelConfig(name="fno", width=48, modes=20, n_layers=4)
+    cfg.train.epochs = 40
+    cfg.train.device = "auto"          # CUDA if available, else CPU
 
-    # 2) Build dataloaders (rasterises the AirfRANS point clouds onto the grid).
-    train_loader, val_loader, normalizer = build_dataloaders(cfg.data)
-
-    # 3) Build and train the model.
-    model = build_model(
-        cfg.model.name,
-        in_channels=cfg.model.in_channels,
-        out_channels=cfg.model.out_channels,
-        width=cfg.model.width,
-        n_layers=cfg.model.n_layers,
-        n_heads=cfg.model.n_heads,
-        n_slices=cfg.model.n_slices,
+    # Download (if needed) -> dataloaders -> train backbone + corrector -> evaluate.
+    result = train_recipe(
+        cfg, download=True, corrector_epochs=10, out="checkpoints/airfrans.pt",
     )
-    trainer = Trainer(model, cfg, normalizer)
-    history = trainer.fit(train_loader, val_loader)
-    trainer.save("checkpoints/airfrans.pt")
-    print("training history:", history)
 
-    # 4) Evaluate: relative-L2 field errors on the first validation sample.
-    #    (Here we simply show how field_errors compares a prediction to a
-    #    reference field; wire it to your own held-out cases as needed.)
-    print("Trained. Use field_errors(pred, ref) to evaluate against ground truth.")
-    _ = field_errors  # referenced for the reader; evaluation loop omitted
+    ve = result["val_errors"]
+    print("\nValidation relative-L2 errors:",
+          {k: round(ve[k], 3) for k in ("u", "v", "p", "speed") if k in ve})
+    print("Checkpoint saved to:", result["checkpoint"])
+    print("Build an engine with: NeuroForgeEngine.from_checkpoint('checkpoints/airfrans.pt')")
 
 
 if __name__ == "__main__":

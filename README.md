@@ -109,6 +109,43 @@ We start narrow on purpose. Benchmarks/datasets:
 Then: arbitrary 2-D bluff bodies → 3-D vehicle-like geometries (AhmedML,
 DrivAerML) in later stages — see [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
+## Train on real data (AirfRANS) — locally or on a GPU
+
+The bundled demo model is tiny (trained on synthetic data); real accuracy comes
+from training on AirfRANS. One command (GPU auto-detected, rasterised data cached):
+
+```bash
+pip install -e ".[data]"
+python scripts/train_airfrans.py --download --task scarce \
+    --n-train 200 --n-val 100 --epochs 80 --model fno --width 48 --modes 20 \
+    --cache-dir data/cache --out checkpoints/airfrans.pt
+# scale up:  --task full --n-train 800 --n-val 200 --width 64 --modes 24 --layers 5 --epochs 150
+```
+
+Or in Python via the reusable recipe (used by the CLI and the notebook too):
+
+```python
+from neuroforge.core.config import Config, DataConfig, ModelConfig
+from neuroforge.train import train_recipe
+
+cfg = Config()
+cfg.data  = DataConfig(source="airfrans", task="scarce", resolution=128,
+                       n_train=200, n_val=100, cache_dir="data/cache")
+cfg.model = ModelConfig(name="fno", width=48, modes=20, n_layers=4)
+cfg.train.epochs, cfg.train.device = 80, "auto"      # "auto" -> CUDA if available
+result = train_recipe(cfg, download=True, corrector_epochs=20, out="checkpoints/airfrans.pt")
+print(result["val_errors"])                          # rel-L2 for u/v/p/speed
+```
+
+### ▶️ Colab Pro (recommended)
+
+[`notebooks/NeuroForge_CFD_Colab.ipynb`](notebooks/NeuroForge_CFD_Colab.ipynb) is a
+ready-to-run notebook: it installs the package, (optionally) mounts Drive for
+caching, downloads AirfRANS, trains FNO + corrector on the GPU, evaluates field
+errors and Cl/Cd, runs the self-correcting solver, and plots prediction vs CFD.
+Open it in Colab (set a **GPU** runtime), point `REPO_URL` at your fork, and run
+top to bottom.
+
 ## Docs
 
 - [`docs/paper/neuroforge_cfd.md`](docs/paper/neuroforge_cfd.md) — research-paper

@@ -191,8 +191,16 @@ def _load_pairs(cfg: DataConfig) -> tuple[list, list]:
     if cfg.source == "airfrans":
         from neuroforge.data.airfrans_loader import load_airfrans
 
-        train = load_airfrans(root=cfg.root, task=cfg.task, train=True)[: cfg.n_train]
-        val = load_airfrans(root=cfg.root, task=cfg.task, train=False)[: cfg.n_val]
+        # Thread resolution/limit/cache through so the rasterised grid matches
+        # the physics-loss dx/dy and repeated sessions reuse the cache.
+        train = load_airfrans(
+            root=cfg.root, task=cfg.task, train=True,
+            resolution=cfg.resolution, limit=cfg.n_train, cache_dir=cfg.cache_dir,
+        )
+        val = load_airfrans(
+            root=cfg.root, task=cfg.task, train=False,
+            resolution=cfg.resolution, limit=cfg.n_val, cache_dir=cfg.cache_dir,
+        )
         return train, val
 
     raise ValueError(f"unknown data source '{cfg.source}' (expected 'synthetic' or 'airfrans')")
