@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from neuroforge.core.types import N_IN, N_OUT
 
@@ -182,7 +181,7 @@ class FNO2d(NeuralSolver):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Map ``(B, in_channels, H, W)`` to ``(B, out_channels, H, W)``."""
         h = self.lift(x)
-        for spectral, pointwise, drop in zip(self.spectral_layers, self.w_layers, self.dropouts):
+        for spectral, pointwise, drop in zip(self.spectral_layers, self.w_layers, self.dropouts, strict=False):
             h_spec = spectral(h)
             h_local = pointwise(h)
             h = self.activation(h_spec + h_local)

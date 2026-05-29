@@ -1,0 +1,13 @@
+# Normalise line endings to LF in the repository on every platform.
+* text=auto eol=lf
+
+# Treat binary assets as binary (no EOL conversion, no diff).
+*.pt binary
+*.pth binary
+*.npz binary
+*.npy binary
+*.png binary
+*.jpg binary
+*.vtk binary
+*.vtu binary
+*.zip binary

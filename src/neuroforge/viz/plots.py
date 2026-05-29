@@ -43,7 +43,7 @@ _BODY_COLOR = "0.15"
 # --------------------------------------------------------------------------- #
 
 
-def _ensure_ax(ax: "plt.Axes | None") -> "plt.Axes":
+def _ensure_ax(ax: plt.Axes | None) -> plt.Axes:
     """Return ``ax`` or a new Axes on a fresh figure."""
     if ax is None:
         _fig, ax = plt.subplots(figsize=(5.0, 4.0))
@@ -56,7 +56,7 @@ def _extent(domain) -> tuple[float, float, float, float]:
     return (float(xmin), float(xmax), float(ymin), float(ymax))
 
 
-def _overlay_body(ax: "plt.Axes", domain, mask: "np.ndarray | None") -> None:
+def _overlay_body(ax: plt.Axes, domain, mask: np.ndarray | None) -> None:
     """Draw the solid-body boundary as a contour of the fluid mask."""
     if mask is None:
         return
@@ -78,7 +78,7 @@ def _overlay_body(ax: "plt.Axes", domain, mask: "np.ndarray | None") -> None:
         pass
 
 
-def _masked(arr: np.ndarray, mask: "np.ndarray | None") -> np.ndarray:
+def _masked(arr: np.ndarray, mask: np.ndarray | None) -> np.ndarray:
     """Mask out solid cells (mask==0) so they don't dominate the colour scale."""
     arr = np.asarray(arr, dtype=float)
     if mask is None:
@@ -88,8 +88,8 @@ def _masked(arr: np.ndarray, mask: "np.ndarray | None") -> np.ndarray:
 
 
 def _show(
-    ax: "plt.Axes", data: np.ndarray, domain, *, cmap: str, title: str,
-    cbar_label: str, mask: "np.ndarray | None" = None, **kw: Any,
+    ax: plt.Axes, data: np.ndarray, domain, *, cmap: str, title: str,
+    cbar_label: str, mask: np.ndarray | None = None, **kw: Any,
 ):
     """Shared pcolormesh-style renderer with colorbar + body overlay."""
     data = _masked(data, mask)
@@ -113,7 +113,7 @@ def _show(
 # --------------------------------------------------------------------------- #
 
 
-def plot_field(field: FlowField, key: str = "speed", ax: "plt.Axes | None" = None, **kw: Any):
+def plot_field(field: FlowField, key: str = "speed", ax: plt.Axes | None = None, **kw: Any):
     """Plot a solution field on the domain.
 
     Parameters
@@ -156,7 +156,7 @@ def plot_field(field: FlowField, key: str = "speed", ax: "plt.Axes | None" = Non
     )
 
 
-def plot_residual(diag: Diagnostics, key: str = "continuity", ax: "plt.Axes | None" = None, **kw: Any):
+def plot_residual(diag: Diagnostics, key: str = "continuity", ax: plt.Axes | None = None, **kw: Any):
     """Plot a physics-residual map from :class:`Diagnostics`.
 
     Parameters
@@ -210,7 +210,7 @@ def _domain_from_diag(diag: Diagnostics, shape: tuple[int, int]):
     return Domain(bounds=(0.0, 1.0, 0.0, 1.0), nx=nx, ny=ny)
 
 
-def plot_trust(diag: Diagnostics, ax: "plt.Axes | None" = None, **kw: Any):
+def plot_trust(diag: Diagnostics, ax: plt.Axes | None = None, **kw: Any):
     """Discrete green/yellow/red trust-class heatmap with a legend.
 
     Parameters
@@ -237,7 +237,7 @@ def plot_trust(diag: Diagnostics, ax: "plt.Axes | None" = None, **kw: Any):
     kw.pop("cmap", None)
     kw.pop("vmin", None)
     kw.pop("vmax", None)
-    im = ax.imshow(
+    ax.imshow(
         tc, origin="lower", extent=_extent(domain), aspect="auto",
         cmap=cmap, norm=norm, **kw,
     )
@@ -253,7 +253,7 @@ def plot_trust(diag: Diagnostics, ax: "plt.Axes | None" = None, **kw: Any):
     return ax
 
 
-def plot_uncertainty(diag: Diagnostics, ax: "plt.Axes | None" = None, **kw: Any):
+def plot_uncertainty(diag: Diagnostics, ax: plt.Axes | None = None, **kw: Any):
     """Plot the predictive-uncertainty map.
 
     Parameters
@@ -283,8 +283,8 @@ def plot_uncertainty(diag: Diagnostics, ax: "plt.Axes | None" = None, **kw: Any)
 
 
 def plot_cp(
-    field: FlowField, case: FlowCase, ax: "plt.Axes | None" = None,
-    ref: "FlowField | None" = None, **kw: Any,
+    field: FlowField, case: FlowCase, ax: plt.Axes | None = None,
+    ref: FlowField | None = None, **kw: Any,
 ):
     """Surface pressure coefficient ``Cp`` versus ``x/c`` along the airfoil.
 
@@ -346,7 +346,7 @@ def plot_cp(
 # --------------------------------------------------------------------------- #
 
 
-def plot_convergence(history: "list[dict[str, float]]", ax: "plt.Axes | None" = None, **kw: Any):
+def plot_convergence(history: list[dict[str, float]], ax: plt.Axes | None = None, **kw: Any):
     """Residual norm versus iteration (semilogy).
 
     Parameters
@@ -397,7 +397,7 @@ def plot_convergence(history: "list[dict[str, float]]", ax: "plt.Axes | None" = 
 # --------------------------------------------------------------------------- #
 
 
-def overview_figure(result) -> "plt.Figure":
+def overview_figure(result) -> plt.Figure:
     """Assemble a 2x3 multi-panel summary figure for a :class:`SolveResult`.
 
     Panels: speed field, pressure field, continuity residual, uncertainty,

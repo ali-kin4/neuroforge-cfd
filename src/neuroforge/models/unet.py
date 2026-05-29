@@ -110,13 +110,13 @@ class UNet(NeuralSolver):
         skips = []
         h_feat = self.inc(x)
         skips.append(h_feat)
-        for pool, down in zip(self.pools, self.downs):
+        for pool, down in zip(self.pools, self.downs, strict=False):
             h_feat = down(pool(h_feat))
             skips.append(h_feat)
 
         # Decoder, fusing skips from the encoder (deepest skip is the bottleneck).
         h_feat = skips[-1]
-        for i, (up, up_conv) in enumerate(zip(self.ups, self.up_convs)):
+        for i, (up, up_conv) in enumerate(zip(self.ups, self.up_convs, strict=False)):
             h_feat = up(h_feat)
             skip = skips[-(i + 2)]
             # ConvTranspose can mismatch by 1 on odd sizes; align to the skip.

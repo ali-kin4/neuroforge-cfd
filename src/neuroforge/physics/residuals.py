@@ -29,9 +29,9 @@ from neuroforge.core.config import PhysicsConfig
 from neuroforge.core.types import (
     DTYPE,
     Diagnostics,
-    FluidProperties,
     FlowCase,
     FlowField,
+    FluidProperties,
 )
 
 from .operators import ddx, ddy, laplacian

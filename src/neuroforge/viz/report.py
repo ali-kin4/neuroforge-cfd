@@ -46,7 +46,7 @@ code { background: #f0f0f2; padding: .1rem .35rem; border-radius: 4px; }
 """
 
 
-def _fig_to_png_bytes(fig: "plt.Figure", dpi: int = 110) -> bytes:
+def _fig_to_png_bytes(fig: plt.Figure, dpi: int = 110) -> bytes:
     """Render a figure to PNG bytes."""
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight")

@@ -117,7 +117,7 @@ class Config:
             yaml.safe_dump(self.to_dict(), fh, sort_keys=False)
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> "Config":
+    def from_dict(cls, d: dict[str, Any]) -> Config:
         return cls(
             model=ModelConfig(**d.get("model", {})),
             physics=PhysicsConfig(**d.get("physics", {})),
@@ -128,7 +128,7 @@ class Config:
         )
 
     @classmethod
-    def from_yaml(cls, path: str) -> "Config":
+    def from_yaml(cls, path: str) -> Config:
         with open(path, encoding="utf-8") as fh:
             return cls.from_dict(yaml.safe_load(fh) or {})
 

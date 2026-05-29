@@ -13,7 +13,7 @@ This file is a frozen contract; module builds extend the registry by importing
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Callable
+from collections.abc import Callable
 
 import torch
 import torch.nn as nn
@@ -24,7 +24,7 @@ from neuroforge.core.types import N_IN, N_OUT
 # Registry
 # --------------------------------------------------------------------------- #
 
-MODEL_REGISTRY: dict[str, type["NeuralSolver"]] = {}
+MODEL_REGISTRY: dict[str, type[NeuralSolver]] = {}
 
 
 def register_model(name: str) -> Callable[[type], type]:
@@ -41,7 +41,7 @@ def register_model(name: str) -> Callable[[type], type]:
     return _wrap
 
 
-def build_model(name: str, **kwargs) -> "NeuralSolver":
+def build_model(name: str, **kwargs) -> NeuralSolver:
     """Instantiate a registered model by name with keyword hyper-parameters."""
     key = name.lower()
     if key not in MODEL_REGISTRY:

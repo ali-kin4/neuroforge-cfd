@@ -21,7 +21,7 @@ import numpy as np
 import torch
 
 from neuroforge.core.config import CorrectionConfig
-from neuroforge.core.types import DTYPE, Diagnostics, FlowCase, FlowField
+from neuroforge.core.types import DTYPE, FlowCase, FlowField
 
 __all__ = ["neural_residual_iteration"]
 
@@ -177,8 +177,10 @@ def neural_residual_iteration(
         accepted = False
         for _bt in range(_MAX_BACKTRACK + 1):
             candidate = _apply_delta(field, delta_phys, step)
-            cand_unc = _diag_uncertainty(uq, predictor, case)
-            cand_diag = checker.diagnose(candidate, case, uncertainty=cand_unc)
+            # Uncertainty depends only on the (fixed) case, not the candidate
+            # field, so reuse the map computed at iter 0 instead of recomputing
+            # the UQ forward on every backtrack/iteration.
+            cand_diag = checker.diagnose(candidate, case, uncertainty=unc)
             cand_norm = cand_diag.residual_norm()
             if np.isfinite(cand_norm) and cand_norm <= cur_norm + _EPS:
                 accepted = True

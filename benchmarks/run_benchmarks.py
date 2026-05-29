@@ -71,7 +71,6 @@ def run_benchmarks(cfg: dict | None = None) -> dict:
         ``{model_name: {rel_l2_u, rel_l2_v, rel_l2_p, rel_l2_speed,
         infer_ms_per_case, n_params, continuity_residual_mean}}``.
     """
-    import torch
 
     from neuroforge.core.config import Config, DataConfig
     from neuroforge.data.datamodule import build_dataloaders

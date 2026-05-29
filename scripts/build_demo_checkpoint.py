@@ -38,7 +38,7 @@ def main() -> None:
 
     model = build_model("fno", width=32, n_layers=4, modes=14)
     trainer = Trainer(model, cfg, normalizer, nu=1.5e-5)
-    hist = trainer.fit(train_loader, val_loader)
+    trainer.fit(train_loader, val_loader)
     print(f"[{time.time()-t0:5.1f}s] backbone trained ({model.num_params():,} params)")
 
     corrector = LocalCorrectionNet(width=24, n_layers=3)

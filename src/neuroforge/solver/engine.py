@@ -123,7 +123,7 @@ class NeuroForgeEngine:
     # ------------------------------------------------------------------ #
 
     @classmethod
-    def from_checkpoint(cls, path: str, config: Config | None = None) -> "NeuroForgeEngine":
+    def from_checkpoint(cls, path: str, config: Config | None = None) -> NeuroForgeEngine:
         """Build an engine from a Trainer-style checkpoint.
 
         Rebuilds the backbone + normaliser (via :meth:`Trainer.load`), the
@@ -155,10 +155,10 @@ class NeuroForgeEngine:
         return cls(predictor, checker, corrector=corrector, uq=None, config=cfg)
 
     # cache for pretrained()
-    _pretrained_cache: "NeuroForgeEngine | None" = None
+    _pretrained_cache: NeuroForgeEngine | None = None
 
     @classmethod
-    def pretrained(cls) -> "NeuroForgeEngine":
+    def pretrained(cls) -> NeuroForgeEngine:
         """Load the bundled demo checkpoint, training a tiny one if absent.
 
         The trained checkpoint is cached on disk (``checkpoints/demo.pt``) and in
