@@ -30,6 +30,9 @@ from .fallback import ClassicalFallback
 __all__ = ["Predictor", "NeuroForgeEngine", "neural_residual_iteration", "ClassicalFallback", "demo"]
 
 _DEMO_CKPT = os.path.join("checkpoints", "demo.pt")
+# A small checkpoint shipped inside the package so pretrained() is instant on
+# first use (no training needed). Built by scripts/build_demo_checkpoint.py.
+_BUNDLED_CKPT = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "demo.pt")
 
 
 # --------------------------------------------------------------------------- #
@@ -163,8 +166,14 @@ class NeuroForgeEngine:
         """
         if cls._pretrained_cache is not None:
             return cls._pretrained_cache
-        if not os.path.exists(_DEMO_CKPT):
-            cls._train_demo_checkpoint(_DEMO_CKPT)
+        # Prefer a bundled checkpoint (instant), then a locally cached one,
+        # else train a tiny model once and cache it to disk.
+        for cand in (_BUNDLED_CKPT, _DEMO_CKPT):
+            if os.path.exists(cand):
+                engine = cls.from_checkpoint(cand)
+                cls._pretrained_cache = engine
+                return engine
+        cls._train_demo_checkpoint(_DEMO_CKPT)
         engine = cls.from_checkpoint(_DEMO_CKPT)
         cls._pretrained_cache = engine
         return engine

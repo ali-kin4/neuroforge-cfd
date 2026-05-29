@@ -79,7 +79,8 @@ import neuroforge as nf
 # A NACA 2412 at 5° AoA, Re = 3e6.
 case = nf.FlowCase.from_airfoil("naca2412", aoa=5, reynolds=3e6, u_inf=30.0, resolution=128)
 
-# A ready-to-go engine (trains a tiny model on synthetic data the first time).
+# A ready-to-go engine: loads the bundled demo checkpoint (instant);
+# trains a tiny model on synthetic data only if no checkpoint is found.
 engine = nf.NeuroForgeEngine.pretrained()
 
 result = engine.solve(case)                 # predict → check → self-correct
@@ -107,6 +108,14 @@ We start narrow on purpose. Benchmarks/datasets:
 
 Then: arbitrary 2-D bluff bodies → 3-D vehicle-like geometries (AhmedML,
 DrivAerML) in later stages — see [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+## Docs
+
+- [`docs/paper/neuroforge_cfd.md`](docs/paper/neuroforge_cfd.md) — research-paper
+  draft (method, related work, Neural Residual Iteration, experimental protocol).
+- [`docs/architecture.md`](docs/architecture.md) — engineer-facing architecture:
+  module map, data contracts, `solve()` control flow, extension points.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — the 3-stage plan and explicit non-goals.
 
 ## Project layout
 
