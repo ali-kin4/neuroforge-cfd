@@ -17,6 +17,39 @@ built source tree still imports.
 
 from __future__ import annotations
 
+# --- Math-library thread guard (must run before numpy/torch are imported) --- #
+# Prebuilt numpy/torch wheels ship OpenBLAS/MKL compiled with a high MAX_THREADS
+# and DYNAMIC_ARCH. On low-core machines (laptops, VMs, CI runners) this
+# oversubscribes catastrophically:
+#   * a 200x200 ``np.linalg.solve`` (synthetic source-panel generator) takes
+#     >20 s instead of ~1 ms, and
+#   * a 32x32 FFT inside the Fourier Neural Operator takes ~0.15 s instead of
+#     ~0.3 ms, making one training step ~30x slower.
+# Both collapse to instant once the math libraries use a single thread, and our
+# small models / dense solves don't benefit from BLAS/FFT threading on CPU
+# anyway (torch parallelises across the batch at the op level regardless).
+# We use ``setdefault`` so a power user training a large model on a many-core
+# CPU can override any of these (e.g. ``OMP_NUM_THREADS=8``) before import.
+import os as _os
+
+for _var in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
+    _os.environ.setdefault(_var, "1")
+
+_BLAS_LIMITER = None  # held for the process lifetime so the cap is not GC-restored
+try:  # best-effort runtime cap if the math libs were already imported elsewhere
+    import threadpoolctl as _tpc  # type: ignore
+
+    _BLAS_LIMITER = _tpc.threadpool_limits(limits=1)
+except Exception:  # pragma: no cover - threadpoolctl is optional
+    pass
+import sys as _sys
+
+if "torch" in _sys.modules:  # torch imported before us: cap at runtime
+    try:
+        _sys.modules["torch"].set_num_threads(1)
+    except Exception:  # pragma: no cover
+        pass
+
 from .core.config import Config, default_config
 from .core.types import (
     INPUT_CHANNELS,
