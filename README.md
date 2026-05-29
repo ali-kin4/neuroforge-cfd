@@ -11,6 +11,7 @@ only where it's actually needed.*
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Status: Alpha](https://img.shields.io/badge/status-alpha-orange)]()
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ali-kin4/neuroforge-cfd/blob/main/notebooks/NeuroForge_CFD_Colab.ipynb)
 
 </div>
 
@@ -139,12 +140,14 @@ print(result["val_errors"])                          # rel-L2 for u/v/p/speed
 
 ### ▶️ Colab Pro (recommended)
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ali-kin4/neuroforge-cfd/blob/main/notebooks/NeuroForge_CFD_Colab.ipynb)
+
 [`notebooks/NeuroForge_CFD_Colab.ipynb`](notebooks/NeuroForge_CFD_Colab.ipynb) is a
 ready-to-run notebook: it installs the package, (optionally) mounts Drive for
 caching, downloads AirfRANS, trains FNO + corrector on the GPU, evaluates field
 errors and Cl/Cd, runs the self-correcting solver, and plots prediction vs CFD.
-Open it in Colab (set a **GPU** runtime), point `REPO_URL` at your fork, and run
-top to bottom.
+Click the badge, set a **GPU** runtime (*Runtime → Change runtime type*), and run
+top to bottom — the clone URL is already wired to this repo.
 
 ## Docs
 
