@@ -57,10 +57,29 @@ def _require_airfrans():
         ) from exc
 
 
-def download_airfrans(root: str = "data") -> str:
-    """Download + unzip the AirfRANS dataset under ``root``. Returns the path."""
+def _airfrans_present(root: str) -> bool:
+    """True if an AirfRANS dataset already looks extracted under ``root``.
+
+    Conservative: only returns True when the canonical extracted ``Dataset``
+    folder (or ``manifest.json``) is present and non-empty, so a false positive
+    cannot skip a genuinely-needed download.
+    """
+    dataset_dir = os.path.join(root, "Dataset")
+    if os.path.isdir(dataset_dir) and os.listdir(dataset_dir):
+        return True
+    return os.path.isfile(os.path.join(root, "manifest.json"))
+
+
+def download_airfrans(root: str = "data", force: bool = False) -> str:
+    """Download + unzip the AirfRANS dataset under ``root`` (idempotent).
+
+    Skips the (multi-GB) download when the dataset is already extracted under
+    ``root`` unless ``force=True``. Returns ``root``.
+    """
     af = _require_airfrans()
     os.makedirs(root, exist_ok=True)
+    if not force and _airfrans_present(root):
+        return root
     af.dataset.download(root=root, unzip=True)
     return root
 
