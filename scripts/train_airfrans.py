@@ -53,6 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--bc-weight", type=float, default=0.1)
     p.add_argument("--corrector-epochs", type=int, default=20)
     p.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
+    p.add_argument("--amp", action="store_true", help="CUDA mixed precision (bf16/fp16)")
     p.add_argument("--log-every", type=int, default=50)
     p.add_argument("--out", default="checkpoints/airfrans.pt")
     return p
@@ -74,6 +75,7 @@ def config_from_args(args) -> Config:
     cfg.train.physics_weight = args.physics_weight
     cfg.train.bc_weight = args.bc_weight
     cfg.train.device = args.device
+    cfg.train.amp = args.amp
     cfg.train.log_every = args.log_every
     return cfg
 

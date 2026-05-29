@@ -121,6 +121,21 @@ class Trainer:
         total_steps = max(len(train_loader) * max(tc.epochs, 1), 1)
         sched = WarmupCosineScheduler(opt, total_steps, tc.lr, warmup_frac=0.05)
 
+        # Mixed precision (CUDA only). bfloat16 on Ampere+ (no scaler needed),
+        # otherwise float16 with gradient scaling. The FNO spectral conv forces
+        # float32 internally, so the FFT/complex math stays safe under autocast.
+        use_amp = bool(tc.amp) and self.device.type == "cuda"
+        amp_dtype = (
+            torch.bfloat16
+            if (use_amp and torch.cuda.is_bf16_supported())
+            else torch.float16
+        )
+        scaler = torch.amp.GradScaler(
+            "cuda", enabled=(use_amp and amp_dtype == torch.float16)
+        )
+        if use_amp:
+            print(f"[train] AMP enabled (dtype={'bfloat16' if amp_dtype == torch.bfloat16 else 'float16'})")
+
         history: dict[str, list] = {
             "train_loss": [], "val_loss": [],
             "train_data": [], "train_physics": [], "train_bc": [],
@@ -138,20 +153,25 @@ class Trainer:
 
                 sched.step()
                 opt.zero_grad(set_to_none=True)
-                pred = self.model(inp)
-                loss, parts = self.loss_fn(pred, target, inp, mask)
+                # Autocast only the (expensive) forward; the physics-aware loss
+                # is computed in float32 for numerical stability.
+                with torch.autocast(device_type=self.device.type, dtype=amp_dtype, enabled=use_amp):
+                    pred = self.model(inp)
+                loss, parts = self.loss_fn(pred.float(), target, inp, mask)
 
                 if not torch.isfinite(loss):
                     # Skip a pathological batch rather than poisoning the weights.
                     global_step += 1
                     continue
 
-                loss.backward()
+                scaler.scale(loss).backward()
                 if tc.grad_clip and tc.grad_clip > 0:
+                    scaler.unscale_(opt)
                     torch.nn.utils.clip_grad_norm_(
                         self.model.parameters(), tc.grad_clip
                     )
-                opt.step()
+                scaler.step(opt)
+                scaler.update()
 
                 for k in agg:
                     agg[k] += parts[k]
