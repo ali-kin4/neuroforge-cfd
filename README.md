@@ -1,0 +1,146 @@
+<div align="center">
+
+# 🌀 NeuroForge CFD
+
+**A self-correcting, geometry-native AI CFD engine.**
+
+*Predict flow fields directly from geometry + boundary conditions — then verify the
+physics, estimate uncertainty, and iteratively self-correct, calling classical CFD
+only where it's actually needed.*
+
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Status: Alpha](https://img.shields.io/badge/status-alpha-orange)]()
+
+</div>
+
+---
+
+## Why NeuroForge is different
+
+Most AI-for-CFD systems are **one-shot surrogates**: geometry goes in, a flow
+field comes out, and you have no idea whether to trust it. NeuroForge treats AI
+prediction like a *solver*, not a *guess*:
+
+> **Predict → check physics residuals → estimate uncertainty → correct the
+> unreliable regions → repeat.** Fall back to classical CFD *only* where the
+> model says it can't be trusted.
+
+This closed loop — which we call **Neural Residual Iteration** — is the core
+contribution. A classical solver iterates until its residuals drop; NeuroForge
+does the same, but with a learned, residual-conditioned correction operator
+instead of a linear solve, over *unseen* geometries.
+
+```
+   CAD / STL / airfoil              ┌─────────────────────────────────────────┐
+   + boundary conditions  ───▶      │  geometry-native encoding (SDF + masks)  │
+                                     └────────────────────┬────────────────────┘
+                                                          ▼
+                          ┌───────────────────────────────────────────────┐
+                          │   neural operator backbone (FNO / Transolver)  │  ◀─┐
+                          └───────────────────────┬───────────────────────┘    │
+                                                  ▼                             │
+                          ┌───────────────────────────────────────────────┐    │
+                          │  physics check:  ∇·u,  momentum, BC violation  │    │  Neural
+                          │  uncertainty (ensemble / MC-dropout)           │    │ Residual
+                          │  ➜  TRUST MAP  (🟢 reliable │🟡│ 🔴 fix)        │    │Iteration
+                          └───────────────────────┬───────────────────────┘    │
+                                                  ▼                             │
+                          ┌───────────────────────────────────────────────┐    │
+                          │  local correction net  (trust-gated Δ-field)  │ ───┘
+                          └───────────────────────┬───────────────────────┘
+                                                  ▼   (only if still red)
+                          ┌───────────────────────────────────────────────┐
+                          │  optional classical CFD patch (OpenFOAM/SU2)   │
+                          └───────────────────────┬───────────────────────┘
+                                                  ▼
+        flow field · pressure · wall shear · Cl/Cd · uncertainty & residual maps
+```
+
+## Outputs
+
+pressure & velocity fields · wall shear stress · lift/drag coefficients · flow
+separation indicators · **uncertainty heatmap** · **physics-residual map** ·
+**trust map** · per-iteration convergence history.
+
+## Install
+
+```bash
+git clone <this-repo> && cd CFD
+pip install -e .            # core (numpy, scipy, torch, matplotlib)
+pip install -e ".[all]"     # + airfrans data, pyvista, streamlit app, dev tools
+```
+
+## 60-second quickstart (no GPU, no downloads)
+
+```python
+import neuroforge as nf
+
+# A NACA 2412 at 5° AoA, Re = 3e6.
+case = nf.FlowCase.from_airfoil("naca2412", aoa=5, reynolds=3e6, u_inf=30.0, resolution=128)
+
+# A ready-to-go engine (trains a tiny model on synthetic data the first time).
+engine = nf.NeuroForgeEngine.pretrained()
+
+result = engine.solve(case)                 # predict → check → self-correct
+print(result.summary())                     # {'cl':..., 'cd':..., 'residual_norm':..., ...}
+result.save_report("report.html")           # field + residual + trust + Cp + convergence
+```
+
+Or from the command line:
+
+```bash
+neuroforge demo                              # end-to-end, writes a report
+neuroforge predict --airfoil naca0012 --aoa 8 --re 1e6 --report out.html
+neuroforge benchmark                         # FNO vs U-Net vs DeepONet vs Transolver-lite
+neuroforge info
+```
+
+## First application: external aerodynamics of 2-D airfoils
+
+We start narrow on purpose. Benchmarks/datasets:
+
+| Dataset | Use |
+|---|---|
+| **synthetic** (bundled) | runs instantly, zero downloads — potential-flow + viscous-wake pseudo-RANS |
+| [**AirfRANS**](https://airfrans.readthedocs.io) | 1000 incompressible RANS sims, NACA 4/5-digit, Re 2–6M, AoA −5°→15° |
+
+Then: arbitrary 2-D bluff bodies → 3-D vehicle-like geometries (AhmedML,
+DrivAerML) in later stages — see [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+## Project layout
+
+```
+src/neuroforge/
+  core/        # frozen data contracts: FlowCase, FlowField, Diagnostics, Config
+  geometry/    # NACA/STL → SDF, masks, network encoding
+  data/        # synthetic pseudo-RANS generator + AirfRANS loader + datamodule
+  models/      # FNO, Geo-FNO, physics-attention transformer, U-Net/DeepONet baselines,
+               #   local correction net, deep-ensemble / MC-dropout UQ
+  physics/     # differentiable residuals (continuity/momentum/BC), metrics, trust map
+  solver/      # NeuroForgeEngine + Neural Residual Iteration + classical fallback
+  train/       # physics-informed training loop & composite loss
+  viz/         # field / residual / trust / Cp / convergence plots + HTML report
+  cli.py       # `neuroforge` CLI ;  app/  Streamlit UI
+docs/paper/    # research paper draft
+```
+
+## The thesis
+
+> NeuroForge CFD introduces an AI-first, self-correcting CFD workflow that replaces
+> full-domain iterative simulation during early design by combining geometry-aware
+> neural operators, physics-residual validation, uncertainty estimation, and local
+> adaptive correction.
+
+**AI-first CFD with physics-verified confidence** — not "we replaced CFD."
+
+## Citing / related work
+
+Builds on ideas from DoMINO (NVIDIA, arXiv:2501.13350), Transolver / Transolver++
+(ICML 2024 / arXiv:2502.02414), Geo-FNO (arXiv:2207.05209), AirfRANS (NeurIPS 2022),
+residual-based error correctors (arXiv:2306.12047), and calibration-aware UQ for
+neural PDE surrogates. See [`docs/paper/neuroforge_cfd.md`](docs/paper/neuroforge_cfd.md).
+
+## License
+
+MIT © 2026 Kasra (Ali) Ghanavati
