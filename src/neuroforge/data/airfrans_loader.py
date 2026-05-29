@@ -57,17 +57,23 @@ def _require_airfrans():
         ) from exc
 
 
-def _airfrans_present(root: str) -> bool:
-    """True if an AirfRANS dataset already looks extracted under ``root``.
+def _resolve_data_root(root: str) -> str | None:
+    """Directory that actually contains ``manifest.json``.
 
-    Conservative: only returns True when the canonical extracted ``Dataset``
-    folder (or ``manifest.json``) is present and non-empty, so a false positive
-    cannot skip a genuinely-needed download.
+    ``af.dataset.load`` reads ``<root>/manifest.json`` plus the simulation
+    folders. ``af.dataset.download`` unzips ``Dataset.zip`` into a ``Dataset/``
+    subfolder, so the manifest usually lives one level down. We accept either
+    layout and return whichever directory holds the manifest (or ``None``).
     """
-    dataset_dir = os.path.join(root, "Dataset")
-    if os.path.isdir(dataset_dir) and os.listdir(dataset_dir):
-        return True
-    return os.path.isfile(os.path.join(root, "manifest.json"))
+    for cand in (root, os.path.join(root, "Dataset")):
+        if os.path.isfile(os.path.join(cand, "manifest.json")):
+            return cand
+    return None
+
+
+def _airfrans_present(root: str) -> bool:
+    """True if an extracted AirfRANS dataset (with manifest) exists under ``root``."""
+    return _resolve_data_root(root) is not None
 
 
 def download_airfrans(root: str = "data", force: bool = False) -> str:
@@ -228,7 +234,15 @@ def load_airfrans(
         download_airfrans(root)
 
     af = _require_airfrans()
-    dataset, names = af.dataset.load(root=root, task=task, train=train)
+    # af.dataset.load wants the directory that holds manifest.json — which is
+    # usually <root>/Dataset after the zip is extracted, not <root> itself.
+    data_root = _resolve_data_root(root)
+    if data_root is None:
+        raise FileNotFoundError(
+            f"AirfRANS manifest.json not found under '{root}' or '{root}/Dataset'. "
+            "Pass download=True, or run download_airfrans(root, force=True)."
+        )
+    dataset, names = af.dataset.load(root=data_root, task=task, train=train)
     n = len(names) if limit is None else min(limit, len(names))
 
     iterator = range(n)
