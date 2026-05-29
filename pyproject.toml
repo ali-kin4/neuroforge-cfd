@@ -42,8 +42,8 @@ all = ["airfrans>=0.1.1", "pyvista>=0.43", "streamlit>=1.30", "plotly>=5.18", "p
 neuroforge = "neuroforge.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/kghanavati/neuroforge-cfd"
-Repository = "https://github.com/kghanavati/neuroforge-cfd"
+Homepage = "https://github.com/ali-kin4/neuroforge-cfd"
+Repository = "https://github.com/ali-kin4/neuroforge-cfd"
 
 [tool.setuptools.packages.find]
 where = ["src"]
