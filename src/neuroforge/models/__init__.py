@@ -26,13 +26,13 @@ __all__ = [
 # --- concrete implementations (registered on import) ---------------------- #
 # Imported lazily-tolerant: a partially built tree should still expose the ABCs.
 try:  # pragma: no cover - import wiring
+    from .correction import LocalCorrectionNet  # noqa: F401
+    from .deeponet import DeepONet  # noqa: F401
+    from .ensemble import DeepEnsemble, MCDropoutUQ  # noqa: F401
     from .fno import FNO2d  # noqa: F401
     from .geo_fno import GeoFNO  # noqa: F401
     from .transformer import PhysicsTransformer  # noqa: F401
     from .unet import UNet  # noqa: F401
-    from .deeponet import DeepONet  # noqa: F401
-    from .correction import LocalCorrectionNet  # noqa: F401
-    from .ensemble import DeepEnsemble, MCDropoutUQ  # noqa: F401
 
     __all__ += [
         "FNO2d",

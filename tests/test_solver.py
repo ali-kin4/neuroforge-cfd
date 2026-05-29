@@ -53,7 +53,7 @@ def test_residual_history_non_increasing(trained_engine):
     result = trained_engine.solve(case, max_iters=5)
     res = [h["residual_norm"] for h in result.history]
     assert len(res) >= 1
-    for prev, nxt in zip(res, res[1:]):
+    for prev, nxt in zip(res, res[1:], strict=False):
         assert nxt <= prev + _RES_TOL, f"residual increased: {prev} -> {nxt}"
 
 
@@ -71,7 +71,7 @@ def test_neural_residual_iteration_direct(trained_engine):
     assert isinstance(history, list) and len(history) >= 1
     assert history[0]["iter"] == 0
     res = [h["residual_norm"] for h in history]
-    for prev, nxt in zip(res, res[1:]):
+    for prev, nxt in zip(res, res[1:], strict=False):
         assert nxt <= prev + _RES_TOL
 
 

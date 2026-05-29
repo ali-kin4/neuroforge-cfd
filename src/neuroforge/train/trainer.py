@@ -18,8 +18,7 @@ import torch
 
 from neuroforge.core.config import Config, ModelConfig
 from neuroforge.data.datamodule import Normalizer
-from neuroforge.models.base import NeuralSolver, build_model
-from neuroforge.models.base import CorrectionNetwork
+from neuroforge.models.base import CorrectionNetwork, NeuralSolver, build_model
 
 from .losses import CompositeLoss
 from .schedule import WarmupCosineScheduler

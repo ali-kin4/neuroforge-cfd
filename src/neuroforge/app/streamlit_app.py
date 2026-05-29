@@ -103,7 +103,7 @@ def main() -> None:
     # ---- Display results -------------------------------------------------- #
     summary = result.summary()
     cols = st.columns(4)
-    for col, key in zip(cols, ("cl", "cd", "residual_norm", "n_iters")):
+    for col, key in zip(cols, ("cl", "cd", "residual_norm", "n_iters"), strict=False):
         if key in summary:
             col.metric(key, f"{summary[key]:.4g}")
 

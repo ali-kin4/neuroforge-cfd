@@ -168,7 +168,6 @@ def _outward_normals(points: np.ndarray) -> np.ndarray:
     centroid (robustness for non-convex sections).
     """
     p = np.asarray(points, dtype=np.float64)
-    n = p.shape[0]
     # Forward/backward edge tangents, averaged per vertex (periodic).
     fwd = np.roll(p, -1, axis=0) - p
     bwd = p - np.roll(p, 1, axis=0)

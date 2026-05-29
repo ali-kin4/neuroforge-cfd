@@ -147,6 +147,17 @@ def signed_distance(geom: Geometry, domain: Domain) -> np.ndarray:
     """
     X, Y = domain.grid()
     pts = np.stack([X.ravel(), Y.ravel()], axis=1).astype(np.float64)
+
+    # Degenerate geometry guard: a loop needs >= 2 points to define an interior.
+    surf = np.asarray(geom.surface_points, dtype=np.float64).reshape(-1, 2)
+    if surf.shape[0] < 2:
+        if surf.shape[0] == 1:
+            d = np.sqrt(((pts - surf[0]) ** 2).sum(axis=1))
+        else:  # no surface at all -> everywhere is fluid, far from any body
+            xmin, xmax, ymin, ymax = domain.bounds
+            d = np.full(pts.shape[0], float(np.hypot(xmax - xmin, ymax - ymin)))
+        return d.reshape(domain.shape).astype(DTYPE)
+
     loop = _closed_loop(geom)
 
     dist = _unsigned_distance(pts, loop)

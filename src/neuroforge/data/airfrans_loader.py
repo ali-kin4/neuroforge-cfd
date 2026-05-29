@@ -76,6 +76,12 @@ def _order_surface_loop(points: np.ndarray) -> np.ndarray:
     n = pts.shape[0]
     if n < 4:
         return pts.astype(DTYPE)
+    # The greedy nearest-neighbour walk is O(n^2); cap dense surfaces by
+    # downsampling first (the walk then re-orders the subset into a loop).
+    _MAX_LOOP = 1500
+    if n > _MAX_LOOP:
+        pts = pts[np.linspace(0, n - 1, _MAX_LOOP).astype(np.int64)]
+        n = pts.shape[0]
     start = int(np.argmax(pts[:, 0]))
     visited = np.zeros(n, dtype=bool)
     order = [start]
@@ -106,7 +112,10 @@ def _sim_to_pair(data: np.ndarray, name: str, resolution: int) -> tuple[FlowCase
 
     # Boundary conditions from the (constant) inlet column.
     uin = u_in[np.isfinite(u_in).all(axis=1)]
-    u_inf_vec = uin.mean(axis=0) if uin.size else u_in[0]
+    u_inf_vec = uin.mean(axis=0) if uin.size else np.array([1.0, 0.0])
+    # Guard against an all-non-finite or zero inlet column (default to unit +x).
+    if not np.all(np.isfinite(u_inf_vec)) or float(np.hypot(*u_inf_vec)) < 1e-9:
+        u_inf_vec = np.array([1.0, 0.0])
     u_inf = float(np.hypot(*u_inf_vec))
     aoa = float(np.degrees(np.arctan2(u_inf_vec[1], u_inf_vec[0])))
     reynolds = float(u_inf * _CHORD / AIRFRANS_NU)

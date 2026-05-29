@@ -118,6 +118,11 @@ def rasterize_point_cloud(
             f"points ({pts.shape[0]}) and values ({vals.shape[0]}) length mismatch"
         )
 
+    # Too few points for a Delaunay triangulation (linear/cubic griddata raises
+    # a QhullError on < 3 points and a ValueError on 0): use the robust scatter.
+    if pts.shape[0] < 4:
+        return _nearest_bin_scatter(pts, vals, domain, fill)
+
     try:
         from scipy.interpolate import griddata  # type: ignore
     except Exception:  # pragma: no cover - exercised only without scipy

@@ -59,6 +59,12 @@ target-version = "py310"
 select = ["E", "F", "I", "W", "UP", "B"]
 ignore = ["E501", "B008"]
 
+[tool.ruff.lint.per-file-ignores]
+# The package __init__ deliberately sets math-library thread caps via env vars
+# BEFORE importing numpy/torch-backed submodules, so module-level imports are
+# intentionally not at the very top.
+"src/neuroforge/__init__.py" = ["E402"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q -m \"not slow\""

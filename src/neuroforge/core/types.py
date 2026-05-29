@@ -190,7 +190,7 @@ class FlowCase:
         resolution: int = 128,
         n_surface: int = 200,
         domain_bounds: tuple[float, float, float, float] = (-1.0, 2.0, -1.5, 1.5),
-    ) -> "FlowCase":
+    ) -> FlowCase:
         """Build a case around a NACA airfoil.
 
         Lazily imports :mod:`neuroforge.geometry.airfoil` to avoid a circular
@@ -264,7 +264,7 @@ class FlowField:
         mask: np.ndarray | None = None,
         sdf: np.ndarray | None = None,
         meta: dict[str, Any] | None = None,
-    ) -> "FlowField":
+    ) -> FlowField:
         """Inverse of :meth:`as_array`. ``arr`` is ``(N_OUT, ny, nx)``."""
         arr = np.asarray(arr, dtype=DTYPE)
         return cls(domain=domain, u=arr[0], v=arr[1], p=arr[2],
@@ -280,7 +280,7 @@ class FlowField:
         )
 
     @classmethod
-    def load(cls, path: str) -> "FlowField":
+    def load(cls, path: str) -> FlowField:
         d = np.load(path, allow_pickle=False)
         dom = Domain(bounds=tuple(float(b) for b in d["bounds"]),
                      nx=int(d["nx"]), ny=int(d["ny"]))

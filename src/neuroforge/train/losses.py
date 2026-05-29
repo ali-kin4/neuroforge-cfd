@@ -20,7 +20,6 @@ training on a non-default domain).
 from __future__ import annotations
 
 import torch
-import torch.nn.functional as F
 
 from neuroforge.core.config import Config
 from neuroforge.core.types import Domain

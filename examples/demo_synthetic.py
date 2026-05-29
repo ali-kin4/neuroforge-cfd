@@ -21,8 +21,8 @@ def main() -> None:
     from neuroforge.core.config import Config
     from neuroforge.data.datamodule import build_dataloaders
     from neuroforge.models.base import build_model
-    from neuroforge.solver.engine import NeuroForgeEngine, Predictor
     from neuroforge.physics.residuals import PhysicsChecker
+    from neuroforge.solver.engine import NeuroForgeEngine, Predictor
     from neuroforge.train.trainer import Trainer
 
     # 1) Configure a tiny, CPU-friendly run on synthetic data.

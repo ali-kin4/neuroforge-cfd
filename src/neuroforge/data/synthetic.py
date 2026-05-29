@@ -27,13 +27,9 @@ import numpy as np
 
 from neuroforge.core.types import (
     DTYPE,
-    BoundaryConditions,
-    Domain,
     FlowCase,
     FlowField,
-    FluidProperties,
 )
-from neuroforge.geometry.airfoil import naca_airfoil
 from neuroforge.geometry.sdf import signed_distance, solid_mask
 
 __all__ = ["SyntheticRANS"]
@@ -189,7 +185,6 @@ class SyntheticRANS:
         u_mag = float(np.hypot(u_inf, v_inf)) + 1e-12
         alpha = np.arctan2(v_inf, u_inf)
         # Estimate zero-lift angle from max camber (rough, from the meta data).
-        m = float(geom.meta.get("thickness", 0.0))  # placeholder if absent
         # Camber proxy: signed mean of y on the loop (positive => cambered up).
         ys = np.asarray(geom.surface_points, dtype=np.float64)[:, 1]
         camber_proxy = float(np.mean(ys))
@@ -320,7 +315,6 @@ class SyntheticRANS:
         v_visc = v * wall_ramp
 
         # --- Wake deficit: Gaussian transverse profile aligned with freestream.
-        te_x, _ = geom.bounding_box()[1], 0.0
         te_x = geom.bounding_box()[1]
         ys = np.asarray(geom.surface_points, dtype=np.float64)[:, 1]
         te_y = float(np.mean(ys))

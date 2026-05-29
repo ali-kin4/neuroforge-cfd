@@ -15,7 +15,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 
 from neuroforge.core.config import DataConfig
-from neuroforge.core.types import DTYPE, N_IN, N_OUT, FlowCase, FlowField
+from neuroforge.core.types import DTYPE, FlowCase, FlowField
 from neuroforge.geometry.encode import encode_case
 
 __all__ = ["Normalizer", "FlowDataset", "collate_flow", "build_dataloaders"]
@@ -49,7 +49,7 @@ class Normalizer:
         self.std_out = None if std_out is None else np.asarray(std_out, DTYPE)
 
     # -- fitting ---------------------------------------------------------- #
-    def fit(self, inputs: np.ndarray, outputs: np.ndarray) -> "Normalizer":
+    def fit(self, inputs: np.ndarray, outputs: np.ndarray) -> Normalizer:
         """Fit statistics from stacked ``(N, N_IN, H, W)`` / ``(N, N_OUT, H, W)`` arrays."""
         inputs = np.asarray(inputs, np.float64)
         outputs = np.asarray(outputs, np.float64)
@@ -93,7 +93,7 @@ class Normalizer:
         }
 
     @classmethod
-    def from_state_dict(cls, d: dict) -> "Normalizer":
+    def from_state_dict(cls, d: dict) -> Normalizer:
         def arr(v):
             return None if v is None else np.asarray(v, DTYPE)
 

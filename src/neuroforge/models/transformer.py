@@ -170,7 +170,7 @@ class PhysicsTransformer(NeuralSolver):
 
         # Flatten the grid to tokens: (B, N, width) with N = H * W.
         tokens = feat.flatten(2).transpose(1, 2)
-        for attn, ffn in zip(self.attn_blocks, self.ffn_blocks):
+        for attn, ffn in zip(self.attn_blocks, self.ffn_blocks, strict=False):
             tokens = attn(tokens)
             tokens = ffn(tokens)
         tokens = self.out_norm(tokens)
