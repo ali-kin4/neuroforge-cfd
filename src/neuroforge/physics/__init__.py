@@ -1,0 +1,71 @@
+"""Physics layer: finite-difference operators, RANS residuals, metrics, trust.
+
+This package is the *verifier* that makes NeuroForge CFD trustworthy. It turns a
+predicted :class:`~neuroforge.core.types.FlowField` into physics residuals,
+engineering metrics, and a per-cell trust map, and provides a differentiable
+residual for the physics-informed training loss.
+
+Public API
+----------
+operators
+    :func:`ddx`, :func:`ddy`, :func:`laplacian`, :func:`divergence`,
+    :func:`gradient`, plus optional :func:`spectral_ddx` / :func:`spectral_ddy`.
+residuals
+    :func:`continuity_residual`, :func:`momentum_residual`,
+    :func:`bc_violation`, :class:`PhysicsChecker`, :func:`physics_residual_torch`.
+metrics
+    :func:`pressure_coefficient`, :func:`force_coefficients`,
+    :func:`wall_shear_stress`, :func:`field_errors`.
+trust
+    :func:`trust_map`.
+"""
+
+from __future__ import annotations
+
+from .metrics import (
+    field_errors,
+    force_coefficients,
+    pressure_coefficient,
+    wall_shear_stress,
+)
+from .operators import (
+    ddx,
+    ddy,
+    divergence,
+    gradient,
+    laplacian,
+    spectral_ddx,
+    spectral_ddy,
+)
+from .residuals import (
+    PhysicsChecker,
+    bc_violation,
+    continuity_residual,
+    momentum_residual,
+    physics_residual_torch,
+)
+from .trust import trust_map
+
+__all__ = [
+    # operators
+    "ddx",
+    "ddy",
+    "laplacian",
+    "divergence",
+    "gradient",
+    "spectral_ddx",
+    "spectral_ddy",
+    # residuals
+    "continuity_residual",
+    "momentum_residual",
+    "bc_violation",
+    "PhysicsChecker",
+    "physics_residual_torch",
+    # metrics
+    "pressure_coefficient",
+    "force_coefficients",
+    "wall_shear_stress",
+    "field_errors",
+    # trust
+    "trust_map",
+]
