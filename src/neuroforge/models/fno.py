@@ -79,34 +79,44 @@ class SpectralConv2d(nn.Module):
         return torch.einsum("bixy,ioxy->boxy", inp, weight)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Apply the spectral convolution to ``(B, in_channels, H, W)``."""
-        batch, _, height, width = x.shape
+        """Apply the spectral convolution to ``(B, in_channels, H, W)``.
 
-        # Real FFT: width axis becomes (W // 2 + 1) one-sided frequencies.
-        x_ft = torch.fft.rfft2(x, norm="ortho")
-        w_half = x_ft.shape[-1]
+        The FFT and the complex (``cfloat``) channel-mixing are run in float32
+        with autocast disabled: ``torch.fft`` and complex math do not support
+        autocast's half precision, so under AMP we cast in to float32 here and
+        cast the result back to the incoming dtype. When AMP is off this is a
+        no-op (the input is already float32).
+        """
+        in_dtype = x.dtype
+        with torch.autocast(device_type=x.device.type, enabled=False):
+            x = x.float()
+            batch, _, height, width = x.shape
 
-        # Clamp modes to what this resolution can actually provide.
-        m1 = min(self.modes1, height // 2)
-        m1 = max(m1, 1)
-        m2 = min(self.modes2, w_half)
-        m2 = max(m2, 1)
+            # Real FFT: width axis becomes (W // 2 + 1) one-sided frequencies.
+            x_ft = torch.fft.rfft2(x, norm="ortho")
+            w_half = x_ft.shape[-1]
 
-        out_ft = torch.zeros(
-            batch, self.out_channels, height, w_half, dtype=torch.cfloat, device=x.device
-        )
-        # Low positive frequencies (top-left corner of the spectrum).
-        out_ft[:, :, :m1, :m2] = self._compl_mul2d(
-            x_ft[:, :, :m1, :m2], self.weight1[:, :, :m1, :m2]
-        )
-        # Low negative frequencies along the first axis (bottom-left corner).
-        out_ft[:, :, -m1:, :m2] = self._compl_mul2d(
-            x_ft[:, :, -m1:, :m2], self.weight2[:, :, :m1, :m2]
-        )
+            # Clamp modes to what this resolution can actually provide.
+            m1 = min(self.modes1, height // 2)
+            m1 = max(m1, 1)
+            m2 = min(self.modes2, w_half)
+            m2 = max(m2, 1)
 
-        # Inverse real FFT back to the original spatial size.
-        out = torch.fft.irfft2(out_ft, s=(height, width), norm="ortho")
-        return out
+            out_ft = torch.zeros(
+                batch, self.out_channels, height, w_half, dtype=torch.cfloat, device=x.device
+            )
+            # Low positive frequencies (top-left corner of the spectrum).
+            out_ft[:, :, :m1, :m2] = self._compl_mul2d(
+                x_ft[:, :, :m1, :m2], self.weight1[:, :, :m1, :m2]
+            )
+            # Low negative frequencies along the first axis (bottom-left corner).
+            out_ft[:, :, -m1:, :m2] = self._compl_mul2d(
+                x_ft[:, :, -m1:, :m2], self.weight2[:, :, :m1, :m2]
+            )
+
+            # Inverse real FFT back to the original spatial size.
+            out = torch.fft.irfft2(out_ft, s=(height, width), norm="ortho")
+        return out.to(in_dtype)
 
 
 @register_model("fno")
