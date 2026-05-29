@@ -1,0 +1,45 @@
+# NeuroForge CFD — AirfRANS training configuration.
+# Use with:  neuroforge train --config configs/airfrans.yaml
+# or load in Python:  Config.from_yaml("configs/airfrans.yaml")
+#
+# Tuned for a single Colab GPU (T4/L4/A100). Scale width/modes/epochs up on
+# bigger GPUs; drop batch_size if you hit out-of-memory.
+
+seed: 0
+
+data:
+  source: airfrans
+  root: data                 # AirfRANS download/extract location
+  task: scarce               # full | scarce | reynolds | aoa
+  resolution: 128            # rasterisation grid (must match across train/val)
+  n_train: 200               # cap sims used for training (full split -> 800)
+  n_val: 100                 # cap sims used for validation (full split -> 200)
+  batch_size: 8
+  num_workers: 2
+  normalize: true
+  cache_dir: data/cache      # cached rasterised pairs (reused across sessions)
+
+model:
+  name: fno                  # fno | geo_fno | transformer | unet | deeponet
+  width: 48
+  n_layers: 4
+  modes: 20
+  dropout: 0.0
+
+train:
+  epochs: 80
+  lr: 1.0e-3
+  weight_decay: 1.0e-5
+  physics_weight: 0.1        # weight on the PDE-residual loss term
+  bc_weight: 0.1             # weight on the no-slip wall penalty
+  grad_clip: 1.0
+  device: auto               # auto -> CUDA if available, else CPU
+  ckpt_dir: checkpoints
+  log_every: 50
+
+correction:
+  enabled: true
+  max_iters: 5
+  residual_tol: 1.0e-3
+  gate_by_trust: true
+  step_size: 1.0
