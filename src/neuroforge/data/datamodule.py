@@ -196,10 +196,12 @@ def _load_pairs(cfg: DataConfig) -> tuple[list, list]:
         train = load_airfrans(
             root=cfg.root, task=cfg.task, train=True,
             resolution=cfg.resolution, limit=cfg.n_train, cache_dir=cfg.cache_dir,
+            download=cfg.download,
         )
         val = load_airfrans(
             root=cfg.root, task=cfg.task, train=False,
             resolution=cfg.resolution, limit=cfg.n_val, cache_dir=cfg.cache_dir,
+            download=cfg.download,
         )
         return train, val
 
