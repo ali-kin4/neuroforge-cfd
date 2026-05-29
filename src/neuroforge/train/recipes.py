@@ -109,12 +109,10 @@ def train_recipe(
         ``{history, corrector_history, val_errors, n_train, n_val, device,
         n_params, checkpoint, model, normalizer, corrector, trainer}``.
     """
+    # Auto-download AirfRANS lazily, only on a cache miss (so a session that
+    # already has the rasterised cache never re-fetches the multi-GB dataset).
     if cfg.data.source == "airfrans" and download:
-        from neuroforge.data.airfrans_loader import download_airfrans
-
-        if verbose:
-            print(f"[recipe] downloading AirfRANS into {cfg.data.root} ...")
-        download_airfrans(cfg.data.root)
+        cfg.data.download = True
 
     if nu is None:
         nu = _AIRFRANS_NU if cfg.data.source == "airfrans" else _DEFAULT_NU

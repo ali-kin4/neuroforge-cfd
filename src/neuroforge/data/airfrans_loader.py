@@ -190,6 +190,7 @@ def load_airfrans(
     limit: int | None = None,
     cache_dir: str | None = None,
     progress: bool = True,
+    download: bool = False,
 ) -> list[tuple[FlowCase, FlowField]]:
     """Load AirfRANS simulations as ``(FlowCase, FlowField)`` pairs.
 
@@ -220,6 +221,11 @@ def load_airfrans(
 
             with open(cpath, "rb") as fh:
                 return pickle.load(fh)
+
+    # Cache miss: we need the raw dataset. Optionally fetch it (idempotent) so a
+    # fresh session with no local copy doesn't fail with a missing manifest.json.
+    if download:
+        download_airfrans(root)
 
     af = _require_airfrans()
     dataset, names = af.dataset.load(root=root, task=task, train=train)
