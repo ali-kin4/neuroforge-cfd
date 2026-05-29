@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.so
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Data & artifacts (large)
+data/raw/
+data/cache/
+*.zip
+checkpoints/*.pt
+checkpoints/*.ckpt
+runs/
+outputs/
+reports/*.html
+reports/*.png
+*.vtk
+*.vtu
+
+# Keep small bundled demo assets
+!assets/**
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
