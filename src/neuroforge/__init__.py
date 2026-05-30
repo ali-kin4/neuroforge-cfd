@@ -68,6 +68,7 @@ __version__ = "0.1.0"
 
 # Names resolved lazily: attribute -> "submodule:qualname".
 _LAZY: dict[str, str] = {
+    "NeuroForge": "neuroforge.api:NeuroForge",
     "NeuroForgeEngine": "neuroforge.solver.engine:NeuroForgeEngine",
     "Predictor": "neuroforge.solver.engine:Predictor",
     "NeuralSolver": "neuroforge.models.base:NeuralSolver",
@@ -112,6 +113,7 @@ __all__ = [
     "INPUT_CHANNELS",
     "OUTPUT_CHANNELS",
     # lazy
+    "NeuroForge",
     "NeuroForgeEngine",
     "Predictor",
     "NeuralSolver",
