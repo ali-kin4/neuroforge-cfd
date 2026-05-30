@@ -22,6 +22,13 @@ trust
 
 from __future__ import annotations
 
+from .evaluation import (
+    coefficient_metrics,
+    evaluate_cases,
+    per_channel_mse,
+    residual_error_correlation,
+    surface_pressure_mse,
+)
 from .metrics import (
     field_errors,
     force_coefficients,
@@ -66,6 +73,12 @@ __all__ = [
     "force_coefficients",
     "wall_shear_stress",
     "field_errors",
+    # evaluation (AirfRANS-protocol metrics)
+    "per_channel_mse",
+    "surface_pressure_mse",
+    "coefficient_metrics",
+    "residual_error_correlation",
+    "evaluate_cases",
     # trust
     "trust_map",
 ]
