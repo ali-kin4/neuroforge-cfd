@@ -82,10 +82,11 @@ def download_airfrans(root: str = "data", force: bool = False) -> str:
     Skips the (multi-GB) download when the dataset is already extracted under
     ``root`` unless ``force=True``. Returns ``root``.
     """
-    af = _require_airfrans()
     os.makedirs(root, exist_ok=True)
+    # Skip (and avoid even importing airfrans) when the data is already here.
     if not force and _airfrans_present(root):
         return root
+    af = _require_airfrans()
     af.dataset.download(root=root, unzip=True)
     return root
 
