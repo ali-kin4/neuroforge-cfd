@@ -29,7 +29,7 @@ are invoked only where the model admits it cannot be trusted. The novel
 contribution is not any single block but the **closed self-correction loop plus
 uncertainty-gated fallback as an integrated, reproducible engine**. We describe
 the implemented method and package, a zero-download synthetic Hess–Smith
-source-panel pseudo-RANS data generator that makes the whole pipeline
+source-panel potential-flow smoke-test data generator that makes the whole pipeline
 reproducible without any external dataset, and an AirfRANS loader. We lay out the
 full experimental protocol on the AirfRANS benchmark and report bundled
 synthetic *smoke* results from the benchmark harness; these use deliberately tiny
@@ -63,14 +63,28 @@ confident hallucination. This is the product and research gap NeuroForge targets
 > unreliable regions — invoking a classical solver only where it is genuinely
 > needed — so that the result is fast yet trustworthy?*
 
-> **Thesis (one sentence).** *NeuroForge CFD introduces an AI-first,
-> self-correcting CFD workflow that replaces full-domain iterative simulation
-> during early design by combining geometry-aware neural operators,
-> physics-residual validation, uncertainty estimation, and local adaptive
-> correction.*
+> **Thesis (one sentence).** *NeuroForge CFD explores an AI-first, self-correcting
+> CFD workflow intended as a **ranking-preserving surrogate for early-design
+> exploration**, combining geometry-aware neural operators, physics-residual
+> *monitoring*, uncertainty estimation, and local adaptive correction.*
 
-The framing is deliberately **AI-first CFD with physics-verified confidence**,
-not "we replaced CFD." The classical solver remains the ground truth; NeuroForge
+> **Honest scope & relationship to prior work (please read).** This is an
+> early-stage research scaffold, not a validated solver. (1) *Residual ≠
+> correctness*: a low PDE residual is **necessary but not sufficient** — a smooth
+> near-freestream field can have *zero* residual yet be entirely wrong, so the
+> trust map is a physics-residual **consistency monitor**, not "verified
+> confidence"; whether the residual tracks error is an empirical question we now
+> measure (residual↔error correlation, §Experiments). (2) *The mechanism is not
+> new in isolation*: learned solver-correction with convergence guarantees
+> (Hsieh et al., ICLR 2019), learned fixed points for steady PDEs (FNO-DEQ,
+> NeurIPS 2023), iterative refiners (PDE-Refiner, NeurIPS 2023), and
+> residual-corrector operators (Jha, CMAME 2024) all predate it; NeuroForge's
+> contribution is the *integrated, open, reproducible engine*, not a new operator.
+> (3) *Resolution limits*: a uniform Cartesian grid cannot resolve a Re ≈ 10⁶
+> boundary layer (sub-cell at 128²), so wall quantities are approximate.
+
+The framing is **AI-first CFD with physics-residual-consistency monitoring** (not
+"physics-verified confidence"). The classical solver remains the ground truth; NeuroForge
 amortises the common case and falls back to the classical solver precisely where
 its own diagnostics say it must.
 
@@ -86,7 +100,7 @@ Our contributions are:
    correction and *triggers* a classical-CFD patch on the flagged region only.
 3. **A reproducible, CPU-first open-source package** (`neuroforge-cfd`) with a
    frozen I/O contract, multiple interchangeable backbones, a zero-download
-   synthetic pseudo-RANS data generator, an AirfRANS loader, and a benchmark
+   synthetic potential-flow smoke-test data generator, an AirfRANS loader, and a benchmark
    harness — so every claim in this paper runs on a laptop without a GPU or a
    dataset download.
 
@@ -156,11 +170,13 @@ number of refinement passes.
 **Uncertainty quantification for neural PDE surrogates.** Deep ensembles
 (Lakshminarayanan et al., 2017) and Monte-Carlo dropout (Gal & Ghahramani, 2016)
 are standard epistemic-uncertainty estimators, and recent work studies
-calibration-aware UQ specifically for neural PDE/CFD surrogates (e.g.
-arXiv:2503.03178 and related calibration studies). NeuroForge implements both a
-deep ensemble and MC-dropout and, novelly for this setting, *fuses* the resulting
-uncertainty with the physics residual into a single trust field that **acts** —
-gating corrections and triggering fallback — rather than merely being reported.
+*calibrated* UQ for operator learning, notably conformal prediction (UQNO, Ma et
+al., ICLR 2024, arXiv:2402.01960). NeuroForge currently implements a deep ensemble
+and MC-dropout and *fuses* the resulting (presently **uncalibrated**) uncertainty
+with the physics residual into a single trust field that **acts** — gating
+corrections and triggering fallback. We flag that this fusion is hand-weighted and
+not yet calibrated; conformal calibration of the trust threshold (giving coverage
+guarantees) is the right next step (see Limitations).
 
 **Benchmarks (AirfRANS, AhmedML, DrivAerNet++).** AirfRANS (Bonnet et al.,
 NeurIPS 2022) provides ~1000 incompressible steady RANS simulations over NACA
@@ -366,7 +382,7 @@ in `core/` that every other module imports through stable signatures.
 - `geometry/` — NACA 4/5-digit airfoils and `.dat` loaders, signed-distance and
   solid-mask rasterisation, surface normals, STL/OBJ stubs, and `encode_case`
   (which builds the 7-channel network input).
-- `data/` — the synthetic pseudo-RANS generator, the AirfRANS loader, a
+- `data/` — the synthetic potential-flow smoke-test generator, the AirfRANS loader, a
   point-cloud rasteriser, and a `datamodule` with a per-channel `Normalizer` and
   a `FlowDataset` bridge to training.
 - `models/` — `FNO2d`, `GeoFNO`, a Transolver-style `PhysicsTransformer`, `UNet`
@@ -410,7 +426,7 @@ so gradients flow to the prediction (the term is skipped if it goes non-finite),
 and (iii) a no-slip BC term penalising velocity magnitude inside/at the solid. The
 correction net is trained separately with the backbone frozen, as in Section 3.4.
 
-**Synthetic Hess–Smith pseudo-RANS generator (zero-download reproducibility).**
+**Synthetic Hess–Smith potential-flow smoke-test generator (zero-download reproducibility).**
 `SyntheticRANS` produces RANS-like 2-D airfoil fields *without a real solver*, so
 the entire pipeline runs with no dataset download. It superposes: (1) a
 **potential core** — uniform freestream plus a **Hess–Smith source-panel**
@@ -579,8 +595,13 @@ academically honest *architecture for trustworthy AI-first CFD*. See the
    Uncertainty Estimation using Deep Ensembles.* NeurIPS 2017. arXiv:1612.01474.
 10. Y. Gal, Z. Ghahramani. *Dropout as a Bayesian Approximation: Representing
     Model Uncertainty in Deep Learning (MC-Dropout).* ICML 2016. arXiv:1506.02142.
-11. *Calibration-aware uncertainty quantification for neural PDE / CFD surrogates.*
-    2025. arXiv:2503.03178 (and related: arXiv:2602.11090, arXiv:2603.11052).
+11. Calibrated UQ & closest learned-solver prior art: Z. Ma et al. *Calibrated
+    UQ for Operator Learning via Conformal Prediction (UQNO).* ICLR 2024.
+    arXiv:2402.01960. — J.-T. Hsieh et al. *Learning Neural PDE Solvers with
+    Convergence Guarantees.* ICLR 2019. arXiv:1906.01200. — T. Marwah et al.
+    *Deep Equilibrium Based Neural Operators for Steady-State PDEs (FNO-DEQ).*
+    NeurIPS 2023. arXiv:2312.00234. — PDE-Refiner: P. Lippe et al. NeurIPS 2023.
+    arXiv:2308.05732.
 12. F. Bonnet, J. Mazari, P. Cinnella, P. Gallinari. *AirfRANS: High-Fidelity
     Computational Fluid Dynamics Dataset for Approximating Reynolds-Averaged
     Navier–Stokes Solutions.* NeurIPS 2022 Datasets & Benchmarks. arXiv:2212.07564.
