@@ -190,7 +190,10 @@ top to bottom — the clone URL is already wired to this repo.
   draft (method, related work, Neural Residual Iteration, experimental protocol).
 - [`docs/architecture.md`](docs/architecture.md) — engineer-facing architecture:
   module map, data contracts, `solve()` control flow, extension points.
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — the 3-stage plan and explicit non-goals.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — the 3-stage product plan and non-goals.
+- [`docs/RESEARCH_ROADMAP.md`](docs/RESEARCH_ROADMAP.md) — the **multi-paper research
+  roadmap**: aerodynamics (3-D, compressible, foundation) and an honest
+  **PEM fuel-cell** multiphysics track, with datasets, methods, and venues.
 
 ## Project layout
 
