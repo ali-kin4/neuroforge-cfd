@@ -243,34 +243,61 @@ class Trainer:
     # Stage 2: corrector training (residual-driven)
     # ------------------------------------------------------------------ #
 
+    def _normalised_residual(self, field_norm, inp_phys, dx, dy, nu):
+        """3-channel per-sample-standardised residual map for the corrector input."""
+        from neuroforge.physics.residuals import physics_residual_torch
+
+        field_phys = self.normalizer.denorm_out(field_norm)
+        res = physics_residual_torch(field_phys, inp_phys, dx, dy, nu)
+        residual = torch.cat(
+            [res["continuity"], res["momentum_x"], res["momentum_y"]], dim=1
+        )
+        std = residual.flatten(2).std(dim=2, keepdim=True).clamp_min(1e-6)
+        return residual / std.unsqueeze(-1)
+
     def fit_corrector(
         self,
         train_loader,
         corrector: CorrectionNetwork,
         epochs: int | None = None,
+        unroll: int = 3,
+        noise_std: float = 0.1,
     ) -> dict:
-        """Train ``corrector`` to predict the correction toward the target.
+        """Train ``corrector`` as a **multi-step, noise-robust** residual corrector.
 
-        The (frozen, eval-mode) backbone produces a normalised prediction; we
-        denormalise it, compute the 3-channel physics residual map on the
-        physical field, renormalise the residual, and train the corrector
+        The naive scheme (train one step on backbone errors, deploy iteratively)
+        is distribution-shifted: at inference the corrector is fed its own
+        iterates, which it never saw in training, so it produces useless/harmful
+        steps. Here we instead **unroll** the correction for ``unroll`` steps per
+        batch and inject **decaying Gaussian noise** at each step (a DAgger /
+        PDE-Refiner-style strategy): starting from the frozen backbone
+        prediction, at each step we perturb the current field, compute its
+        residual, and train
 
-            ``corrector(field=pred_norm, residual=residual_norm, geom=inp) -> delta``
+            ``corrector(field, residual, geom) -> delta``
 
-        to match ``target_delta = target_norm - pred_norm`` under a masked MSE.
-        The backbone weights are not updated.
+        to regress ``target - field`` *from the current state*, then advance the
+        field (detached → truncated unrolling). The corrector therefore learns to
+        map its own iterates and off-manifold states toward the target — the
+        property the inference loop actually needs.
+
+        Parameters
+        ----------
+        unroll : int
+            Number of correction steps unrolled per batch (>=1).
+        noise_std : float
+            Std (in normalised units) of the off-manifold perturbation, decayed
+            linearly across the unrolled steps. ``0`` disables noise.
 
         Returns
         -------
         dict
-            History with a per-epoch ``corrector_loss`` list.
+            ``{'corrector_loss': [...]}`` per-epoch.
         """
-        from neuroforge.physics.residuals import physics_residual_torch
-
         epochs = int(epochs) if epochs is not None else self.cfg.train.epochs
+        unroll = max(int(unroll), 1)
         corrector = corrector.to(self.device)
-        loss_fn = self.loss_fn  # for dx/dy + nu
-        dx, dy, nu = loss_fn.dx, loss_fn.dy, self.nu
+        dx, dy, nu = self.loss_fn.dx, self.loss_fn.dy, self.nu
 
         opt = torch.optim.Adam(
             corrector.parameters(),
@@ -278,13 +305,10 @@ class Trainer:
             weight_decay=self.cfg.train.weight_decay,
         )
 
-        # Freeze the backbone.
         self.model.eval()
         for p in self.model.parameters():
             p.requires_grad_(False)
 
-        # Residual normalisation scale: physical advective scale U^2/L is data-
-        # dependent; a robust per-batch std keeps the corrector input ~O(1).
         history: dict[str, list] = {"corrector_loss": []}
 
         for epoch in range(epochs):
@@ -296,30 +320,38 @@ class Trainer:
                 target = batch["target"].to(self.device)
                 mask = batch["mask"].to(self.device)
                 fluid = (mask > 0.5).to(inp.dtype)
+                n_fluid = fluid.sum().clamp_min(1.0)
 
                 with torch.no_grad():
-                    pred_norm = self.model(inp)
-                    pred_phys = self.normalizer.denorm_out(pred_norm)
                     inp_phys = self.normalizer.denorm_in(inp)
-                    res = physics_residual_torch(pred_phys, inp_phys, dx, dy, nu)
-                    residual = torch.cat(
-                        [res["continuity"], res["momentum_x"], res["momentum_y"]],
-                        dim=1,
-                    )
-                    # Per-channel standardisation of the residual maps (stable input).
-                    std = residual.flatten(2).std(dim=2, keepdim=True).clamp_min(1e-6)
-                    residual_norm = residual / std.unsqueeze(-1)
-                    target_delta = (target - pred_norm).detach()
-                    pred_norm_d = pred_norm.detach()
+                    field = self.model(inp).detach()  # start from backbone pred
 
                 opt.zero_grad(set_to_none=True)
-                delta = corrector(field=pred_norm_d, residual=residual_norm, geom=inp)
-                diff2 = (delta - target_delta) ** 2
-                n_fluid = fluid.sum().clamp_min(1.0)
-                loss = (diff2 * fluid).sum() / (n_fluid * delta.shape[1])
+                step_loss = inp.new_tensor(0.0)
+                ok = True
+                for k in range(unroll):
+                    # Off-manifold coverage: decaying noise on the current state.
+                    if noise_std > 0.0:
+                        sigma = noise_std * (1.0 - k / unroll)
+                        state = field + sigma * torch.randn_like(field) * fluid
+                    else:
+                        state = field
+                    state = state.detach()
+                    with torch.no_grad():
+                        residual = self._normalised_residual(state, inp_phys, dx, dy, nu)
+                    delta = corrector(field=state, residual=residual, geom=inp)
+                    target_delta = (target - state).detach()
+                    diff2 = (delta - target_delta) ** 2
+                    lk = (diff2 * fluid).sum() / (n_fluid * delta.shape[1])
+                    if not torch.isfinite(lk):
+                        ok = False
+                        break
+                    step_loss = step_loss + lk
+                    field = (state + delta).detach()  # advance (truncated unroll)
 
-                if not torch.isfinite(loss):
+                if not ok:
                     continue
+                loss = step_loss / unroll
                 loss.backward()
                 if self.cfg.train.grad_clip and self.cfg.train.grad_clip > 0:
                     torch.nn.utils.clip_grad_norm_(
@@ -333,7 +365,6 @@ class Trainer:
             history["corrector_loss"].append(ep_loss)
             print(f"[corrector epoch {epoch}] loss={ep_loss:.4e}")
 
-        # Re-enable grads on the backbone (caller may keep training it).
         for p in self.model.parameters():
             p.requires_grad_(True)
 
