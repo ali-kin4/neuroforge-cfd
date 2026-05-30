@@ -85,23 +85,36 @@ class CompositeLoss:
         fluid = (mask > 0.5).to(pred.dtype)
         n_fluid = fluid.sum().clamp_min(1.0)
 
+        # Per-sample reference speed U from the inlet channels (4,5), for
+        # non-dimensionalising the physics/BC residuals (chord length L = 1).
+        inp_phys = self.normalizer.denorm_in(inp)
+        u_ref = torch.sqrt(
+            inp_phys[:, 4:5] ** 2 + inp_phys[:, 5:6] ** 2
+        ).clamp_min(1e-6)
+        length = 1.0
+
         # 1) Data term: masked MSE over fluid cells (normalised space).
         diff2 = (pred - target) ** 2
         data = (diff2 * fluid).sum() / (n_fluid * pred.shape[1])
 
-        # 2) Physics term: residual on denormalised (physical) fields.
+        # 2) Physics term: residual on denormalised (physical) fields, with each
+        #    component non-dimensionalised (continuity ~ U/L, momentum ~ U^2/L)
+        #    so it is O(1) and comparable to the data term. Previously the raw
+        #    residual was ~1e5 vs data ~1, so `physics_weight` did not mean a
+        #    fractional weight; now it does.
         physics = pred.new_tensor(0.0)
         physics_val = 0.0
         if self.physics_weight > 0.0:
             from neuroforge.physics.residuals import physics_residual_torch
 
             pred_phys = self.normalizer.denorm_out(pred)
-            inp_phys = self.normalizer.denorm_in(inp)
-            # nu_eff = nu + nut(channel 3); residual fn clamps nut to keep >= nu.
             res = physics_residual_torch(
                 pred_phys, inp_phys, self.dx, self.dy, self.nu
             )
-            r = res["continuity"] ** 2 + res["momentum_x"] ** 2 + res["momentum_y"] ** 2
+            cont = res["continuity"] / (u_ref / length)
+            momx = res["momentum_x"] / (u_ref * u_ref / length)
+            momy = res["momentum_y"] / (u_ref * u_ref / length)
+            r = cont ** 2 + momx ** 2 + momy ** 2
             # Residuals are already mask-scoped inside physics_residual_torch.
             phys_term = (r * fluid).sum() / n_fluid
             if torch.isfinite(phys_term):
@@ -109,12 +122,11 @@ class CompositeLoss:
                 physics_val = float(phys_term.detach())
             # else: skip (leave physics at 0) — guards against NaN/inf blow-ups.
 
-        # 3) BC term: penalise velocity magnitude inside/at the solid.
+        # 3) BC term: penalise the (non-dimensional) velocity magnitude in the solid.
         solid = (mask <= 0.5).to(pred.dtype)
         n_solid = solid.sum().clamp_min(1.0)
-        # Denormalise only the velocity channels for a physical no-slip penalty.
         pred_phys_v = self.normalizer.denorm_out(pred)[:, 0:2]
-        vel2 = (pred_phys_v ** 2).sum(dim=1, keepdim=True)  # |U|^2, (B,1,H,W)
+        vel2 = (pred_phys_v ** 2).sum(dim=1, keepdim=True) / (u_ref * u_ref)
         bc = (vel2 * solid).sum() / n_solid
 
         total = data + self.physics_weight * physics + self.bc_weight * bc

@@ -251,10 +251,16 @@ def force_coefficients(field: FlowField, case: FlowCase) -> dict[str, float]:
     # Unit tangent along the (CCW) traversal direction.
     tmid = seg / ds[:, None]
 
-    # Sample kinematic pressure and wall-shear magnitude at the midpoints.
-    p_s = _bilinear_sample(field.p, field.domain, mid)              # kinematic p
+    # Sample pressure / wall shear a small distance OUTWARD along the normal so
+    # the bilinear stencil stays in the fluid. Sampling exactly on the surface
+    # line straddles solid cells (whose pressure is an interior fill), which
+    # collapses the pressure variation and drives Cl -> 0. Offsetting by ~1.5
+    # cells recovers the true near-wall pressure (verified ~10-20x more spread).
+    cell = 0.5 * (field.domain.dx + field.domain.dy)
+    sample_pts = mid + (1.5 * cell) * nmid
+    p_s = _bilinear_sample(field.p, field.domain, sample_pts)        # kinematic p
     tau_field = wall_shear_stress(field, case)
-    tau_s = _bilinear_sample(tau_field, field.domain, mid)          # dimensional
+    tau_s = _bilinear_sample(tau_field, field.domain, sample_pts)    # dimensional
     rho = float(case.fluid.density)
     tau_kin = tau_s / max(rho, _EPS)  # per-density, to match kinematic pressure
 

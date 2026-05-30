@@ -92,36 +92,42 @@ def download_airfrans(root: str = "data", force: bool = False) -> str:
 
 
 def _order_surface_loop(points: np.ndarray) -> np.ndarray:
-    """Order scattered airfoil-surface points into a single CCW loop.
+    """Order scattered airfoil-surface points into a single non-crossing CCW loop.
 
-    Greedy nearest-neighbour walk starting from the trailing edge (max-x point),
-    then oriented counter-clockwise via the signed area. Robust enough for the
-    thin, non-convex airfoil sections in AirfRANS (where angular sorting fails).
+    Splits points into upper/lower surfaces by the sign of their offset from the
+    leading-edge->trailing-edge chord line, orders the upper surface LE->TE and
+    the lower surface TE->LE by streamwise position, then concatenates. This
+    traces one continuous loop even on thin sections where the two surfaces are
+    sub-cell apart — unlike a greedy nearest-neighbour walk, which zig-zags
+    between the surfaces and self-crosses, corrupting the surface integral.
     """
     pts = np.asarray(points, np.float64)
     n = pts.shape[0]
     if n < 4:
         return pts.astype(DTYPE)
-    # The greedy nearest-neighbour walk is O(n^2); cap dense surfaces by
-    # downsampling first (the walk then re-orders the subset into a loop).
-    _MAX_LOOP = 1500
-    if n > _MAX_LOOP:
-        pts = pts[np.linspace(0, n - 1, _MAX_LOOP).astype(np.int64)]
-        n = pts.shape[0]
-    start = int(np.argmax(pts[:, 0]))
-    visited = np.zeros(n, dtype=bool)
-    order = [start]
-    visited[start] = True
-    cur = start
-    for _ in range(n - 1):
-        d2 = np.sum((pts - pts[cur]) ** 2, axis=1)
-        d2[visited] = np.inf
-        nxt = int(np.argmin(d2))
-        order.append(nxt)
-        visited[nxt] = True
-        cur = nxt
-    loop = pts[order]
-    # Orient CCW (positive signed area via the shoelace formula).
+
+    # Chord axis: leading edge (min x) -> trailing edge (max x).
+    le = pts[int(np.argmin(pts[:, 0]))]
+    te = pts[int(np.argmax(pts[:, 0]))]
+    axis = te - le
+    chord = float(np.hypot(*axis))
+    if chord < 1e-12:
+        return pts.astype(DTYPE)
+    axis = axis / chord
+
+    rel = pts - le
+    s = rel @ axis                                        # streamwise position
+    perp = rel[:, 0] * (-axis[1]) + rel[:, 1] * axis[0]   # signed offset (side)
+
+    upper = perp >= 0
+    if upper.any() and (~upper).any():
+        up = pts[upper][np.argsort(s[upper])]            # LE -> TE
+        lo = pts[~upper][np.argsort(-s[~upper])]         # TE -> LE
+        loop = np.vstack([up, lo])
+    else:  # degenerate split -> fall back to streamwise sort
+        loop = pts[np.argsort(s)]
+
+    # Orient counter-clockwise (positive shoelace area).
     area = 0.5 * np.sum(loop[:, 0] * np.roll(loop[:, 1], -1) - np.roll(loop[:, 0], -1) * loop[:, 1])
     if area < 0:
         loop = loop[::-1]

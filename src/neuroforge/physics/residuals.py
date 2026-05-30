@@ -306,6 +306,30 @@ class PhysicsChecker:
         bc = bc.copy()
         bc[solid] = 0.0
 
+        # Also zero residuals on fluid cells immediately adjacent to the solid:
+        # their central-difference stencil reaches into the body (the u=v=0
+        # discontinuity), producing large *spurious* residuals (~10-20x the
+        # bulk) that would otherwise dominate the trust map and the residual
+        # norm. The true near-wall physics there is sub-grid at these
+        # resolutions anyway (see the resolution caveat in the docs).
+        wall_ring = _solid_adjacent_fluid(fluid)
+        cont[wall_ring] = 0.0
+        r_x[wall_ring] = 0.0
+        r_y[wall_ring] = 0.0
+        bc[wall_ring] = 0.0
+
+        # Non-dimensionalise each residual by ITS OWN physical scale (continuity
+        # ~ U/L, momentum ~ U^2/L, BC ~ U) so the combined magnitude is
+        # dimensionless and comparable across cases/Reynolds numbers and the
+        # trust thresholds have a fixed meaning. (Previously the code added raw
+        # U^2/L and U/L scales of *different units* — dimensionally inconsistent.)
+        u_inf = max(float(case.bc.u_inf), 1e-9)
+        length = max(float(case.reference_length()), 1e-9)
+        cont = (cont / (u_inf / length)).astype(DTYPE)
+        r_x = (r_x / (u_inf * u_inf / length)).astype(DTYPE)
+        r_y = (r_y / (u_inf * u_inf / length)).astype(DTYPE)
+        bc = (bc / u_inf).astype(DTYPE)
+
         if uncertainty is None:
             unc = np.zeros(field.shape, dtype=DTYPE)
         else:
@@ -313,7 +337,7 @@ class PhysicsChecker:
             if unc.shape != field.shape:
                 unc = np.zeros(field.shape, dtype=DTYPE)
 
-        # Combined PDE-residual magnitude drives the trust map (BC folded in).
+        # Combined (now dimensionless) PDE-residual magnitude drives the trust map.
         residual_mag = np.sqrt(
             cont.astype(np.float64) ** 2
             + r_x.astype(np.float64) ** 2
@@ -321,24 +345,9 @@ class PhysicsChecker:
             + bc.astype(np.float64) ** 2
         ).astype(DTYPE)
 
-        # Physical reference scale for normalising residuals so the trust
-        # thresholds are absolute, not self-relative. The momentum residual
-        # scales like the advective term U^2 / L; continuity like U / L. We use
-        # the advective scale as the reference and add the continuity scale so a
-        # near-zero residual reads as high trust regardless of the field's own
-        # spread.
-        # CONTRACT-NOTE: PhysicsConfig has no absolute residual-scale field, so
-        # the reference scale is derived here from the case (U_inf, chord). If a
-        # configurable scale is desired, add e.g. `trust_residual_scale` to
-        # PhysicsConfig and thread it through.
-        u_inf = float(case.bc.u_inf)
-        length = max(float(case.reference_length()), 1e-9)
-        residual_scale = (u_inf * u_inf / length) + (u_inf / length)
-        if residual_scale < 1e-12:
-            residual_scale = None  # fall back to percentile self-scaling
-
+        # Residuals are already non-dimensional, so the reference scale is 1.
         trust, trust_class = trust_map(
-            residual_mag, unc, self.cfg, mask=fluid, residual_scale=residual_scale
+            residual_mag, unc, self.cfg, mask=fluid, residual_scale=1.0
         )
         # Inside the solid there is nothing to trust/distrust: mark neutral.
         trust = trust.copy()
