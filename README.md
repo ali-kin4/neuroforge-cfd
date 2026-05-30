@@ -152,20 +152,26 @@ python scripts/train_airfrans.py --download --task scarce \
 # scale up:  --task full --n-train 800 --n-val 200 --width 64 --modes 24 --layers 5 --epochs 150
 ```
 
-Or in Python via the reusable recipe (used by the CLI and the notebook too):
+Or in Python with the clean **`NeuroForge` estimator API** (scikit-learn/Keras
+style — hyper-parameters in the constructor, data in `fit`, everything else one line):
 
 ```python
-from neuroforge.core.config import Config, DataConfig, ModelConfig
-from neuroforge.train import train_recipe
+import neuroforge as nf
 
-cfg = Config()
-cfg.data  = DataConfig(source="airfrans", task="scarce", resolution=128,
-                       n_train=200, n_val=100, cache_dir="data/cache")
-cfg.model = ModelConfig(name="fno", width=48, modes=20, n_layers=4)
-cfg.train.epochs, cfg.train.device = 80, "auto"      # "auto" -> CUDA if available
-result = train_recipe(cfg, download=True, corrector_epochs=20, out="checkpoints/airfrans.pt")
-print(result["val_errors"])                          # rel-L2 for u/v/p/speed
+model = nf.NeuroForge(backbone="fno", width=48, modes=20, corrector="deq", epochs=80)
+model.fit("airfrans", task="scarce", n_train=200, n_val=100, cache_dir="data/cache")
+
+print(model.evaluate())            # AirfRANS metrics: rho_Cd, rho_Cl, per-channel MSE
+print(model.ablate_corrector())    # does the corrector improve accuracy (not just residual)?
+model.calibrate(alpha=0.1)         # conformal-calibrated trust (90% coverage guarantee)
+
+field  = model.predict(case)       # fast one-shot backbone field
+result = model.solve(case)         # full self-correcting solve + diagnostics
+model.save("model.pt")             # ... nf.NeuroForge.load("model.pt")
 ```
+
+(The lower-level `Config` + `train_recipe` + `NeuroForgeEngine` are still there if
+you want full control; `NeuroForge` is just the ergonomic front door.)
 
 ### ▶️ Colab Pro (recommended)
 
