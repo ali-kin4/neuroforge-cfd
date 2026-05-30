@@ -140,6 +140,42 @@ def neural_residual_iteration(
     mask = field.mask if field.mask is not None else np.ones(field.shape, dtype=DTYPE)
     solid = (np.asarray(mask) <= 0.5)
 
+    # Principled path for the DEQ corrector: it converges internally to a unique
+    # fixed point (Banach guarantee) that corrects toward the *data* manifold, so
+    # we apply the converged correction directly and report its convergence —
+    # rather than gating on the physics residual (which need not coincide with
+    # truth, and would reject a correct data-driven step).
+    if type(corrector).__name__ == "DEQCorrector":
+        from neuroforge.geometry.encode import encode_case
+
+        field_t = torch.from_numpy(
+            np.ascontiguousarray(normalizer.norm_out(field.as_array()), DTYPE)
+        )[None]
+        residual_t = _residual_tensor(field, case, predictor)
+        geom_t = torch.from_numpy(
+            np.ascontiguousarray(normalizer.norm_in(encode_case(case)), DTYPE)
+        )[None]
+        with torch.no_grad():
+            delta_norm = corrector(field=field_t, residual=residual_t, geom=geom_t)
+        std_out = normalizer.std_out.reshape(-1, 1, 1).astype(DTYPE)
+        delta_phys = delta_norm[0].cpu().numpy().astype(DTYPE) * std_out
+        delta_phys[:, solid] = 0.0
+        corrected = _apply_delta(field, delta_phys, float(cfg.step_size))
+        diag2 = checker.diagnose(corrected, case, uncertainty=unc)
+        rep = corrector.convergence_report()
+        history.append(
+            {
+                "iter": 1,
+                "residual_norm": diag2.residual_norm(),
+                "max_uncertainty": float(np.max(diag2.uncertainty)) if diag2.uncertainty.size else 0.0,
+                "trust_mean": float(np.mean(diag2.trust)) if diag2.trust.size else 1.0,
+                "deq_iters": rep.get("iters", 0.0),
+                "deq_contraction": rep.get("empirical_contraction", 0.0),
+                "deq_rel_residual": rep.get("rel_residual", 0.0),
+            }
+        )
+        return corrected, history
+
     for it in range(1, int(cfg.max_iters) + 1):
         if cur_norm < cfg.residual_tol:
             break

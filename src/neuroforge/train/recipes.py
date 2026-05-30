@@ -19,7 +19,6 @@ import torch
 from neuroforge.core.config import Config
 from neuroforge.data.datamodule import build_dataloaders
 from neuroforge.models.base import build_model
-from neuroforge.models.correction import LocalCorrectionNet
 from neuroforge.train.trainer import Trainer, _model_kwargs
 
 __all__ = ["train_recipe", "evaluate_fields"]
@@ -129,6 +128,7 @@ def train_recipe(
     *,
     download: bool = False,
     corrector_epochs: int = 5,
+    corrector_type: str = "local",
     corrector_width: int = 32,
     corrector_layers: int = 3,
     ckpt_every: int = 5,
@@ -189,12 +189,21 @@ def train_recipe(
     corrector = None
     corrector_history = None
     if corrector_epochs and corrector_epochs > 0:
-        corrector = LocalCorrectionNet(width=corrector_width, n_layers=corrector_layers)
+        from neuroforge.models import build_corrector
+
+        is_deq = corrector_type.lower() == "deq"
+        corrector = build_corrector(
+            {"type": corrector_type, "width": corrector_width, "n_layers": corrector_layers}
+        )
+        # The DEQ corrector converges internally to its fixed point, so a single
+        # equilibrium solve per batch suffices (unroll=1); the feed-forward
+        # corrector benefits from the unrolled+noise schedule.
+        unroll = 1 if is_deq else 3
         if verbose:
-            print(f"[recipe] training corrector for {corrector_epochs} epochs ...")
+            print(f"[recipe] training {corrector_type} corrector for {corrector_epochs} epochs ...")
         try:
             corrector_history = trainer.fit_corrector(
-                train_loader, corrector, epochs=corrector_epochs
+                train_loader, corrector, epochs=corrector_epochs, unroll=unroll
             )
         except RuntimeError as exc:
             if _is_cuda_oom(exc):

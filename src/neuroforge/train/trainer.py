@@ -392,10 +392,19 @@ class Trainer:
         corr_cfg = None
         if corrector is not None:
             corr_state = corrector.state_dict()
+            is_deq = type(corrector).__name__ == "DEQCorrector"
             corr_cfg = {
+                "type": "deq" if is_deq else "local",
                 "width": int(getattr(corrector, "width", 24)),
                 "n_layers": int(getattr(corrector, "n_layers", 3)),
             }
+            if is_deq:
+                corr_cfg.update(
+                    lipschitz=float(getattr(corrector, "lipschitz", 0.9)),
+                    damping=float(getattr(corrector, "damping", 0.5)),
+                    max_iter=int(getattr(corrector, "max_iter", 25)),
+                    tol=float(getattr(corrector, "tol", 1e-4)),
+                )
 
         ckpt = {
             "model_state": self.model.state_dict(),

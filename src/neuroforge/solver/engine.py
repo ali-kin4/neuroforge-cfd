@@ -142,13 +142,10 @@ class NeuroForgeEngine:
         corrector = None
         ckpt = torch.load(path, map_location="cpu", weights_only=False)
         if ckpt.get("corrector_state") is not None:
-            from neuroforge.models.correction import LocalCorrectionNet
+            from neuroforge.models import build_corrector
 
             cc = ckpt.get("corrector_config") or {}
-            corrector = LocalCorrectionNet(
-                width=int(cc.get("width", 24)),
-                n_layers=int(cc.get("n_layers", 3)),
-            )
+            corrector = build_corrector(cc)
             corrector.load_state_dict(ckpt["corrector_state"])
             corrector.eval()
 
