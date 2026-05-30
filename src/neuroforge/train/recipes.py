@@ -29,6 +29,11 @@ _AIRFRANS_NU = 1.56e-5
 _DEFAULT_NU = 1.5e-5
 
 
+def _is_cuda_oom(exc: BaseException) -> bool:
+    """True if ``exc`` is a CUDA out-of-memory error (so we can advise a fix)."""
+    return isinstance(exc, RuntimeError) and "out of memory" in str(exc).lower()
+
+
 @torch.no_grad()
 def evaluate_fields(model, loader, normalizer, device) -> dict[str, float]:
     """Masked relative-L2 field errors over a loader (physical units).
@@ -82,6 +87,7 @@ def train_recipe(
     corrector_epochs: int = 5,
     corrector_width: int = 32,
     corrector_layers: int = 3,
+    ckpt_every: int = 5,
     out: str | None = None,
     nu: float | None = None,
     verbose: bool = True,
@@ -129,7 +135,21 @@ def train_recipe(
     trainer = Trainer(model, cfg, normalizer, nu=nu)
     if verbose:
         print(f"[recipe] training on {trainer.device} for {cfg.train.epochs} epochs ...")
-    history = trainer.fit(train_loader, val_loader)
+    try:
+        history = trainer.fit(
+            train_loader, val_loader, ckpt_path=out, ckpt_every=ckpt_every
+        )
+    except RuntimeError as exc:
+        if _is_cuda_oom(exc):
+            raise RuntimeError(
+                "CUDA out of memory while training. Lower cfg.data.batch_size (e.g. 4), "
+                "cfg.model.width/modes, or cfg.data.resolution, then re-run. A partial "
+                f"backbone checkpoint may already be saved at {out!r}."
+            ) from exc
+        raise
+
+    if trainer.device.type == "cuda":
+        torch.cuda.empty_cache()
 
     corrector = None
     corrector_history = None
@@ -137,7 +157,19 @@ def train_recipe(
         corrector = LocalCorrectionNet(width=corrector_width, n_layers=corrector_layers)
         if verbose:
             print(f"[recipe] training corrector for {corrector_epochs} epochs ...")
-        corrector_history = trainer.fit_corrector(train_loader, corrector, epochs=corrector_epochs)
+        try:
+            corrector_history = trainer.fit_corrector(
+                train_loader, corrector, epochs=corrector_epochs
+            )
+        except RuntimeError as exc:
+            if _is_cuda_oom(exc):
+                raise RuntimeError(
+                    "CUDA out of memory while training the corrector. Lower "
+                    "corrector_width or cfg.data.batch_size, then re-run."
+                ) from exc
+            raise
+        if trainer.device.type == "cuda":
+            torch.cuda.empty_cache()
 
     if verbose:
         print("[recipe] evaluating field errors on val split ...")

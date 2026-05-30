@@ -210,16 +210,24 @@ def _load_pairs(cfg: DataConfig) -> tuple[list, list]:
 
 def build_dataloaders(cfg: DataConfig) -> tuple[DataLoader, DataLoader, Normalizer]:
     """Create train/val :class:`DataLoader`s and a fitted :class:`Normalizer`."""
+    import gc
+
     train_pairs, val_pairs = _load_pairs(cfg)
 
+    # Build the train dataset ONCE; fit the normaliser from its cached arrays
+    # and attach it (normalisation is applied lazily in __getitem__), instead of
+    # constructing FlowDataset twice (which doubled peak RAM and encode time).
     normalizer = Normalizer()
+    train_ds = FlowDataset(train_pairs, normalizer=None)
     if cfg.normalize:
-        tmp = FlowDataset(train_pairs, normalizer=None)
-        xi, yi = tmp.raw_arrays()
+        xi, yi = train_ds.raw_arrays()
         normalizer.fit(xi, yi)
-
-    train_ds = FlowDataset(train_pairs, normalizer=normalizer if cfg.normalize else None)
+        train_ds.normalizer = normalizer
     val_ds = FlowDataset(val_pairs, normalizer=normalizer if cfg.normalize else None)
+
+    # The datasets now hold their own stacked copies; free the source pairs.
+    del train_pairs, val_pairs
+    gc.collect()
 
     train_loader = DataLoader(
         train_ds, batch_size=cfg.batch_size, shuffle=True,

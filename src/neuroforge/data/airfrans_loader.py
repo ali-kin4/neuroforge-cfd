@@ -258,6 +258,12 @@ def load_airfrans(
     for i in iterator:
         pairs.append(_sim_to_pair(np.asarray(dataset[i]), str(names[i]), resolution))
 
+    # The raw split (all sims' point clouds) can be several GB; release it now
+    # that we have the compact rasterised grids.
+    del dataset, names
+    import gc
+    gc.collect()
+
     if cache_dir is not None:
         import pickle
 

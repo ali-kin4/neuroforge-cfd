@@ -104,8 +104,21 @@ class Trainer:
     # Stage 1: backbone training
     # ------------------------------------------------------------------ #
 
-    def fit(self, train_loader, val_loader) -> dict:
+    def fit(
+        self,
+        train_loader,
+        val_loader,
+        ckpt_path: str | None = None,
+        ckpt_every: int = 0,
+    ) -> dict:
         """Train the backbone for ``cfg.train.epochs`` epochs.
+
+        Parameters
+        ----------
+        ckpt_path : str, optional
+            If given together with ``ckpt_every > 0``, the backbone is saved here
+            every ``ckpt_every`` epochs so a crash/disconnect loses at most that
+            many epochs.
 
         Returns
         -------
@@ -114,6 +127,8 @@ class Trainer:
             per-term breakdown (``train_data``/``train_physics``/``train_bc``).
         """
         tc = self.cfg.train
+        if self.device.type == "cuda":
+            torch.cuda.empty_cache()
         opt = torch.optim.Adam(
             self.model.parameters(), lr=tc.lr, weight_decay=tc.weight_decay
         )
@@ -196,6 +211,12 @@ class Trainer:
                 f"[epoch {epoch}] train_loss={train_loss:.4e} "
                 f"val_loss={val_loss:.4e}"
             )
+
+            if ckpt_path and ckpt_every and (epoch + 1) % ckpt_every == 0:
+                try:
+                    self.save(ckpt_path)
+                except Exception as exc:  # a Drive hiccup must not kill training
+                    print(f"[train] checkpoint save failed ({exc}); continuing")
 
         return history
 
