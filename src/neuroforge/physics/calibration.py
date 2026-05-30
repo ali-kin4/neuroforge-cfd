@@ -56,7 +56,7 @@ class ConformalCalibrator:
         errors: list[np.ndarray],
         sigmas: list[np.ndarray],
         masks: list[np.ndarray] | None = None,
-    ) -> "ConformalCalibrator":
+    ) -> ConformalCalibrator:
         """Fit ``q`` from per-cell error and uncertainty maps over a calib set."""
         masks = masks or [None] * len(errors)
         scores = np.concatenate(
@@ -102,7 +102,7 @@ class ConformalCalibrator:
         return {"alpha": self.alpha, "q": self.q, "fitted": self.fitted}
 
     @classmethod
-    def from_state_dict(cls, d: dict) -> "ConformalCalibrator":
+    def from_state_dict(cls, d: dict) -> ConformalCalibrator:
         c = cls(alpha=float(d.get("alpha", 0.1)))
         c.q = float(d.get("q", 1.0))
         c.fitted = bool(d.get("fitted", True))
