@@ -52,6 +52,14 @@ test, over *unseen* geometries.
 >   Re ≈ 10⁶ boundary layer (≈ sub-cell at 128²), so wall quantities (Cf, and
 >   Cl/Cd from shear) are approximate; body-fitted / point-cloud backbones are on
 >   the roadmap. No large-scale accuracy results are claimed yet.
+>
+> **Update — principled core.** The engine now ships a **contractive
+> Deep-Equilibrium corrector** (`corrector_type='deq'`): the correction is the
+> fixed point of a spectrally-normalised (Lipschitz < 1) operator, so it has a
+> *real* Banach convergence guarantee (measured contraction ≈ 0.5, converges to
+> 10⁻⁵ in ~15 iters), trained with Jacobian-Free Backprop — plus **split-conformal
+> UQ calibration** giving the trust map a coverage guarantee. See
+> [`docs/paper`](docs/paper/neuroforge_cfd.md) §3.1b–c.
 
 ```
    CAD / STL / airfoil              ┌─────────────────────────────────────────┐
