@@ -27,10 +27,31 @@ prediction like a *solver*, not a *guess*:
 > unreliable regions → repeat.** Fall back to classical CFD *only* where the
 > model says it can't be trusted.
 
-This closed loop — which we call **Neural Residual Iteration** — is the core
-contribution. A classical solver iterates until its residuals drop; NeuroForge
-does the same, but with a learned, residual-conditioned correction operator
-instead of a linear solve, over *unseen* geometries.
+This closed loop — which we call **Neural Residual Iteration** — is the organising
+idea. A classical solver iterates until its residuals drop; NeuroForge applies a
+learned, residual-conditioned correction operator with a backtracking acceptance
+test, over *unseen* geometries.
+
+> ### ⚠️ Research status & honest scope (read this)
+> NeuroForge is an **early-stage, open research scaffold**, not a validated solver.
+> Three things to be clear about up front:
+> - **A low PDE residual does *not* prove correctness.** A smooth near-freestream
+>   field can have *zero* residual yet be completely wrong. So the trust map is a
+>   physics-residual **consistency monitor** (necessary, not sufficient) — *not*
+>   "physics-verified confidence." Whether the residual actually tracks error is an
+>   **empirical question** you can now measure directly
+>   (`physics.evaluation.residual_error_correlation`); treat the loop as unproven
+>   until that correlation is shown on real data.
+> - **The mechanism is not new in isolation.** Learned solver-correction with
+>   convergence guarantees (Hsieh et al., ICLR 2019), learned fixed points for
+>   steady PDEs (FNO-DEQ, NeurIPS 2023), iterative refiners (PDE-Refiner), and
+>   residual-corrector operators all predate it. NeuroForge's contribution is the
+>   *integrated, open, reproducible engine* — predict → verify → UQ → correct →
+>   fall back — not a new operator.
+> - **Resolution limits matter.** A uniform Cartesian grid cannot resolve a
+>   Re ≈ 10⁶ boundary layer (≈ sub-cell at 128²), so wall quantities (Cf, and
+>   Cl/Cd from shear) are approximate; body-fitted / point-cloud backbones are on
+>   the roadmap. No large-scale accuracy results are claimed yet.
 
 ```
    CAD / STL / airfoil              ┌─────────────────────────────────────────┐
@@ -104,7 +125,7 @@ We start narrow on purpose. Benchmarks/datasets:
 
 | Dataset | Use |
 |---|---|
-| **synthetic** (bundled) | runs instantly, zero downloads — potential-flow + viscous-wake pseudo-RANS |
+| **synthetic** (bundled) | runs instantly, zero downloads — *potential flow + algebraic boundary layer*; a plumbing **smoke-test substrate only**, not a momentum-consistent RANS solution (do not use for accuracy claims) |
 | [**AirfRANS**](https://airfrans.readthedocs.io) | 1000 incompressible RANS sims, NACA 4/5-digit, Re 2–6M, AoA −5°→15° |
 
 Then: arbitrary 2-D bluff bodies → 3-D vehicle-like geometries (AhmedML,
@@ -163,7 +184,7 @@ top to bottom — the clone URL is already wired to this repo.
 src/neuroforge/
   core/        # frozen data contracts: FlowCase, FlowField, Diagnostics, Config
   geometry/    # NACA/STL → SDF, masks, network encoding
-  data/        # synthetic pseudo-RANS generator + AirfRANS loader + datamodule
+  data/        # synthetic potential-flow smoke generator + AirfRANS loader + datamodule
   models/      # FNO, Geo-FNO, physics-attention transformer, U-Net/DeepONet baselines,
                #   local correction net, deep-ensemble / MC-dropout UQ
   physics/     # differentiable residuals (continuity/momentum/BC), metrics, trust map
@@ -174,21 +195,32 @@ src/neuroforge/
 docs/paper/    # research paper draft
 ```
 
-## The thesis
+## The thesis (scoped honestly)
 
-> NeuroForge CFD introduces an AI-first, self-correcting CFD workflow that replaces
-> full-domain iterative simulation during early design by combining geometry-aware
-> neural operators, physics-residual validation, uncertainty estimation, and local
-> adaptive correction.
+> NeuroForge CFD explores an AI-first, self-correcting CFD workflow that aims to be
+> a **ranking-preserving surrogate for early-design exploration** — combining
+> geometry-aware neural operators, physics-residual *monitoring*, uncertainty
+> estimation, and local adaptive correction. The goal is not to "replace CFD" but
+> to predict fast and flag where to trust the prediction.
 
-**AI-first CFD with physics-verified confidence** — not "we replaced CFD."
+The design-facing success metric is therefore **rank correlation of Cl/Cd across
+candidate geometries** (Spearman ρ — see `physics.evaluation`), the quantity early
+design actually needs, *not* a claim of replacing the solver. Whether the
+self-correction loop improves end accuracy is an open, measurable question
+(corrector-on-vs-off ablation + residual↔error correlation).
 
 ## Citing / related work
 
-Builds on ideas from DoMINO (NVIDIA, arXiv:2501.13350), Transolver / Transolver++
-(ICML 2024 / arXiv:2502.02414), Geo-FNO (arXiv:2207.05209), AirfRANS (NeurIPS 2022),
-residual-based error correctors (arXiv:2306.12047), and calibration-aware UQ for
-neural PDE surrogates. See [`docs/paper/neuroforge_cfd.md`](docs/paper/neuroforge_cfd.md).
+The **closest prior art** — and the right baselines to beat — are *learned PDE
+solvers with convergence guarantees* (Hsieh et al., ICLR 2019, arXiv:1906.01200),
+*deep-equilibrium / learned fixed points for steady PDEs* (FNO-DEQ, NeurIPS 2023,
+arXiv:2312.00234), *iterative refiners* (PDE-Refiner, arXiv:2308.05732), and
+*residual-corrector operators* (arXiv:2306.12047). NeuroForge is positioned as the
+*integrated, open engine* around these ideas, not a new operator. Backbones/data
+build on FNO/Geo-FNO (arXiv:2010.08895 / 2207.05209), Transolver (ICML 2024,
+arXiv:2402.02366), DoMINO (arXiv:2501.13350), AirfRANS (NeurIPS 2022,
+arXiv:2212.07564), and conformal UQ for operators (UQNO, ICLR 2024,
+arXiv:2402.01960). See [`docs/paper/neuroforge_cfd.md`](docs/paper/neuroforge_cfd.md).
 
 ## License
 
