@@ -34,6 +34,50 @@ def _is_cuda_oom(exc: BaseException) -> bool:
     return isinstance(exc, RuntimeError) and "out of memory" in str(exc).lower()
 
 
+def _rebuild_loader(loader, batch_size: int, shuffle: bool):
+    """A new DataLoader over the same dataset with a different batch size."""
+    from torch.utils.data import DataLoader
+
+    from neuroforge.data.datamodule import collate_flow
+
+    return DataLoader(
+        loader.dataset, batch_size=batch_size, shuffle=shuffle,
+        num_workers=getattr(loader, "num_workers", 0), collate_fn=collate_flow,
+    )
+
+
+def _fit_backbone(trainer, train_loader, val_loader, out, ckpt_every, verbose):
+    """Run ``trainer.fit`` with automatic batch-halving on CUDA OOM.
+
+    On an out-of-memory error the GPU cache is cleared and training restarts at
+    half the batch size, down to 1, so a too-large batch degrades gracefully
+    instead of crashing the run. Returns ``(history, train_loader, val_loader)``
+    with the (possibly smaller-batch) loaders so the corrector reuses them.
+    """
+    while True:
+        try:
+            history = trainer.fit(
+                train_loader, val_loader, ckpt_path=out, ckpt_every=ckpt_every
+            )
+            return history, train_loader, val_loader
+        except RuntimeError as exc:
+            bs = train_loader.batch_size or 1
+            if _is_cuda_oom(exc) and bs > 1:
+                torch.cuda.empty_cache()
+                new_bs = max(1, bs // 2)
+                if verbose:
+                    print(f"[recipe] CUDA OOM at batch_size={bs} -> retrying at {new_bs}")
+                train_loader = _rebuild_loader(train_loader, new_bs, shuffle=True)
+                val_loader = _rebuild_loader(val_loader, new_bs, shuffle=False)
+            elif _is_cuda_oom(exc):
+                raise RuntimeError(
+                    "CUDA out of memory even at batch_size=1. Reduce "
+                    "cfg.model.width/modes or cfg.data.resolution, then re-run."
+                ) from exc
+            else:
+                raise
+
+
 @torch.no_grad()
 def evaluate_fields(model, loader, normalizer, device) -> dict[str, float]:
     """Masked relative-L2 field errors over a loader (physical units).
@@ -135,18 +179,9 @@ def train_recipe(
     trainer = Trainer(model, cfg, normalizer, nu=nu)
     if verbose:
         print(f"[recipe] training on {trainer.device} for {cfg.train.epochs} epochs ...")
-    try:
-        history = trainer.fit(
-            train_loader, val_loader, ckpt_path=out, ckpt_every=ckpt_every
-        )
-    except RuntimeError as exc:
-        if _is_cuda_oom(exc):
-            raise RuntimeError(
-                "CUDA out of memory while training. Lower cfg.data.batch_size (e.g. 4), "
-                "cfg.model.width/modes, or cfg.data.resolution, then re-run. A partial "
-                f"backbone checkpoint may already be saved at {out!r}."
-            ) from exc
-        raise
+    history, train_loader, val_loader = _fit_backbone(
+        trainer, train_loader, val_loader, out, ckpt_every, verbose
+    )
 
     if trainer.device.type == "cuda":
         torch.cuda.empty_cache()
