@@ -190,7 +190,9 @@ class SyntheticRANS:
         camber_proxy = float(np.mean(ys))
         alpha0 = -2.0 * camber_proxy / max(chord, 1e-9)
         cl = 2.0 * np.pi * (alpha - alpha0)
-        gamma = -0.5 * u_mag * chord * cl
+        # Bound circulation sign chosen so positive angle of attack produces
+        # positive (upward, +y) lift, consistent with force_coefficients.
+        gamma = 0.5 * u_mag * chord * cl
         return float(gamma)
 
     def _potential_velocity(
