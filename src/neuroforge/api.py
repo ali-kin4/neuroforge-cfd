@@ -218,6 +218,11 @@ class NeuroForge:
             "corrected": self.evaluate(pairs, corrected=True),
         }
 
+    def val_data(self, limit: int | None = None) -> list[tuple[FlowCase, FlowField]]:
+        """The validation ``(case, ground_truth)`` pairs (for plotting / metrics)."""
+        self._check_fitted()
+        return self._load_val(limit)
+
     def calibrate(
         self,
         pairs: list[tuple[FlowCase, FlowField]] | None = None,
