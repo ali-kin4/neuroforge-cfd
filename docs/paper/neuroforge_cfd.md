@@ -562,6 +562,72 @@ case (the near-zero-initialised corrector emits a negligible delta), which is th
 fails the monotonicity guarantee. Demonstrating substantive residual reduction is
 a function of training the corrector at scale, which is future work.
 
+### 5.3 Preliminary AirfRANS ablation (1 seed, undertrained — *not final*)
+
+A first run of the pre-registered ablation harness (`benchmarks/ablation.py`,
+protocol in `docs/EXPERIMENTS.md`) on **real AirfRANS** data has completed. We
+report it here for transparency, with an emphatic caveat: this is a **single seed**
+under **deliberately undertrained smoke settings** — 40 epochs, 150 of 800 train
+simulations, resolution $128^2$, fast-iteration hyperparameters — chosen to
+exercise the full pipeline on real data quickly. **These are preliminary,
+directional numbers, not final results and not a SOTA claim.** The pre-registered
+protocol requires **≥ 3 seeds reported as mean ± std**; that full run is pending.
+Metrics follow the AirfRANS community protocol (`evaluate_cases`): per-channel
+volume MSE (lower is better; well-conditioned, *not* relative-$L_2$), surface
+pressure MSE on the body, Spearman rank correlation of the force coefficients
+$\rho_{C_l},\rho_{C_d}$ (closer to 1 is better — what early-design ranking needs),
+and `residual_error_spearman` (> 0 means low residual tracks low error).
+
+| arm | mse_u | mse_v | mse_p | surface_mse_p | $\rho_{C_l}$ | $\rho_{C_d}$ | resid↔err ρ |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| backbone | 5.694 | 0.953 | 7309.6 | 1048373.6 | 0.924 | 0.773 | 0.436 |
+| backbone (no physics loss) | 3.949 | 0.852 | 6501.9 | 1249764.0 | 0.946 | 0.777 | 0.339 |
+| backbone + local corrector | 5.293 | 0.944 | 7114.5 | 1088502.8 | 0.936 | 0.771 | 0.453 |
+| **backbone + DEQ corrector** | 4.929 | 1.581 | 8345.8 | **790377.1** | **0.958** | **0.908** | **0.650** |
+
+*Table: preliminary single-seed, undertrained AirfRANS ablation. Lower MSE is
+better; $\rho$ closer to 1 is better; resid↔err ρ > 0 supports the trust signal.*
+
+**Reading against the pre-registered hypotheses (honestly).**
+
+- **H1 (the corrector improves design-relevant accuracy).** *Directionally
+  supported on the design metrics.* The DEQ corrector lifts the force-ranking
+  correlations — $\rho_{C_d}$ from **0.773 → 0.908** and $\rho_{C_l}$ from
+  **0.924 → 0.958** — and cuts **surface-pressure MSE by ≈ 25 %**
+  (1048373.6 → 790377.1). These are exactly the quantities a *ranking-preserving
+  surrogate for early-design exploration* is meant to get right. We do **not** read
+  H1 as confirmed on *all* metrics: see the volume-accuracy caveat below.
+- **H2 (the physics residual is a valid trust signal).** *Supported.* The
+  residual↔error Spearman correlation is positive for every arm and **strengthens
+  under the DEQ corrector, 0.436 → 0.650** — i.e. a lower physics residual tracks
+  lower field error more reliably with the corrector engaged. Consistent with our
+  framing, this is evidence that the residual is an informative
+  **consistency monitor**, not "verified confidence"; it does not by itself certify
+  correctness.
+- **H3 (DEQ corrector ≥ feed-forward corrector).** *Supported on the design
+  metrics.* The contractive DEQ fixed point beats the feed-forward `local`
+  corrector on $\rho_{C_d}$ (0.908 vs 0.771), $\rho_{C_l}$ (0.958 vs 0.936),
+  surface-pressure MSE, and the residual↔error correlation.
+
+**Honest caveat — a volume-accuracy regression.** The DEQ corrector **regresses**
+the volume cross-stream component `mse_v` (0.953 → 1.581) and slightly the volume
+pressure `mse_p`, while improving surface, force-ranking, and trust metrics. On
+this single undertrained seed the corrector appears to **trade some volume-field
+accuracy for surface/force/ranking fidelity**; whether this is a genuine effect or
+a small-sample/undertraining artefact is **under investigation** and will be
+resolved by the multi-seed run. Notably, the **`backbone (no physics loss)`** arm
+has the lowest volume `mse_u`/`mse_v` but the **weakest** residual↔error
+correlation (0.339) — a reminder that volume MSE and the trust signal are distinct
+axes, exactly the trade-off the pre-registered protocol asks us to report rather
+than hide.
+
+**Status.** Every number here comes from the committed, reproducible harness
+(`benchmarks/ablation.py`, run per `docs/EXPERIMENTS.md`). It is **1 seed and
+undertrained**; the directional outcome (H1 on the design metrics, H2, and H3 all
+pointing the right way, with an `mse_v` caveat) motivates — but does not replace —
+the pre-registered **3-seed full-budget run with error bars**, which remains the
+result that decides the paper.
+
 ---
 
 ## 6. Limitations
