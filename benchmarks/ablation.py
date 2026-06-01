@@ -25,7 +25,7 @@ from collections import defaultdict
 
 import numpy as np
 
-__all__ = ["run_ablation"]
+__all__ = ["run_ablation", "run_ood_ablation"]
 
 # AirfRANS-protocol metrics reported per arm.
 _METRICS = [
@@ -153,6 +153,153 @@ def run_ablation(
     return {"table": table, "seeds": list(seeds), "source": source, "task": task}
 
 
+def _ood_to_markdown(tables: dict, seeds, source: str, ood_tasks) -> str:
+    """One mean±std section per OOD task, with a prominent OOD note.
+
+    ``tables`` maps ``task -> {arm: {metric: (mean, std)}}``.
+    """
+    n_seeds = len(list(seeds))
+    lines = [
+        f"### OOD ablation — {source}, {n_seeds} seeds (mean ± std)",
+        "",
+        "**OUT-OF-DISTRIBUTION evaluation.** Each arm is trained on a task's "
+        "*train* split and evaluated on that task's *test* split, whose "
+        f"{source}-protocol parameter range (e.g. Reynolds number / angle of "
+        "attack) is **disjoint** from the train range. These metrics therefore "
+        "measure generalization to unseen flow regimes, not in-distribution fit.",
+        "",
+    ]
+    for task in ood_tasks:
+        table = tables[task]
+        hdr = "| arm | " + " | ".join(_METRICS) + " |"
+        sep = "|" + "---|" * (len(_METRICS) + 1)
+        lines += [f"#### OOD task: `{task}` (train range -> held-out test range)", "", hdr, sep]
+        for arm, mets in table.items():
+            cells = []
+            for m in _METRICS:
+                mu, sd = mets[m]
+                cells.append("n/a" if np.isnan(mu) else f"{mu:.3f}±{sd:.3f}")
+            lines.append(f"| {arm} | " + " | ".join(cells) + " |")
+        lines.append("")
+    lines += [
+        "_Lower MSE is better; rho closer to 1 is better. The correction loop "
+        "reduces the in-distribution -> OOD gap iff `backbone + corrector` beats "
+        "`backbone` on these (OOD) metrics by a wider margin than it does "
+        "in-distribution. Compare against the in-distribution `run_ablation` "
+        "table on the same arms to read off the gap._",
+    ]
+    return "\n".join(lines)
+
+
+def _ood_to_csv(tables: dict, path: str) -> None:
+    """Flat CSV with a leading ``ood_task`` column across all OOD tasks."""
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["ood_task", "arm", "metric", "mean", "std"])
+        for task, table in tables.items():
+            for arm, mets in table.items():
+                for m, (mu, sd) in mets.items():
+                    w.writerow([task, arm, m, mu, sd])
+
+
+def run_ood_ablation(
+    source: str = "airfrans",
+    *,
+    ood_tasks=("reynolds", "aoa"),
+    n_train: int = 400,
+    n_val: int = 120,
+    resolution: int = 128,
+    seeds=(0, 1, 2),
+    epochs: int = 80,
+    corrector_epochs: int = 20,
+    width: int = 48,
+    modes: int = 20,
+    n_layers: int = 4,
+    batch_size: int = 8,
+    root: str = "data",
+    cache_dir: str | None = None,
+    download: bool = True,
+    device: str = "auto",
+    out_dir: str = "results",
+    verbose: bool = True,
+) -> dict:
+    """Out-of-distribution ablation: per-arm metrics on each task's held-out range.
+
+    For every task in ``ood_tasks`` (e.g. AirfRANS ``'reynolds'`` / ``'aoa'``,
+    whose train/test splits cover *disjoint* parameter ranges), every ablation
+    arm is trained on the task's train split and evaluated on its test split via
+    :meth:`NeuroForge.evaluate` (which defaults to the held-out validation/test
+    pairs). Training on the train range and scoring on the disjoint test range
+    *is* the OOD test the reviewers asked for; the resulting table makes the
+    in-distribution → OOD gap legible and shows whether the correction loop
+    reduces it.
+
+    Arms mirror :func:`run_ablation` exactly: ``backbone``,
+    ``backbone (no physics loss)``, ``backbone + local corrector``,
+    ``backbone + DEQ corrector``. The DEQ arm's backbone is reused for the plain
+    ``backbone`` row (correction off vs on) so the comparison is apples-to-apples.
+    Results are aggregated to mean ± std over ``seeds`` and written to
+    ``ablation_ood.md`` / ``ablation_ood.csv``.
+    """
+    import neuroforge as nf
+
+    tables: dict[str, dict] = {}
+    raw: dict[str, dict[str, list[dict]]] = {}
+    order = [
+        "backbone",
+        "backbone (no physics loss)",
+        "backbone + local corrector",
+        "backbone + DEQ corrector",
+    ]
+
+    for task in ood_tasks:
+        if verbose:
+            print(f"[ood-ablation] OOD task '{task}': train split -> held-out test split")
+        arms: dict[str, list[dict]] = defaultdict(list)
+        for seed in seeds:
+            common = dict(
+                backbone="fno", width=width, modes=modes, n_layers=n_layers,
+                dropout=0.05, epochs=epochs, corrector_epochs=corrector_epochs,
+                resolution=resolution, batch_size=batch_size, device=device, seed=seed,
+            )
+            fit_kw = dict(
+                task=task, n_train=n_train, n_val=n_val, root=root,
+                cache_dir=cache_dir, download=download, verbose=False,
+            )
+
+            if verbose:
+                print(f"[ood-ablation] {task} | seed {seed}: DEQ-corrector arm ...")
+            m = nf.NeuroForge(corrector="deq", physics_weight=0.1, **common).fit(source, **fit_kw)
+            arms["backbone"].append(m.evaluate(corrected=False))
+            arms["backbone + DEQ corrector"].append(m.evaluate(corrected=True))
+
+            if verbose:
+                print(f"[ood-ablation] {task} | seed {seed}: local-corrector arm ...")
+            ml = nf.NeuroForge(corrector="local", physics_weight=0.1, **common).fit(source, **fit_kw)
+            arms["backbone + local corrector"].append(ml.evaluate(corrected=True))
+
+            if verbose:
+                print(f"[ood-ablation] {task} | seed {seed}: no-physics-loss arm ...")
+            mn = nf.NeuroForge(corrector="none", physics_weight=0.0, **common).fit(source, **fit_kw)
+            arms["backbone (no physics loss)"].append(mn.evaluate(corrected=False))
+
+        raw[task] = dict(arms)
+        tables[task] = {arm: _agg(arms[arm]) for arm in order if arm in arms}
+
+    md = _ood_to_markdown(tables, seeds, source, ood_tasks)
+    os.makedirs(out_dir, exist_ok=True)
+    with open(os.path.join(out_dir, "ablation_ood.md"), "w", encoding="utf-8") as f:
+        f.write(md + "\n")
+    _ood_to_csv(tables, os.path.join(out_dir, "ablation_ood.csv"))
+    if verbose:
+        print("\n" + md)
+        print(f"\n[ood-ablation] wrote {out_dir}/ablation_ood.md and ablation_ood.csv")
+    return {
+        "tables": tables, "seeds": list(seeds), "source": source,
+        "ood_tasks": list(ood_tasks),
+    }
+
+
 def main(argv=None) -> int:
     import argparse
 
@@ -167,7 +314,23 @@ def main(argv=None) -> int:
     p.add_argument("--corrector-epochs", type=int, default=20)
     p.add_argument("--cache-dir", default="data/cache")
     p.add_argument("--out-dir", default="results")
+    p.add_argument(
+        "--ood", action="store_true",
+        help="Run the out-of-distribution ablation (per OOD task, train split -> "
+             "held-out test range) instead of the in-distribution ablation.",
+    )
+    p.add_argument(
+        "--ood-tasks", nargs="+", default=["reynolds", "aoa"],
+        help="OOD tasks to evaluate (each has disjoint train/test parameter ranges).",
+    )
     a = p.parse_args(argv)
+    if a.ood:
+        run_ood_ablation(
+            a.source, ood_tasks=tuple(a.ood_tasks), n_train=a.n_train, n_val=a.n_val,
+            resolution=a.res, seeds=tuple(a.seeds), epochs=a.epochs,
+            corrector_epochs=a.corrector_epochs, cache_dir=a.cache_dir, out_dir=a.out_dir,
+        )
+        return 0
     run_ablation(
         a.source, task=a.task, n_train=a.n_train, n_val=a.n_val, resolution=a.res,
         seeds=tuple(a.seeds), epochs=a.epochs, corrector_epochs=a.corrector_epochs,
