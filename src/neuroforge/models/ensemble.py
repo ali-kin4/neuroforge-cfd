@@ -73,6 +73,7 @@ class DeepEnsemble(nn.Module):
         is the (epistemic) uncertainty. Uses the unbiased estimator when more than
         one member is present.
         """
+        x = x.to(next(self.parameters()).device)
         was_training = self.training
         self.eval()
         preds = self._stack(x)  # (M, B, C, H, W)
@@ -126,6 +127,7 @@ class MCDropoutUQ(nn.Module):
         """
         if n_samples < 1:
             raise ValueError("n_samples must be >= 1")
+        x = x.to(next(self.model.parameters()).device)
         was_training = self.model.training
         self.model.eval()
         self._enable_dropout(self.model)

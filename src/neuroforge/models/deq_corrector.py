@@ -150,7 +150,8 @@ class DEQCorrector(CorrectionNetwork):
         geom: torch.Tensor,       # (B, N_IN, H, W) geometry/BC channels
     ) -> torch.Tensor:
         """Return the equilibrium correction ``δ*`` (Jacobian-Free gradient)."""
-        cond = torch.cat([field, residual, geom], dim=1)
+        dev = next(self.parameters()).device
+        cond = torch.cat([field.to(dev), residual.to(dev), geom.to(dev)], dim=1)
         delta_star, iters, rel, contraction = self.solve(cond)
         self.last_iters = int(iters)
         self.last_residual = float(rel)
