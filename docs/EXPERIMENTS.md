@@ -76,3 +76,14 @@ hides the boundary layer). Report each on the metric set above.
 > The single result that decides the paper is **H1 ∧ H2**: the corrector must
 > improve accuracy *and* the residual must track error. The harness above
 > produces exactly that evidence; we commit to reporting it as-is.
+
+## Status
+
+A **first preliminary run** (1 seed, undertrained: 40 epochs, 150/800 train sims,
+res 128) has been completed on real AirfRANS. Directional outcome: **H1 ✓** on the
+design-relevant metrics (ρ_Cd 0.773→0.908, ρ_Cl 0.924→0.958, surface-pressure MSE
+−25 %), **H2 ✓** (residual↔error Spearman 0.436→0.650), **H3 ✓** (DEQ ≥ local on
+those metrics), with an honest `mse_v` volume-regression caveat under
+investigation. See §5.3 of `docs/paper/neuroforge_cfd.md`. **The pre-registered
+≥ 3-seed, full-budget run with error bars is still pending and remains the
+deciding result** — these preliminary numbers are not final.

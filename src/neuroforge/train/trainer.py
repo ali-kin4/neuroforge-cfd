@@ -20,7 +20,7 @@ from neuroforge.core.config import Config, ModelConfig
 from neuroforge.data.datamodule import Normalizer
 from neuroforge.models.base import CorrectionNetwork, NeuralSolver, build_model
 
-from .losses import CompositeLoss
+from .losses import CompositeLoss, per_channel_balanced_mse
 from .schedule import WarmupCosineScheduler
 
 __all__ = ["Trainer"]
@@ -262,6 +262,7 @@ class Trainer:
         epochs: int | None = None,
         unroll: int = 3,
         noise_std: float = 0.1,
+        balance_channels: bool = True,
     ) -> dict:
         """Train ``corrector`` as a **multi-step, noise-robust** residual corrector.
 
@@ -288,11 +289,23 @@ class Trainer:
         noise_std : float
             Std (in normalised units) of the off-manifold perturbation, decayed
             linearly across the unrolled steps. ``0`` disables noise.
+        balance_channels : bool
+            If ``True`` (default) the per-step corrector loss is
+            **per-channel variance-normalised** (see
+            :func:`neuroforge.train.losses.per_channel_balanced_mse`): each output
+            channel's squared error is divided by that channel's target variance
+            over the fluid cells, so every field (u, v, p, nut) contributes
+            comparably. This stops the loss being dominated by the large-magnitude
+            channels and over-correcting the small-magnitude near-zero channels
+            (e.g. the cross-stream velocity ``v``). If ``False``, the legacy plain
+            masked MSE over all channels is used.
 
         Returns
         -------
         dict
-            ``{'corrector_loss': [...]}`` per-epoch.
+            ``{'corrector_loss': [...], 'per_channel_loss': [...]}`` per-epoch.
+            ``per_channel_loss`` is the epoch-mean per-channel loss contribution
+            (one entry per output channel) for diagnosing channel balance.
         """
         epochs = int(epochs) if epochs is not None else self.cfg.train.epochs
         unroll = max(int(unroll), 1)
@@ -309,12 +322,13 @@ class Trainer:
         for p in self.model.parameters():
             p.requires_grad_(False)
 
-        history: dict[str, list] = {"corrector_loss": []}
+        history: dict[str, list] = {"corrector_loss": [], "per_channel_loss": []}
 
         for epoch in range(epochs):
             corrector.train()
             agg = 0.0
             n = 0
+            pc_agg: torch.Tensor | None = None  # epoch sum of per-channel loss
             for batch in train_loader:
                 inp = batch["input"].to(self.device)
                 target = batch["target"].to(self.device)
@@ -328,6 +342,7 @@ class Trainer:
 
                 opt.zero_grad(set_to_none=True)
                 step_loss = inp.new_tensor(0.0)
+                step_pc = inp.new_zeros(target.shape[1])  # per-channel sum
                 ok = True
                 for k in range(unroll):
                     # Off-manifold coverage: decaying noise on the current state.
@@ -341,12 +356,21 @@ class Trainer:
                         residual = self._normalised_residual(state, inp_phys, dx, dy, nu)
                     delta = corrector(field=state, residual=residual, geom=inp)
                     target_delta = (target - state).detach()
-                    diff2 = (delta - target_delta) ** 2
-                    lk = (diff2 * fluid).sum() / (n_fluid * delta.shape[1])
+                    if balance_channels:
+                        # Per-channel variance-normalised loss: each of (u, v, p,
+                        # nut) contributes comparably, so the small-magnitude
+                        # near-zero channels are not over-corrected.
+                        lk, pc = per_channel_balanced_mse(delta, target_delta, fluid)
+                    else:
+                        diff2 = (delta - target_delta) ** 2
+                        # Per-channel masked MSE, for diagnostics; mean == legacy loss.
+                        pc = (diff2 * fluid).sum(dim=(0, 2, 3)) / n_fluid
+                        lk = pc.mean()
                     if not torch.isfinite(lk):
                         ok = False
                         break
                     step_loss = step_loss + lk
+                    step_pc = step_pc + pc.detach()
                     field = (state + delta).detach()  # advance (truncated unroll)
 
                 if not ok:
@@ -359,11 +383,21 @@ class Trainer:
                     )
                 opt.step()
                 agg += float(loss.detach())
+                step_pc = step_pc / unroll
+                pc_agg = step_pc if pc_agg is None else pc_agg + step_pc
                 n += 1
 
             ep_loss = agg / max(n, 1)
+            per_channel = (
+                (pc_agg / max(n, 1)).tolist() if pc_agg is not None else []
+            )
             history["corrector_loss"].append(ep_loss)
-            print(f"[corrector epoch {epoch}] loss={ep_loss:.4e}")
+            history["per_channel_loss"].append(per_channel)
+            pc_str = ", ".join(f"{v:.3e}" for v in per_channel)
+            print(
+                f"[corrector epoch {epoch}] loss={ep_loss:.4e} "
+                f"per_channel=[{pc_str}]"
+            )
 
         for p in self.model.parameters():
             p.requires_grad_(True)

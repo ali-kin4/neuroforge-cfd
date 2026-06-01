@@ -27,6 +27,11 @@ import numpy as np
 
 from neuroforge.core.types import DTYPE, FlowCase, FlowField
 
+from .calibration import (
+    ConformalCalibrator,
+    cases_to_error_sigma,
+    reliability,
+)
 from .metrics import _bilinear_sample, _surface_points_normals, force_coefficients
 
 __all__ = [
@@ -35,6 +40,7 @@ __all__ = [
     "coefficient_metrics",
     "residual_error_correlation",
     "evaluate_cases",
+    "evaluate_calibration",
 ]
 
 
@@ -224,3 +230,70 @@ def evaluate_cases(
         out["residual_error_spearman"] = rec["spearman"]
         out["residual_error_pearson"] = rec["pearson"]
     return out
+
+
+def evaluate_calibration(
+    predict_fn: Callable[[FlowCase], FlowField],
+    uq,
+    pairs: list[tuple[FlowCase, FlowField]],
+    alpha: float = 0.1,
+    channel: int = 2,
+    n_bins: int = 10,
+) -> dict[str, float]:
+    """Split-conformal calibration quality of the UQ trust map on held-out cases.
+
+    Splits ``pairs`` in half: fits a :class:`ConformalCalibrator` on the first
+    half (calibration set) and reports the **empirical coverage** and **Expected
+    Calibration Error** of the calibrated band ``q·σ`` on the second half (test
+    set) — the reviewer-facing reliability numbers, not just the multiplier.
+
+    Parameters
+    ----------
+    predict_fn : callable
+        ``FlowCase -> FlowField`` (e.g. ``Predictor.predict``).
+    uq : object
+        UQ estimator with ``predict_with_uncertainty(x) -> (mean, std)``.
+    pairs : list of (FlowCase, FlowField)
+        Cases with ground-truth fields; the first half calibrates, the rest test.
+    alpha : float
+        Target miscoverage; the conformal guarantee is ``1 − alpha`` coverage.
+    channel : int
+        Output channel to assess (0=u, 1=v, 2=p, 3=nut; default 2 = pressure).
+    n_bins : int
+        Number of nominal levels swept for the ECE.
+
+    Returns
+    -------
+    dict
+        ``{q, coverage, ece, target_coverage, n_cal, n_test}``. ``coverage`` and
+        ``ece`` are computed on the held-out test split with the fitted ``q``;
+        ``target_coverage`` is ``1 − alpha``. Empty/degenerate splits → NaNs.
+    """
+    target = 1.0 - float(alpha)
+    n = len(pairs)
+    if n < 2:
+        return {
+            "q": float("nan"),
+            "coverage": float("nan"),
+            "ece": float("nan"),
+            "target_coverage": target,
+            "n_cal": 0,
+            "n_test": 0,
+        }
+    split = n // 2
+    cal_pairs, test_pairs = pairs[:split], pairs[split:]
+
+    ce, cs, cm = cases_to_error_sigma(predict_fn, uq, cal_pairs, channel)
+    te, ts, tm = cases_to_error_sigma(predict_fn, uq, test_pairs, channel)
+
+    cal = ConformalCalibrator(alpha=alpha).fit(ce, cs, cm)
+    cov = cal.coverage(te, ts, tm)
+    rel = reliability(te, ts, tm, n_bins=n_bins, q=cal.q, alpha=alpha)
+    return {
+        "q": float(cal.q),
+        "coverage": float(cov),
+        "ece": float(rel["ece"]),
+        "target_coverage": target,
+        "n_cal": len(cal_pairs),
+        "n_test": len(test_pairs),
+    }
