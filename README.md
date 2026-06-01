@@ -188,6 +188,9 @@ top to bottom — the clone URL is already wired to this repo.
 
 - [`docs/paper/neuroforge_cfd.md`](docs/paper/neuroforge_cfd.md) — research-paper
   draft (method, related work, Neural Residual Iteration, experimental protocol).
+- [`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md) — **pre-registered experimental
+  protocol**: metrics, splits, ablations, baselines, and *falsification criteria*
+  (reproduced one-command via `benchmarks/ablation.py`).
 - [`docs/architecture.md`](docs/architecture.md) — engineer-facing architecture:
   module map, data contracts, `solve()` control flow, extension points.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — the 3-stage product plan and non-goals.
