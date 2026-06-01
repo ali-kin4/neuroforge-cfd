@@ -26,6 +26,8 @@ from neuroforge.core.types import Diagnostics, FlowCase, FlowField  # noqa: E402
 
 __all__ = [
     "plot_field",
+    "plot_streamlines",
+    "plot_vectors",
     "plot_residual",
     "plot_trust",
     "plot_uncertainty",
@@ -154,6 +156,44 @@ def plot_field(field: FlowField, key: str = "speed", ax: plt.Axes | None = None,
         title=f"{labels.get(key, key)} field", cbar_label=labels.get(key, key),
         mask=field.mask, **kw,
     )
+
+
+def plot_streamlines(field: FlowField, ax: plt.Axes | None = None,
+                     density: float = 1.2, **kw: Any):
+    """Streamlines of the velocity field, coloured by speed (ANSYS-style)."""
+    ax = _ensure_ax(ax)
+    x, y = field.domain.axes()
+    u = np.asarray(field.u, float)
+    v = np.asarray(field.v, float)
+    speed = np.sqrt(u * u + v * v)
+    ax.streamplot(
+        x, y, u, v, density=density, color=speed,
+        cmap=kw.pop("cmap", "viridis"), linewidth=kw.pop("linewidth", 0.8),
+    )
+    _overlay_body(ax, field.domain, field.mask)
+    xmin, xmax, ymin, ymax = _extent(field.domain)
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
+    ax.set_xlabel("x/c")
+    ax.set_ylabel("y/c")
+    ax.set_title("streamlines")
+    return ax
+
+
+def plot_vectors(field: FlowField, ax: plt.Axes | None = None,
+                 step: int = 8, **kw: Any):
+    """Velocity vector field (quiver), subsampled every ``step`` cells."""
+    ax = _ensure_ax(ax)
+    X, Y = field.domain.grid()
+    u = np.asarray(field.u, float)
+    v = np.asarray(field.v, float)
+    s = slice(None, None, max(int(step), 1))
+    ax.quiver(X[s, s], Y[s, s], u[s, s], v[s, s], **kw)
+    _overlay_body(ax, field.domain, field.mask)
+    ax.set_xlabel("x/c")
+    ax.set_ylabel("y/c")
+    ax.set_title("velocity vectors")
+    return ax
 
 
 def plot_residual(diag: Diagnostics, key: str = "continuity", ax: plt.Axes | None = None, **kw: Any):

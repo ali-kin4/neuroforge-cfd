@@ -6,19 +6,24 @@ Importing this package selects the headless ``Agg`` matplotlib backend (in
 
 from __future__ import annotations
 
+from .export import to_vtk
 from .plots import (
     overview_figure,
     plot_convergence,
     plot_cp,
     plot_field,
     plot_residual,
+    plot_streamlines,
     plot_trust,
     plot_uncertainty,
+    plot_vectors,
 )
 from .report import build_report
 
 __all__ = [
     "plot_field",
+    "plot_streamlines",
+    "plot_vectors",
     "plot_residual",
     "plot_trust",
     "plot_uncertainty",
@@ -26,4 +31,5 @@ __all__ = [
     "plot_convergence",
     "overview_figure",
     "build_report",
+    "to_vtk",
 ]
