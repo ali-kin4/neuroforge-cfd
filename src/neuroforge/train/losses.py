@@ -24,7 +24,59 @@ import torch
 from neuroforge.core.config import Config
 from neuroforge.core.types import Domain
 
-__all__ = ["CompositeLoss"]
+__all__ = ["CompositeLoss", "per_channel_balanced_mse"]
+
+
+def per_channel_balanced_mse(
+    delta: torch.Tensor,
+    target_delta: torch.Tensor,
+    fluid: torch.Tensor,
+    var_floor: float = 1e-6,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Per-channel variance-normalised masked MSE over fluid cells.
+
+    A plain masked MSE over all output channels is dominated by the
+    large-magnitude channels (e.g. ``u``/``p``), so the near-zero small-magnitude
+    channels (e.g. the cross-stream velocity ``v``) are effectively ignored and
+    can be *over-corrected*. Here each channel's squared error is divided by that
+    channel's target variance over the fluid cells (computed per batch), so every
+    channel contributes comparably and the corrector learns to improve every
+    field rather than only the dominant ones.
+
+    Parameters
+    ----------
+    delta : torch.Tensor
+        Predicted correction, shape ``(B, C, H, W)``.
+    target_delta : torch.Tensor
+        Target correction (``target - state``), shape ``(B, C, H, W)``.
+    fluid : torch.Tensor
+        Fluid mask (1 fluid, 0 solid), broadcastable to ``(B, 1, H, W)``.
+    var_floor : float
+        Lower clamp on the per-channel variance, keeping the normalisation finite
+        for (near-)constant channels.
+
+    Returns
+    -------
+    (loss, per_channel) : tuple[torch.Tensor, torch.Tensor]
+        Scalar mean-over-channels balanced loss, and the per-channel
+        (already variance-normalised) loss contributions of shape ``(C,)`` for
+        diagnostics. Both share the input dtype/device.
+    """
+    c = delta.shape[1]
+    # Flatten to (C, B*H*W) so per-channel reductions are a single dim-1 sum.
+    m = fluid.expand(-1, c, -1, -1).permute(1, 0, 2, 3).reshape(c, -1)
+    n_per_ch = m.sum(dim=1).clamp_min(1.0)
+
+    err = target_delta.permute(1, 0, 2, 3).reshape(c, -1)
+    # Per-channel target mean / variance over fluid cells only.
+    mean = (err * m).sum(dim=1) / n_per_ch
+    var = (((err - mean.unsqueeze(1)) ** 2) * m).sum(dim=1) / n_per_ch
+    var = var.clamp_min(var_floor)
+
+    diff2 = ((delta - target_delta) ** 2).permute(1, 0, 2, 3).reshape(c, -1)
+    per_channel = (diff2 * m).sum(dim=1) / n_per_ch / var
+    loss = per_channel.mean()
+    return loss, per_channel
 
 
 class CompositeLoss:
