@@ -22,9 +22,16 @@ trust
 
 from __future__ import annotations
 
-from .calibration import ConformalCalibrator, calibrate_from_cases
+from .calibration import (
+    ConformalCalibrator,
+    calibrate_from_cases,
+    cases_to_error_sigma,
+    expected_calibration_error,
+    reliability,
+)
 from .evaluation import (
     coefficient_metrics,
+    evaluate_calibration,
     evaluate_cases,
     per_channel_mse,
     residual_error_correlation,
@@ -80,9 +87,13 @@ __all__ = [
     "coefficient_metrics",
     "residual_error_correlation",
     "evaluate_cases",
+    "evaluate_calibration",
     # calibration (conformal coverage guarantees)
     "ConformalCalibrator",
     "calibrate_from_cases",
+    "cases_to_error_sigma",
+    "reliability",
+    "expected_calibration_error",
     # trust
     "trust_map",
 ]
