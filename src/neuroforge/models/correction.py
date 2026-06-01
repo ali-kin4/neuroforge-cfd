@@ -83,5 +83,6 @@ class LocalCorrectionNet(CorrectionNetwork):
         geom: torch.Tensor,       # (B, N_IN, H, W)
     ) -> torch.Tensor:
         """Return the additive correction ``delta`` of shape ``(B, out_channels, H, W)``."""
-        x = torch.cat([field, residual, geom], dim=1)
+        dev = next(self.parameters()).device
+        x = torch.cat([field.to(dev), residual.to(dev), geom.to(dev)], dim=1)
         return self.head(self.body(x))
