@@ -184,6 +184,13 @@ errors and Cl/Cd, runs the self-correcting solver, and plots prediction vs CFD.
 Click the badge, set a **GPU** runtime (*Runtime → Change runtime type*), and run
 top to bottom — the clone URL is already wired to this repo.
 
+**Just want the make-or-break experiment?**
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ali-kin4/neuroforge-cfd/blob/main/notebooks/NeuroForge_Ablation_Quick.ipynb)
+[`notebooks/NeuroForge_Ablation_Quick.ipynb`](notebooks/NeuroForge_Ablation_Quick.ipynb)
+is a tiny, self-contained notebook (install → cache → run the multi-arm ablation →
+mean±std table) that answers *"does the corrector improve accuracy, and does the
+DEQ corrector win?"* — nothing else.
+
 ## Docs
 
 - [`docs/paper/neuroforge_cfd.md`](docs/paper/neuroforge_cfd.md) — research-paper
