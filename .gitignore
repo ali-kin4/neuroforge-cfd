@@ -16,9 +16,8 @@ htmlcov/
 venv/
 env/
 
-# Data & artifacts (large)
-data/raw/
-data/cache/
+# Data & artifacts (large) — the whole data/ tree is downloaded/generated
+/data/
 *.zip
 checkpoints/*.pt
 checkpoints/*.ckpt
@@ -37,4 +36,8 @@ reports/*.png
 Thumbs.db
 .vscode/
 .idea/
-results/
+
+# Experiment results ARE committed (small tables / figures / manifests are
+# pushed back from the PC); keep only the large binaries out of them.
+results/**/*.pt
+results/**/*.ckpt
