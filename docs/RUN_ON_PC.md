@@ -93,8 +93,10 @@ config — for reproducibility) and `SUMMARY.md` (per-stage wall-clock timings).
 - **Stage-level resume is automatic.** Re-running skips any stage whose output
   CSV already exists, so a crashed or interrupted job continues where it left
   off. Pass `--force` to recompute from scratch.
-- The AirfRANS download + rasterisation (~1.2 GB, the 1000-case dataset) is
-  **cached** in `--cache-dir` and paid only once across all seeds and stages.
+- The AirfRANS download + rasterisation (the 1000-case dataset, **~9 GB unzipped**)
+  is **cached** under `data/` and paid **once on this machine** — across all seeds
+  and stages, and across later runs. It is gitignored, so a fresh clone does not
+  carry it; the first run fetches it, every run after reuses the local cache.
 - On CUDA out-of-memory the training recipe **auto-halves the batch size** down
   to 1 rather than crashing — so an over-ambitious `--batch-size` degrades
   gracefully. (Start at 16 on 12 GB; drop to 8 if you prefer headroom.)
