@@ -125,6 +125,28 @@ arms — use the GPU config:
 neuroforge train --config configs/gpu_full.yaml
 ```
 
+## 5. Push results back to the repo
+
+Results are version-controlled now — there is **no Google Drive**. The
+`run_full_research.py` / notebook outputs land in the repo's tracked `results/`
+dir (tables, CSVs, `MANIFEST.json`, `SUMMARY.md`, figures), while the large,
+regenerable artifacts (the AirfRANS download + rasterised cache under `data/`,
+and trained checkpoints under `checkpoints/`) stay **gitignored**.
+
+So the loop is: run locally → results appear in `results/` → push them back:
+
+```bash
+python scripts/push_results.py            # stages results/, commits, pushes
+python scripts/push_results.py -m "full run, seeds 0-2, RTX 4070 Ti"
+python scripts/push_results.py --no-push  # commit locally only
+# or by hand:
+git add results/ && git commit -m "results: full run" && git push
+```
+
+It only commits when `results/` actually changed, and never tries to push the
+multi-GB cache or checkpoints (those are ignored). See `results/README.md` for
+exactly what is and isn't tracked.
+
 ## What does *not* need changing
 
 Nothing structural. The trainer already auto-selects CUDA (`train.device:auto`),
