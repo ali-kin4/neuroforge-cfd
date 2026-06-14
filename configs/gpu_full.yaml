@@ -1,0 +1,51 @@
+# NeuroForge CFD — full-scale single-checkpoint config for a desktop GPU.
+#
+# Tuned for an RTX 4070 Ti (12 GB) / i7-13700 / 64 GB — i.e. a strong consumer
+# workstation, not a Colab T4. Trains ONE high-quality headline checkpoint
+# (backbone + corrector). For the full *pre-registered* multi-seed ablation that
+# decides the paper, use `scripts/run_full_research.py` instead (it sweeps arms,
+# seeds and OOD splits and writes the results tables).
+#
+# Use with:  neuroforge train --config configs/gpu_full.yaml
+# or:        Config.from_yaml("configs/gpu_full.yaml")
+
+seed: 0
+
+data:
+  source: airfrans
+  root: data                 # AirfRANS download/extract location
+  task: full                 # full | scarce | reynolds | aoa
+  resolution: 128            # rasterisation grid (must match across train/val)
+  n_train: 800               # full split
+  n_val: 200                 # full split
+  batch_size: 16             # 12 GB VRAM has headroom at 128x128; the recipe
+                             # auto-halves on OOM, so this degrades gracefully
+  num_workers: 8             # i7-13700 has plenty of cores for data loading
+  normalize: true
+  cache_dir: data/cache      # cached rasterised pairs (reused across sessions)
+
+model:
+  name: fno                  # fno | geo_fno | transformer | unet | deeponet
+  width: 64                  # bigger than the Colab default (48)
+  n_layers: 5
+  modes: 24
+  dropout: 0.05              # >0 enables MC-dropout uncertainty / conformal trust
+
+train:
+  epochs: 150
+  lr: 8.0e-4
+  weight_decay: 1.0e-5
+  physics_weight: 0.1        # weight on the PDE-residual loss term
+  bc_weight: 0.1             # weight on the no-slip wall penalty
+  grad_clip: 1.0
+  device: auto               # auto -> CUDA if available, else CPU
+  amp: true                  # CUDA mixed precision (bf16 on Ada) — ~1.5x faster
+  ckpt_dir: checkpoints
+  log_every: 25
+
+correction:
+  enabled: true
+  max_iters: 5
+  residual_tol: 1.0e-3
+  gate_by_trust: true
+  step_size: 1.0
