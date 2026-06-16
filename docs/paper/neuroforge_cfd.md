@@ -34,7 +34,15 @@ reproducible without any external dataset, and an AirfRANS loader. We lay out th
 full experimental protocol on the AirfRANS benchmark and report bundled
 synthetic *smoke* results from the benchmark harness; these use deliberately tiny
 CPU-sized models and are illustrative of the scaffold, not state-of-the-art
-claims. Large-scale training and validation are explicitly future work.
+claims. On the in-distribution AirfRANS `full` split (3 seeds), the DEQ
+correction loop improves surface-pressure fidelity (−34% surface MSE),
+drag-ranking versus its own backbone (ρ_Cd 0.895→0.923), and the residual↔error
+trust signal (0.40→0.83), at a *measured cost* to volume cross-stream and
+pressure accuracy (mse_v +129%, mse_p +57%); the feed-forward corrector does not
+improve accuracy. We therefore position the engine as a trust-signal-bearing
+surrogate with an honest accuracy trade-off, not as a uniform accuracy improver.
+Out-of-distribution generalisation and large-scale/external-baseline validation
+are explicitly future work.
 
 **Keywords:** neural operators, surrogate CFD, physics-informed learning,
 uncertainty quantification, self-correction, airfoil aerodynamics.
@@ -256,8 +264,10 @@ and a single extra operator application carries the gradient (O(1) memory). The
 operator is trained on *data* (it targets correctness, with the residual as an
 informative input feature, rather than minimising a residual that need not
 coincide with truth), and at inference the converged `δ*` is applied directly.
-Empirically the measured contraction factor is ≈ 0.5 and convergence reaches
-`10⁻⁵` in ≈ 15 iterations. This converts the "self‑correcting loop" from
+A contraction factor `< 1` holds by construction (spectral norm + `κ < 1`); the
+*empirical* contraction factor and convergence curve (H5) are pending the
+contraction-measurement run on AirfRANS and are not yet measured — we therefore
+do not report a specific empirical contraction number here. This converts the "self‑correcting loop" from
 integration glue with a vacuous property into a corrector with a *real* fixed‑point
 convergence guarantee — addressing the closest prior art (Hsieh et al., 2019;
 FNO‑DEQ, 2023) on its own terms.
@@ -271,8 +281,10 @@ finite‑sample‑corrected `(1−α)` quantile `q`; the band `q·σ` then satis
 distribution‑free coverage guarantee `P(|ŷ − y| ≤ q·σ) ≥ 1−α` on exchangeable
 data (cf. UQNO, Ma et al., 2024). The trust map can then be thresholded with a
 known coverage level rather than a hand‑picked constant; `coverage()` verifies it
-empirically (in our synthetic check, a deliberately mis‑scaled `σ` is corrected to
-exactly the 90 % target).
+empirically. To date this has been demonstrated only on a *synthetic* check (a
+deliberately mis‑scaled `σ` is corrected toward the 90 % target); empirical
+per‑channel coverage at α=0.1 on real AirfRANS (H4) is **pending** the
+calibration run and is not yet measured.
 
 ### 3.2 Geometry-native encoding and governing equations
 
@@ -562,71 +574,115 @@ case (the near-zero-initialised corrector emits a negligible delta), which is th
 fails the monotonicity guarantee. Demonstrating substantive residual reduction is
 a function of training the corrector at scale, which is future work.
 
-### 5.3 Preliminary AirfRANS ablation (1 seed, undertrained — *not final*)
+### 5.3 In-distribution AirfRANS ablation (Stage 1, 3 seeds, mean ± std)
 
-A first run of the pre-registered ablation harness (`benchmarks/ablation.py`,
-protocol in `docs/EXPERIMENTS.md`) on **real AirfRANS** data has completed. We
-report it here for transparency, with an emphatic caveat: this is a **single seed**
-under **deliberately undertrained smoke settings** — 40 epochs, 150 of 800 train
-simulations, resolution $128^2$, fast-iteration hyperparameters — chosen to
-exercise the full pipeline on real data quickly. **These are preliminary,
-directional numbers, not final results and not a SOTA claim.** The pre-registered
-protocol requires **≥ 3 seeds reported as mean ± std**; that full run is pending.
-Metrics follow the AirfRANS community protocol (`evaluate_cases`): per-channel
-volume MSE (lower is better; well-conditioned, *not* relative-$L_2$), surface
-pressure MSE on the body, Spearman rank correlation of the force coefficients
-$\rho_{C_l},\rho_{C_d}$ (closer to 1 is better — what early-design ranking needs),
-and `residual_error_spearman` (> 0 means low residual tracks low error).
+The pre-registered ablation harness (`benchmarks/ablation.py`, protocol in
+`docs/EXPERIMENTS.md`) has been run on **real AirfRANS** for the in-distribution
+`full` split (800 train / 200 test, 80 epochs) over
+**3 seeds (0, 1, 2)**, reported here as
+**mean ± std**. This is the Stage-1 (in-distribution) result; the out-of-distribution
+`reynolds`/`aoa` runs (the generalisation claim) are still in progress and are
+reported as protocol only (§5.1, §6). These numbers establish the engine's
+*in-distribution trade-off profile*; they are not a SOTA claim and do not yet
+include the matched-budget external baselines (Transolver/GINO/MeshGraphNet),
+which are future work. Metrics follow the AirfRANS community protocol
+(`evaluate_cases`): per-channel volume MSE (lower is better; well-conditioned,
+*not* relative-$L_2$), surface pressure MSE on the body, Spearman rank correlation
+of the force coefficients $\rho_{C_l},\rho_{C_d}$ (closer to 1 is better — what
+early-design ranking needs), and `residual_error_spearman` (> 0 means low residual
+tracks low error).
 
 | arm | mse_u | mse_v | mse_p | surface_mse_p | $\rho_{C_l}$ | $\rho_{C_d}$ | resid↔err ρ |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| backbone | 5.694 | 0.953 | 7309.6 | 1048373.6 | 0.924 | 0.773 | 0.436 |
-| backbone (no physics loss) | 3.949 | 0.852 | 6501.9 | 1249764.0 | 0.946 | 0.777 | 0.339 |
-| backbone + local corrector | 5.293 | 0.944 | 7114.5 | 1088502.8 | 0.936 | 0.771 | 0.453 |
-| **backbone + DEQ corrector** | 4.929 | 1.581 | 8345.8 | **790377.1** | **0.958** | **0.908** | **0.650** |
+| backbone | 3.479±0.105 | 0.385±0.012 | 2444.8±120.7 | 548823±27946 | 0.9868±0.0005 | 0.895±0.013 | 0.397±0.003 |
+| backbone (no physics loss) | **1.995±0.042** | **0.323±0.008** | **1963.5±55.5** | 1123649±104822 | **0.9920±0.0002** | **0.945±0.008** | 0.605±0.016 |
+| backbone + local corrector | 3.482±0.058 | 0.398±0.007 | 2469.4±71.0 | 541534±20453 | 0.9854±0.0017 | 0.888±0.012 | 0.389±0.031 |
+| **backbone + DEQ corrector** | 3.457±0.811 | 0.880±0.064 | 3832.7±331.3 | **361681±12273** | 0.9856±0.0017 | 0.923±0.014 | **0.827±0.002** |
 
-*Table: preliminary single-seed, undertrained AirfRANS ablation. Lower MSE is
-better; $\rho$ closer to 1 is better; resid↔err ρ > 0 supports the trust signal.*
+*Table: in-distribution AirfRANS ablation, 3 seeds, mean ± std (std is the
+**population** std, `ddof=0`; recomputing with sample std `ddof=1` widens the bars
+by ≈ 1.22× at n=3). Lower MSE is better; $\rho$ closer to 1 is better; resid↔err ρ
+> 0 supports the trust signal. Bold marks the best arm per column. Effects called
+"robust" below are sign-consistent across all 3 seeds with large effect sizes,
+not n=3 noise. The eddy-viscosity channel `mse_nut` is omitted because it is
+near-degenerate at this scale (≈ 5×10⁻⁸ for every arm with no arm-to-arm signal;
+see §6).*
 
 **Reading against the pre-registered hypotheses (honestly).**
 
-- **H1 (the corrector improves design-relevant accuracy).** *Directionally
-  supported on the design metrics.* The DEQ corrector lifts the force-ranking
-  correlations — $\rho_{C_d}$ from **0.773 → 0.908** and $\rho_{C_l}$ from
-  **0.924 → 0.958** — and cuts **surface-pressure MSE by ≈ 25 %**
-  (1048373.6 → 790377.1). These are exactly the quantities a *ranking-preserving
-  surrogate for early-design exploration* is meant to get right. We do **not** read
-  H1 as confirmed on *all* metrics: see the volume-accuracy caveat below.
-- **H2 (the physics residual is a valid trust signal).** *Supported.* The
-  residual↔error Spearman correlation is positive for every arm and **strengthens
-  under the DEQ corrector, 0.436 → 0.650** — i.e. a lower physics residual tracks
-  lower field error more reliably with the corrector engaged. Consistent with our
-  framing, this is evidence that the residual is an informative
-  **consistency monitor**, not "verified confidence"; it does not by itself certify
-  correctness.
-- **H3 (DEQ corrector ≥ feed-forward corrector).** *Supported on the design
-  metrics.* The contractive DEQ fixed point beats the feed-forward `local`
-  corrector on $\rho_{C_d}$ (0.908 vs 0.771), $\rho_{C_l}$ (0.958 vs 0.936),
-  surface-pressure MSE, and the residual↔error correlation.
+- **H1 (the corrector improves accuracy).** *Partially supported, and only when
+  rescoped from the pre-registered volume field MSE to surface/ranking metrics —
+  a post-hoc rescope we flag explicitly.* Over 3 seeds the DEQ corrector improves
+  surface-pressure MSE by **34 %** (548823 → 361681, 3/3 seeds) and drag ranking
+  $\rho_{C_d}$ from **0.895 → 0.923** (3/3) versus its own backbone, but
+  **regresses** volume `mse_v` (0.385 → 0.880, +129 %) and `mse_p`
+  (2445 → 3833, +57 %) on all 3 seeds, and $\rho_{C_l}$ is flat
+  (0.987 → 0.986). The feed-forward `local` corrector does **not** beat the
+  backbone on any volume MSE channel and is slightly worse on $\rho_{C_d}$, so it
+  fails H1 as pre-registered. We do **not** claim the corrector improves accuracy
+  in aggregate. (The single-seed preliminary figures previously reported here —
+  $\rho_{C_l}$ 0.924 → 0.958, surface MSE −25 % — were artifacts of an
+  undertrained run; the $\rho_{C_l}$ improvement in particular does **not**
+  replicate and is retracted, see below.)
+- **H2 (the physics residual is a valid trust signal).** *Supported, robustly.*
+  The residual↔error Spearman correlation is positive for every arm on every seed
+  and **roughly doubles under the DEQ corrector, 0.397 → 0.827** (3/3 seeds, std
+  ≈ 0.002) — i.e. a lower physics residual tracks lower field error far more
+  reliably with the corrector engaged, and the effect is nowhere near the ≤ 0
+  falsification threshold. Consistent with our framing, this is evidence that the
+  residual is an informative **consistency monitor**, not "verified confidence";
+  it does not by itself certify correctness.
+- **H3 (DEQ corrector ≥ feed-forward corrector).** *Supported on the
+  design-relevant axis only — the two correctors trade off and are not uniformly
+  ordered.* The contractive DEQ fixed point beats the feed-forward `local`
+  corrector 3/3 on surface-pressure MSE, $\rho_{C_d}$ (0.923 vs 0.888), and the
+  residual↔error correlation (0.827 vs 0.389), but is 3/3 **worse** on volume
+  `mse_v` (0.880 vs 0.398) and `mse_p` (3833 vs 2469), and tied on `mse_u` /
+  $\rho_{C_l}$. H3 holds on the design metrics; on volume it fails.
 
-**Honest caveat — a volume-accuracy regression.** The DEQ corrector **regresses**
-the volume cross-stream component `mse_v` (0.953 → 1.581) and slightly the volume
-pressure `mse_p`, while improving surface, force-ranking, and trust metrics. On
-this single undertrained seed the corrector appears to **trade some volume-field
-accuracy for surface/force/ranking fidelity**; whether this is a genuine effect or
-a small-sample/undertraining artefact is **under investigation** and will be
-resolved by the multi-seed run. Notably, the **`backbone (no physics loss)`** arm
-has the lowest volume `mse_u`/`mse_v` but the **weakest** residual↔error
-correlation (0.339) — a reminder that volume MSE and the trust signal are distinct
-axes, exactly the trade-off the pre-registered protocol asks us to report rather
-than hide.
+**The ρ_Cl retraction.** The preliminary single-seed run reported
+$\rho_{C_l}$ rising 0.924 → 0.958 under the corrector. This does **not** replicate:
+in the 3-seed run the backbone already sits at 0.987 and the DEQ corrector is
+0.986 (flat-to-slightly-worse, sign-inconsistent across seeds). The single-seed
+0.924 → 0.958 figure was an artifact of the undertrained preliminary run and is
+**retracted**.
+
+**Robust trade-off #1 — a volume-accuracy regression (asset, not bug).** The DEQ
+corrector **regresses** the volume cross-stream component `mse_v` (0.385 → 0.880,
++129 %, 3/3 seeds) and the volume pressure `mse_p` (2445 → 3833, +57 %, 3/3),
+while improving surface-pressure MSE (−34 %), drag ranking, and the trust signal.
+Every DEQ seed sits above every backbone seed (non-overlapping distributions),
+so this is a genuine, replicated trade-off — the corrector optimises surface and
+ranking fidelity at a measured cost to volume fields, not small-sample noise. This
+does **not** contradict the §3.4 no-harm guarantee, which is *residual-norm-scoped*
+and applies to the backtracking acceptance loop; the DEQ `δ*` is applied directly
+(§3.1b) without that acceptance test, consistent with our "monotone residual ≠
+accuracy" caveat.
+
+**Robust trade-off #2 — the physics loss itself trades volume/force accuracy for
+surface fidelity.** Removing the physics loss (`backbone (no physics loss)`)
+**improves** `mse_u`, `mse_v`, `mse_p`, $\rho_{C_l}$, $\rho_{C_d}$ and the
+residual↔error correlation — all 3/3 — but **doubles** surface-pressure MSE
+(549k → 1124k, 3/3). The physics term's *one* benefit is surface-pressure fidelity,
+bought at a uniform cost to volume accuracy and force ranking. Crucially, the
+physics-loss-free backbone is the **best force-ranking model in the table**
+($\rho_{C_d}$ **0.945** > DEQ 0.923; $\rho_{C_l}$ **0.992**, best of all arms),
+with no correction loop at all. We therefore do **not** claim the correction loop
+delivers best-in-class force ranking; the loop's value is the **trust signal** and
+**surface-pressure fidelity**, while a plain physics-loss-free backbone ranks
+forces better. Volume MSE and the trust signal are distinct axes, exactly the
+trade-off the pre-registered protocol asks us to report rather than hide.
 
 **Status.** Every number here comes from the committed, reproducible harness
-(`benchmarks/ablation.py`, run per `docs/EXPERIMENTS.md`). It is **1 seed and
-undertrained**; the directional outcome (H1 on the design metrics, H2, and H3 all
-pointing the right way, with an `mse_v` caveat) motivates — but does not replace —
-the pre-registered **3-seed full-budget run with error bars**, which remains the
-result that decides the paper.
+(`benchmarks/ablation.py`, run per `docs/EXPERIMENTS.md`) over the pre-registered
+3 seeds. H1 as literally pre-registered (volume field MSE + $\rho_{C_d}$) is **not**
+supported; rescoped to surface-pressure + $\rho_{C_d}$ for the DEQ arm only it is
+supported with robust 3/3 effects, while the feed-forward corrector fails it. H2 is
+robustly supported. H3 holds on the design axis and fails on volume. H4 (conformal
+coverage) and H5 (empirical contraction) are **pending** — no coverage or
+contraction artifact exists in the Stage-1 data (§3.1b, §3.1c). The
+out-of-distribution generalisation result that the paper's thesis ultimately rests
+on (the `reynolds`/`aoa` splits) is **forthcoming** and is not asserted here.
 
 ---
 
@@ -642,15 +698,31 @@ result that decides the paper.
 - **Classical fallback is a stub interface.** The trust-gated fallback fixes the
   integration seam and reports what would run; the OpenFOAM/SU2 backends are not
   yet implemented.
-- **Results pending full training.** All accuracy numbers in this draft are
-  illustrative smoke results from tiny CPU models. Backbone- and engine-level
-  accuracy, the size of the correction-loop improvement, and calibration of the
-  trust map remain to be measured at scale on AirfRANS.
+- **Results are Stage-1 (in-distribution) only.** The §5.2 synthetic numbers are
+  illustrative smoke results from tiny CPU models. The §5.3 AirfRANS numbers are a
+  real 3-seed in-distribution ablation that establishes the engine's trade-off
+  profile, but they are *not* a SOTA claim, carry no matched-budget external
+  baseline, and do not bear on generalisation. Out-of-distribution accuracy (the
+  `reynolds`/`aoa` splits), trust-map calibration (H4), and the empirical
+  contraction factor (H5) remain to be measured.
 - **Monotonicity ≠ accuracy.** The acceptance test guarantees the *physics
   residual norm* does not increase; it does not by itself guarantee convergence to
   the true field, and a poorly trained corrector can simply make no progress (it
   cannot do harm). Establishing that lower residual tracks lower field error
   empirically is part of the planned evaluation.
+- **Eddy-viscosity channel is near-degenerate.** The $\nu_t$ output channel is
+  effectively unlearned at this scale (per-arm volume MSE ≈ 5×10⁻⁸ with no
+  arm-to-arm signal); since the residuals use $\nu_{\mathrm{eff}} = \nu + \nu_t$,
+  the physics term currently leans on the laminar viscosity. A trainable $\nu_t$
+  target is future work.
+- **Accuracy is a measured trade-off, not a uniform improvement.** The Stage-1
+  in-distribution ablation (§5.3) shows the DEQ correction loop improves
+  surface-pressure fidelity, drag ranking versus its own backbone, and the trust
+  signal, but *regresses* volume cross-stream and pressure accuracy; the
+  feed-forward corrector helps on nothing; and a physics-loss-free backbone ranks
+  forces best. The conformal coverage (H4) and empirical contraction factor (H5)
+  are not yet measured on AirfRANS, and the out-of-distribution generalisation
+  claim is pending Stage 2.
 
 ---
 
@@ -665,9 +737,17 @@ only where a fused trust map says the prediction cannot be trusted. The
 contribution is the *integration* of these ideas into one reproducible,
 CPU-first, open-source engine with a frozen I/O contract, multiple backbones, a
 zero-download synthetic data generator, an AirfRANS loader, and a benchmark
-harness. We are explicit that quantitative accuracy is pending full-scale
-training on AirfRANS; what this work establishes is a credible, runnable, and
-academically honest *architecture for trustworthy AI-first CFD*. See the
+harness. The Stage-1 in-distribution AirfRANS ablation (3 seeds) shows the
+correction loop is best understood as a **trust-signal-bearing surrogate with an
+honest accuracy trade-off** — it strengthens the residual↔error trust signal
+(0.40→0.83) and surface-pressure fidelity (−34 %) at a measured cost to volume
+accuracy, and it does not deliver best-in-class force ranking. The certified
+self-correction framing — the residual-monotone no-harm guarantee, and conformal
+coverage of the trust threshold as the calibrated contribution — is the durable
+claim; out-of-distribution generalisation, calibrated coverage on real AirfRANS,
+and the empirical contraction factor are pending and explicitly future work. What
+this work establishes is a credible, runnable, and academically honest
+*architecture for trustworthy AI-first CFD*. See the
 [README](../../README.md), the engineer-facing
 [architecture document](../architecture.md), and the
 [roadmap](../ROADMAP.md) for the implementation status and the staged plan.

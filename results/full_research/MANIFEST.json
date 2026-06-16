@@ -1,0 +1,36 @@
+{
+  "timestamp_utc": "2026-06-15T10:33:13.328095+00:00",
+  "git_commit": "d2c5556",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.1",
+  "torch": "2.6.0+cu124",
+  "cuda_available": true,
+  "cuda_toolkit": "12.4",
+  "gpu": "NVIDIA GeForce RTX 4070 Ti",
+  "vram_gb": 12.9,
+  "cpu_count": 24,
+  "config": {
+    "source": "airfrans",
+    "task": "full",
+    "n_train": 800,
+    "n_val": 200,
+    "epochs": 80,
+    "corrector_epochs": 20,
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "resolution": 128,
+    "width": 48,
+    "modes": 20,
+    "layers": 4,
+    "batch_size": 16,
+    "device": "auto",
+    "ood": true,
+    "ood_tasks": [
+      "reynolds",
+      "aoa"
+    ]
+  }
+}

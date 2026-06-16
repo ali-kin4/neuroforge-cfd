@@ -1,0 +1,57 @@
+ood_task,arm,metric,mean,std
+reynolds,backbone,mse_u,16.218458641241398,0.7460193790439691
+reynolds,backbone,mse_v,1.1874018464421088,0.14920107375480077
+reynolds,backbone,mse_p,7220.675232488827,612.1668642840502
+reynolds,backbone,surface_mse_p,964641.290835149,61419.424797242
+reynolds,backbone,rho_cl,0.9504447611190282,0.008315111034157132
+reynolds,backbone,rho_cd,0.8929888247206182,0.008692302068988413
+reynolds,backbone,residual_error_spearman,0.7477366934173356,0.07735272144169252
+reynolds,backbone (no physics loss),mse_u,12.550666553690204,2.536436270833144
+reynolds,backbone (no physics loss),mse_v,1.337310471058955,0.05558251240085164
+reynolds,backbone (no physics loss),mse_p,6758.05296724699,476.97358166859
+reynolds,backbone (no physics loss),surface_mse_p,1904445.9944947462,130745.2176997927
+reynolds,backbone (no physics loss),rho_cl,0.9403730093252332,0.014812815020694172
+reynolds,backbone (no physics loss),rho_cd,0.904279606990175,0.010281124039204715
+reynolds,backbone (no physics loss),residual_error_spearman,0.7173709342733571,0.04061373644776464
+reynolds,backbone + local corrector,mse_u,14.186463894508913,3.6713347174968938
+reynolds,backbone + local corrector,mse_v,1.2937477855387887,0.03934091975761511
+reynolds,backbone + local corrector,mse_p,7508.283924006358,137.663938485246
+reynolds,backbone + local corrector,surface_mse_p,985257.7474921587,37682.153001148865
+reynolds,backbone + local corrector,rho_cl,0.9504472611815297,0.007081535523876572
+reynolds,backbone + local corrector,rho_cd,0.9050456261406538,0.006301116066092488
+reynolds,backbone + local corrector,residual_error_spearman,0.722489562239056,0.04255252965755754
+reynolds,backbone + DEQ corrector,mse_u,5.2999234766000205,1.5443479354875405
+reynolds,backbone + DEQ corrector,mse_v,1.2077464479525022,0.25502697609718883
+reynolds,backbone + DEQ corrector,mse_p,6469.4528753775785,438.02671668121343
+reynolds,backbone + DEQ corrector,surface_mse_p,652280.9889053089,45389.84158285992
+reynolds,backbone + DEQ corrector,rho_cl,0.9425075626890673,0.0077747552246460894
+reynolds,backbone + DEQ corrector,rho_cd,0.9149428735718393,0.00905804774000239
+reynolds,backbone + DEQ corrector,residual_error_spearman,0.7416295407385185,0.04107870229735186
+aoa,backbone,mse_u,4.312253606539905,0.07722200285955724
+aoa,backbone,mse_v,1.3098650108496301,0.038881997681738674
+aoa,backbone,mse_p,6042.7671673817995,242.47025620336746
+aoa,backbone,surface_mse_p,2000591.804423765,55092.05124074963
+aoa,backbone,rho_cl,0.9629672720318116,0.002917042556249184
+aoa,backbone,rho_cd,0.9260466388820269,0.002111208290861054
+aoa,backbone,residual_error_spearman,0.3140248680495236,0.06353146734759511
+aoa,backbone (no physics loss),mse_u,2.990294308858917,0.20621293524749149
+aoa,backbone (no physics loss),mse_v,1.2579403860969345,0.07834502913819431
+aoa,backbone (no physics loss),mse_p,4733.591247386672,142.0728934578681
+aoa,backbone (no physics loss),surface_mse_p,3313418.2530514826,322368.2006386987
+aoa,backbone (no physics loss),rho_cl,0.9738548133036894,0.0042643584178055655
+aoa,backbone (no physics loss),rho_cd,0.9429586125742762,0.003221107968757707
+aoa,backbone (no physics loss),residual_error_spearman,0.3292920760651001,0.061975086753913264
+aoa,backbone + local corrector,mse_u,4.055176654458054,0.14812906835466924
+aoa,backbone + local corrector,mse_v,1.3141371796055106,0.021505830193036823
+aoa,backbone + local corrector,mse_p,5558.267856893856,136.85189012204816
+aoa,backbone + local corrector,surface_mse_p,1963823.277901806,77835.22921210615
+aoa,backbone + local corrector,rho_cl,0.9600235877248205,0.005263877254779291
+aoa,backbone + local corrector,rho_cd,0.9284362241577616,0.005338990696168698
+aoa,backbone + local corrector,residual_error_spearman,0.33614739140482436,0.02784215709295609
+aoa,backbone + DEQ corrector,mse_u,3.5376373651081576,0.680547046200951
+aoa,backbone + DEQ corrector,mse_v,1.406807495942905,0.08853531188136718
+aoa,backbone + DEQ corrector,mse_p,4620.586387463697,170.24706700254885
+aoa,backbone + DEQ corrector,surface_mse_p,1042710.9297006396,78297.56476320217
+aoa,backbone + DEQ corrector,rho_cl,0.9662998350453028,0.005762787385442875
+aoa,backbone + DEQ corrector,rho_cd,0.9052644720519994,0.0127516231835525
+aoa,backbone + DEQ corrector,residual_error_spearman,0.7461169239269312,0.027013520432146453
