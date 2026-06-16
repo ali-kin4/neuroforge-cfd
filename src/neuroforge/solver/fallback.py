@@ -1,11 +1,13 @@
 """Optional local classical-CFD fallback patch.
 
 When the engine's uncertainty / trust map flags a region as unreliable, a
-classical solver can in principle be run on just that sub-region and stitched
-back in. This module provides the *interface* and a no-op ``stub`` backend that
-documents what would run; the real ``openfoam`` / ``su2`` backends are deferred
-(they raise :class:`NotImplementedError` with guidance). The module imports with
-nothing installed.
+classical solver can be run on just that sub-region and stitched back in. This
+module provides the *interface*, a no-op ``stub`` backend that documents what
+would run, and a real ``numpy`` backend (a self-contained local incompressible
+SIMPLE/projection solve, see :mod:`neuroforge.solver.classical`). The external
+``openfoam`` / ``su2`` backends remain deferred (they raise
+:class:`NotImplementedError` with guidance). The module imports with nothing
+installed; the ``numpy`` backend needs only numpy + scipy.
 """
 
 from __future__ import annotations
@@ -24,10 +26,13 @@ class ClassicalFallback:
     ----------
     backend : str, optional
         ``'stub'`` (default) reports what would run without changing the field;
+        ``'numpy'`` (aliases ``'projection'`` / ``'simple'``) runs a real local
+        incompressible SIMPLE solve with a no-harm guarantee;
         ``'openfoam'`` / ``'su2'`` raise :class:`NotImplementedError`.
     """
 
-    _SUPPORTED = ("stub", "openfoam", "su2")
+    _NUMPY_ALIASES = ("numpy", "projection", "simple")
+    _SUPPORTED = ("stub", *_NUMPY_ALIASES, "openfoam", "su2")
 
     def __init__(self, backend: str = "stub") -> None:
         backend = str(backend).lower()
@@ -78,7 +83,23 @@ class ClassicalFallback:
             }
             return field
 
-        # Real backends are deferred.
+        if self.backend in self._NUMPY_ALIASES:
+            from .classical import local_incompressible_solve
+
+            if n_cells == 0:
+                field.meta = dict(field.meta)
+                field.meta["fallback"] = {
+                    "backend": "numpy",
+                    "ran": False,
+                    "region_cells": 0,
+                    "residual_before": 0.0,
+                    "residual_after": 0.0,
+                    "note": "empty region: no fluid cells flagged; field unchanged",
+                }
+                return field
+            return local_incompressible_solve(field, case, region)
+
+        # External solver backends are deferred.
         guidance = {
             "openfoam": (
                 "OpenFOAM fallback not yet implemented. Install OpenFOAM and a "

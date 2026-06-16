@@ -20,12 +20,47 @@ written to a markdown table + CSV. Smoke-test on the bundled synthetic substrate
 from __future__ import annotations
 
 import csv
+import json
 import os
 from collections import defaultdict
 
 import numpy as np
 
 __all__ = ["run_ablation", "run_ood_ablation"]
+
+# Sidecar directory (under out_dir) for per-seed incremental checkpoints, so a
+# crash mid-stage doesn't lose completed seeds' training.
+_CKPT_SUBDIR = "_seed_checkpoints"
+
+
+def _seed_ckpt_path(out_dir: str, seed) -> str:
+    return os.path.join(out_dir, _CKPT_SUBDIR, f"seed{seed}.json")
+
+
+def _save_seed_checkpoint(out_dir: str, seed, payload: dict) -> None:
+    """Atomically persist one seed's per-arm metric dicts (temp-file + rename).
+
+    Written once, after all of the seed's arms complete, so resume never treats a
+    partially-written seed as done.
+    """
+    path = _seed_ckpt_path(out_dir, seed)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(payload, f)
+    os.replace(tmp, path)
+
+
+def _load_seed_checkpoint(out_dir: str, seed):
+    """Return a seed's checkpoint payload, or ``None`` if absent/corrupt."""
+    path = _seed_ckpt_path(out_dir, seed)
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:  # corrupt/partial file -> recompute this seed
+        return None
 
 # AirfRANS-protocol metrics reported per arm.
 _METRICS = [
@@ -95,6 +130,7 @@ def run_ablation(
     device: str = "auto",
     out_dir: str = "results",
     verbose: bool = True,
+    resume: bool = True,
 ) -> dict:
     """Train every ablation arm over ``seeds`` and emit a mean±std table.
 
@@ -103,11 +139,17 @@ def run_ablation(
     backbone is reused for the plain ``backbone`` row (same trained model,
     evaluated with the correction off vs on) so the corrector comparison is
     apples-to-apples.
+
+    When ``resume`` is True (default) each seed's per-arm metric dicts are
+    checkpointed to ``out_dir/_seed_checkpoints/seed{N}.json`` after the seed's
+    arms finish; on a later call those seeds are loaded and skipped. The final
+    table aggregates checkpoints + freshly-run seeds, so it is identical to a
+    non-resumed run on the same seeds (``_agg`` is order-insensitive).
     """
     import neuroforge as nf
 
-    arms: dict[str, list[dict]] = defaultdict(list)
-    for seed in seeds:
+    def _run_seed(seed) -> dict[str, dict]:
+        """Train + evaluate all arms for one seed -> {arm: metric dict}."""
         common = dict(
             backbone="fno", width=width, modes=modes, n_layers=n_layers,
             dropout=0.05, epochs=epochs, corrector_epochs=corrector_epochs,
@@ -117,22 +159,37 @@ def run_ablation(
             task=task, n_train=n_train, n_val=n_val, root=root,
             cache_dir=cache_dir, download=download, verbose=False,
         )
+        seed_arms: dict[str, dict] = {}
 
         if verbose:
             print(f"[ablation] seed {seed}: DEQ-corrector arm ...")
         m = nf.NeuroForge(corrector="deq", physics_weight=0.1, **common).fit(source, **fit_kw)
-        arms["backbone"].append(m.evaluate(corrected=False))
-        arms["backbone + DEQ corrector"].append(m.evaluate(corrected=True))
+        seed_arms["backbone"] = m.evaluate(corrected=False)
+        seed_arms["backbone + DEQ corrector"] = m.evaluate(corrected=True)
 
         if verbose:
             print(f"[ablation] seed {seed}: local-corrector arm ...")
         ml = nf.NeuroForge(corrector="local", physics_weight=0.1, **common).fit(source, **fit_kw)
-        arms["backbone + local corrector"].append(ml.evaluate(corrected=True))
+        seed_arms["backbone + local corrector"] = ml.evaluate(corrected=True)
 
         if verbose:
             print(f"[ablation] seed {seed}: no-physics-loss arm ...")
         mn = nf.NeuroForge(corrector="none", physics_weight=0.0, **common).fit(source, **fit_kw)
-        arms["backbone (no physics loss)"].append(mn.evaluate(corrected=False))
+        seed_arms["backbone (no physics loss)"] = mn.evaluate(corrected=False)
+        return seed_arms
+
+    arms: dict[str, list[dict]] = defaultdict(list)
+    for seed in seeds:
+        seed_arms = _load_seed_checkpoint(out_dir, seed) if resume else None
+        if seed_arms is not None:
+            if verbose:
+                print(f"[ablation] seed {seed}: resumed from checkpoint (skip)")
+        else:
+            seed_arms = _run_seed(seed)
+            if resume:
+                _save_seed_checkpoint(out_dir, seed, seed_arms)
+        for arm, mets in seed_arms.items():
+            arms[arm].append(mets)
 
     order = [
         "backbone",
@@ -222,6 +279,7 @@ def run_ood_ablation(
     device: str = "auto",
     out_dir: str = "results",
     verbose: bool = True,
+    resume: bool = True,
 ) -> dict:
     """Out-of-distribution ablation: per-arm metrics on each task's held-out range.
 
@@ -240,6 +298,12 @@ def run_ood_ablation(
     ``backbone`` row (correction off vs on) so the comparison is apples-to-apples.
     Results are aggregated to mean ± std over ``seeds`` and written to
     ``ablation_ood.md`` / ``ablation_ood.csv``.
+
+    When ``resume`` is True (default) each seed is checkpointed to
+    ``out_dir/_seed_checkpoints/seed{N}.json`` keyed by task
+    (``{task: {arm: metrics}}``) once all of that (task, seed)'s arms finish, and
+    a later call loads + skips completed (task, seed) pairs. The final table is
+    identical to a non-resumed run on the same seeds.
     """
     import neuroforge as nf
 
@@ -252,36 +316,55 @@ def run_ood_ablation(
         "backbone + DEQ corrector",
     ]
 
+    def _run_task_seed(task, seed) -> dict[str, dict]:
+        """Train + evaluate all arms for one (task, seed) -> {arm: metric dict}."""
+        common = dict(
+            backbone="fno", width=width, modes=modes, n_layers=n_layers,
+            dropout=0.05, epochs=epochs, corrector_epochs=corrector_epochs,
+            resolution=resolution, batch_size=batch_size, device=device, seed=seed,
+        )
+        fit_kw = dict(
+            task=task, n_train=n_train, n_val=n_val, root=root,
+            cache_dir=cache_dir, download=download, verbose=False,
+        )
+        seed_arms: dict[str, dict] = {}
+
+        if verbose:
+            print(f"[ood-ablation] {task} | seed {seed}: DEQ-corrector arm ...")
+        m = nf.NeuroForge(corrector="deq", physics_weight=0.1, **common).fit(source, **fit_kw)
+        seed_arms["backbone"] = m.evaluate(corrected=False)
+        seed_arms["backbone + DEQ corrector"] = m.evaluate(corrected=True)
+
+        if verbose:
+            print(f"[ood-ablation] {task} | seed {seed}: local-corrector arm ...")
+        ml = nf.NeuroForge(corrector="local", physics_weight=0.1, **common).fit(source, **fit_kw)
+        seed_arms["backbone + local corrector"] = ml.evaluate(corrected=True)
+
+        if verbose:
+            print(f"[ood-ablation] {task} | seed {seed}: no-physics-loss arm ...")
+        mn = nf.NeuroForge(corrector="none", physics_weight=0.0, **common).fit(source, **fit_kw)
+        seed_arms["backbone (no physics loss)"] = mn.evaluate(corrected=False)
+        return seed_arms
+
     for task in ood_tasks:
         if verbose:
             print(f"[ood-ablation] OOD task '{task}': train split -> held-out test split")
         arms: dict[str, list[dict]] = defaultdict(list)
         for seed in seeds:
-            common = dict(
-                backbone="fno", width=width, modes=modes, n_layers=n_layers,
-                dropout=0.05, epochs=epochs, corrector_epochs=corrector_epochs,
-                resolution=resolution, batch_size=batch_size, device=device, seed=seed,
-            )
-            fit_kw = dict(
-                task=task, n_train=n_train, n_val=n_val, root=root,
-                cache_dir=cache_dir, download=download, verbose=False,
-            )
-
-            if verbose:
-                print(f"[ood-ablation] {task} | seed {seed}: DEQ-corrector arm ...")
-            m = nf.NeuroForge(corrector="deq", physics_weight=0.1, **common).fit(source, **fit_kw)
-            arms["backbone"].append(m.evaluate(corrected=False))
-            arms["backbone + DEQ corrector"].append(m.evaluate(corrected=True))
-
-            if verbose:
-                print(f"[ood-ablation] {task} | seed {seed}: local-corrector arm ...")
-            ml = nf.NeuroForge(corrector="local", physics_weight=0.1, **common).fit(source, **fit_kw)
-            arms["backbone + local corrector"].append(ml.evaluate(corrected=True))
-
-            if verbose:
-                print(f"[ood-ablation] {task} | seed {seed}: no-physics-loss arm ...")
-            mn = nf.NeuroForge(corrector="none", physics_weight=0.0, **common).fit(source, **fit_kw)
-            arms["backbone (no physics loss)"].append(mn.evaluate(corrected=False))
+            ck = _load_seed_checkpoint(out_dir, seed) if resume else None
+            seed_arms = ck.get(task) if isinstance(ck, dict) else None
+            if seed_arms is not None:
+                if verbose:
+                    print(f"[ood-ablation] {task} | seed {seed}: resumed from checkpoint (skip)")
+            else:
+                seed_arms = _run_task_seed(task, seed)
+                if resume:
+                    # Merge into this seed's (multi-task) checkpoint atomically.
+                    payload = ck if isinstance(ck, dict) else {}
+                    payload[task] = seed_arms
+                    _save_seed_checkpoint(out_dir, seed, payload)
+            for arm, mets in seed_arms.items():
+                arms[arm].append(mets)
 
         raw[task] = dict(arms)
         tables[task] = {arm: _agg(arms[arm]) for arm in order if arm in arms}

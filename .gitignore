@@ -28,6 +28,11 @@ reports/*.png
 *.vtk
 *.vtu
 
+# Run logs (live training stdout + GPU monitor) + dashboard control flag —
+# regenerable, never committed.
+*.log
+run_control.json
+
 # Keep small bundled demo assets
 !assets/**
 

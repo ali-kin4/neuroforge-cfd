@@ -131,12 +131,17 @@ class NeuroForgeEngine:
         corrector was saved.
         """
         from neuroforge.physics.residuals import PhysicsChecker
-        from neuroforge.train.trainer import Trainer
+        from neuroforge.train.trainer import Trainer, _resolve_device
 
         cfg = config if config is not None else Config()
+        # Honour the configured device (auto/cpu/cuda) for the backbone so the
+        # checkpoint runs on the GPU when one is available, while staying
+        # CPU-first when it is not. The backbone is loaded onto CPU first
+        # (portable, device-independent state) and then moved by the Predictor.
+        device = _resolve_device(cfg.train.device)
         model, normalizer, model_cfg = Trainer.load(path, map_location="cpu")
         cfg.model = model_cfg
-        predictor = Predictor(model, normalizer, device="cpu")
+        predictor = Predictor(model, normalizer, device=str(device))
         checker = PhysicsChecker(cfg.physics)
 
         corrector = None
@@ -148,6 +153,12 @@ class NeuroForgeEngine:
             corrector = build_corrector(cc)
             corrector.load_state_dict(ckpt["corrector_state"])
             corrector.eval()
+            # The corrector deliberately stays on CPU: it runs *inside* the
+            # numpy/CPU Neural Residual Iteration loop (see
+            # ``solver/correction_loop.py``), which builds all of its tensor
+            # inputs on CPU via ``torch.from_numpy`` and converts outputs back
+            # with ``.cpu().numpy()``. Moving it to the backbone's device would
+            # create a cross-device mismatch against those CPU inputs.
 
         return cls(predictor, checker, corrector=corrector, uq=None, config=cfg)
 

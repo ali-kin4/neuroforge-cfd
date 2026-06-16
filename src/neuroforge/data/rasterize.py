@@ -124,7 +124,12 @@ def rasterize_point_cloud(
         return _nearest_bin_scatter(pts, vals, domain, fill)
 
     try:
-        from scipy.interpolate import griddata  # type: ignore
+        from scipy.interpolate import (  # type: ignore
+            CloughTocher2DInterpolator,
+            LinearNDInterpolator,
+            NearestNDInterpolator,
+        )
+        from scipy.spatial import Delaunay  # type: ignore
     except Exception:  # pragma: no cover - exercised only without scipy
         return _nearest_bin_scatter(pts, vals, domain, fill)
 
@@ -132,16 +137,37 @@ def rasterize_point_cloud(
     xi = np.stack([X.ravel(), Y.ravel()], axis=1)
     ny, nx = domain.shape
     k = vals.shape[1]
-    out = np.empty((k, ny, nx), dtype=DTYPE)
+    fillv = float(fill)
 
-    for c in range(k):
-        grid_c = griddata(pts, vals[:, c], xi, method=method, fill_value=float(fill))
-        grid_c = np.asarray(grid_c, dtype=np.float64)
-        # `linear`/`cubic` leave NaN outside the hull; backfill with nearest.
-        nan = np.isnan(grid_c)
-        if nan.any():
-            nn = griddata(pts, vals[:, c], xi[nan], method="nearest")
-            grid_c[nan] = np.asarray(nn, dtype=np.float64)
-        out[c] = grid_c.reshape(ny, nx).astype(DTYPE)
+    # Build ONE triangulation / interpolator and evaluate all K channels in a
+    # single vector-valued pass — ``scipy.interpolate.griddata`` rebuilds this
+    # Delaunay triangulation once *per channel*, which dominated the cost. The
+    # interpolators below are exactly what ``griddata`` calls internally (same
+    # Delaunay, ``rescale=False``), so this is numerically equivalent to the old
+    # per-channel ``griddata`` loop within float round-off.
+    if method == "nearest":
+        # NearestNDInterpolator ignores ``fill`` (matches old griddata nearest).
+        out = NearestNDInterpolator(pts, vals)(xi)
+        out = np.asarray(out, dtype=np.float64)
+    else:
+        try:
+            tri = Delaunay(pts)
+        except Exception:  # pragma: no cover - degenerate (collinear) clouds
+            return _nearest_bin_scatter(pts, vals, domain, fill)
+        # IMPORTANT: pass ``fill_value=fill`` so out-of-hull query points get
+        # ``fill`` (0.0), reproducing the old ``griddata(..., fill_value=fill)``
+        # behaviour. With a non-NaN fill the old nearest backfill was effectively
+        # dead code; we keep it below only as a guard for rare in-hull NaNs.
+        if method == "cubic":
+            interp = CloughTocher2DInterpolator(tri, vals, fill_value=fillv)
+        else:  # "linear" (default)
+            interp = LinearNDInterpolator(tri, vals, fill_value=fillv)
+        out = np.asarray(interp(xi), dtype=np.float64)
+        # Guard: backfill any residual NaN (does not normally fire) with nearest,
+        # all channels at once — mirrors the old per-channel nearest fallback.
+        nan_rows = np.isnan(out).any(axis=1)
+        if nan_rows.any():
+            nn = NearestNDInterpolator(pts, vals)(xi[nan_rows])
+            out[nan_rows] = np.asarray(nn, dtype=np.float64)
 
-    return out
+    return out.reshape(ny, nx, k).transpose(2, 0, 1).astype(DTYPE)

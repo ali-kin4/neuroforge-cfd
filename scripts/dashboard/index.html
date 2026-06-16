@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NeuroForge — live research run</title>
+<style>
+  :root{
+    --bg:#0b0e14; --bg2:#0e131c; --card:rgba(22,28,40,.72); --card-brd:rgba(120,140,180,.12);
+    --txt:#e6ebf5; --muted:#8a96ab; --muted2:#5c6678;
+    --accent:#5eead4; --accent2:#38bdf8; --accent-dim:rgba(94,234,212,.14);
+    --ok:#34d399; --warn:#fbbf24; --bad:#f87171; --violet:#a78bfa;
+    --mono:'SF Mono',ui-monospace,'Cascadia Code','Consolas',monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:Inter,'Segoe UI',system-ui,-apple-system,sans-serif;
+    color:var(--txt); background:
+      radial-gradient(1100px 600px at 12% -10%,rgba(56,189,248,.10),transparent 60%),
+      radial-gradient(900px 500px at 100% 0%,rgba(167,139,250,.10),transparent 55%),
+      linear-gradient(160deg,var(--bg),var(--bg2));
+    background-attachment:fixed; padding:14px 16px; overflow:hidden;
+  }
+  .wrap{max-width:1180px; margin:0 auto; height:calc(100vh - 28px); display:flex; flex-direction:column; gap:11px}
+
+  /* header */
+  header{display:flex; align-items:center; gap:14px}
+  .logo{width:34px;height:34px;border-radius:9px;flex:none;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    box-shadow:0 6px 22px rgba(56,189,248,.35); position:relative}
+  .logo::after{content:"";position:absolute;inset:8px;border-radius:5px;
+    background:var(--bg);opacity:.55;
+    clip-path:polygon(0 65%,30% 35%,52% 58%,100% 8%,100% 100%,0 100%)}
+  h1{font-size:16px;margin:0;font-weight:650;letter-spacing:.2px}
+  .sub{font-size:11px;color:var(--muted);margin-top:1px}
+  .grow{flex:1}
+  .pill{font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:999px;
+    border:1px solid var(--card-brd);background:var(--card);display:flex;align-items:center;gap:7px;
+    backdrop-filter:blur(8px)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .dot.live{background:var(--accent);box-shadow:0 0 0 0 rgba(94,234,212,.7);animation:pulse 1.6s infinite}
+  .dot.done{background:var(--ok)} .dot.stopped{background:var(--bad)} .dot.prep{background:var(--accent2)}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(94,234,212,.55)}70%{box-shadow:0 0 0 7px rgba(94,234,212,0)}100%{box-shadow:0 0 0 0 rgba(94,234,212,0)}}
+  .elapsed{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+
+  /* overall progress */
+  .overall{background:var(--card);border:1px solid var(--card-brd);border-radius:13px;
+    padding:11px 14px;backdrop-filter:blur(10px);box-shadow:0 8px 30px rgba(0,0,0,.28)}
+  .overall .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+  .overall .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .overall .pct{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--accent)}
+  .track{height:9px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;position:relative}
+  .bar{height:100%;border-radius:999px;width:0%;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    transition:width .8s cubic-bezier(.4,0,.2,1);position:relative}
+  .bar::after{content:"";position:absolute;inset:0;border-radius:999px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+    background-size:200% 100%;animation:sheen 2.2s linear infinite}
+  @keyframes sheen{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+  /* grid */
+  .grid{display:grid;grid-template-columns:1.35fr 1fr;grid-template-rows:auto auto;gap:11px;flex:1;min-height:0}
+  .card{background:var(--card);border:1px solid var(--card-brd);border-radius:13px;padding:12px 14px;
+    backdrop-filter:blur(10px);box-shadow:0 8px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;min-height:0}
+  .card h2{font-size:10.5px;margin:0 0 9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;font-weight:600;
+    display:flex;align-items:center;gap:7px}
+  .card h2 .tag{margin-left:auto;font-size:10px;color:var(--accent);background:var(--accent-dim);
+    padding:2px 7px;border-radius:6px;letter-spacing:.4px;text-transform:none}
+
+  /* current work metrics */
+  .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:9px 12px}
+  .m{display:flex;flex-direction:column;gap:2px}
+  .m .k{font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.6px}
+  .m .v{font-family:var(--mono);font-size:15px;font-weight:600}
+  .m .v.sm{font-size:13px}
+  .m .v.acc{color:var(--accent)} .m .v.vio{color:var(--violet)}
+  .epochbar{margin-top:9px}
+  .epochbar .track{height:6px}
+  .epochbar .mini{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--violet),var(--accent2));width:0%;transition:width .6s ease}
+
+  /* sparkline */
+  .sparkwrap{flex:1;min-height:0;display:flex;flex-direction:column}
+  canvas{width:100%;flex:1;display:block;border-radius:8px;background:rgba(0,0,0,.18)}
+  .sparkfoot{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--muted2);margin-top:5px}
+
+  /* data prep */
+  .prep .desc{font-family:var(--mono);font-size:12px;color:var(--txt);margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .prep .track{height:8px}
+  .prep .pbar{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));width:0%;transition:width .5s ease}
+  .prep .cnt{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px;text-align:right}
+  .prep.idle{opacity:.5}
+
+  /* gpu */
+  .gpu-top{display:flex;gap:14px;align-items:center}
+  .gauge{position:relative;width:78px;height:78px;flex:none}
+  .gauge svg{transform:rotate(-90deg)}
+  .gauge .gv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .gauge .gv b{font-family:var(--mono);font-size:18px;font-weight:600;line-height:1}
+  .gauge .gv span{font-size:9px;color:var(--muted2);text-transform:uppercase;letter-spacing:.6px;margin-top:2px}
+  .gpu-stats{flex:1;display:flex;flex-direction:column;gap:9px}
+  .gline .top{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px}
+  .gline .top .gk{color:var(--muted)} .gline .top .gvv{font-family:var(--mono);font-weight:600}
+  .gline .track{height:7px}
+  .gline .gbar{height:100%;border-radius:999px;width:0%;transition:width .5s ease}
+
+  /* controls */
+  .controls{display:flex;gap:9px;align-items:center}
+  button{font-family:inherit;font-size:12.5px;font-weight:600;padding:8px 15px;border-radius:9px;cursor:pointer;
+    border:1px solid var(--card-brd);background:rgba(255,255,255,.05);color:var(--txt);transition:.15s;display:flex;align-items:center;gap:6px}
+  button:hover:not(:disabled){background:rgba(255,255,255,.1);transform:translateY(-1px)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.stop{border-color:rgba(248,113,113,.4);color:var(--bad);background:rgba(248,113,113,.08)}
+  button.stop:hover:not(:disabled){background:rgba(248,113,113,.18)}
+  button.go{border-color:rgba(52,211,153,.35);color:var(--ok);background:rgba(52,211,153,.08)}
+  .ctl-note{margin-left:auto;font-size:10.5px;color:var(--muted2);font-family:var(--mono)}
+
+  /* toast */
+  #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
+    background:var(--card);border:1px solid var(--card-brd);backdrop-filter:blur(12px);
+    color:var(--txt);padding:11px 17px;border-radius:11px;font-size:13px;box-shadow:0 12px 40px rgba(0,0,0,.45);
+    opacity:0;pointer-events:none;transition:.3s;max-width:80vw}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast.ok{border-color:rgba(52,211,153,.5)} #toast.err{border-color:rgba(248,113,113,.5)}
+
+  .empty{color:var(--muted2);font-size:12px;font-family:var(--mono);display:flex;align-items:center;height:100%;justify-content:center}
+
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(5,8,14,.6);backdrop-filter:blur(4px);
+    display:none;align-items:center;justify-content:center;z-index:50}
+  .modal.show{display:flex}
+  .modal .box{background:var(--bg2);border:1px solid var(--card-brd);border-radius:14px;padding:22px;max-width:380px;
+    box-shadow:0 24px 70px rgba(0,0,0,.6)}
+  .modal h3{margin:0 0 8px;font-size:15px}
+  .modal p{margin:0 0 18px;color:var(--muted);font-size:13px;line-height:1.5}
+  .modal .acts{display:flex;gap:9px;justify-content:flex-end}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"></div>
+    <div>
+      <h1>NeuroForge CFD <span style="color:var(--muted);font-weight:400">— full research run</span></h1>
+      <div class="sub" id="subline">geometry-native AI CFD · ablation protocol</div>
+    </div>
+    <div class="grow"></div>
+    <div class="pill"><span class="dot" id="statusDot"></span><span id="statusText">connecting…</span></div>
+    <div class="pill"><span class="elapsed" id="elapsed">--:--:--</span></div>
+  </header>
+
+  <div class="overall">
+    <div class="row">
+      <span class="lbl">Overall progress</span>
+      <span class="pct" id="overallPct">0%</span>
+    </div>
+    <div class="track"><div class="bar" id="overallBar"></div></div>
+  </div>
+
+  <div class="grid">
+    <!-- current work -->
+    <div class="card" id="workCard">
+      <h2>Current work <span class="tag" id="stageTag">—</span></h2>
+      <div class="metrics">
+        <div class="m"><span class="k">Stage</span><span class="v sm" id="mStage">—</span></div>
+        <div class="m"><span class="k">Seed</span><span class="v" id="mSeed">—</span></div>
+        <div class="m"><span class="k">Arm</span><span class="v sm" id="mArm">—</span></div>
+        <div class="m"><span class="k">Epoch</span><span class="v" id="mEpoch">—</span></div>
+        <div class="m"><span class="k">Train loss</span><span class="v acc" id="mTrain">—</span></div>
+        <div class="m"><span class="k">Val loss</span><span class="v vio" id="mVal">—</span></div>
+      </div>
+      <div class="epochbar">
+        <div class="track"><div class="mini" id="epochMini"></div></div>
+      </div>
+    </div>
+
+    <!-- gpu -->
+    <div class="card">
+      <h2>GPU <span class="tag" id="gpuName">nvidia-smi</span></h2>
+      <div class="gpu-top">
+        <div class="gauge">
+          <svg width="78" height="78" viewBox="0 0 78 78">
+            <circle cx="39" cy="39" r="33" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="8"/>
+            <circle id="tempArc" cx="39" cy="39" r="33" fill="none" stroke="var(--ok)" stroke-width="8"
+              stroke-linecap="round" stroke-dasharray="207.3" stroke-dashoffset="207.3"
+              style="transition:stroke-dashoffset .6s ease, stroke .4s"/>
+          </svg>
+          <div class="gv"><b id="gTemp">--</b><span>°C temp</span></div>
+        </div>
+        <div class="gpu-stats">
+          <div class="gline">
+            <div class="top"><span class="gk">Utilisation</span><span class="gvv" id="gUtilTxt">-- %</span></div>
+            <div class="track"><div class="gbar" id="gUtilBar" style="background:linear-gradient(90deg,var(--accent),var(--accent2))"></div></div>
+          </div>
+          <div class="gline">
+            <div class="top"><span class="gk">VRAM</span><span class="gvv" id="gMemTxt">-- / --</span></div>
+            <div class="track"><div class="gbar" id="gMemBar" style="background:linear-gradient(90deg,var(--violet),var(--accent2))"></div></div>
+          </div>
+          <div class="gline">
+            <div class="top"><span class="gk">Power</span><span class="gvv" id="gPowTxt">-- W</span></div>
+            <div class="track"><div class="gbar" id="gPowBar" style="background:linear-gradient(90deg,var(--warn),var(--bad))"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- sparkline -->
+    <div class="card">
+      <h2>Train-loss history <span class="tag" id="sparkN">0 pts</span></h2>
+      <div class="sparkwrap">
+        <canvas id="spark"></canvas>
+        <div class="sparkfoot"><span id="sparkMin">min —</span><span id="sparkLast">last —</span><span id="sparkMax">max —</span></div>
+      </div>
+    </div>
+
+    <!-- data prep -->
+    <div class="card prep idle" id="prepCard">
+      <h2>Data preparation <span class="tag" id="prepTag">idle</span></h2>
+      <div class="desc" id="prepDesc">waiting for rasterise / load…</div>
+      <div class="track"><div class="pbar" id="prepBar"></div></div>
+      <div class="cnt" id="prepCnt">—</div>
+    </div>
+  </div>
+
+  <div class="overall">
+    <div class="controls">
+      <button class="stop" id="btnStop">■ Stop run</button>
+      <button id="btnPause">⏸ Pause</button>
+      <button class="go" id="btnResume">▶ Resume</button>
+      <span class="ctl-note" id="ctlNote">read-only monitor · zero training overhead</span>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="confirmModal">
+  <div class="box">
+    <h3>Stop the research run?</h3>
+    <p>This terminates the <b>run_full_research</b> process tree. Completed stages are
+       saved and the run is resumable, but the current arm's progress will be lost.</p>
+    <div class="acts">
+      <button id="confirmCancel">Cancel</button>
+      <button class="stop" id="confirmStop">■ Stop run</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+let startTs = null;          // first server_time we saw (proxy run start)
+let lossHistory = [];
+let pollTimer = null;
+let failCount = 0;
+
+const ARM_PRETTY = {
+  "deq-corrector":"DEQ corrector","local-corrector":"local corrector",
+  "no-physics-loss":"no physics loss"
+};
+
+function fmtElapsed(sec){
+  if(sec==null||sec<0) return "--:--:--";
+  sec=Math.floor(sec);
+  const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60;
+  return [h,m,s].map(x=>String(x).padStart(2,"0")).join(":");
+}
+function fmtLoss(x){
+  if(x==null) return "—";
+  if(x===0) return "0";
+  const a=Math.abs(x);
+  if(a<1e-2||a>=1e4) return x.toExponential(2);
+  return x.toPrecision(4).replace(/\.?0+$/,"");
+}
+
+function toast(msg, kind){
+  const t=$("toast");
+  t.textContent=msg; t.className="show "+(kind||"");
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>{t.className="";}, 4200);
+}
+
+// ---- status pill ----
+function setPill(phase, runDetected){
+  const dot=$("statusDot"), txt=$("statusText");
+  let label, cls;
+  switch(phase){
+    case "done": label="Done"; cls="done"; break;
+    case "stopped": label="Stopped"; cls="stopped"; break;
+    case "training": label="Training"; cls="live"; break;
+    case "preparing": label="Preparing data"; cls="prep"; break;
+    case "waiting": label="Waiting for log"; cls=""; break;
+    default: label="—"; cls="";
+  }
+  dot.className="dot "+cls;
+  txt.textContent=label;
+}
+
+// ---- gpu gauge ----
+const ARC_LEN = 2*Math.PI*33; // ~207.3
+function tempColor(t){
+  if(t==null) return "var(--muted)";
+  if(t>=84) return "var(--bad)";
+  if(t>=75) return "var(--warn)";
+  return "var(--ok)";
+}
+function renderGpu(g){
+  if(!g){
+    $("gTemp").textContent="--";
+    $("tempArc").style.strokeDashoffset=ARC_LEN;
+    $("gUtilTxt").textContent="n/a"; $("gUtilBar").style.width="0%";
+    $("gMemTxt").textContent="no GPU"; $("gMemBar").style.width="0%";
+    $("gPowTxt").textContent="—"; $("gPowBar").style.width="0%";
+    $("gpuName").textContent="unavailable";
+    return;
+  }
+  $("gpuName").textContent="nvidia-smi";
+  // temp gauge (cap arc at 100C)
+  const t=g.temp_c;
+  $("gTemp").textContent = t==null?"--":Math.round(t);
+  const frac = t==null?0:Math.min(t/100,1);
+  $("tempArc").style.strokeDashoffset = ARC_LEN*(1-frac);
+  $("tempArc").style.stroke = tempColor(t);
+  // util
+  const u=g.util_pct;
+  $("gUtilTxt").textContent = u==null?"n/a":Math.round(u)+" %";
+  $("gUtilBar").style.width = (u==null?0:u)+"%";
+  // mem
+  const mu=g.mem_used_mb, mt=g.mem_total_mb;
+  if(mu!=null&&mt!=null&&mt>0){
+    $("gMemTxt").textContent = (mu/1024).toFixed(1)+" / "+(mt/1024).toFixed(1)+" GB";
+    $("gMemBar").style.width = Math.min(100,100*mu/mt)+"%";
+  } else { $("gMemTxt").textContent="—"; $("gMemBar").style.width="0%"; }
+  // power (cap bar at ~350W typical)
+  const p=g.power_w;
+  $("gPowTxt").textContent = p==null?"—":Math.round(p)+" W";
+  $("gPowBar").style.width = (p==null?0:Math.min(100,100*p/350))+"%";
+}
+
+// ---- sparkline ----
+function renderSpark(){
+  const c=$("spark"), ctx=c.getContext("2d");
+  const dpr=window.devicePixelRatio||1;
+  const w=c.clientWidth, h=c.clientHeight;
+  c.width=w*dpr; c.height=h*dpr; ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,w,h);
+  const data=lossHistory;
+  $("sparkN").textContent = data.length+" pts";
+  if(data.length<2){
+    ctx.fillStyle="#5c6678"; ctx.font="12px ui-monospace,monospace";
+    ctx.textAlign="center";
+    ctx.fillText(data.length===0?"no epochs yet":"need ≥2 points", w/2, h/2);
+    $("sparkMin").textContent="min —"; $("sparkLast").textContent="last —"; $("sparkMax").textContent="max —";
+    return;
+  }
+  const pad=8, n=data.length;
+  // log scale is nicer for losses spanning decades; fall back to linear if any <=0
+  const useLog = data.every(v=>v>0);
+  const tf = useLog ? Math.log10 : (v=>v);
+  const tv = data.map(tf);
+  let lo=Math.min(...tv), hi=Math.max(...tv);
+  if(hi-lo<1e-9){ hi+=1; lo-=1; }
+  const X=(i)=> pad + (w-2*pad)*(i/(n-1));
+  const Y=(v)=> pad + (h-2*pad)*(1-(tf(v)-lo)/(hi-lo));
+  // area fill
+  const grad=ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,"rgba(94,234,212,.30)"); grad.addColorStop(1,"rgba(94,234,212,0)");
+  ctx.beginPath(); ctx.moveTo(X(0),Y(data[0]));
+  for(let i=1;i<n;i++) ctx.lineTo(X(i),Y(data[i]));
+  ctx.lineTo(X(n-1),h-pad); ctx.lineTo(X(0),h-pad); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+  // line
+  ctx.beginPath(); ctx.moveTo(X(0),Y(data[0]));
+  for(let i=1;i<n;i++) ctx.lineTo(X(i),Y(data[i]));
+  ctx.strokeStyle="#5eead4"; ctx.lineWidth=2; ctx.lineJoin="round"; ctx.stroke();
+  // last point
+  ctx.beginPath(); ctx.arc(X(n-1),Y(data[n-1]),3,0,2*Math.PI);
+  ctx.fillStyle="#5eead4"; ctx.fill();
+  $("sparkMin").textContent="min "+fmtLoss(Math.min(...data));
+  $("sparkLast").textContent="last "+fmtLoss(data[n-1]);
+  $("sparkMax").textContent="max "+fmtLoss(Math.max(...data));
+}
+
+// ---- data prep ----
+function renderPrep(dp, phase){
+  const card=$("prepCard");
+  if(dp && dp.tot>0 && phase!=="training" && phase!=="done"){
+    card.classList.remove("idle");
+    $("prepTag").textContent="active";
+    $("prepDesc").textContent=dp.desc;
+    const pct = Math.min(100, 100*dp.cur/dp.tot);
+    $("prepBar").style.width=pct+"%";
+    $("prepCnt").textContent = dp.cur+" / "+dp.tot+"  ("+Math.round(pct)+"%)";
+  } else {
+    card.classList.add("idle");
+    $("prepTag").textContent = phase==="training"?"done":"idle";
+    $("prepDesc").textContent = phase==="training"
+      ? "dataset ready (cached) — training in progress"
+      : "waiting for rasterise / load…";
+    $("prepBar").style.width = phase==="training"?"100%":"0%";
+    $("prepCnt").textContent="—";
+  }
+}
+
+// ---- main render ----
+function render(d){
+  failCount=0;
+  const s=d.status||{};
+  setPill(s.phase, d.run_detected);
+
+  // elapsed: anchor to first poll; if log mtime known, use server-time delta.
+  if(startTs==null) startTs=d.server_time;
+  $("elapsed").textContent = fmtElapsed(d.server_time - startTs);
+
+  // overall
+  const pct = Math.round(s.progress||0);
+  $("overallPct").textContent = pct+"%";
+  $("overallBar").style.width = (s.progress||0)+"%";
+
+  // current work
+  $("stageTag").textContent = s.stage==="ood" ? "OOD" : (s.stage==="in_dist" ? "in-dist" : (s.stage==="done"?"complete":"—"));
+  $("mStage").textContent = s.stage_label || (s.phase==="waiting"?"waiting…":"—");
+  $("mSeed").textContent = (s.seed!=null) ? (s.seed+1)+" / "+(s.seeds_total||3) : "—";
+  $("mArm").textContent = s.arm ? (ARM_PRETTY[(s.arm||"").toLowerCase()]||s.arm) : "—";
+  if(s.epoch!=null){
+    $("mEpoch").textContent = (s.epoch+1)+" / "+(s.epochs_total||80);
+    $("epochMini").style.width = Math.min(100,100*(s.epoch+1)/(s.epochs_total||80))+"%";
+  } else if(s.corrector_epoch!=null){
+    $("mEpoch").textContent = "corr "+(s.corrector_epoch+1)+" / "+(s.corrector_epochs_total||20);
+    $("epochMini").style.width = Math.min(100,100*(s.corrector_epoch+1)/(s.corrector_epochs_total||20))+"%";
+  } else {
+    $("mEpoch").textContent="—"; $("epochMini").style.width="0%";
+  }
+  $("mTrain").textContent = fmtLoss(s.train_loss);
+  $("mVal").textContent = fmtLoss(s.val_loss);
+
+  // sparkline (server sends full recent history)
+  if(Array.isArray(s.loss_history)){ lossHistory=s.loss_history; }
+  renderSpark();
+
+  // gpu + prep
+  renderGpu(d.gpu);
+  renderPrep(s.dataprep, s.phase);
+
+  // controls availability
+  const stoppable = d.run_detected && s.phase!=="done" && s.phase!=="stopped";
+  $("btnStop").disabled = !stoppable;
+  $("btnPause").disabled = !stoppable || d.paused;
+  $("btnResume").disabled = !d.paused;
+  $("ctlNote").textContent = d.run_detected
+    ? (d.paused?"pause flag set · run will hold at next stage":"read-only monitor · zero training overhead")
+    : "run process not detected";
+
+  // subline
+  if(s.last_segment) $("subline").textContent = s.last_segment.slice(0,90);
+}
+
+// ---- polling ----
+async function poll(){
+  try{
+    const r=await fetch("/api/status",{cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const d=await r.json();
+    render(d);
+  }catch(e){
+    failCount++;
+    if(failCount===1) toast("Lost connection to dashboard server — retrying…","err");
+    $("statusDot").className="dot stopped";
+    $("statusText").textContent="reconnecting…";
+  }
+}
+
+// ---- controls ----
+async function control(action){
+  try{
+    const r=await fetch("/api/control",{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({action})});
+    const d=await r.json();
+    toast(d.message||(d.ok?"done":"failed"), d.ok?"ok":"err");
+    poll();
+  }catch(e){ toast("Control request failed: "+e.message,"err"); }
+}
+
+$("btnStop").onclick = ()=> $("confirmModal").classList.add("show");
+$("confirmCancel").onclick = ()=> $("confirmModal").classList.remove("show");
+$("confirmStop").onclick = ()=>{ $("confirmModal").classList.remove("show"); control("stop"); };
+$("confirmModal").onclick = (e)=>{ if(e.target===$("confirmModal")) $("confirmModal").classList.remove("show"); };
+$("btnPause").onclick = ()=> control("pause");
+$("btnResume").onclick = ()=> control("resume");
+
+window.addEventListener("resize", renderSpark);
+
+// kick off
+poll();
+pollTimer=setInterval(poll, 1000);
+</script>
+</body>
+</html>

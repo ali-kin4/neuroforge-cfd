@@ -49,12 +49,16 @@ def test_trainer_save_load_and_from_checkpoint(tmp_path):
     trainer.save(ckpt)
     assert os.path.exists(ckpt)
 
-    # Trainer.load round-trips weights.
+    # Trainer.load round-trips weights. The trainer's model lives on the
+    # training device (CUDA when available); the loaded model is on CPU. Run
+    # each on its own device and compare on CPU so the round-trip check is
+    # device-agnostic.
     loaded, norm2, model_cfg = Trainer.load(ckpt)
     assert model_cfg.name == "fno"
     x = torch.randn(1, model_cfg.in_channels, 24, 24)
+    dev = next(model.parameters()).device
     with torch.no_grad():
-        a = model(x)
+        a = model(x.to(dev)).cpu()
         b = loaded(x)
     assert torch.allclose(a, b, atol=1e-5)
 
