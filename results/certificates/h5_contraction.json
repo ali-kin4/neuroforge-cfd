@@ -1,0 +1,30 @@
+{
+  "n_cases": 24,
+  "kappa_design": 0.9,
+  "contraction_factor_median": 0.7803753693902474,
+  "contraction_factor_mean": 0.7389118692198319,
+  "contraction_factor_p90": 0.828863732331923,
+  "contraction_factor_max": 0.8588271711109688,
+  "fp_residual_median": 2.713151587840912e-07,
+  "iters_to_1e-5_median": 36.5,
+  "iters_to_1e-5_fraction_reached": 1.0,
+  "n_iter_budget": 60,
+  "config": {
+    "backbone": "fno",
+    "width": 48,
+    "n_layers": 4,
+    "modes": 20,
+    "dropout": 0.05,
+    "corrector": "deq",
+    "epochs": 40,
+    "corrector_epochs": 15,
+    "lr": 0.0008,
+    "resolution": 128,
+    "batch_size": 8,
+    "seed": 0,
+    "task": "full",
+    "n_train": 800,
+    "n_val": 200
+  },
+  "figure": "results/certificates/figures/h5_contraction_curve.png"
+}
