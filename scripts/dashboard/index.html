@@ -204,6 +204,21 @@
       </div>
     </div>
 
+    <!-- system (cpu/ram) -->
+    <div class="card">
+      <h2>System <span class="tag" id="sysTag">Win32_*</span></h2>
+      <div class="gpu-stats" id="sysStats">
+        <div class="gline">
+          <div class="top"><span class="gk">CPU</span><span class="gvv" id="sCpuTxt">-- %</span></div>
+          <div class="track"><div class="gbar" id="sCpuBar" style="background:linear-gradient(90deg,var(--accent),var(--accent2))"></div></div>
+        </div>
+        <div class="gline">
+          <div class="top"><span class="gk">RAM</span><span class="gvv" id="sRamTxt">-- / -- GB</span></div>
+          <div class="track"><div class="gbar" id="sRamBar" style="background:linear-gradient(90deg,var(--violet),var(--accent2))"></div></div>
+        </div>
+      </div>
+    </div>
+
     <!-- sparkline -->
     <div class="card">
       <h2>Train-loss history <span class="tag" id="sparkN">0 pts</span></h2>
@@ -337,6 +352,27 @@ function renderGpu(g){
   $("gPowBar").style.width = (p==null?0:Math.min(100,100*p/350))+"%";
 }
 
+// ---- system (cpu/ram) ----
+function renderSys(s){
+  if(!s){
+    $("sysTag").textContent="unavailable";
+    $("sCpuTxt").textContent="n/a"; $("sCpuBar").style.width="0%";
+    $("sRamTxt").textContent="system metrics unavailable"; $("sRamBar").style.width="0%";
+    return;
+  }
+  $("sysTag").textContent="Win32_*";
+  // cpu
+  const c=s.cpu_pct;
+  $("sCpuTxt").textContent = c==null?"n/a":Math.round(c)+" %";
+  $("sCpuBar").style.width = (c==null?0:Math.min(100,c))+"%";
+  // ram
+  const ru=s.ram_used_mb, rt=s.ram_total_mb;
+  if(ru!=null&&rt!=null&&rt>0){
+    $("sRamTxt").textContent = (ru/1024).toFixed(1)+" / "+(rt/1024).toFixed(1)+" GB";
+    $("sRamBar").style.width = Math.min(100,100*ru/rt)+"%";
+  } else { $("sRamTxt").textContent="—"; $("sRamBar").style.width="0%"; }
+}
+
 // ---- sparkline ----
 function renderSpark(){
   const c=$("spark"), ctx=c.getContext("2d");
@@ -438,8 +474,9 @@ function render(d){
   if(Array.isArray(s.loss_history)){ lossHistory=s.loss_history; }
   renderSpark();
 
-  // gpu + prep
+  // gpu + sys + prep
   renderGpu(d.gpu);
+  renderSys(d.sys);
   renderPrep(s.dataprep, s.phase);
 
   // controls availability

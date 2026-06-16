@@ -272,6 +272,18 @@ def parse_status(log_text: str) -> dict:
         else:
             state["phase"] = "waiting"
 
+    # Single-run (no ablation "[stage]" markers): label the cards sensibly so a
+    # certificate/baseline training doesn't show blank stage/seed/arm fields.
+    if state["stage"] is None and state["phase"] != "waiting":
+        if state["corrector_epoch"] is not None:
+            state["stage_label"] = "Single run — corrector training"
+        elif state["epoch"] is not None:
+            state["stage_label"] = "Single run — backbone training"
+        elif last_dataprep is not None:
+            state["stage_label"] = "Single run — preparing data"
+        else:
+            state["stage_label"] = "Single run"
+
     state["progress"] = _compute_progress(
         state, saw_any_epoch_for_current_unit, last_dataprep
     )
@@ -285,13 +297,24 @@ def parse_status(log_text: str) -> dict:
 # (1 - PREP_SLICE). Smooth and strictly monotone across the handoff.
 _PREP_SLICE = 0.05  # 5% of the overall bar reserved for the initial data load
 
+# --- single-run mode: a standalone training (certificate / baseline runs) with
+# no ablation "[stage]" markers. The bar is driven by epoch progress instead of
+# the 27-unit ablation model: backbone fills 0..70%, corrector 70..100%, and it
+# holds ~99% during post-training measurement. Budgets set via --bb/--corr-epochs.
+SINGLE_BB_EPOCHS = 40
+SINGLE_CORR_EPOCHS = 15
+
+# Substring identifying the run process for Stop / alive-detection. Set from
+# --run-match so the dashboard can watch run_full_research, run_certificates, etc.
+RUN_MATCH = "run_full_research"
+
 
 def _compute_progress(state, saw_epoch_for_unit, dataprep) -> float:
     """Smooth, monotone 0..100 progress from the parsed state (see docstring)."""
     if state["phase"] == "done":
         return 100.0
     if state["stage"] is None:
-        return 0.0
+        return _single_run_progress(state)
 
     seeds = _FULL["seeds"] or 1
     arms = _ARMS_PER_SEED
@@ -349,6 +372,28 @@ def _compute_progress(state, saw_epoch_for_unit, dataprep) -> float:
     train_frac = (completed + unit_frac) / total_units
     progress = 100.0 * (_PREP_SLICE + (1.0 - _PREP_SLICE) * train_frac)
     return max(0.0, min(progress, 100.0))
+
+
+def _single_run_progress(state) -> float:
+    """Epoch-based progress for a standalone training (no ablation stages).
+
+    Backbone epochs fill 0..70% of the bar, corrector epochs 70..100%; holds at
+    ~99% during the post-training measurement phase until the process exits.
+    """
+    if state["phase"] == "done":
+        return 100.0
+    ce = state["corrector_epoch"]
+    if ce is not None:
+        frac = (ce + 1) / max(SINGLE_CORR_EPOCHS, 1)
+        return max(70.0, min(70.0 + 30.0 * frac, 99.0))
+    ep = state["epoch"]
+    if ep is not None:
+        frac = (ep + 1) / max(SINGLE_BB_EPOCHS, 1)
+        return max(2.0, min(70.0 * frac, 70.0))
+    dp = state.get("dataprep")
+    if dp and dp.get("tot"):
+        return min(2.0 * (dp["cur"] / dp["tot"]), 2.0)
+    return 0.0
 
 
 # --------------------------------------------------------------------------- #
@@ -414,6 +459,75 @@ def get_gpu():
 
 
 # --------------------------------------------------------------------------- #
+# System (CPU/RAM) polling (cached) — one PowerShell spawn, decoupled like GPU
+# --------------------------------------------------------------------------- #
+
+# A PowerShell cold-start + CIM enumeration is heavier than nvidia-smi, so this
+# uses a slightly longer TTL than the GPU read. Per-second polling therefore
+# spawns PowerShell at most once per ~2.5 s — keeps it cheap and decoupled from
+# the training job.
+_SYS_CACHE = {"ts": 0.0, "data": None}
+_sys_lock = threading.Lock()
+_SYS_TTL = 2.5  # seconds — slightly longer than _GPU_TTL (PowerShell is heavier)
+
+# One single subprocess call returns "cpuLoad,totalKB,freeKB".
+_SYS_PS_CMD = (
+    "$c=(Get-CimInstance Win32_Processor | "
+    "Measure-Object -Property LoadPercentage -Average).Average; "
+    "$o=Get-CimInstance Win32_OperatingSystem; "
+    "\"$c,$($o.TotalVisibleMemorySize),$($o.FreePhysicalMemory)\""
+)
+
+
+def _read_sys_uncached():
+    try:
+        out = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                _SYS_PS_CMD,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        return None
+    if out.returncode != 0 or not out.stdout.strip():
+        return None
+    line = out.stdout.strip().splitlines()[0]
+    parts = [p.strip() for p in line.split(",")]
+    if len(parts) < 3:
+        return None
+    try:
+        cpu = float(parts[0])
+        total_kb = float(parts[1])
+        free_kb = float(parts[2])
+    except ValueError:
+        return None
+    return {
+        "cpu_pct": cpu,
+        "ram_used_mb": (total_kb - free_kb) / 1024.0,
+        "ram_total_mb": total_kb / 1024.0,
+    }
+
+
+def get_sys():
+    """Return CPU/RAM telemetry, cached to at most once per ``_SYS_TTL`` seconds."""
+    now = time.time()
+    with _sys_lock:
+        if _SYS_CACHE["data"] is not None and (now - _SYS_CACHE["ts"]) < _SYS_TTL:
+            return _SYS_CACHE["data"]
+    data = _read_sys_uncached()
+    with _sys_lock:
+        _SYS_CACHE["ts"] = time.time()
+        _SYS_CACHE["data"] = data
+    return data
+
+
+# --------------------------------------------------------------------------- #
 # Process control (Stop) — OS-level, no coupling to training memory
 # --------------------------------------------------------------------------- #
 
@@ -457,7 +571,7 @@ def _find_run_pids():
     # ---- primary: CIM via PowerShell ---- #
     ps_cmd = (
         "Get-CimInstance Win32_Process | "
-        "Where-Object { $_.CommandLine -match 'run_full_research' } | "
+        "Where-Object { $_.CommandLine -match '" + RUN_MATCH + "' } | "
         "ForEach-Object { \"$($_.ProcessId)`t$($_.CommandLine)\" }"
     )
     try:
@@ -485,7 +599,7 @@ def _find_run_pids():
         )
         if out.returncode == 0:
             for line in out.stdout.splitlines():
-                if "run_full_research" not in line:
+                if RUN_MATCH not in line:
                     continue
                 # csv: Node,CommandLine,ProcessId
                 cells = line.split(",")
@@ -533,9 +647,7 @@ def _keep_pid(pid_s, cmd, me):
 
     # Must be a Python interpreter actually invoking the orchestrator .py file.
     is_python = ("python" in low) or ("\\python" in low) or low.startswith("py ")
-    runs_script = ("run_full_research.py" in low) or (
-        "run_full_research" in low and ".py" in low
-    )
+    runs_script = (RUN_MATCH in low) and (".py" in low)
     if not (is_python and runs_script):
         return []
     return [pid]
@@ -682,6 +794,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             "run_detected": running,
             "paused": is_paused(),
             "gpu": get_gpu(),
+            "sys": get_sys(),
             "status": status,
         }
         self._send_json(payload)
@@ -713,7 +826,19 @@ def main(argv=None) -> int:
     p.add_argument("--port", type=int, default=8765, help="HTTP port")
     p.add_argument("--host", default="127.0.0.1", help="bind address")
     p.add_argument("--open", action="store_true", help="open a browser on start")
+    p.add_argument("--run-match", default="run_full_research",
+                   help="substring identifying the run process for Stop/alive "
+                        "detection; use 'run_certificates' for a single/cert run")
+    p.add_argument("--bb-epochs", type=int, default=40,
+                   help="single-run backbone epoch budget (bar scaling)")
+    p.add_argument("--corr-epochs", type=int, default=15,
+                   help="single-run corrector epoch budget (bar scaling)")
     args = p.parse_args(argv)
+
+    global RUN_MATCH, SINGLE_BB_EPOCHS, SINGLE_CORR_EPOCHS
+    RUN_MATCH = args.run_match
+    SINGLE_BB_EPOCHS = args.bb_epochs
+    SINGLE_CORR_EPOCHS = args.corr_epochs
 
     # Resolve the log relative to CWD; fall back to repo root if not found there
     # (so launching from anywhere still finds the canonical full_run.log).
