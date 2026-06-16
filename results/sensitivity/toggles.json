@@ -1,0 +1,40 @@
+{
+  "n_eval": 80,
+  "corrector_type": "DEQCorrector",
+  "note": "On a DEQCorrector both toggles are structural no-ops: the DEQ branch in correction_loop.py (lines 148-177) bypasses trust-gating and the backtracking acceptance test. There is no acceptance-test flag in CorrectionConfig; the test is hardcoded in the non-DEQ loop, which is never entered for a DEQ corrector. These toggles are only live for a 'local' corrector. step_size is the only knob the DEQ branch reads (it scales the applied delta).",
+  "trust_gating": {
+    "on": {
+      "mse_u": 2.5633680767391525,
+      "surface_mse_p": 300611.6725583071,
+      "residual_norm": 0.619867479428649
+    },
+    "off": {
+      "mse_u": 2.5633680767391525,
+      "surface_mse_p": 300611.6725583071,
+      "residual_norm": 0.619867479428649
+    },
+    "delta_on_minus_off": {
+      "mse_u": 0.0,
+      "surface_mse_p": 0.0,
+      "residual_norm": 0.0
+    }
+  },
+  "acceptance_test_proxy_step_size": {
+    "step_1.0": {
+      "mse_u": 2.5633680767391525,
+      "surface_mse_p": 300611.6725583071,
+      "residual_norm": 0.619867479428649
+    },
+    "step_0.5": {
+      "mse_u": 2.118426952646261,
+      "surface_mse_p": 302978.6062531571,
+      "residual_norm": 0.30017767585814
+    },
+    "delta_1.0_minus_0.5": {
+      "mse_u": 0.44494112409289155,
+      "surface_mse_p": -2366.933694849955,
+      "residual_norm": 0.31968980357050897
+    }
+  },
+  "toggles_are_noops_on_this_checkpoint": true
+}

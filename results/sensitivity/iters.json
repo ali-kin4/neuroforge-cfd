@@ -1,0 +1,56 @@
+{
+  "n_eval": 80,
+  "task": "full",
+  "engine_maxiters_inert_on_deq": true,
+  "swept_knob": "DEQCorrector.max_iter (internal fixed-point cap)",
+  "rows": [
+    {
+      "n_iters": 0,
+      "mse_u": 3.923773992619553,
+      "surface_mse_p": 541203.9648868717,
+      "residual_norm": 0.11262006154283881,
+      "residual_error_spearman": 0.42276136896390065,
+      "deq_iters_mean": 0.0
+    },
+    {
+      "n_iters": 1,
+      "mse_u": 2.4603128107080745,
+      "surface_mse_p": 428560.20412922336,
+      "residual_norm": 0.3355632131919265,
+      "residual_error_spearman": 0.6444210032817628,
+      "deq_iters_mean": 1.0
+    },
+    {
+      "n_iters": 3,
+      "mse_u": 2.2874115067434295,
+      "surface_mse_p": 336718.1999415,
+      "residual_norm": 0.5418833289295435,
+      "residual_error_spearman": 0.6474214721050164,
+      "deq_iters_mean": 3.0
+    },
+    {
+      "n_iters": 5,
+      "mse_u": 2.4387229704013222,
+      "surface_mse_p": 308381.3726539468,
+      "residual_norm": 0.5935137506574393,
+      "residual_error_spearman": 0.6750820440693859,
+      "deq_iters_mean": 5.0
+    },
+    {
+      "n_iters": 10,
+      "mse_u": 2.5697800306960223,
+      "surface_mse_p": 300298.06511763704,
+      "residual_norm": 0.6178580850362778,
+      "residual_error_spearman": 0.7029535864978904,
+      "deq_iters_mean": 10.0
+    },
+    {
+      "n_iters": 15,
+      "mse_u": 2.5754771669350722,
+      "surface_mse_p": 300664.06122011464,
+      "residual_norm": 0.6198838077485561,
+      "residual_error_spearman": 0.7098218471636193,
+      "deq_iters_mean": 15.0
+    }
+  ]
+}

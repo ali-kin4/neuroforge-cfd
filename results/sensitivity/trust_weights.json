@@ -1,0 +1,40 @@
+{
+  "n_eval": 80,
+  "n_mc": 16,
+  "residual_error_spearman_invariant": 0.42276136896390065,
+  "note": "residual_error_spearman is structurally invariant to (w_r, w_u): the weights reshape only the trust map, never residual_norm or field error. The varying quantities are mean trust and the G/Y/R class fractions. Uncertainty is MC-dropout (n=16), so w_u is exercised.",
+  "rows": [
+    {
+      "w_r": 0.6,
+      "w_u": 0.4,
+      "trust_mean": 0.8441165231168271,
+      "frac_green": 0.69521512925065,
+      "frac_yellow": 0.19552917427394917,
+      "frac_red": 0.10925569647540086
+    },
+    {
+      "w_r": 0.5,
+      "w_u": 0.5,
+      "trust_mean": 0.8447666756808758,
+      "frac_green": 0.6924788486806419,
+      "frac_yellow": 0.1970951540951861,
+      "frac_red": 0.11042599722417208
+    },
+    {
+      "w_r": 0.8,
+      "w_u": 0.2,
+      "trust_mean": 0.8428162015974522,
+      "frac_green": 0.7053638004791208,
+      "frac_yellow": 0.17861333655670236,
+      "frac_red": 0.11602286296417678
+    },
+    {
+      "w_r": 0.4,
+      "w_u": 0.6,
+      "trust_mean": 0.8454168401658535,
+      "frac_green": 0.6932878283399558,
+      "frac_yellow": 0.2051818875880742,
+      "frac_red": 0.10153028407196998
+    }
+  ]
+}
