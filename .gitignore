@@ -46,3 +46,6 @@ Thumbs.db
 # pushed back from the PC); keep only the large binaries out of them.
 results/**/*.pt
 results/**/*.ckpt
+# Smoke-test artifacts (tiny validation runs) are not real results.
+results/*_smoke/
+results/**/_smoke/
