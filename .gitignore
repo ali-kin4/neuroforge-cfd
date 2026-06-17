@@ -33,6 +33,16 @@ reports/*.png
 *.log
 run_control.json
 
+# LaTeX build artifacts (the .tex/.bib/.sty/.bbl/.pdf ARE committed; the rest
+# are regenerable scratch from pdflatex/bibtex/latexmk).
+*.aux
+*.blg
+*.out
+*.fls
+*.fdb_latexmk
+*.toc
+*.synctex.gz
+
 # Keep small bundled demo assets
 !assets/**
 

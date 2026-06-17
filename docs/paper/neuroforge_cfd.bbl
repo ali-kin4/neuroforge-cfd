@@ -1,0 +1,159 @@
+\begin{thebibliography}{19}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[{Anonymous}(2023)]{learned2023residualcorrection}
+{Anonymous}.
+\newblock Learned residual error correction for numerical pde surrogates.
+\newblock \emph{arXiv preprint arXiv:2306.12047}, 2023.
+
+\bibitem[Ashton et~al.(2024)Ashton, Maddix, Gundry, and
+  Shabestari]{ahmedml2024}
+Neil Ashton, Danielle Maddix, Samuel Gundry, and Parisa Shabestari.
+\newblock {AhmedML}: High-fidelity computational fluid dynamics dataset for
+  incompressible, low-speed turbulent flows.
+\newblock \emph{arXiv preprint arXiv:2407.20801}, 2024.
+
+\bibitem[Bai et~al.(2019)Bai, Kolter, and Koltun]{bai2019deq}
+Shaojie Bai, J.~Zico Kolter, and Vladlen Koltun.
+\newblock Deep equilibrium models.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, 2019.
+\newblock arXiv:1909.01377.
+
+\bibitem[Bonnet et~al.(2022)Bonnet, Mazari, Cinnella, and
+  Gallinari]{bonnet2022airfrans}
+Florent Bonnet, Jocelyn~Ahmed Mazari, Paola Cinnella, and Patrick Gallinari.
+\newblock {AirfRANS}: High fidelity computational fluid dynamics dataset for
+  approximating reynolds-averaged navier-stokes solutions.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)
+  Datasets and Benchmarks Track}, 2022.
+\newblock arXiv:2212.07564.
+
+\bibitem[Elrefaie et~al.(2024)Elrefaie, Morar, Dai, and
+  Ahmed]{elrefaie2024drivaernet}
+Mohamed Elrefaie, Florin Morar, Angela Dai, and Faez Ahmed.
+\newblock {DrivAerNet++}: A large-scale multimodal car dataset with
+  computational fluid dynamics simulations and deep learning benchmarks.
+\newblock \emph{arXiv preprint arXiv:2406.09624}, 2024.
+
+\bibitem[Fung et~al.(2022)Fung, Heaton, Li, McKenzie, Osher, and
+  Yin]{fung2022jfb}
+Samy~Wu Fung, Howard Heaton, Qiuwei Li, Daniel McKenzie, Stanley Osher, and
+  Wotao Yin.
+\newblock {JFB}: Jacobian-free backpropagation for implicit networks.
+\newblock In \emph{AAAI Conference on Artificial Intelligence}, 2022.
+\newblock arXiv:2103.12803.
+
+\bibitem[Gal \& Ghahramani(2016)Gal and Ghahramani]{gal2016dropout}
+Yarin Gal and Zoubin Ghahramani.
+\newblock Dropout as a bayesian approximation: Representing model uncertainty
+  in deep learning.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, 2016.
+\newblock arXiv:1506.02142.
+
+\bibitem[Hsieh et~al.(2019)Hsieh, Zhao, Eismann, Mirabella, and
+  Ermon]{hsieh2019neuralpde}
+Jun-Ting Hsieh, Shengjia Zhao, Stephan Eismann, Lucia Mirabella, and Stefano
+  Ermon.
+\newblock Learning neural {PDE} solvers with convergence guarantees.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2019.
+\newblock arXiv:1906.01200.
+
+\bibitem[Lakshminarayanan et~al.(2017)Lakshminarayanan, Pritzel, and
+  Blundell]{lakshminarayanan2017ensembles}
+Balaji Lakshminarayanan, Alexander Pritzel, and Charles Blundell.
+\newblock Simple and scalable predictive uncertainty estimation using deep
+  ensembles.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, 2017.
+\newblock arXiv:1612.01474.
+
+\bibitem[Li et~al.(2021)Li, Kovachki, Azizzadenesheli, Liu, Bhattacharya,
+  Stuart, and Anandkumar]{li2021fno}
+Zongyi Li, Nikola Kovachki, Kamyar Azizzadenesheli, Burigede Liu, Kaushik
+  Bhattacharya, Andrew Stuart, and Anima Anandkumar.
+\newblock Fourier neural operator for parametric partial differential
+  equations.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2021.
+\newblock arXiv:2010.08895.
+
+\bibitem[Li et~al.(2022)Li, Huang, Liu, and Anandkumar]{li2022geofno}
+Zongyi Li, Daniel~Z. Huang, Burigede Liu, and Anima Anandkumar.
+\newblock Fourier neural operator with learned deformations for pdes on general
+  geometries.
+\newblock \emph{arXiv preprint arXiv:2207.05209}, 2022.
+
+\bibitem[Lippe et~al.(2023)Lippe, Veeling, Perdikaris, Turner, and
+  Brandstetter]{lippe2023pderefiner}
+Phillip Lippe, Bastiaan~S. Veeling, Paris Perdikaris, Richard~E. Turner, and
+  Johannes Brandstetter.
+\newblock {PDE}-refiner: Achieving accurate long rollouts with neural {PDE}
+  solvers.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, 2023.
+\newblock arXiv:2308.05732.
+
+\bibitem[Luo et~al.(2025)Luo, Wu, Zhou, Xing, Di, Wang, and
+  Long]{luo2025transolverpp}
+Huakun Luo, Haixu Wu, Hang Zhou, Lanxiang Xing, Yichen Di, Jianmin Wang, and
+  Mingsheng Long.
+\newblock Transolver++: An accurate neural solver for {PDE}s on million-scale
+  geometries.
+\newblock \emph{arXiv preprint arXiv:2502.02414}, 2025.
+
+\bibitem[Ma et~al.(2024)Ma, Azizzadenesheli, and Anandkumar]{ma2024uqno}
+Ziqi Ma, Kamyar Azizzadenesheli, and Anima Anandkumar.
+\newblock Calibrated uncertainty quantification for operator learning via
+  conformal prediction ({UQNO}).
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2024.
+\newblock arXiv:2402.01960.
+
+\bibitem[Marwah et~al.(2023)Marwah, Pokle, Kolter, Lipton, Lu, and
+  Risteski]{marwah2023fnodeq}
+Tanya Marwah, Ashwini Pokle, J.~Zico Kolter, Zachary~C. Lipton, Jianfeng Lu,
+  and Andrej Risteski.
+\newblock Deep equilibrium based neural operators for steady-state {PDE}s.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, 2023.
+\newblock arXiv:2312.00234.
+
+\bibitem[Raissi et~al.(2019)Raissi, Perdikaris, and
+  Karniadakis]{raissi2019pinn}
+Maziar Raissi, Paris Perdikaris, and George~E. Karniadakis.
+\newblock Physics-informed neural networks: A deep learning framework for
+  solving forward and inverse problems involving nonlinear partial differential
+  equations.
+\newblock \emph{Journal of Computational Physics}, 378:\penalty0 686--707,
+  2019.
+
+\bibitem[Ranade et~al.(2025)Ranade, Nabian, Tangsali, Kashefi, Rietmann, Kim,
+  and Choudhry]{ranade2025domino}
+Rishikesh Ranade, Mohammad~Amin Nabian, Kaustubh Tangsali, Ali Kashefi, Max
+  Rietmann, Sanghyun Kim, and Sanjay Choudhry.
+\newblock {DoMINO}: A decomposable multi-scale iterative neural operator for
+  external aerodynamics.
+\newblock \emph{arXiv preprint arXiv:2501.13350}, 2025.
+\newblock NVIDIA.
+
+\bibitem[Winston \& Kolter(2020)Winston and Kolter]{winston2020monotone}
+Ezra Winston and J.~Zico Kolter.
+\newblock Monotone operator equilibrium networks.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, 2020.
+\newblock arXiv:2006.08591.
+
+\bibitem[Wu et~al.(2024)Wu, Luo, Wang, Wang, and Long]{wu2024transolver}
+Haixu Wu, Huakun Luo, Haowen Wang, Jianmin Wang, and Mingsheng Long.
+\newblock Transolver: A fast transformer solver for {PDE}s on general
+  geometries.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, 2024.
+\newblock arXiv:2402.02366.
+
+\end{thebibliography}
