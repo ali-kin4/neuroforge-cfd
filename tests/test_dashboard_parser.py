@@ -162,6 +162,146 @@ def test_empty_and_short_logs_are_graceful():
         assert 0.0 <= s["progress"] <= 100.0
 
 
+def test_baseline_run_mode():
+    """The Transolver baseline (scripts/run_baselines.py) trains `seeds` backbones
+    of `bb` epochs each with NO corrector. The parser must recognise it, expose
+    stage=="baseline" with the right seed/epoch, drive a monotonically increasing
+    0..100 bar across seeds, and hit 100% on the final table2 line."""
+    # Match the run shape: 3 seeds x 80 backbone epochs (set on the module so the
+    # progress math uses the same budget the CLI would pass via --bb-epochs).
+    server.SINGLE_BB_EPOCHS = 80
+    bb = 80
+
+    def at(seed, epoch):
+        lines = [
+            "[baseline] device=cuda",
+            "[baseline] seed 0: transolver params = 7,654,321",
+            f"[baseline] seed {seed} epoch {epoch}: train_mse=3.9557e-02 (77.6s)",
+        ]
+        return parse_status("\n".join(lines))
+
+    # mid-run snapshot
+    s = at(1, 26)
+    assert s["stage"] == "baseline"
+    assert s["seed"] == 1
+    assert s["epoch"] == 26
+    assert s["phase"] == "training"
+    assert abs(s["train_loss"] - 3.9557e-02) < 1e-9
+    assert s["loss_history"][-1] == 3.9557e-02
+    assert "Baseline" in s["stage_label"]
+    assert 1.0 <= s["progress"] <= 99.5
+
+    # progress increases as the run advances across epochs and seeds
+    p_s0_e0 = at(0, 0)["progress"]
+    p_s0_e79 = at(0, 79)["progress"]
+    p_s1_e0 = at(1, 0)["progress"]
+    p_s2_e79 = at(2, 79)["progress"]
+    assert p_s0_e0 < p_s0_e79 < p_s1_e0 < p_s2_e79
+    # final backbone epoch of the last seed is essentially the whole grid
+    assert p_s2_e79 <= 99.5
+
+    # the table2 line pins the bar at 100%
+    done = parse_status(
+        "\n".join([
+            "[baseline] seed 2 epoch 79: train_mse=1.0e-02 (77.6s)",
+            "[baseline] wrote results/baselines/table2.md and table2.csv",
+        ])
+    )
+    assert done["stage"] == "done"
+    assert done["phase"] == "done"
+    assert done["progress"] == 100.0
+
+
+def test_v2_run_backbone_corrector_and_headline():
+    """The v2 run (scripts/run_v2.py) trains a Transolver backbone, then runs the
+    certified trust layer on its predictions. The parser must recognise stage
+    'v2', track the per-seed sub-phase, capture the backbone wall-time for an ETA,
+    reset epoch trackers at each new seed, and surface the headline residual<->error
+    Spearman as it forms."""
+    server.SINGLE_BB_EPOCHS = 80
+    server.SINGLE_CORR_EPOCHS = 20
+
+    # --- backbone epoch: stage/seed/epoch/loss/sec-per-epoch/ETA ---
+    s = parse_status("\n".join([
+        "[v2] device=cuda",
+        "[v2] seed 0: Transolver params = 7,350,420",
+        "[v2] seed 0 backbone epoch 11: train_mse=3.9557e-02 (45.0s)",
+    ]))
+    assert s["stage"] == "v2"
+    assert s["seed"] == 0
+    assert s["epoch"] == 11
+    assert s["v2_phase"] == "backbone"
+    assert abs(s["train_loss"] - 3.9557e-02) < 1e-9
+    assert abs(s["sec_per_epoch"] - 45.0) < 1e-9
+    assert s["phase"] == "training"
+    # ETA: backbone epochs left this seed (80-12=68) + 2 future seeds * 80, plus a
+    # tail allowance — must be a positive finite number, far more than one epoch.
+    assert s["eta_seconds"] is not None and s["eta_seconds"] > 68 * 45.0
+
+    # --- new seed resets the lingering corrector epoch from the previous seed ---
+    s = parse_status("\n".join([
+        "[v2] seed 0 corrector epoch 19: loss=1.0e-02",
+        "[v2] ================= seed 1 =================",
+        "[v2] seed 1: Transolver params = 7,350,420",
+        "[v2] seed 1 backbone epoch 0: train_mse=2.0e-01 (44.0s)",
+    ]))
+    assert s["seed"] == 1
+    assert s["epoch"] == 0
+    assert s["corrector_epoch"] is None     # reset — did not leak from seed 0
+    assert s["v2_phase"] == "backbone"
+
+    # --- corrector phase + headline Spearman captured from the (a) eval line ---
+    s = parse_status("\n".join([
+        "[v2] seed 0: Transolver params = 7,350,420",
+        "[v2] seed 0 backbone epoch 79: train_mse=1.0e-02 (45.0s)",
+        "[v2] seed 0: evaluating (a) backbone alone ...",
+        "[v2] seed 0: (a) eval 12.3s -> mse_u=0.12, rho_cl=0.99, "
+        "residual_error_spearman=0.413",
+        "[v2] seed 0: training deq corrector on Transolver residuals ...",
+        "[v2] seed 0 corrector epoch 3: loss=2.2e-02",
+    ]))
+    assert s["v2_phase"] == "corrector"
+    assert s["corrector_epoch"] == 3
+    assert abs(s["v2_spearman"] - 0.413) < 1e-9   # the headline, on a SOTA backbone
+
+    # --- done line pins 100% ---
+    d = parse_status("\n".join([
+        "[v2] seed 2 backbone epoch 79: train_mse=1.0e-02 (45.0s)",
+        "[v2] ================= SUMMARY =================",
+        "[v2] artifacts in results/v2",
+    ]))
+    assert d["stage"] == "v2"
+    assert d["phase"] == "done"
+    assert d["progress"] == 100.0
+
+
+def test_v2_progress_is_monotone_across_seeds_and_phases():
+    server.SINGLE_BB_EPOCHS = 80
+    server.SINGLE_CORR_EPOCHS = 20
+    snaps = [
+        "[v2] seed 0: Transolver params = 7,350,420",
+        "[v2] seed 0 backbone epoch 0: train_mse=2e-1 (45s)",
+        "[v2] seed 0 backbone epoch 79: train_mse=1e-2 (45s)",
+        "[v2] seed 0: evaluating (a) backbone alone ...",
+        "[v2] seed 0: training deq corrector on Transolver residuals ...",
+        "[v2] seed 0 corrector epoch 19: loss=1e-2",
+        "[v2] seed 0: evaluating (b) backbone + deq loop ...",
+        "[v2] seed 0: split-conformal coverage ...",
+        "[v2] seed 1: Transolver params = 7,350,420",
+        "[v2] seed 1 backbone epoch 40: train_mse=2e-2 (45s)",
+        "[v2] seed 2 backbone epoch 79: train_mse=1e-2 (45s)",
+        "[v2] artifacts in results/v2",
+    ]
+    last = -1.0
+    ctx = ""
+    for line in snaps:
+        ctx += line + "\n"
+        p = parse_status(ctx)["progress"]
+        assert p >= last - 1e-6, f"v2 progress went backwards: {p} < {last} at {line!r}"
+        last = p
+    assert last == 100.0
+
+
 def test_progress_is_monotone_as_run_advances():
     snapshots = [
         "[stage 1] in-distribution ablation ...",

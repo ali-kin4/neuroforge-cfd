@@ -146,6 +146,7 @@
     </div>
     <div class="grow"></div>
     <div class="pill"><span class="dot" id="statusDot"></span><span id="statusText">connecting…</span></div>
+    <div class="pill" id="etaPill" style="display:none"><span class="elapsed" id="eta">ETA --:--:--</span></div>
     <div class="pill"><span class="elapsed" id="elapsed">--:--:--</span></div>
   </header>
 
@@ -454,7 +455,8 @@ function render(d){
   $("overallBar").style.width = (s.progress||0)+"%";
 
   // current work
-  $("stageTag").textContent = s.stage==="ood" ? "OOD" : (s.stage==="in_dist" ? "in-dist" : (s.stage==="done"?"complete":"—"));
+  const _tagMap = {ood:"OOD", in_dist:"in-dist", v2:"v2 · Transolver", baseline:"baseline", done:"complete"};
+  $("stageTag").textContent = _tagMap[s.stage] || "—";
   $("mStage").textContent = s.stage_label || (s.phase==="waiting"?"waiting…":"—");
   $("mSeed").textContent = (s.seed!=null) ? (s.seed+1)+" / "+(s.seeds_total||3) : "—";
   $("mArm").textContent = s.arm ? (ARM_PRETTY[(s.arm||"").toLowerCase()]||s.arm) : "—";
@@ -488,8 +490,25 @@ function render(d){
     ? (d.paused?"pause flag set · run will hold at next stage":"read-only monitor · zero training overhead")
     : "run process not detected";
 
-  // subline
-  if(s.last_segment) $("subline").textContent = s.last_segment.slice(0,90);
+  // ETA (v2 runs expose eta_seconds; backbone-dominated estimate)
+  if(s.eta_seconds!=null && s.phase!=="done"){
+    $("etaPill").style.display="";
+    $("eta").textContent = "ETA " + fmtElapsed(s.eta_seconds) + " left";
+  } else {
+    $("etaPill").style.display="none";
+  }
+
+  // subline — for v2, surface the headline result as it forms (the paper's
+  // central claim: the residual is a trust signal on a SOTA backbone), else
+  // fall back to the latest log line.
+  if(s.v2_spearman!=null){
+    let line = "residual↔error ρ = "+(s.v2_spearman).toFixed(3)+
+               "  (trust signal on the SOTA Transolver backbone)";
+    if(s.v2_conformal) line += "  ·  conformal: "+String(s.v2_conformal).slice(0,60);
+    $("subline").textContent = line;
+  } else if(s.last_segment){
+    $("subline").textContent = s.last_segment.slice(0,90);
+  }
 }
 
 // ---- polling ----

@@ -90,6 +90,48 @@ _STEP_RE = re.compile(r"\[train\]\s+epoch\s+(\d+)\s+step\s+(\d+)\s+loss=([0-9.eE
 # "[corrector epoch 4] loss=1.2e-02 ..."
 _CORR_RE = re.compile(r"\[corrector epoch\s+(\d+)\]\s+loss=([0-9.eE+\-]+)")
 
+# Baseline run (scripts/run_baselines.py): a matched-budget Transolver backbone
+# trained over --seeds 0 1 2, --epochs each, with NO corrector phase, e.g.:
+#   "[baseline] seed 0 epoch 26: train_mse=3.9557e-02 (77.6s)"
+_BASELINE_RE = re.compile(
+    r"\[baseline\]\s+seed\s+(\d+)\s+epoch\s+(\d+):\s+train_mse=([0-9.eE+\-]+)"
+)
+# Final baseline line references the Table 2 artifacts, e.g.:
+#   "[baseline] wrote results/baselines/table2.md and table2.csv"
+# (also accept an explicit "baselines complete" marker if one is ever emitted).
+_BASELINE_DONE_RE = re.compile(r"table2|baselines complete", re.IGNORECASE)
+
+# NeuroForge v2 run (scripts/run_v2.py): a SOTA Transolver backbone trained on the
+# native point cloud, then the certified trust layer (residual detector + conformal
+# coverage) + learned corrector run ON its predictions, per seed. All lines carry
+# the "[v2]" prefix, so they never clobber the ablation/baseline/single formats.
+#   "[v2] seed 0: Transolver params = 7,350,420"
+_V2_SEED_RE = re.compile(r"\[v2\]\s+seed\s+(\d+):\s+Transolver params")
+#   "[v2] seed 0 backbone epoch 12: train_mse=3.9557e-02 (45.3s)"
+_V2_BB_RE = re.compile(
+    r"\[v2\]\s+seed\s+(\d+)\s+backbone epoch\s+(\d+):\s+train_mse=([0-9.eE+\-]+)"
+    r"\s+\(([0-9.]+)s\)"
+)
+#   "[v2] seed 0 corrector epoch 4: loss=1.2e-02"
+_V2_CORR_RE = re.compile(
+    r"\[v2\]\s+seed\s+(\d+)\s+corrector epoch\s+(\d+):\s+loss=([0-9.eE+\-]+)"
+)
+_V2_EVAL_A_RE = re.compile(r"\[v2\]\s+seed\s+(\d+):\s+evaluating \(a\)")
+_V2_EVAL_B_RE = re.compile(r"\[v2\]\s+seed\s+(\d+):\s+evaluating \(b")
+_V2_CORR_TRAIN_RE = re.compile(
+    r"\[v2\]\s+seed\s+(\d+):\s+(?:training|pre-computing)"
+)
+_V2_CONF_RE = re.compile(r"\[v2\]\s+seed\s+(\d+):\s+split-conformal")
+# Headline result lines, e.g.:
+#   "[v2] seed 0: (a) eval 12.3s -> mse_u=0.12, ..., residual_error_spearman=0.41"
+_V2_RESULT_RE = re.compile(
+    r"\[v2\]\s+seed\s+\d+:\s+\((a|b/[A-Za-z]+)\)\s+eval[^>]*->\s+(.*)$"
+)
+_V2_SPEARMAN_RE = re.compile(r"residual_error_spearman=([0-9.eE+\-]+)")
+_V2_CONF_RESULT_RE = re.compile(r"\[v2\]\s+seed\s+\d+:\s+conformal\s+->\s+(.*)$")
+# The very last line of a finished run: "[v2] artifacts in results/v2".
+_V2_DONE_RE = re.compile(r"\[v2\]\s+artifacts in")
+
 # tqdm: "rasterise airfrans/full/train:  30%|###| 242/800 [22:56<1:04:22,  6.92s/it]"
 #       "Loading dataset (task: full, split: train):  30%|..| 240/800 [..]"
 _TQDM_RE = re.compile(
@@ -164,6 +206,13 @@ def parse_status(log_text: str) -> dict:
         "phase": "waiting",       # waiting | preparing | training | done | stopped
         "progress": 0.0,          # 0..100
         "last_segment": segments[-1].strip() if segments else None,
+        # --- v2 run extras (Transolver backbone + certified trust layer) --- #
+        "v2_phase": None,         # backbone | eval-a | corrector | eval-b | conformal
+        "sec_per_epoch": None,    # latest logged backbone wall-time (for ETA)
+        "eta_seconds": None,      # estimated time remaining (v2; backbone-dominated)
+        "v2_spearman": None,      # latest residual<->error Spearman (the headline)
+        "v2_result_line": None,   # latest raw eval result string (for the UI)
+        "v2_conformal": None,     # latest conformal result string
     }
 
     # ---- single forward pass; latest match wins for each field ---- #
@@ -175,6 +224,114 @@ def parse_status(log_text: str) -> dict:
             state["stage"] = "done"
             state["stage_label"] = "All stages complete"
             state["phase"] = "done"
+            continue
+
+        # ---- NeuroForge v2 (Transolver backbone + certified trust layer). All
+        # lines start with "[v2]"; we track the per-seed sub-phase, capture the
+        # backbone wall-time for an ETA, and surface the headline residual<->error
+        # Spearman as it forms. Distinct prefix => never clobbers other modes.
+        if seg.lstrip().startswith("[v2]"):
+            if _V2_DONE_RE.search(seg):
+                state["stage"] = "v2"
+                state["stage_label"] = "NeuroForge v2 run complete"
+                state["phase"] = "done"
+                continue
+            mb = _V2_BB_RE.search(seg)
+            if mb:
+                state["stage"] = "v2"
+                state["seed"] = int(mb.group(1))
+                state["epoch"] = int(mb.group(2))
+                tl = _to_float(mb.group(3))
+                state["train_loss"] = tl
+                if tl is not None:
+                    state["loss_history"].append(tl)
+                spe = _to_float(mb.group(4))
+                if spe is not None:
+                    state["sec_per_epoch"] = spe
+                state["v2_phase"] = "backbone"
+                saw_any_epoch_for_current_unit = True
+                last_dataprep = None
+                continue
+            mc = _V2_CORR_RE.search(seg)
+            if mc:
+                state["stage"] = "v2"
+                state["seed"] = int(mc.group(1))
+                state["corrector_epoch"] = int(mc.group(2))
+                state["step_loss"] = _to_float(mc.group(3))
+                state["v2_phase"] = "corrector"
+                last_dataprep = None
+                continue
+            ms = _V2_SEED_RE.search(seg)
+            if ms:
+                # A new seed begins: reset the per-seed epoch trackers so the
+                # previous seed's corrector epoch can't leak into this seed.
+                state["stage"] = "v2"
+                state["seed"] = int(ms.group(1))
+                state["epoch"] = None
+                state["corrector_epoch"] = None
+                state["v2_phase"] = "backbone"
+                saw_any_epoch_for_current_unit = False
+                continue
+            mr = _V2_RESULT_RE.search(seg)
+            if mr:
+                state["stage"] = "v2"
+                state["v2_result_line"] = mr.group(2).strip()
+                msp = _V2_SPEARMAN_RE.search(mr.group(2))
+                if msp:
+                    state["v2_spearman"] = _to_float(msp.group(1))
+                continue
+            mcr = _V2_CONF_RESULT_RE.search(seg)
+            if mcr:
+                state["stage"] = "v2"
+                state["v2_conformal"] = mcr.group(1).strip()
+                continue
+            if _V2_EVAL_A_RE.search(seg):
+                state["stage"] = "v2"; state["v2_phase"] = "eval-a"; continue
+            if _V2_EVAL_B_RE.search(seg):
+                state["stage"] = "v2"; state["v2_phase"] = "eval-b"; continue
+            if _V2_CONF_RE.search(seg):
+                state["stage"] = "v2"; state["v2_phase"] = "conformal"; continue
+            if _V2_CORR_TRAIN_RE.search(seg):
+                state["stage"] = "v2"; state["v2_phase"] = "corrector"; continue
+            if state["stage"] is None:
+                state["stage"] = "v2"
+                state["stage_label"] = "NeuroForge v2 (Transolver + trust layer)"
+            continue
+
+        # ---- Baseline run (Transolver, seeds x backbone epochs, no corrector).
+        # These lines all start with "[baseline]" and are distinct from the
+        # ablation/single-run formats, so they never clobber that parsing.
+        if seg.lstrip().startswith("[baseline]"):
+            mb = _BASELINE_RE.search(seg)
+            if mb:
+                state["stage"] = "baseline"
+                state["seed"] = int(mb.group(1))
+                state["epoch"] = int(mb.group(2))
+                tl = _to_float(mb.group(3))
+                state["train_loss"] = tl
+                if tl is not None:
+                    state["loss_history"].append(tl)
+                saw_any_epoch_for_current_unit = True
+                last_dataprep = None
+                state["stage_label"] = (
+                    f"Baseline (Transolver) — seed {state['seed']}, "
+                    f"epoch {state['epoch']}"
+                )
+                continue
+            if _BASELINE_DONE_RE.search(seg):
+                # table2 is written after EVERY seed (incremental save), so only
+                # treat it as completion once the LAST seed's results are in —
+                # otherwise the bar jumps to "done" after seed 0.
+                if state["seed"] is not None and state["seed"] >= (_FULL["seeds"] - 1):
+                    state["stage"] = "done"
+                    state["stage_label"] = "Baseline run complete"
+                    state["phase"] = "done"
+                continue
+            # Any other "[baseline]" line (setup/eval): mark the stage so the
+            # dashboard labels it as a baseline run rather than a single run.
+            if state["stage"] is None:
+                state["stage"] = "baseline"
+                state["stage_label"] = "Baseline (Transolver)"
             continue
 
         if _STAGE1_RE.search(seg):
@@ -284,10 +441,58 @@ def parse_status(log_text: str) -> dict:
         else:
             state["stage_label"] = "Single run"
 
+    # ---- v2 run: human label, sub-phase as the "arm" card, and an ETA. ---- #
+    if state["stage"] == "v2" and state["phase"] != "done":
+        ph = state["v2_phase"] or "backbone"
+        _ph_label = {
+            "backbone": "Transolver backbone",
+            "eval-a": "eval — backbone alone",
+            "corrector": "training corrector (on residuals)",
+            "eval-b": "eval — backbone + certified loop",
+            "conformal": "split-conformal coverage",
+        }.get(ph, ph)
+        state["arm"] = _ph_label
+        sd = state["seed"] if state["seed"] is not None else 0
+        state["stage_label"] = (
+            f"NeuroForge v2 — Transolver + trust layer  ·  seed {sd}/"
+            f"{_FULL['seeds'] - 1}  ·  {_ph_label}"
+        )
+        state["eta_seconds"] = _v2_eta(state)
+
     state["progress"] = _compute_progress(
         state, saw_any_epoch_for_current_unit, last_dataprep
     )
     return state
+
+
+def _v2_eta(state) -> float | None:
+    """Rough time-remaining (s) for a v2 run, dominated by backbone epochs.
+
+    Uses the latest logged backbone wall-time/epoch and counts the backbone
+    epochs still to run across the remaining seeds, plus a flat corrector+eval
+    allowance per remaining seed. Returns None until a backbone epoch is timed.
+    """
+    spe = state.get("sec_per_epoch")
+    if not spe or spe <= 0:
+        return None
+    seeds = _FULL["seeds"] or 1
+    bb = max(SINGLE_BB_EPOCHS, 1)
+    seed = state["seed"] if state["seed"] is not None else 0
+    epoch = state["epoch"] if state["epoch"] is not None else -1
+    # Backbone epochs left in the current seed (0 once we leave the backbone phase).
+    if state.get("v2_phase") == "backbone":
+        bb_left_here = max(bb - (epoch + 1), 0)
+    else:
+        bb_left_here = 0
+    bb_left_future = max(seeds - seed - 1, 0) * bb
+    bb_secs = (bb_left_here + bb_left_future) * spe
+    # Corrector+eval+conformal per seed are far cheaper than the backbone; a flat
+    # 15% of a full backbone's wall-time per *remaining* seed is a fair allowance.
+    seeds_with_tail_left = max(seeds - seed - 1, 0) + (
+        1 if state.get("v2_phase") in ("backbone", "eval-a", None) else 0
+    )
+    tail_secs = seeds_with_tail_left * 0.15 * bb * spe
+    return float(bb_secs + tail_secs)
 
 
 # The one-time initial AirfRANS rasterise/load takes ~40 min (the dataset is
@@ -313,6 +518,48 @@ def _compute_progress(state, saw_epoch_for_unit, dataprep) -> float:
     """Smooth, monotone 0..100 progress from the parsed state (see docstring)."""
     if state["phase"] == "done":
         return 100.0
+
+    # ---- Baseline run (Transolver): seeds x backbone epochs, no corrector. ----
+    # Linear over the full (seeds * bb_epochs) grid. Held in [1, 99.5] until the
+    # process is done (the table2/complete line drives phase == "done" -> 100).
+    if state["stage"] == "baseline":
+        seeds = _FULL["seeds"] or 1
+        bb = max(SINGLE_BB_EPOCHS, 1)
+        seed = state["seed"] if state["seed"] is not None else 0
+        epoch = state["epoch"] if state["epoch"] is not None else 0
+        frac = (seed * bb + (epoch + 1)) / float(seeds * bb)
+        return max(1.0, min(100.0 * frac, 99.5))
+
+    # ---- NeuroForge v2 run: per-seed phases (backbone -> corrector -> evals). --
+    # Each seed's slice is split: backbone 0..60%, corrector 60..85%, evals +
+    # conformal 85..100% of that seed's share. Strictly monotone, held < 99.5
+    # until the "artifacts in" line drives phase == "done" -> 100.
+    if state["stage"] == "v2":
+        seeds = _FULL["seeds"] or 1
+        bb = max(SINGLE_BB_EPOCHS, 1)
+        ce = max(SINGLE_CORR_EPOCHS, 1)
+        seed = state["seed"] if state["seed"] is not None else 0
+        # Per-seed sub-phase fractions, kept strictly ordered so the bar is
+        # monotone across the backbone -> eval-a -> corrector -> eval-b ->
+        # conformal handoffs: backbone 0..0.58, eval-a 0.60, corrector 0.62..0.85,
+        # eval-b 0.88, conformal 0.92.
+        ph = state.get("v2_phase")
+        if ph == "conformal":
+            wf = 0.92
+        elif ph == "eval-b":
+            wf = 0.88
+        elif state["corrector_epoch"] is not None or ph == "corrector":
+            cep = state["corrector_epoch"]
+            wf = 0.62 + 0.23 * ((cep + 1) / ce if cep is not None else 0.0)
+        elif ph == "eval-a":
+            wf = 0.60
+        elif state["epoch"] is not None:
+            wf = 0.58 * ((state["epoch"] + 1) / bb)
+        else:
+            wf = 0.0
+        overall = (seed + min(wf, 1.0)) / seeds
+        return max(1.0, min(100.0 * overall, 99.5))
+
     if state["stage"] is None:
         return _single_run_progress(state)
 
