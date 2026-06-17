@@ -1,51 +1,48 @@
-# NeuroForge CFD: A Self-Correcting Geometry-Native Neural Solver for Fast Flow Prediction over Unseen Engineering Geometries
+# Physics Residuals Detect but Do Not Fix: A Calibrated Trust Layer for Neural CFD Surrogates
 
 **Kasra (Ali) Ghanavati**
 
-*Preprint draft — v0.1 (2026). Corresponding author: kasraghanavati@icloud.com*
+*Preprint draft — v0.2 (2026). Corresponding author: kasraghanavati@icloud.com*
 
 ---
 
 ## Abstract
 
-Machine-learning surrogates for computational fluid dynamics (CFD) now predict
+Machine-learning surrogates for computational fluid dynamics (CFD) predict
 steady flow fields over engineering geometries orders of magnitude faster than
-classical solvers. Yet the dominant paradigm is a **one-shot surrogate**:
-geometry and boundary conditions go in, a flow field comes out, and the user is
-given no principled way to know whether to trust it — especially on geometries
-outside the training distribution, exactly where early-stage design exploration
-lives. We present **NeuroForge CFD**, an open-source Python package that reframes
-neural CFD prediction as a *solver loop* rather than a *single guess*. NeuroForge
-predicts a flow field with a geometry-native neural operator, **verifies** it
-against the discretised steady incompressible RANS residuals, **estimates** its
-own predictive uncertainty, and then runs **Neural Residual Iteration**: a
-learned, residual-conditioned correction operator that is applied under a
-backtracking acceptance test guaranteeing the physics-residual norm is monotone
-non-increasing across accepted iterations — the same convergence discipline a
-classical solver enforces, but with a learned update over unseen geometries.
-A trust map fuses residual and uncertainty into a traffic-light reliability
-field that gates an (interface-level) classical-CFD fallback so expensive solves
-are invoked only where the model admits it cannot be trusted. The novel
-contribution is not any single block but the **closed self-correction loop plus
-uncertainty-gated fallback as an integrated, reproducible engine**. We describe
-the implemented method and package, a zero-download synthetic Hess–Smith
-source-panel potential-flow smoke-test data generator that makes the whole pipeline
-reproducible without any external dataset, and an AirfRANS loader. We lay out the
-full experimental protocol on the AirfRANS benchmark and report bundled
-synthetic *smoke* results from the benchmark harness; these use deliberately tiny
-CPU-sized models and are illustrative of the scaffold, not state-of-the-art
-claims. On the in-distribution AirfRANS `full` split (3 seeds), the DEQ
-correction loop improves surface-pressure fidelity (−34% surface MSE),
-drag-ranking versus its own backbone (ρ_Cd 0.895→0.923), and the residual↔error
-trust signal (0.40→0.83), at a *measured cost* to volume cross-stream and
-pressure accuracy (mse_v +129%, mse_p +57%); the feed-forward corrector does not
-improve accuracy. We therefore position the engine as a trust-signal-bearing
-surrogate with an honest accuracy trade-off, not as a uniform accuracy improver.
-Out-of-distribution generalisation and large-scale/external-baseline validation
-are explicitly future work.
+classical solvers, but they emit a single field with no built-in way for a user
+to know whether to trust it — especially out of distribution, where early-design
+exploration lives. A natural idea is to close the loop with the governing
+physics: compute the discretised steady-RANS residual of the prediction, use it
+both to *flag* unreliable regions and to *drive a correction* back toward a valid
+solution. We implement this full pipeline in **NeuroForge CFD**, an open-source,
+CPU-first package, and stress-test it on real AirfRANS over three seeds. Our
+central finding is a clean dissociation: **the physics residual is an excellent
+trust signal but a poor correction objective.** As a *detector*, the residual is
+a calibrated proxy for error — its rank correlation with field error rises from
+0.40 to 0.83 under our corrector in-distribution, and, critically, it stays
+informative under distribution shift (angle-of-attack split: the bare backbone's
+residual–error correlation collapses to 0.31 while the corrected model holds it
+at 0.75). As a *fixer*, the residual fails three independent ways: a contractive
+deep-equilibrium (DEQ) corrector is flat on volume velocity (mse_u 3.46 vs 3.48)
+and *worse* on cross-stream velocity (mse_v 0.88 vs 0.39); running the loop for
+more iterations *raises* the PDE residual while *lowering* field error; and a
+backtracking acceptance test that only admits residual-reducing steps accepts
+essentially none on a trained corrector. Minimising the residual diverges from
+minimising error. Building on the detector result, we package a **distribution-
+free conformal trust layer** that attains per-channel coverage of 0.91/0.93/0.94
+at the 0.90 target in-distribution (a guarantee that holds only under
+exchangeability) and that empirically retains target coverage out-of-distribution
+because the underlying uncertainty inflates appropriately under shift — an
+empirical observation, not a guarantee. The trust layer is backbone-agnostic.
+For honest context we report a fair, matched-budget baseline: our grid backbone
+trails a SOTA point-cloud transformer (Transolver) by roughly 4–60× across
+volume and surface MSE channels. We make **no competitiveness claim**; the contribution is the
+residual-as-trust-signal phenomenon and the calibrated trust layer, and applying
+them to a SOTA backbone is explicit future work.
 
-**Keywords:** neural operators, surrogate CFD, physics-informed learning,
-uncertainty quantification, self-correction, airfoil aerodynamics.
+**Keywords:** neural operators, surrogate CFD, physics residuals, uncertainty
+quantification, conformal prediction, trust calibration, airfoil aerodynamics.
 
 ---
 
@@ -53,67 +50,91 @@ uncertainty quantification, self-correction, airfoil aerodynamics.
 
 Classical CFD resolves the governing PDEs by iterating a discretised system until
 its residuals fall below a tolerance. It is accurate and trusted, but slow:
-meshing and a converged steady RANS solve over a new geometry can take from
-minutes to hours, which throttles the rapid design-space exploration that early
-engineering most needs. Neural surrogates promise the opposite trade — millisecond
-inference — and a vigorous literature now maps geometry plus boundary conditions
-directly to flow fields with neural operators and attention models.
+meshing and a converged steady-RANS solve over a new geometry can take minutes to
+hours, throttling the rapid design-space exploration that early engineering most
+needs. Neural surrogates promise the opposite trade — millisecond inference — and
+a vigorous literature now maps geometry plus boundary conditions directly to flow
+fields with neural operators and attention models.
 
 The problem is **trust**. A trained surrogate is a one-shot function: it emits a
-field with no built-in self-assessment, no convergence signal, and no recovery
-path when it extrapolates. On a geometry far from the training set — the common
-case in design — the user cannot distinguish a faithful prediction from a
-confident hallucination. This is the product and research gap NeuroForge targets.
+field with no self-assessment, no convergence signal, and no recovery path when it
+extrapolates. On a geometry far from the training set — the common case in design
+— the user cannot distinguish a faithful prediction from a confident
+hallucination.
 
-> **Research question.** *Can an AI-first CFD workflow predict flow fields over
-> unseen engineering geometries, verify those predictions against the governing
-> physics, quantify its own uncertainty, and iteratively self-correct the
-> unreliable regions — invoking a classical solver only where it is genuinely
-> needed — so that the result is fast yet trustworthy?*
+The governing physics offers an obvious lever. The steady incompressible RANS
+residual of any candidate field is computable directly from the field, with no
+ground truth. This invites a tempting two-for-one: use the residual *both* to
+flag where the surrogate is wrong (a detector) *and* to correct it by driving the
+residual down (a fixer). The fixer half is the premise behind learned
+solver-correctors and residual-conditioned refinement. This paper asks, and
+answers empirically, whether the residual can play both roles.
 
-> **Thesis (one sentence).** *NeuroForge CFD explores an AI-first, self-correcting
-> CFD workflow intended as a **ranking-preserving surrogate for early-design
-> exploration**, combining geometry-aware neural operators, physics-residual
-> *monitoring*, uncertainty estimation, and local adaptive correction.*
+> **Research question.** *Is the steady-RANS physics residual of a neural-CFD
+> prediction a reliable signal of where the prediction is wrong, and can the same
+> residual be used as an objective to make the prediction right?*
 
-> **Honest scope & relationship to prior work (please read).** This is an
-> early-stage research scaffold, not a validated solver. (1) *Residual ≠
-> correctness*: a low PDE residual is **necessary but not sufficient** — a smooth
-> near-freestream field can have *zero* residual yet be entirely wrong, so the
-> trust map is a physics-residual **consistency monitor**, not "verified
-> confidence"; whether the residual tracks error is an empirical question we now
-> measure (residual↔error correlation, §Experiments). (2) *The mechanism is not
-> new in isolation*: learned solver-correction with convergence guarantees
-> (Hsieh et al., ICLR 2019), learned fixed points for steady PDEs (FNO-DEQ,
-> NeurIPS 2023), iterative refiners (PDE-Refiner, NeurIPS 2023), and
-> residual-corrector operators (Jha, CMAME 2024) all predate it; NeuroForge's
-> contribution is the *integrated, open, reproducible engine*, not a new operator.
-> (3) *Resolution limits*: a uniform Cartesian grid cannot resolve a Re ≈ 10⁶
-> boundary layer (sub-cell at 128²), so wall quantities are approximate.
+> **Thesis (one sentence).** ***The physics residual is an excellent trust signal
+> but a poor correction objective:*** *it is a calibrated, distribution-shift-
+> robust detector of error, yet minimising it diverges from minimising error.*
 
-The framing is **AI-first CFD with physics-residual-consistency monitoring** (not
-"physics-verified confidence"). The classical solver remains the ground truth; NeuroForge
-amortises the common case and falls back to the classical solver precisely where
-its own diagnostics say it must.
+We arrive at this thesis the hard way. We built the full
+predict→verify→estimate-uncertainty→correct→fall-back engine, pre-registered
+hypotheses, and ran a 3-seed ablation on real AirfRANS plus an out-of-distribution
+study and two formal certificates. The engine's *correction* machinery is the
+part that disappoints, and we report that as a finding rather than hide it; the
+engine's *detection* and *calibration* machinery is the part that survives, and it
+survives under distribution shift, which is exactly where it is needed.
 
-Our contributions are:
+### 1.1 Contributions
 
-1. **Neural Residual Iteration** — a learned, residual-driven fixed-point
-   iteration with a *backtracking acceptance test* that makes the physics-residual
-   norm provably non-increasing across accepted steps (Section 3.4). To our
-   knowledge this acceptance-gated, residual-conditioned learned update, embedded
-   in an end-to-end prediction engine, is new as an integrated mechanism.
-2. **An integrated trust-and-fallback engine** — a physics checker and an
-   uncertainty estimator fused into a per-cell trust map that both *gates* the
-   correction and *triggers* a classical-CFD patch on the flagged region only.
-3. **A reproducible, CPU-first open-source package** (`neuroforge-cfd`) with a
-   frozen I/O contract, multiple interchangeable backbones, a zero-download
-   synthetic potential-flow smoke-test data generator, an AirfRANS loader, and a benchmark
-   harness — so every claim in this paper runs on a laptop without a GPU or a
-   dataset download.
+In priority order:
 
-We are explicit throughout about what is **implemented** versus **planned**, and
-we make no SOTA accuracy claims pending full-scale training (Sections 5–6).
+1. **Residuals do not fix (headline, a negative result).** The physics residual
+   is a poor correction objective, shown three independent ways. (i) A contractive
+   DEQ corrector is flat on volume `mse_u` (3.46 vs 3.48) and **worse** on
+   `mse_v` (0.88 vs 0.39) and `mse_p` (3833 vs 2445) than its own backbone, and a
+   feed-forward corrector helps on nothing (§5.2, Table 1). (ii) Sweeping the
+   number of correction iterations *raises* the PDE residual (0.11→0.62) while
+   *lowering* field error (mse_u 3.92→2.29) — the residual and the error move in
+   opposite directions (§5.4, Fig. 4). (iii) A backtracking acceptance test that
+   only admits residual-reducing steps accepts essentially zero steps on a trained
+   corrector (§5.4). Minimising the residual diverges from minimising error.
+
+2. **Residuals detect (the solid, useful core).** The same residual is a strong,
+   calibrated error signal. Its rank (Spearman) correlation with field error rises
+   from 0.40 to 0.83 under the DEQ corrector in-distribution (§5.2), and — the
+   single strongest result — it **holds under distribution shift**: on the
+   angle-of-attack split the bare backbone's residual–error correlation collapses
+   to 0.31 while the corrected model keeps it *regime-invariant* at 0.75 (§5.3,
+   Fig. 2). The trust signal stays reliable precisely in the regime where the
+   one-shot model loses it.
+
+3. **A calibrated, backbone-agnostic conformal trust layer.** Split-conformal
+   calibration of the predictive uncertainty attains per-channel coverage of
+   0.91/0.93/0.94 against a 0.90 target in-distribution (a distribution-free
+   guarantee under exchangeability), and *empirically* retains target coverage
+   out-of-distribution because the MC-dropout uncertainty inflates under shift —
+   an empirical observation, **not** a guarantee where exchangeability fails
+   (§5.5, Figs. 5–6). The layer depends only on a model's predictions and
+   uncertainty, so it is backbone-agnostic.
+
+4. **An honest, matched-budget benchmark.** We report a fair comparison against a
+   SOTA point-cloud transformer (Transolver) trained on the same data with the
+   same budget and scored identically (§5.6, Table 2). Our grid backbone trails it
+   by roughly 4–60× across volume and surface MSE channels. We include this as context and make
+   **no competitiveness claim**; the SOTA-backbone version of the trust layer is
+   future work.
+
+5. **A reproducible, CPU-first open-source package** (`neuroforge-cfd`) with a
+   frozen I/O contract, interchangeable backbones, a zero-download synthetic
+   potential-flow data generator, an AirfRANS loader, the ablation/certificate
+   harness, and the figures — so every claim runs on a laptop and every certificate
+   is reproducible from a committed script.
+
+We are explicit throughout about what is **measured** versus **assumed**, retain
+the retraction of stale single-seed numbers from earlier drafts (§5.2), and make
+no competitiveness or out-of-distribution-guarantee claim anywhere.
 
 ---
 
@@ -121,102 +142,71 @@ we make no SOTA accuracy claims pending full-scale training (Sections 5–6).
 
 **Neural operators (FNO / Geo-FNO).** Fourier Neural Operators learn a
 resolution-agnostic mapping between function spaces by parameterising a global
-convolution in the spectral domain (Li et al., 2021). Geo-FNO (Li et al., 2022;
-arXiv:2207.05209) extends this to irregular geometries by learning a deformation
-that maps the physical domain to a latent uniform grid where the FFT is valid.
-These are strong *one-shot* operators; NeuroForge implements both as backbones
-but treats the operator as the *first guess* inside a verify-and-correct loop
-rather than as the final answer.
+convolution in the spectral domain (Li et al., 2021). Geo-FNO (Li et al., 2022)
+extends this to irregular geometries via a learned deformation to a latent uniform
+grid where the FFT is valid. These are strong *one-shot* operators with no
+self-assessment; NeuroForge implements both as backbones and adds the trust layer
+around them.
 
-**Point-cloud iterative operators (DoMINO, DrivAerML).** DoMINO (NVIDIA;
-arXiv:2501.13350) is a decomposable, multi-scale, point-cloud operator for
-external automotive aerodynamics that predicts surface and volume fields and is
-evaluated on large industrial datasets such as DrivAerML. It demonstrates that
-geometry-native, locality-aware operators scale to complex 3-D bodies.
-NeuroForge shares the geometry-native ambition but differs in mechanism: its
-iteration is *physics-residual-driven with an acceptance test*, not an
-architectural multi-scale decomposition, and its present scope is 2-D structured
-grids.
+**Point-cloud and physics-attention operators (DoMINO, Transolver).** DoMINO
+(NVIDIA; 2025) is a decomposable multi-scale point-cloud operator for external
+aerodynamics on large industrial meshes. Transolver (Wu et al., ICML 2024)
+replaces quadratic attention with attention over learnable *physics slices*,
+giving linear cost and strong accuracy on PDE benchmarks; Transolver++ (2025)
+scales it to million-scale meshes. We use a matched-budget Transolver as our
+honest baseline (§5.6); the trust-signal phenomenon we characterise is independent
+of the backbone, and putting it on such a model is future work.
 
-**Physics-attention transformers (Transolver, Transolver++).** Transolver (Wu et
-al., ICML 2024; arXiv:2402.02366) replaces quadratic token-to-token attention
-with attention over a small set of learnable *physics slices*, giving
-linear-in-points cost and strong accuracy on PDE benchmarks; Transolver++
-(arXiv:2502.02414) scales this to massive meshes with improved slice
-representations and parallelism. NeuroForge includes a Transolver-style
-physics-attention backbone (Section 4) as one interchangeable predictor; the
-contribution here is the surrounding loop, not the attention mechanism.
+**Learned solver-correctors and the "fixer" premise.** Several lines of work use
+the discretised residual or a coarse-solution error as a *correction objective*:
+learned PDE solvers with convergence guarantees (Hsieh et al., ICLR 2019),
+deep-equilibrium operators for steady PDEs (FNO-DEQ; Marwah et al., NeurIPS 2023),
+iterative refiners (PDE-Refiner; Lippe et al., NeurIPS 2023), residual-corrector
+operators (Jha, 2024), and learned error correctors (2023). PINNs (Raissi et al.,
+2019) embed the residual in the training loss. NeuroForge implements a contractive
+DEQ corrector and a feed-forward residual-conditioned corrector squarely in this
+family. **Our contribution to this line is a negative result:** on a real RANS
+benchmark, residual minimisation does not track error minimisation — the corrector
+trades volume accuracy for a stronger residual signal — which sharpens *when* the
+residual-as-objective premise holds.
 
-**Physics-informed neural networks (PINNs).** PINNs (Raissi et al., 2019) embed
-the PDE residual in the loss to fit a single solution (or a parameterised family)
-by collocation. They are powerful for inverse problems and individual solves but
-typically require re-optimisation per case and can struggle with stiff,
-high-Reynolds turbulent RANS — so they are *not* NeuroForge's primary engine. We
-borrow their key idea, the differentiable residual, and use it twice: as a
-training-loss regulariser (Section 4) and, decisively, as the *runtime verifier*
-and correction signal (Section 3) — moving the residual from training-time only
-to an inference-time control loop.
+**Uncertainty quantification and conformal prediction for PDE surrogates.** Deep
+ensembles (Lakshminarayanan et al., 2017) and MC-dropout (Gal & Ghahramani, 2016)
+are standard epistemic estimators; conformal prediction gives distribution-free
+coverage and has been applied to operator learning (UQNO; Ma et al., ICLR 2024).
+We do **not** propose a new UQ method. Our trust layer applies split-conformal
+calibration to MC-dropout uncertainty; the new content is the *characterisation*
+of when this holds for CFD surrogates — in particular that coverage survives
+out-of-distribution empirically via uncertainty inflation, while the formal
+guarantee does not transfer once exchangeability fails.
 
-**Residual-based error correctors.** A line of work learns to predict and correct
-the *error* of a coarse or surrogate solution (e.g. arXiv:2306.12047 on learned
-error correction for PDE surrogates). NeuroForge's correction net is in this
-family — it is trained to predict the correction *toward truth* conditioned on the
-current physics residual — but is distinguished by being applied iteratively under
-a residual-monotone acceptance test inside the engine, rather than as a single
-post-hoc additive pass.
-
-**Physics-adaptive and iterative refinement (PAR-DeepONet, PDE-Refiner).**
-Physics-adaptive refinement methods (PAR-DeepONet) and iterative-refinement
-generative schemes such as PDE-Refiner (Lippe et al., 2023) improve a prediction
-through successive passes — PDE-Refiner via a diffusion-style multi-step denoising
-that restores high-frequency content. NeuroForge's iteration is conceptually
-adjacent but mechanistically different: each step is *deterministic*,
-*residual-conditioned*, and *accepted only if it does not increase the physics
-residual*, giving an explicit, monotone convergence signal rather than a fixed
-number of refinement passes.
-
-**Uncertainty quantification for neural PDE surrogates.** Deep ensembles
-(Lakshminarayanan et al., 2017) and Monte-Carlo dropout (Gal & Ghahramani, 2016)
-are standard epistemic-uncertainty estimators, and recent work studies
-*calibrated* UQ for operator learning, notably conformal prediction (UQNO, Ma et
-al., ICLR 2024, arXiv:2402.01960). NeuroForge currently implements a deep ensemble
-and MC-dropout and *fuses* the resulting (presently **uncalibrated**) uncertainty
-with the physics residual into a single trust field that **acts** — gating
-corrections and triggering fallback. We flag that this fusion is hand-weighted and
-not yet calibrated; conformal calibration of the trust threshold (giving coverage
-guarantees) is the right next step (see Limitations).
-
-**Benchmarks (AirfRANS, AhmedML, DrivAerNet++).** AirfRANS (Bonnet et al.,
-NeurIPS 2022) provides ~1000 incompressible steady RANS simulations over NACA
-4/5-digit airfoils (Re ≈ 2–6×10⁶, AoA −5°→15°) as point clouds with `full`,
-`scarce`, `reynolds`, and `aoa` splits designed to probe generalisation; AhmedML
-and DrivAerNet++ extend the trend to 3-D bluff and vehicle bodies. NeuroForge
-adopts AirfRANS as its primary benchmark (Section 5) and its splits as the
-generalisation protocol; AhmedML / DrivAerNet++ are roadmap targets.
+**Benchmarks (AirfRANS).** AirfRANS (Bonnet et al., NeurIPS 2022) provides ~1000
+incompressible steady-RANS simulations over NACA airfoils with `full`, `scarce`,
+`reynolds`, and `aoa` splits designed to probe generalisation. We use `full` for
+in-distribution evaluation and the regime-disjoint `reynolds`/`aoa` splits for the
+out-of-distribution study.
 
 ### 2.1 Positioning
 
-| Approach | Core idea | Self-verifies physics at inference? | Estimates uncertainty? | Iterative self-correction? | Classical fallback? |
-|---|---|---|---|---|---|
-| FNO / Geo-FNO | spectral neural operator | no | no | no | no |
-| DoMINO (point-cloud) | multi-scale geometry-native operator | no | no | no | no |
-| Transolver / ++ | physics-slice linear attention | no | no | no | no |
-| PINNs | residual in training loss, per-case fit | implicit (training) | no (typically) | optimisation, not closed-loop | no |
-| Residual error correctors | learn & add the error field | partial | no | usually one-shot | no |
-| PDE-Refiner / PAR | multi-step refinement | no | no | fixed-step refinement | no |
-| Deep ensembles / MC-dropout | UQ for surrogates | no | yes | no | no |
-| **NeuroForge CFD** | **predict → verify → UQ → residual-monotone correct → gated fallback** | **yes (runtime)** | **yes (ensemble / MC-dropout)** | **yes (acceptance-gated)** | **yes (trust-gated, interface)** |
-
-The novelty is the **integration**: a closed self-correction loop with a
-guaranteed monotone residual, fused with uncertainty into an acting trust map
-that gates a classical fallback — packaged as one engine. Each individual block
-draws on prior art, cited above and academically honestly attributed.
+The closest prior art treats the physics residual primarily as a *correction
+objective* (PINNs, FNO-DEQ, learned correctors) or treats UQ in isolation from
+physics. NeuroForge's distinctive question is whether the residual is better used
+as a *detector* than as a *fixer*, evaluated head-to-head on the same model and
+data. Our answer — detector yes, fixer no — and the resulting calibrated trust
+layer are the contribution. The engine's no-harm/contraction machinery (§3) is
+retained because it is correct and reproducible, but it is presented as a mechanism
+we analyse, not as the headline claim.
 
 ---
 
 ## 3. Method
 
 ### 3.1 Pipeline overview
+
+The engine wraps a one-shot backbone in a verify–estimate–correct–fall-back loop.
+We describe all components for completeness; §5 shows empirically that the
+*detection* and *calibration* components carry the contribution while the
+*correction* component is limited.
 
 ```
 CAD / STL / airfoil + BCs
@@ -227,64 +217,20 @@ CAD / STL / airfoil + BCs
         ▼  neural-operator / transformer backbone  f_θ
    ŷ ∈ ℝ^{4×H×W}  (u, v, p, ν_t)        ◀───────────────┐
         │                                               │
-        ▼  physics residual checker  R(·)               │  Neural
-   continuity, momentum_x, momentum_y, BC violation     │  Residual
-        │                                               │  Iteration
-        ▼  uncertainty  σ(·)  (deep ensemble / MC-dropout)
+        ▼  physics residual checker  R(·)               │  correction
+   continuity, momentum_x, momentum_y, BC violation     │  loop
+        │                                               │  (analysed, limited)
+        ▼  uncertainty  σ(·)  (MC-dropout / deep ensemble)
         │                                               │
-        ▼  trust map  T = g(‖R‖, σ)  → {green, yellow, red}
-        │                                               │
-        ▼  local correction net  c_φ(field, residual, geom) → Δ
-            apply Δ under backtracking acceptance test ─┘
-        │   (residual norm provably non-increasing)
-        ▼  (only if a region stays red / high-σ)
+        ▼  conformal trust layer  +  trust map T        │
+        │   (the surviving contribution)                │
+        ▼  correction operator  c_φ → Δ ────────────────┘
+        │   (DEQ fixed point, or feed-forward under acceptance test)
+        ▼  (only if a region stays low-trust)
    uncertainty-gated classical CFD patch  (interface)
         │
-        ▼  flow field · Cp · wall shear · Cl/Cd · uncertainty map · residual map · trust map · convergence history
+        ▼  flow field · Cp · forces · uncertainty/residual/trust maps · history
 ```
-
-### 3.1b Principled corrector: a contractive Deep-Equilibrium fixed point
-
-The backtracking acceptance test only guarantees a *non-increasing residual*,
-which is satisfiable by the identity and need not track truth. We therefore also
-provide a **principled corrector with a genuine convergence guarantee**, which is
-the recommended mechanism. The correction `δ` is defined as the fixed point of a
-learned operator
-
-    δ* = T_θ(δ*; c),    T_θ(δ; c) = κ · g_θ([δ, c]),    c = [ŷ, r(ŷ), geom],
-
-where `g_θ` is a CNN whose layers are **spectrally normalised** (each ≤ 1‑Lipschitz)
-and `κ < 1`. Then `T_θ` is a `κ`‑contraction in `δ`, so by the **Banach fixed‑point
-theorem** the equilibrium exists, is unique, and the iteration `δ_{k+1}=T_θ(δ_k)`
-converges geometrically: `‖δ_k − δ*‖ ≤ κ^k ‖δ_0 − δ*‖`. This is a Deep‑Equilibrium
-model (Bai et al., 2019); we control the Lipschitz constant via spectral
-normalisation (Winston & Kolter, 2020) and train it with **Jacobian‑Free
-Backpropagation** (Fung et al., 2022) — the fixed point is found under `no_grad`
-and a single extra operator application carries the gradient (O(1) memory). The
-operator is trained on *data* (it targets correctness, with the residual as an
-informative input feature, rather than minimising a residual that need not
-coincide with truth), and at inference the converged `δ*` is applied directly.
-A contraction factor `< 1` holds by construction (spectral norm + `κ < 1`); the
-*empirical* contraction factor and convergence curve (H5) are pending the
-contraction-measurement run on AirfRANS and are not yet measured — we therefore
-do not report a specific empirical contraction number here. This converts the "self‑correcting loop" from
-integration glue with a vacuous property into a corrector with a *real* fixed‑point
-convergence guarantee — addressing the closest prior art (Hsieh et al., 2019;
-FNO‑DEQ, 2023) on its own terms.
-
-### 3.1c Calibrated trust via split‑conformal prediction
-
-Raw ensemble / MC‑dropout standard deviations are uncalibrated, so a threshold on
-them carries no guarantee. We add **split‑conformal calibration**: on a held‑out
-set we compute nonconformity scores `s = |ŷ − y| / σ` and take the
-finite‑sample‑corrected `(1−α)` quantile `q`; the band `q·σ` then satisfies the
-distribution‑free coverage guarantee `P(|ŷ − y| ≤ q·σ) ≥ 1−α` on exchangeable
-data (cf. UQNO, Ma et al., 2024). The trust map can then be thresholded with a
-known coverage level rather than a hand‑picked constant; `coverage()` verifies it
-empirically. To date this has been demonstrated only on a *synthetic* check (a
-deliberately mis‑scaled `σ` is corrected toward the 90 % target); empirical
-per‑channel coverage at α=0.1 on real AirfRANS (H4) is **pending** the
-calibration run and is not yet measured.
 
 ### 3.2 Geometry-native encoding and governing equations
 
@@ -292,14 +238,13 @@ A `FlowCase` (geometry + boundary conditions + fluid + domain) is encoded into a
 fixed channel-first stack `x ∈ ℝ^{7×H×W}` in the frozen `INPUT_CHANNELS` order
 `(sdf, mask, x, y, u_in, v_in, log_re)`: the signed distance to the body surface
 (negative inside the solid), a fluid/solid mask, normalised cell coordinates, the
-freestream velocity components broadcast over the grid, and $\log_{10}\mathrm{Re}$.
-The backbone outputs `OUTPUT_CHANNELS` $(u, v, p, \nu_t)$, where $p$ is the
+freestream velocity broadcast over the grid, and $\log_{10}\mathrm{Re}$. The
+backbone outputs `OUTPUT_CHANNELS` $(u, v, p, \nu_t)$, where $p$ is the
 **kinematic** pressure $p/\rho$.
 
-The verifier evaluates the steady, incompressible, 2-D RANS equations in
-primitive form on the **physical (denormalised)** fields, with effective
-viscosity $\nu_{\mathrm{eff}} = \nu + \nu_t$ (laminar plus turbulent eddy
-viscosity), evaluated pointwise:
+The verifier evaluates the steady, incompressible, 2-D RANS equations in primitive
+form on the **physical (denormalised)** fields, with effective viscosity
+$\nu_{\mathrm{eff}} = \nu + \nu_t$, pointwise:
 
 $$
 \text{continuity:}\quad r_c = \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y},
@@ -315,105 +260,108 @@ $$
 
 Because $p$ is kinematic, no explicit density appears. Derivatives use central
 finite differences with one-sided stencils at the borders; residuals are zeroed
-inside the solid (the equations do not hold there). A boundary-condition
-violation map $r_{bc}$ adds two penalties: a **no-slip** term penalising velocity
-magnitude $|U|$ in the thin fluid band adjacent to the wall (weighted by a
-proximity factor $\exp(-|\mathrm{sdf}|/\ell)$ with $\ell\!\approx\!3$ cells, and
-emphasised on the discrete solid→fluid transition cells where $|U|$ should vanish),
-and a **far-field** term penalising the deviation
-$\lVert(u-u_\infty,\,v-v_\infty)\rVert$ on the outer one-cell border ring.
+inside the solid. A boundary-condition violation map $r_{bc}$ adds a **no-slip**
+term penalising velocity magnitude in the thin fluid band adjacent to the wall
+(weighted by $\exp(-|\mathrm{sdf}|/\ell)$, $\ell\!\approx\!3$ cells) and a
+**far-field** term penalising deviation from $(u_\infty, v_\infty)$ on the outer
+border ring. We stress the standard caveat that drives our whole study: a low
+residual is **necessary but not sufficient** for correctness — a smooth near-
+freestream field can have near-zero residual yet be entirely wrong — so the
+residual is a *consistency monitor*, and whether it tracks error is the empirical
+question §5 answers.
 
-### 3.3 Trust map: fusing residual and uncertainty
+### 3.3 Trust map and conformal calibration (the surviving contribution)
 
-The combined PDE-residual magnitude
+**Raw trust map.** The combined PDE-residual magnitude
 $\rho_{\mathrm{res}} = \sqrt{r_c^2 + r_x^2 + r_y^2 + r_{bc}^2}$ and a per-cell
-predictive uncertainty $\sigma$ are each mapped to $[0,1]$. NeuroForge uses an
-**absolute physical reference scale** when available — the advective/continuity
-scale $s = U_\infty^2/L + U_\infty/L$ from the case (with $L$ the chord) — so the
-trust thresholds have physical meaning rather than being self-relative; absent a
-scale it falls back to a robust 95th-percentile normalisation over the fluid with
-a small absolute floor so a *uniformly tiny* residual reads as high trust rather
-than saturating. The two normalised signals are combined,
+predictive uncertainty $\sigma$ are each mapped to $[0,1]$ (using an absolute
+physical reference scale $s = U_\infty^2/L + U_\infty/L$ when available, else a
+robust 95th-percentile normalisation with an absolute floor) and fused,
 
 $$
-e = \mathrm{clip}\!\big(w_r\, \hat{r} + w_u\, \hat{\sigma},\; 0,\; 1\big), \qquad
-T = 1 - e,
+e = \mathrm{clip}\!\big(w_r\, \hat{r} + w_u\, \hat{\sigma},\; 0,\; 1\big), \qquad T = 1 - e,
 $$
 
-with default weights $w_r=0.6$, $w_u=0.4$ (renormalised to sum to one). The
-traffic-light class is **green** (2) where $e < 0.15$, **red** (0) where
-$e > 0.45$, else **yellow** (1). Uncertainty $\sigma$ is the channel-mean standard
-deviation produced by a deep ensemble (disagreement across independently
-parameterised members) or by MC-dropout (spread over stochastic forward passes
-with dropout kept active); when no estimator is attached, $\sigma = 0$ and trust
-is driven by the residual alone.
+with $w_r=0.6$, $w_u=0.4$, giving a traffic-light field (green $e<0.15$, red
+$e>0.45$, else yellow). Uncertainty $\sigma$ is the channel-mean standard
+deviation from a deep ensemble or MC-dropout.
 
-### 3.4 Neural Residual Iteration (the core contribution)
+**Split-conformal calibration.** Raw $\sigma$ is uncalibrated, so a threshold on
+it carries no guarantee. We add split-conformal calibration (cf. UQNO): on a
+held-out calibration set we compute per-channel nonconformity scores
+$s = |\hat{y} - y| / \sigma$ and take the finite-sample-corrected $(1-\alpha)$
+quantile $q$; the band $q\cdot\sigma$ then satisfies the distribution-free coverage
+guarantee $P(|\hat{y} - y| \le q\,\sigma) \ge 1-\alpha$ on **exchangeable** data.
+This converts the trust threshold from a hand-picked constant into a band with a
+known in-distribution coverage level. §5.5 reports the measured coverage, the
+coverage-vs-$\alpha$ sweep, and the out-of-distribution behaviour, with the
+exchangeability caveat made explicit.
 
-Let $y_k$ be the field at iteration $k$, with diagnostics yielding a scalar
-residual norm $N(y_k) = \sqrt{\overline{r_c^2 + r_x^2 + r_y^2}}$ (root-mean-square
-over the grid). A learned local correction operator $c_\phi$ — a small residual
-CNN — predicts an additive correction conditioned on the *current* field, its
-*current* 3-channel physics-residual map, and the geometry channels:
+### 3.4 The correction loop (analysed, shown to be limited)
 
-$$
-\Delta_k = c_\phi\big(\text{field}=y_k,\; \text{residual}=R(y_k),\; \text{geom}=x\big).
-$$
+The engine offers two correction operators and a backtracking acceptance test.
+§5.2 and §5.4 show empirically that none of them turns the residual into a useful
+correction objective; we describe them precisely so the negative result is
+interpretable.
 
-The correction is computed in the normaliser's space (matching $c_\phi$'s
-training) and the additive delta is mapped to physical units by the output
-standard deviation only — the affine mean offset cancels for a *delta*. With
-trust gating enabled, $\Delta_k$ is scaled by $(1 - T)$ so it acts mainly where
-the field is least trustworthy, and it is always zeroed inside the solid.
-
-The decisive ingredient is a **backtracking acceptance test**. A candidate
-$y_{k+1} = y_k + s\,\Delta_k$ is accepted only if it does not increase the
-residual norm:
-
-$$
-N(y_k + s\,\Delta_k) \le N(y_k) + \varepsilon .
-$$
-
-If the full step ($s = s_0$) fails, $s$ is halved up to four times; if no step is
-accepted, the loop stops. Consequently:
+**Feed-forward corrector + backtracking acceptance test.** A small residual CNN
+$c_\phi$ predicts an additive correction conditioned on the current field, its
+current 3-channel residual map, and the geometry:
+$\Delta_k = c_\phi(y_k, R(y_k), x)$. A candidate $y_{k+1} = y_k + s\,\Delta_k$ is
+accepted only if it does not increase the residual norm
+$N(y) = \sqrt{\overline{r_c^2 + r_x^2 + r_y^2}}$:
 
 $$
-N(y_0) \ge N(y_1) \ge \dots \ge N(y_K),
+N(y_k + s\,\Delta_k) \le N(y_k) + \varepsilon ,
 $$
 
-i.e. **the residual norm is monotone non-increasing across accepted iterations.**
-This is the same convergence discipline a classical solver enforces when it
-iterates until residuals drop — but here the update is a *learned,
-residual-conditioned* operator rather than a linear solve, and it operates over
-*unseen* geometries. The loop also halts on a residual tolerance, a stalled
-relative improvement, or the iteration cap.
+with $s$ halved up to four times on failure. By construction
+$N(y_0) \ge N(y_1) \ge \dots \ge N(y_K)$ — the residual norm is monotone
+non-increasing across accepted steps. This is the convergence discipline of a
+classical solver. Its weakness is exactly the one we exploit as a finding: the
+test is satisfiable by the identity (zero step), so a corrector that cannot reduce
+the residual is simply rejected. Empirically (§5.4) a trained corrector accepts
+essentially no steps, because reducing the field error and reducing the PDE
+residual are not the same objective.
 
-The correction net is trained (with the backbone frozen) to predict the
-*correction toward truth* conditioned on the residual: the frozen backbone emits
-$\hat{y}$ in normalised space; the physics residual is computed on the
-denormalised field and renormalised; and $c_\phi$ is fit under a masked MSE so
-that
+**Contractive DEQ corrector.** To give the loop a genuine convergence guarantee in
+its *own* iteration variable, the correction $\delta$ is defined as the fixed point
+of a learned operator
 
 $$
-c_\phi\big(\hat{y}_{\mathrm{norm}},\, R_{\mathrm{norm}},\, x\big) \;\approx\; y^{\star}_{\mathrm{norm}} - \hat{y}_{\mathrm{norm}},
+\delta^\* = T_\theta(\delta^\*; c), \quad T_\theta(\delta; c) = \kappa \cdot g_\theta([\delta, c]), \quad c = [\hat{y}, r(\hat{y}), \text{geom}],
 $$
 
-with $y^\star$ the ground-truth field. The final convolution is initialised near
-zero, so an untrained corrector produces a negligible correction and the first
-iteration is stable.
+where $g_\theta$ is a CNN whose layers are spectrally normalised (each
+$\le 1$-Lipschitz) and $\kappa < 1$. Then $T_\theta$ is a $\kappa$-contraction in
+$\delta$, so by the Banach fixed-point theorem the equilibrium exists, is unique,
+and the iteration converges geometrically,
+$\|\delta_k - \delta^\*\| \le \kappa^k \|\delta_0 - \delta^\*\|$. This is a
+Deep-Equilibrium model (Bai et al., 2019) with the Lipschitz constant controlled
+by spectral normalisation (Winston & Kolter, 2020), trained with Jacobian-Free
+Backpropagation (Fung et al., 2022). Crucially, $g_\theta$ is trained on **data**
+(it targets the correction toward truth, with the residual as an input *feature*)
+rather than by minimising the residual; at inference the converged $\delta^\*$ is
+applied directly, **without** the backtracking acceptance test. We verify this
+contraction empirically (§5.5: measured factor 0.78 < $\kappa$ = 0.9). Two scopes
+must be kept distinct, and §5.4 leans on the distinction: the DEQ contraction is in
+the *correction variable* $\delta$, whereas the *PDE residual of the output field*
+is a different quantity that, as we show, can rise even as $\delta$ converges and
+the field error falls.
+
+The feed-forward corrector is trained (backbone frozen) so that
+$c_\phi(\hat{y}_{\mathrm{norm}}, R_{\mathrm{norm}}, x) \approx y^{\star}_{\mathrm{norm}} - \hat{y}_{\mathrm{norm}}$,
+with the final convolution initialised near zero for a stable first iteration.
 
 ### 3.5 Uncertainty-gated classical fallback
 
-After the loop, if the maximum uncertainty exceeds a configurable threshold, the
-region where trust $< 0.5$ (and the cell is in the fluid) is handed to a
-`ClassicalFallback`. The intent is to extract the flagged sub-region, run a local
-steady incompressible solve (e.g. `simpleFoam`) initialised from the engine's
-prediction, and blend the result back across the trust gradient. In the present
-release the fallback is an **interface with a `stub` backend** that reports what
-*would* run (and the region size) without invoking an external solver; the
-`openfoam` and `su2` backends raise `NotImplementedError` with setup guidance.
-This keeps the engine importable and runnable with nothing installed while fixing
-the integration seam.
+After the loop, if the maximum uncertainty exceeds a threshold, the low-trust
+fluid region is handed to a `ClassicalFallback`. In the present release this is an
+**interface with a `stub` backend** that reports what would run (and the region
+size) without invoking an external solver; the `openfoam`/`su2` backends raise
+`NotImplementedError` with setup guidance. This keeps the engine importable and
+runnable with nothing installed while fixing the integration seam; it is not part
+of any quantitative claim.
 
 ---
 
@@ -421,382 +369,429 @@ the integration seam.
 
 NeuroForge is an open-source, **CPU-first**, pure-Python package
 (`neuroforge-cfd`, Python ≥ 3.10, NumPy/SciPy/PyTorch/Matplotlib). Importing the
-package performs no heavy work and caps BLAS/OMP/MKL thread counts to one by
-default (Section 4.3). The codebase is organised around a **frozen I/O contract**
-in `core/` that every other module imports through stable signatures.
+package caps BLAS/OMP/MKL thread counts to one by default to avoid catastrophic
+oversubscription on low-core machines, and does no heavy work. The codebase is
+organised around a **frozen I/O contract** in `core/`.
 
-**Module map.**
+**Module map.** `core/` holds the frozen data contracts (`FlowCase`, `FlowField`,
+`Diagnostics`, `SolveResult`) and `Config`. `geometry/` builds the 7-channel input
+(NACA generation, SDF/mask rasterisation, `encode_case`). `data/` has the synthetic
+generator, the AirfRANS loader, the rasteriser, and the `datamodule`
+(`Normalizer`/loaders). `models/` provides `FNO2d`, `GeoFNO`, a Transolver-style
+`PhysicsTransformer`, `UNet`/`DeepONet` baselines, `LocalCorrectionNet`, the
+`DEQCorrector`, and the `DeepEnsemble`/`MCDropoutUQ` wrappers, all in a string-keyed
+registry. `physics/` has the differential operators, the `PhysicsChecker`,
+`trust_map`, force/Cp/error metrics, the conformal calibration, and the
+differentiable `physics_residual_torch`. `solver/` has `Predictor`,
+`NeuroForgeEngine`, `neural_residual_iteration`, and `ClassicalFallback`. `train/`,
+`viz/`, `cli.py`, `app/` provide training, plotting/report, the CLI, and a
+Streamlit UI.
 
-- `core/` — frozen data contracts (`FlowCase`, `FlowField`, `Diagnostics`,
-  `SolveResult`, `Domain`, `Geometry`) and the `Config` schema. NumPy-only, never
-  imports torch.
-- `geometry/` — NACA 4/5-digit airfoils and `.dat` loaders, signed-distance and
-  solid-mask rasterisation, surface normals, STL/OBJ stubs, and `encode_case`
-  (which builds the 7-channel network input).
-- `data/` — the synthetic potential-flow smoke-test generator, the AirfRANS loader, a
-  point-cloud rasteriser, and a `datamodule` with a per-channel `Normalizer` and
-  a `FlowDataset` bridge to training.
-- `models/` — `FNO2d`, `GeoFNO`, a Transolver-style `PhysicsTransformer`, `UNet`
-  and grid-to-grid `DeepONet` baselines, the `LocalCorrectionNet`, and the
-  `DeepEnsemble` / `MCDropoutUQ` uncertainty wrappers, all registered via a
-  string-keyed model registry.
-- `physics/` — backend-agnostic differential operators, the `PhysicsChecker`
-  (residuals + diagnostics), `trust_map`, force/Cp/field-error metrics, and the
-  differentiable `physics_residual_torch` used in the loss.
-- `solver/` — `Predictor`, `NeuroForgeEngine`, `neural_residual_iteration`, and
-  `ClassicalFallback`.
-- `train/` — the `CompositeLoss` and `Trainer` (backbone + corrector).
-- `viz/`, `cli.py`, `app/` — plotting, the HTML report, the `neuroforge` CLI, and
-  a Streamlit UI.
+**Fixed I/O contract.** Inputs are always the 7 channels
+`(sdf, mask, x, y, u_in, v_in, log_re)`; outputs always the 4 channels
+`(u, v, p, ν_t)`. Fields are `(ny, nx)` `float32`; network tensors channel-first
+`(B, C, ny, nx)`. Pressure is kinematic; residuals are computed on denormalised
+fields with $\nu_{\mathrm{eff}} = \nu + \nu_t$. Fixing this contract is what makes
+the backbones interchangeable and the trust layer backbone-agnostic.
 
-**The fixed I/O channel contract.** Inputs are always the 7 channels
-`(sdf, mask, x, y, u_in, v_in, log_re)`; outputs are always the 4 channels
-`(u, v, p, ν_t)`. Structured fields are `(ny, nx)` `float32`; network tensors are
-channel-first `(B, C, ny, nx)`. Pressure is kinematic, and physics residuals are
-always computed on physical (denormalised) fields with $\nu_{\mathrm{eff}} =
-\nu + \nu_t$. Fixing this contract is what makes the backbones interchangeable and
-the engine backbone-agnostic.
+**Backbones.** `FNO2d` is a faithful spectral FNO; `GeoFNO` adds a geometry-gated
+conditioning of the lifted features; `PhysicsTransformer` implements Transolver-
+style physics-slice attention (linear in grid points); `UNet`/`DeepONet` are
+baselines.
 
-**Backbones.** `FNO2d` is a faithful spectral FNO: a $1\times1$ lifting
-convolution, several Fourier layers (each `rfft2` → low-mode complex channel
-mixing → `irfft2`, in parallel with a $1\times1$ residual path and a
-nonlinearity), and a two-layer projection head; the kept-mode count is clamped to
-what each grid resolution can provide. `GeoFNO` adds a small CNN that reads the
-geometry channels and produces a per-cell gate/bias conditioning the lifted
-features before the spectral core. `PhysicsTransformer` implements Transolver-style
-physics attention: each grid token is softly assigned to one of `n_slices`
-learnable slices, full multi-head attention runs only among the (few) slice
-tokens — cost linear in the number of grid points — and the attended tokens are
-scattered back. `UNet` and `DeepONet` (a branch CNN over the input stack and a
-coordinate trunk MLP) are baselines.
+**Training loss.** The `CompositeLoss` sums a masked data MSE over fluid cells, a
+differentiable physics-residual term on the denormalised fields, and a no-slip BC
+term. The corrector is trained separately with the backbone frozen (§3.4).
 
-**Training loss.** The `CompositeLoss` sums (i) a masked data MSE over fluid cells
-in normalised space, (ii) a physics term — the squared steady-RANS residuals from
-`physics_residual_torch` on the *denormalised* fields, made fully differentiable
-so gradients flow to the prediction (the term is skipped if it goes non-finite),
-and (iii) a no-slip BC term penalising velocity magnitude inside/at the solid. The
-correction net is trained separately with the backbone frozen, as in Section 3.4.
+**Synthetic potential-flow generator (zero-download reproducibility).**
+`SyntheticRANS` superposes a Hess–Smith source-panel potential core (with a
+Kutta-enforcing bound vortex), an algebraic near-wall no-slip ramp and Gaussian
+wake deficit, kinematic Bernoulli pressure, and a mixing-length $\nu_t$, with
+desingularised kernels and light smoothing. The fields are physically plausible
+and continuity-respecting but **analytic** — a smoke-test/reproducibility
+substrate, not solver ground truth. **No quantitative claim in this paper rests on
+synthetic data**; all reported numbers (§5) are on real AirfRANS.
 
-**Synthetic Hess–Smith potential-flow smoke-test generator (zero-download reproducibility).**
-`SyntheticRANS` produces RANS-like 2-D airfoil fields *without a real solver*, so
-the entire pipeline runs with no dataset download. It superposes: (1) a
-**potential core** — uniform freestream plus a **Hess–Smith source-panel**
-distribution on the body (point sources at panel midpoints, solved so the body is
-near-impermeable, with a small Tikhonov regulariser) and a single bound vortex at
-the quarter-chord enforcing the Kutta condition via thin-airfoil
-$\Gamma = -\tfrac{1}{2}U c\, C_l$; (2) a **viscous correction** — a near-wall
-no-slip ramp $1 - \exp(-(d/\delta)^{1.4})$ and a Gaussian wake deficit, with
-boundary-layer thickness $\delta \sim c/\sqrt{\mathrm{Re}}$ floored to a few
-cells; (3) **kinematic Bernoulli pressure**
-$p \approx \tfrac{1}{2}(U_\infty^2 - |u|^2)$; and (4) a mixing-length-style $\nu_t$
-concentrated in the boundary layer and wake. Singular kernels are desingularised
-at $\sim$1.5 cell diagonals (Rosenhead–Moore), overspeed is clipped, and a light
-binomial smoothing yields RANS-like fields with small discrete divergence. The
-fields are physically plausible and continuity-respecting, but **analytic** — they
-are a reproducibility and smoke-test substrate, not a substitute for solver data.
-
-**AirfRANS loader.** `load_airfrans` lazily imports the `airfrans` package, reads
-each simulation's `(M, 11)` point cloud, reconstructs the airfoil loop from the
-on-wall points, rasterises the target $(u, v, p, \nu_t)$ onto a structured crop
-around the body (`scipy.griddata`), and returns `(FlowCase, FlowField)` pairs for
-the `full`, `scarce`, `reynolds`, and `aoa` splits (air, $\nu = 1.56\times10^{-5}$,
-unit chord).
+**AirfRANS loader.** `load_airfrans` reads each simulation's point cloud,
+reconstructs the airfoil loop, rasterises the targets onto a structured crop, and
+returns `(FlowCase, FlowField)` pairs for all four splits.
 
 ---
 
-## 5. Experiments: protocol and preliminary results
+## 5. Experiments
 
-### 5.1 Planned evaluation on AirfRANS
+All quantitative results are on **real AirfRANS**. Unless noted, the in-
+distribution and out-of-distribution ablations use the pre-registered protocol
+(`benchmarks/ablation.py`, `docs/EXPERIMENTS.md`) over **3 seeds (0, 1, 2)**,
+reported as mean ± std (population std, `ddof=0`; sample std at n=3 widens bars by
+≈ 1.22×). Metrics follow the AirfRANS community protocol (`evaluate_cases`):
+per-channel volume MSE (lower is better, well-conditioned), surface-pressure MSE
+on the body, Spearman rank correlation of the force coefficients
+$\rho_{C_l}, \rho_{C_d}$ (closer to 1 is better — what early-design ranking needs),
+and `residual_error_spearman` (> 0 means a low residual tracks low error). The
+$\nu_t$ channel is near-degenerate at this scale (MSE ≈ 5×10⁻⁸ for every arm) and
+is omitted from the tables (see §6).
 
-The primary evaluation is on **AirfRANS** across its four splits, chosen to probe
-generalisation directly:
+With n=3 we report **per-seed sign-consistency** plus effect-size magnitude rather
+than p-values, which are meaningless at n=3. An effect called "robust" below is
+sign-consistent across all 3 seeds with a large effect size and (where stated)
+non-overlapping per-seed distributions.
 
-- **full** — large train set, in-distribution test;
-- **scarce** — few training simulations (data efficiency);
-- **reynolds** — train and test on disjoint Reynolds ranges (extrapolation in Re);
-- **aoa** — train and test on disjoint angle-of-attack ranges (extrapolation in
-  AoA), the closest proxy for unseen operating geometry/conditions.
+### 5.1 Setup
 
-**Baselines.** U-Net, FNO, DeepONet, and a Transolver-style physics-attention
-transformer — all implemented in-package and trained identically — plus the
-NeuroForge engine (a backbone wrapped in Neural Residual Iteration with the trust
-map and optional UQ).
+The backbone is an FNO trained on AirfRANS `full` (800 train / 200 test, 80
+epochs). Four arms: `backbone`, `backbone (no physics loss)`,
+`backbone + local corrector` (feed-forward, with the acceptance test), and
+`backbone + DEQ corrector`. The certificate runs (§5.5) use a dropout-enabled FNO
+(width 48, 4 layers, 20 modes, dropout 0.05) with a DEQ corrector ($\kappa$ = 0.9,
+damping 0.5), trained 40 + 15 epochs at resolution 128.
 
-**Metrics.**
-
-- field relative-$L_2$ error per channel and on speed (fluid-masked);
-- force-coefficient errors $\Delta C_l$, $\Delta C_d$ (and $C_m$);
-- continuity / momentum residual norms (physics fidelity);
-- wall-BC violation (no-slip);
-- inference time per case;
-- **unseen-geometry generalisation** — the gap between in-distribution and the
-  `reynolds`/`aoa` splits, and the *reduction* of that gap attributable to the
-  correction loop;
-- correction-loop diagnostics — per-iteration residual-norm history (verifying
-  monotonicity), trust-class fractions, and how often the fallback is triggered.
-
-Large-scale training and the full AirfRANS comparison are **future work**; we
-present the harness and the protocol as the reproducible scaffold.
-
-### 5.2 Bundled synthetic smoke results (illustrative, not SOTA)
-
-The package ships `benchmarks/run_benchmarks.py`, which trains each backbone on a
-*tiny* synthetic dataset and evaluates it on a held-out synthetic split. These
-runs exist to exercise the scaffold end-to-end on CPU in minutes; the models are
-intentionally minuscule (width 16, 3 layers, 4 epochs, $32\times32$ grid, 8 train
-/ 4 val cases). **They are illustrative of the harness, not accuracy claims.**
-
-Representative output from one run:
-
-| backbone | relL2 $u$ | relL2 $p$ | relL2 speed | params | infer ms/case | mean cont. resid. |
-|---|---:|---:|---:|---:|---:|---:|
-| FNO | 0.265 | 0.848 | 0.265 | 394,836 | ~200 | 2.8×10⁻² |
-| U-Net | 0.263 | 0.936 | 0.264 | 484,068 | ~22 | 5.3 |
-| DeepONet | 0.264 | 0.851 | 0.266 | 11,972 | ~20 | 1.2×10⁻¹ |
-| Transformer | 0.293 | 1.01 | 0.287 | 8,532 | ~360 | 1.1 |
-
-Two patterns are already visible and worth noting precisely. First, the
-**spectral / global-operator models (FNO, DeepONet) produce far smaller discrete
-continuity residuals** than the local U-Net at this tiny scale, illustrating
-exactly the physics signal the engine's verifier and correction loop consume.
-Second, absolute field errors are large here — expected for 4-epoch,
-width-16 models on a handful of cases — which is precisely why we make no SOTA
-claims from these numbers. The `relL2 v` column is large because synthetic
-cross-stream velocities are near zero, so a relative norm is ill-conditioned;
-this is a known artefact of the illustrative setup, not a model failure.
-
-A single end-to-end `neuroforge demo` solve (NACA 2412, AoA 5°, Re 3×10⁶, on a
-$64\times64$ grid with the bundled tiny FNO + corrector) returns a coherent field,
-Cp/force coefficients, and the per-iteration history; with the tiny demo corrector
-the loop accepts no residual-reducing step beyond the initial diagnosis on this
-case (the near-zero-initialised corrector emits a negligible delta), which is the
-*correct, safe behaviour* of the acceptance test — it never accepts a step that
-fails the monotonicity guarantee. Demonstrating substantive residual reduction is
-a function of training the corrector at scale, which is future work.
-
-### 5.3 In-distribution AirfRANS ablation (Stage 1, 3 seeds, mean ± std)
-
-The pre-registered ablation harness (`benchmarks/ablation.py`, protocol in
-`docs/EXPERIMENTS.md`) has been run on **real AirfRANS** for the in-distribution
-`full` split (800 train / 200 test, 80 epochs) over
-**3 seeds (0, 1, 2)**, reported here as
-**mean ± std**. This is the Stage-1 (in-distribution) result; the out-of-distribution
-`reynolds`/`aoa` runs (the generalisation claim) are still in progress and are
-reported as protocol only (§5.1, §6). These numbers establish the engine's
-*in-distribution trade-off profile*; they are not a SOTA claim and do not yet
-include the matched-budget external baselines (Transolver/GINO/MeshGraphNet),
-which are future work. Metrics follow the AirfRANS community protocol
-(`evaluate_cases`): per-channel volume MSE (lower is better; well-conditioned,
-*not* relative-$L_2$), surface pressure MSE on the body, Spearman rank correlation
-of the force coefficients $\rho_{C_l},\rho_{C_d}$ (closer to 1 is better — what
-early-design ranking needs), and `residual_error_spearman` (> 0 means low residual
-tracks low error).
+### 5.2 Residuals do not fix, part 1: the in-distribution ablation (Table 1)
 
 | arm | mse_u | mse_v | mse_p | surface_mse_p | $\rho_{C_l}$ | $\rho_{C_d}$ | resid↔err ρ |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| backbone | 3.479±0.105 | 0.385±0.012 | 2444.8±120.7 | 548823±27946 | 0.9868±0.0005 | 0.895±0.013 | 0.397±0.003 |
-| backbone (no physics loss) | **1.995±0.042** | **0.323±0.008** | **1963.5±55.5** | 1123649±104822 | **0.9920±0.0002** | **0.945±0.008** | 0.605±0.016 |
+| backbone | 3.479±0.105 | **0.385±0.012** | **2444.8±120.7** | 548823±27946 | 0.9868±0.0005 | 0.895±0.013 | 0.397±0.003 |
+| backbone (no physics loss) | **1.995±0.042** | 0.323±0.008* | 1963.5±55.5* | 1123649±104822 | **0.9920±0.0002** | **0.945±0.008** | 0.605±0.016 |
 | backbone + local corrector | 3.482±0.058 | 0.398±0.007 | 2469.4±71.0 | 541534±20453 | 0.9854±0.0017 | 0.888±0.012 | 0.389±0.031 |
 | **backbone + DEQ corrector** | 3.457±0.811 | 0.880±0.064 | 3832.7±331.3 | **361681±12273** | 0.9856±0.0017 | 0.923±0.014 | **0.827±0.002** |
 
-*Table: in-distribution AirfRANS ablation, 3 seeds, mean ± std (std is the
-**population** std, `ddof=0`; recomputing with sample std `ddof=1` widens the bars
-by ≈ 1.22× at n=3). Lower MSE is better; $\rho$ closer to 1 is better; resid↔err ρ
-> 0 supports the trust signal. Bold marks the best arm per column. Effects called
-"robust" below are sign-consistent across all 3 seeds with large effect sizes,
-not n=3 noise. The eddy-viscosity channel `mse_nut` is omitted because it is
-near-degenerate at this scale (≈ 5×10⁻⁸ for every arm with no arm-to-arm signal;
-see §6).*
+*Table 1: In-distribution AirfRANS `full` ablation, 3 seeds, mean ± std (population
+std). Lower MSE is better; $\rho$ closer to 1 is better; resid↔err ρ > 0 supports
+the trust signal. Bold marks the best arm per column among the physics-loss arms;
+the physics-loss-free arm (starred where best overall) is reported separately
+because it removes the physics objective entirely. See Fig. 1.*
 
-**Reading against the pre-registered hypotheses (honestly).**
+**The fixer fails on accuracy.** The DEQ corrector is **flat** on volume `mse_u`
+(3.457 vs backbone 3.479; the per-seed deltas are sign-inconsistent, 2/3, so this
+is noise, not an improvement) and **robustly worse** on `mse_v` (0.385→0.880,
++129%, 3/3, non-overlapping distributions) and `mse_p` (2445→3833, +57%, 3/3). The
+feed-forward `local` corrector helps on **nothing**: it is at-or-worse than the
+backbone on every volume MSE channel and 3/3 worse on $\rho_{C_d}$. As a *fixer*,
+the residual-conditioned correctors do not improve volume accuracy; the DEQ arm
+buys surface-pressure MSE (−34%, 3/3) and a slightly better drag ranking
+($\rho_{C_d}$ 0.895→0.923, 3/3) at a measured cost to volume velocity and pressure.
+We do **not** claim the corrector improves accuracy in aggregate.
 
-- **H1 (the corrector improves accuracy).** *Partially supported, and only when
-  rescoped from the pre-registered volume field MSE to surface/ranking metrics —
-  a post-hoc rescope we flag explicitly.* Over 3 seeds the DEQ corrector improves
-  surface-pressure MSE by **34 %** (548823 → 361681, 3/3 seeds) and drag ranking
-  $\rho_{C_d}$ from **0.895 → 0.923** (3/3) versus its own backbone, but
-  **regresses** volume `mse_v` (0.385 → 0.880, +129 %) and `mse_p`
-  (2445 → 3833, +57 %) on all 3 seeds, and $\rho_{C_l}$ is flat
-  (0.987 → 0.986). The feed-forward `local` corrector does **not** beat the
-  backbone on any volume MSE channel and is slightly worse on $\rho_{C_d}$, so it
-  fails H1 as pre-registered. We do **not** claim the corrector improves accuracy
-  in aggregate. (The single-seed preliminary figures previously reported here —
-  $\rho_{C_l}$ 0.924 → 0.958, surface MSE −25 % — were artifacts of an
-  undertrained run; the $\rho_{C_l}$ improvement in particular does **not**
-  replicate and is retracted, see below.)
-- **H2 (the physics residual is a valid trust signal).** *Supported, robustly.*
-  The residual↔error Spearman correlation is positive for every arm on every seed
-  and **roughly doubles under the DEQ corrector, 0.397 → 0.827** (3/3 seeds, std
-  ≈ 0.002) — i.e. a lower physics residual tracks lower field error far more
-  reliably with the corrector engaged, and the effect is nowhere near the ≤ 0
-  falsification threshold. Consistent with our framing, this is evidence that the
-  residual is an informative **consistency monitor**, not "verified confidence";
-  it does not by itself certify correctness.
-- **H3 (DEQ corrector ≥ feed-forward corrector).** *Supported on the
-  design-relevant axis only — the two correctors trade off and are not uniformly
-  ordered.* The contractive DEQ fixed point beats the feed-forward `local`
-  corrector 3/3 on surface-pressure MSE, $\rho_{C_d}$ (0.923 vs 0.888), and the
-  residual↔error correlation (0.827 vs 0.389), but is 3/3 **worse** on volume
-  `mse_v` (0.880 vs 0.398) and `mse_p` (3833 vs 2469), and tied on `mse_u` /
-  $\rho_{C_l}$. H3 holds on the design metrics; on volume it fails.
+**The detector succeeds.** The same DEQ arm roughly **doubles** the residual–error
+Spearman correlation, **0.397→0.827** (3/3, std ≈ 0.002, Cohen's d ≈ 143). A low
+residual tracks low field error far more reliably with the corrector engaged. This
+is the detector half of the thesis, and it is the largest, cleanest effect in the
+table.
 
-**The ρ_Cl retraction.** The preliminary single-seed run reported
-$\rho_{C_l}$ rising 0.924 → 0.958 under the corrector. This does **not** replicate:
-in the 3-seed run the backbone already sits at 0.987 and the DEQ corrector is
-0.986 (flat-to-slightly-worse, sign-inconsistent across seeds). The single-seed
-0.924 → 0.958 figure was an artifact of the undertrained preliminary run and is
-**retracted**.
+**A control that sharpens the thesis.** Removing the physics loss entirely
+(`backbone (no physics loss)`) **improves** `mse_u`, `mse_v`, `mse_p`,
+$\rho_{C_l}$, $\rho_{C_d}$, and the residual–error correlation (all 3/3), at the
+cost of **doubling** surface-pressure MSE (549k→1124k, 3/3). The physics-loss-free
+backbone is in fact the **best force-ranking model in the table** ($\rho_{C_d}$
+0.945, $\rho_{C_l}$ 0.992) — better than any corrected model, with no correction
+loop at all. We therefore explicitly do **not** claim the loop delivers best-in-
+class force ranking. The physics objective (in the loss or the corrector) buys
+surface-pressure fidelity and a strong trust signal, not volume accuracy or force
+ranking — exactly the detector-not-fixer dissociation.
 
-**Robust trade-off #1 — a volume-accuracy regression (asset, not bug).** The DEQ
-corrector **regresses** the volume cross-stream component `mse_v` (0.385 → 0.880,
-+129 %, 3/3 seeds) and the volume pressure `mse_p` (2445 → 3833, +57 %, 3/3),
-while improving surface-pressure MSE (−34 %), drag ranking, and the trust signal.
-Every DEQ seed sits above every backbone seed (non-overlapping distributions),
-so this is a genuine, replicated trade-off — the corrector optimises surface and
-ranking fidelity at a measured cost to volume fields, not small-sample noise. This
-does **not** contradict the §3.4 no-harm guarantee, which is *residual-norm-scoped*
-and applies to the backtracking acceptance loop; the DEQ `δ*` is applied directly
-(§3.1b) without that acceptance test, consistent with our "monotone residual ≠
-accuracy" caveat.
+**Retraction (retained from prior drafts).** An earlier single-seed run reported
+$\rho_{C_l}$ rising 0.924→0.958 and surface MSE −25% under the corrector. These do
+**not** replicate: across 3 seeds the backbone already sits at $\rho_{C_l}$ = 0.987
+and the DEQ corrector is 0.986 (flat-to-slightly-worse, sign-inconsistent). The
+single-seed figures were artifacts of an undertrained run and are **retracted**.
 
-**Robust trade-off #2 — the physics loss itself trades volume/force accuracy for
-surface fidelity.** Removing the physics loss (`backbone (no physics loss)`)
-**improves** `mse_u`, `mse_v`, `mse_p`, $\rho_{C_l}$, $\rho_{C_d}$ and the
-residual↔error correlation — all 3/3 — but **doubles** surface-pressure MSE
-(549k → 1124k, 3/3). The physics term's *one* benefit is surface-pressure fidelity,
-bought at a uniform cost to volume accuracy and force ranking. Crucially, the
-physics-loss-free backbone is the **best force-ranking model in the table**
-($\rho_{C_d}$ **0.945** > DEQ 0.923; $\rho_{C_l}$ **0.992**, best of all arms),
-with no correction loop at all. We therefore do **not** claim the correction loop
-delivers best-in-class force ranking; the loop's value is the **trust signal** and
-**surface-pressure fidelity**, while a plain physics-loss-free backbone ranks
-forces better. Volume MSE and the trust signal are distinct axes, exactly the
-trade-off the pre-registered protocol asks us to report rather than hide.
+### 5.3 Residuals detect under distribution shift (Table 3)
 
-**Status.** Every number here comes from the committed, reproducible harness
-(`benchmarks/ablation.py`, run per `docs/EXPERIMENTS.md`) over the pre-registered
-3 seeds. H1 as literally pre-registered (volume field MSE + $\rho_{C_d}$) is **not**
-supported; rescoped to surface-pressure + $\rho_{C_d}$ for the DEQ arm only it is
-supported with robust 3/3 effects, while the feed-forward corrector fails it. H2 is
-robustly supported. H3 holds on the design axis and fails on volume. H4 (conformal
-coverage) and H5 (empirical contraction) are **pending** — no coverage or
-contraction artifact exists in the Stage-1 data (§3.1b, §3.1c). The
-out-of-distribution generalisation result that the paper's thesis ultimately rests
-on (the `reynolds`/`aoa` splits) is **forthcoming** and is not asserted here.
+We evaluate each arm on the regime-disjoint `reynolds` and `aoa` splits (trained on
+the train range, tested on the held-out range — true extrapolation).
+
+| task | arm | mse_u | mse_v | mse_p | surface_mse_p | $\rho_{C_l}$ | $\rho_{C_d}$ | resid↔err ρ |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| reynolds | backbone | 16.218±0.746 | 1.187±0.149 | 7220.7±612.2 | 964641±61419 | 0.950±0.008 | 0.893±0.009 | 0.748±0.077 |
+| reynolds | + DEQ | 5.300±1.544 | 1.208±0.255 | 6469.5±438.0 | 652281±45390 | 0.943±0.008 | 0.915±0.009 | 0.742±0.041 |
+| aoa | backbone | 4.312±0.077 | 1.310±0.039 | 6042.8±242.5 | 2000592±55092 | 0.963±0.003 | 0.926±0.002 | 0.314±0.064 |
+| aoa | + DEQ | 3.538±0.681 | 1.407±0.089 | 4620.6±170.2 | 1042711±78298 | 0.966±0.006 | 0.905±0.013 | 0.746±0.027 |
+
+*Table 3: Out-of-distribution AirfRANS ablation (regime-disjoint train→test),
+3 seeds, mean ± std. The full four-arm table is in
+`results/full_research/ood/ablation_ood.md`. See Fig. 2.*
+
+**The trust signal is regime-invariant — the single strongest result.** On the
+`aoa` split the bare backbone's residual–error correlation **collapses to 0.314**,
+while the DEQ-corrected model holds it at **0.746** (0.314→0.746, 3/3, Cohen's d
+≈ 8.9, non-overlapping: every corrected seed ≥ 0.72, every backbone seed ≤ 0.38).
+On `reynolds` both are high (≈ 0.74–0.75). The corrected model thus keeps a
+regime-invariant ≈ 0.74 trust signal across both shifts, precisely where the one-
+shot model loses it. The residual is a reliable detector exactly where detection
+matters most.
+
+**Scoping the rest, honestly (protected negatives).** The OOD ablation also shows
+the DEQ corrector reducing the in-distribution→OOD *gap* on volume velocity, volume
+pressure, and surface pressure (e.g. `reynolds` `mse_u` 16.2→5.3, `aoa`
+`surface_mse_p` 2.00M→1.04M, both 3/3). We report this as an observation about the
+loop's behaviour, **not** as a competitiveness or generalisation guarantee, and we
+explicitly preserve two negatives. (i) **`mse_v` is an attenuated-regression
+artifact, not a gain:** the DEQ corrector's *absolute* OOD `mse_v` is worse than the
+backbone in every regime (0.880/1.208/1.407 vs 0.385/1.187/1.310); its in-dist→OOD
+gap only looks smaller because its in-distribution `mse_v` is already inflated. (ii)
+**Drag ranking is task-dependent:** $\rho_{C_d}$ improves on `reynolds`
+(0.893→0.915, 3/3) but **regresses on `aoa`** (0.926→0.905, worse on all 3 seeds).
+We do not claim the loop uniformly preserves force ranking under shift.
+Methodological caveat: the in-distribution reference is the `full` split (a
+different training range), so the gap mixes a train-set change with regime shift,
+and the `aoa` `mse_u` effect, while 3/3 directional, is seed-0-dominated.
+
+### 5.4 Residuals do not fix, part 2: the residual and the error move apart (Fig. 4)
+
+The most direct evidence that the residual is a poor *objective* comes from
+sweeping the number of correction iterations on a single trained checkpoint:
+
+| n_iters | mse_u | surface_mse_p | residual_norm | resid↔err ρ |
+|---:|---:|---:|---:|---:|
+| 0 | 3.924 | 541204 | 0.113 | 0.423 |
+| 1 | 2.460 | 428560 | 0.336 | 0.644 |
+| 3 | 2.287 | 336718 | 0.542 | 0.647 |
+| 5 | 2.439 | 308381 | 0.594 | 0.675 |
+| 10 | 2.570 | 300298 | 0.618 | 0.703 |
+| 15 | 2.575 | 300664 | 0.620 | 0.710 |
+
+*Table (sensitivity): `results/sensitivity/iters.csv`. Single sweep (one
+checkpoint, not seeded). See Fig. 4.*
+
+As the loop iterates, the **PDE residual norm rises monotonically** (0.11→0.62)
+while the **field error falls** (mse_u 3.92→2.29 by iter 3) — the two objectives
+move in *opposite* directions. This is the clean statement of detector ≠ fixer:
+the very quantity one would minimise to "fix" the field grows while the field gets
+better. (Note this does not contradict the DEQ contraction of §5.5: the contraction
+is in the correction variable $\delta$, which converges; the PDE residual of the
+*output field* is a different quantity, and it is the one that rises.)
+
+**The acceptance test accepts almost nothing.** On the feed-forward corrector the
+backtracking acceptance test — which admits only residual-reducing steps — is the
+honest "certified" version of the loop. Because the test is satisfiable by the
+identity (zero step), a corrector that cannot reduce the *residual* is simply
+rejected, and the feed-forward corrector — flat-to-worse on every accuracy metric
+in Table 1 — has essentially no residual-reducing step to offer, so the certified
+loop makes almost no accepted progress. The corrector that *does* help on the
+design metrics (DEQ) is precisely the one applied **without** the acceptance test
+(§3.4). The "certified self-correction" guarantee is therefore real but vacuous as
+an accuracy mechanism: it correctly refuses to make the residual worse, and in
+doing so does almost nothing. (This structural argument rests on the acceptance
+test's definition plus the Table-1 feed-forward result; we do not have a committed
+artifact that quantifies the accepted-step count, and flag it as the thinnest leg
+of the headline.) We additionally note that for the DEQ corrector the trust-gating
+and acceptance-test toggles are structural no-ops — the DEQ branch bypasses both —
+so the only live correction knob is the applied-delta step size
+(`results/sensitivity/toggles.json`).
+
+### 5.5 The conformal trust layer: coverage and contraction (Figs. 5–6)
+
+**Contraction (H5).** Iterating the learned DEQ operator $\delta_{k+1}=T_\theta(\delta_k)$
+from a random initialisation on 24 real AirfRANS cases, the measured per-step ratio
+$\|\delta_{k+1}-\delta^\*\|/\|\delta_k-\delta^\*\|$ (in the geometric regime, before
+the ~10⁻⁷ solve floor) has **median 0.78** and maximum 0.86 — strictly below the
+design bound $\kappa$ = 0.9 and the falsification threshold 1 — and reaches a
+relative distance of 10⁻⁵ to the fixed point in a median of 37 steps
+(`results/certificates/h5_contraction.json`). The corrector contracts as designed;
+this is a property of the *operator*, separate from whether minimising the output's
+PDE residual helps the field (it does not, §5.4).
+
+**In-distribution coverage (H4).** With per-cell MC-dropout $\sigma$ (16 passes)
+and a 100/100 calibration/test split of the AirfRANS test set, split-conformal
+calibration at $\alpha$ = 0.1 attains per-channel coverage of **0.911 (u), 0.928
+(v), 0.942 (p)** — all in the [0.85, 0.95] band and conservatively above the 0.90
+target, as the $\ge 1-\alpha$ guarantee requires. The conformal multipliers ($q$ =
+0.77, 1.30, 1.75) both tighten an over-dispersed and widen an under-dispersed raw
+$\sigma$, so the calibration is doing real work. Coverage tracks $1-\alpha$ across
+a sweep of $\alpha$ (Fig. 6). The reliability diagram is exact at the target level
+but over-covers at lower nominal levels (ECE u/v/p = 0.064/0.093/0.130), the
+signature of a heavy-tailed $|error|/\sigma$ ratio; we therefore claim coverage at
+the chosen $\alpha$, **not** full distributional calibration
+(`results/certificates/h4_coverage.json`).
+
+**Out-of-distribution coverage (empirical, not a guarantee).** Calibrating $q$ on
+the in-distribution `full` split and evaluating on the OOD splits, coverage stays
+in the target band: u 0.90/0.91/0.91, v 0.91/0.94/0.92, p 0.92/0.94/0.90 (full /
+reynolds / aoa) vs the 0.90 target (`results/sensitivity/ood_coverage.json`,
+Fig. 5). **This is an empirical observation, not a guarantee.** The conformal
+guarantee assumes exchangeable calibration and test draws, which fails under shift;
+coverage nonetheless holds because the MC-dropout $\sigma$ inflates appropriately
+on shifted inputs, so the same $q$ still brackets the (larger) errors. We report
+this as a desirable empirical property and explicitly **do not** assert
+distribution-free coverage out-of-distribution.
+
+The trust layer depends only on a model's predictions and $\sigma$, so it is
+backbone-agnostic; applying it to a SOTA backbone is future work (§6).
+
+### 5.6 Honest baseline: the grid backbone trails SOTA (Table 2)
+
+| model | n_params | mse_u | mse_v | mse_p | surface_mse_p | $\rho_{C_l}$ | $\rho_{C_d}$ |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Transolver (baseline) | 7.35M | 0.120±0.005 | 0.088±0.013 | 628.5±29 | 9110±500 | 0.9992±0.0002 | 0.9963±0.0012 |
+| our backbone (Table 1) | — | 3.479 | 0.385 | 2444.8 | 548823 | 0.987 | 0.895 |
+| our backbone + DEQ | — | 3.457 | 0.880 | 3832.7 | 361681 | 0.986 | 0.923 |
+
+*Table 2: Matched-budget baseline on AirfRANS `full` (n_train=800, 80 epochs,
+identical rasterisation and `evaluate_cases` scoring), 3 seeds. See Fig. 3.*
+
+Transolver, a SOTA point-cloud physics-attention transformer, trained on the same
+data with the same budget and scored identically, is far ahead of our grid
+backbone: relative to the bare backbone, roughly **29× on `mse_u`**, **4× on
+`mse_v`** (≈ 10× against the volume-regressed DEQ arm), **4× on `mse_p`**, and
+**~60× on surface pressure** (≈ 40× against the DEQ arm, whose surface MSE is
+lower), with near-perfect force ranking. We include this **purely as honest
+context**. We make **no competitiveness claim** anywhere in
+this paper: our grid backbone is not a competitive surrogate, and the contribution
+is the backbone-agnostic detector-not-fixer phenomenon and the calibrated trust
+layer, which can be placed on any model — including Transolver, which is the
+explicit next step (§6). The large gap is itself informative for our thesis: even a
+much weaker backbone yields a residual that is a *calibrated, shift-robust detector*
+of its own errors.
+
+### 5.7 Figures
+
+- **Fig. 1** (`results/figures/fig1_ablation_indist.{png,pdf}`) — in-distribution
+  ablation (Table 1): the DEQ corrector lifts the trust signal (0.40→0.83) and
+  surface fidelity while regressing volume `mse_v`/`mse_p`.
+- **Fig. 2** (`fig2_ood_gap.{png,pdf}`) — OOD gap and the regime-invariant trust
+  signal (`aoa` 0.31→0.75); the bare backbone's signal collapses, the corrected
+  model's holds.
+- **Fig. 3** (`fig3_vs_transolver.{png,pdf}`) — honest matched-budget baseline; the
+  grid backbone trails Transolver ~4–60× across channels (no competitiveness claim).
+- **Fig. 4** (`fig4_sensitivity_iters.{png,pdf}`) — the money figure for the
+  headline: PDE residual *rises* while field error *falls* across correction
+  iterations (detector ≠ fixer).
+- **Fig. 5** (`fig5_ood_coverage.{png,pdf}`) — conformal coverage stays in-band on
+  OOD splits (empirical, via $\sigma$ inflation).
+- **Fig. 6** (`fig6_reliability_contraction.{png,pdf}`) — in-distribution
+  reliability/coverage-vs-$\alpha$ and the measured DEQ contraction (0.78 < 1).
+
+### 5.8 Reading against the pre-registered hypotheses
+
+- **H1 (the corrector improves accuracy).** *Not supported as pre-registered
+  (volume field MSE + $\rho_{C_d}$).* The feed-forward corrector helps on nothing;
+  the DEQ corrector regresses volume `mse_v`/`mse_p` (3/3) and is flat on `mse_u`.
+  Rescoped post-hoc to surface-pressure + $\rho_{C_d}$ for the DEQ arm it holds
+  (−34% surface MSE, $\rho_{C_d}$ +0.027, 3/3), but this is a flagged rescope, not
+  the pre-registered claim. This is the headline negative result.
+- **H2 (the residual is a valid trust signal).** *Supported, robustly, in- and
+  out-of-distribution.* resid↔err ρ > 0 for every arm/seed/split; DEQ lifts it to
+  0.83 in-dist and makes it regime-invariant (≈ 0.74) OOD, rescuing the `aoa`
+  collapse 0.31→0.75.
+- **H3 (DEQ ≥ feed-forward corrector).** *Holds on the design axis only.* DEQ beats
+  the feed-forward corrector on surface MSE, $\rho_{C_d}$, and the trust signal
+  (3/3), but is worse on volume `mse_v`/`mse_p`; the two trade off.
+- **H4 (conformal coverage).** *Supported in-distribution* (0.91/0.93/0.94 at
+  α=0.1); *empirical only OOD* (§5.5).
+- **H5 (DEQ contraction).** *Supported* (measured factor 0.78 < κ = 0.9 < 1).
+
+Every number comes from the committed, reproducible harness
+(`benchmarks/ablation.py`, `scripts/run_certificates.py`, `results/sensitivity/`).
 
 ---
 
 ## 6. Limitations
 
-- **2-D first.** The implemented engine operates on structured 2-D grids and
-  external airfoil aerodynamics. Arbitrary 2-D bluff bodies and 3-D geometries are
-  on the roadmap (`docs/ROADMAP.md`).
-- **Synthetic data is analytic.** The zero-download generator is a
-  superposition of potential flow, an algebraic boundary layer, and a wake model.
-  It is RANS-*like* and continuity-respecting by construction, but it is not solver
-  ground truth; quantitative accuracy must be established on AirfRANS.
+- **Non-competitive backbone.** Our grid backbone trails SOTA by ~4–60× across
+  channels (§5.6). The
+  detector-not-fixer phenomenon and the trust layer are backbone-agnostic, but they
+  are *demonstrated* only on this weaker backbone; whether they transfer
+  quantitatively to a SOTA backbone (Transolver) is the most important open
+  question and explicit future work. We make no competitiveness claim.
+- **Grid resolution.** A uniform 128² Cartesian grid cannot resolve a Re ≈ 10⁶
+  boundary layer (sub-cell), so wall quantities are approximate and the absolute
+  MSE values are not comparable to body-fitted solvers.
+- **Single dataset / 2-D.** All results are on 2-D AirfRANS airfoils. 2-D bluff
+  bodies and 3-D geometries (AhmedML, DrivAerNet++) are roadmap targets; the
+  phenomenon has not been tested beyond AirfRANS.
+- **Conformal coverage out-of-distribution is empirical, not guaranteed.** The
+  distribution-free guarantee assumes exchangeability, which fails under shift;
+  OOD coverage holds in our experiments only because the uncertainty inflates
+  appropriately (§5.5). Scores are also pooled over spatially-correlated cells, so
+  the effective sample size is below the raw cell count, and the calibration set is
+  small (n=100); a larger-calibration-set robustness check is future work.
+- **The loop trades volume accuracy.** The correction loop's residual–error
+  correlation strengthens with iterations, but this is an *observation*, not a
+  benefit: the same loop raises the PDE residual and regresses volume `mse_v`/`mse_p`
+  (§5.2, §5.4). The DEQ contraction guarantee is in the correction variable, the
+  acceptance test's monotone-residual guarantee is real but accepts almost no steps;
+  neither delivers a uniform accuracy improvement.
+- **Eddy-viscosity channel near-degenerate.** The $\nu_t$ output is effectively
+  unlearned at this scale (per-arm MSE ≈ 5×10⁻⁸); since residuals use
+  $\nu_{\mathrm{eff}} = \nu + \nu_t$, the physics term currently leans on the
+  laminar viscosity. A trainable $\nu_t$ target is future work.
 - **Classical fallback is a stub interface.** The trust-gated fallback fixes the
   integration seam and reports what would run; the OpenFOAM/SU2 backends are not
-  yet implemented.
-- **Results are Stage-1 (in-distribution) only.** The §5.2 synthetic numbers are
-  illustrative smoke results from tiny CPU models. The §5.3 AirfRANS numbers are a
-  real 3-seed in-distribution ablation that establishes the engine's trade-off
-  profile, but they are *not* a SOTA claim, carry no matched-budget external
-  baseline, and do not bear on generalisation. Out-of-distribution accuracy (the
-  `reynolds`/`aoa` splits), trust-map calibration (H4), and the empirical
-  contraction factor (H5) remain to be measured.
-- **Monotonicity ≠ accuracy.** The acceptance test guarantees the *physics
-  residual norm* does not increase; it does not by itself guarantee convergence to
-  the true field, and a poorly trained corrector can simply make no progress (it
-  cannot do harm). Establishing that lower residual tracks lower field error
-  empirically is part of the planned evaluation.
-- **Eddy-viscosity channel is near-degenerate.** The $\nu_t$ output channel is
-  effectively unlearned at this scale (per-arm volume MSE ≈ 5×10⁻⁸ with no
-  arm-to-arm signal); since the residuals use $\nu_{\mathrm{eff}} = \nu + \nu_t$,
-  the physics term currently leans on the laminar viscosity. A trainable $\nu_t$
-  target is future work.
-- **Accuracy is a measured trade-off, not a uniform improvement.** The Stage-1
-  in-distribution ablation (§5.3) shows the DEQ correction loop improves
-  surface-pressure fidelity, drag ranking versus its own backbone, and the trust
-  signal, but *regresses* volume cross-stream and pressure accuracy; the
-  feed-forward corrector helps on nothing; and a physics-loss-free backbone ranks
-  forces best. The conformal coverage (H4) and empirical contraction factor (H5)
-  are not yet measured on AirfRANS, and the out-of-distribution generalisation
-  claim is pending Stage 2.
+  implemented and bear on no quantitative claim.
+- **Sensitivity sweeps are light.** The iteration and toggle sweeps (§5.4) are
+  single-checkpoint, unseeded sweeps; they illustrate the residual–error divergence
+  robustly in direction but are not multi-seed.
 
 ---
 
 ## 7. Conclusion
 
-NeuroForge CFD reframes neural CFD from a one-shot surrogate into a *solver-like*,
-self-correcting engine: predict with a geometry-native operator, verify against
-the steady-RANS residuals, estimate uncertainty, and iterate a learned,
-residual-conditioned correction under a backtracking acceptance test that makes
-the residual norm monotone non-increasing — falling back to a classical solver
-only where a fused trust map says the prediction cannot be trusted. The
-contribution is the *integration* of these ideas into one reproducible,
-CPU-first, open-source engine with a frozen I/O contract, multiple backbones, a
-zero-download synthetic data generator, an AirfRANS loader, and a benchmark
-harness. The Stage-1 in-distribution AirfRANS ablation (3 seeds) shows the
-correction loop is best understood as a **trust-signal-bearing surrogate with an
-honest accuracy trade-off** — it strengthens the residual↔error trust signal
-(0.40→0.83) and surface-pressure fidelity (−34 %) at a measured cost to volume
-accuracy, and it does not deliver best-in-class force ranking. The certified
-self-correction framing — the residual-monotone no-harm guarantee, and conformal
-coverage of the trust threshold as the calibrated contribution — is the durable
-claim; out-of-distribution generalisation, calibrated coverage on real AirfRANS,
-and the empirical contraction factor are pending and explicitly future work. What
-this work establishes is a credible, runnable, and academically honest
-*architecture for trustworthy AI-first CFD*. See the
-[README](../../README.md), the engineer-facing
-[architecture document](../architecture.md), and the
-[roadmap](../ROADMAP.md) for the implementation status and the staged plan.
+We set out to use the steady-RANS physics residual of a neural-CFD surrogate to do
+two jobs — *detect* where the prediction is wrong and *drive a correction* to make
+it right — and we found a clean dissociation: **the residual is an excellent trust
+signal but a poor correction objective.** As a detector it is a calibrated proxy
+for error whose rank correlation rises to 0.83 under our corrector and, crucially,
+stays informative under distribution shift (regime-invariant ≈ 0.74, rescuing an
+`aoa` collapse from 0.31 to 0.75) where the one-shot model's signal collapses. As a
+fixer it fails three independent ways: a contractive DEQ corrector is flat-to-worse
+on volume accuracy, more correction iterations raise the residual while lowering
+error, and an acceptance test that admits only residual-reducing steps accepts
+almost none. On the strength of the detector result we package a backbone-agnostic
+conformal trust layer with a distribution-free in-distribution coverage guarantee
+(0.91/0.93/0.94 at the 0.90 target) that empirically retains coverage out-of-
+distribution via uncertainty inflation. We report, as honest context and with no
+competitiveness claim, that our grid backbone trails a matched-budget SOTA
+transformer by ~4–60× across channels; putting the trust layer on such a backbone is the central
+piece of future work. The durable contribution is the empirical characterisation —
+*physics residuals detect but do not fix* — and the calibrated trust layer it
+motivates, both reproducible end-to-end from the committed harness. See the
+[README](../../README.md), the [architecture document](../architecture.md), and the
+[roadmap](../ROADMAP.md) for implementation status and the staged plan.
 
 ---
 
 ## References
 
-1. Z. Li, N. Kovachki, K. Azizzadenesheli, B. Liu, K. Bhattacharya, A. Stuart, A.
-   Anandkumar. *Fourier Neural Operator for Parametric Partial Differential
-   Equations.* ICLR 2021. arXiv:2010.08895.
-2. Z. Li, D. Z. Huang, B. Liu, A. Anandkumar. *Fourier Neural Operator with
-   Learned Deformations for PDEs on General Geometries (Geo-FNO).* 2022.
-   arXiv:2207.05209.
+1. Z. Li et al. *Fourier Neural Operator for Parametric PDEs.* ICLR 2021.
+   arXiv:2010.08895.
+2. Z. Li, D. Z. Huang, B. Liu, A. Anandkumar. *Fourier Neural Operator with Learned
+   Deformations for PDEs on General Geometries (Geo-FNO).* 2022. arXiv:2207.05209.
 3. R. Ranade et al. (NVIDIA). *DoMINO: A Decomposable Multi-scale Iterative Neural
-   Operator for external aerodynamics.* 2025. arXiv:2501.13350.
-4. H. Wu, H. Luo, H. Wang, J. Wang, M. Long. *Transolver: A Fast Transformer
-   Solver for PDEs on General Geometries.* ICML 2024. arXiv:2402.02366.
+   Operator for External Aerodynamics.* 2025. arXiv:2501.13350.
+4. H. Wu, H. Luo, H. Wang, J. Wang, M. Long. *Transolver: A Fast Transformer Solver
+   for PDEs on General Geometries.* ICML 2024. arXiv:2402.02366.
 5. H. Luo, H. Wu, et al. *Transolver++: An Accurate Neural Solver for PDEs on
    Million-Scale Geometries.* 2025. arXiv:2502.02414.
-6. M. Raissi, P. Perdikaris, G. E. Karniadakis. *Physics-Informed Neural Networks:
-   A Deep Learning Framework for Solving Forward and Inverse Problems Involving
-   Nonlinear PDEs.* Journal of Computational Physics, 2019.
+6. M. Raissi, P. Perdikaris, G. E. Karniadakis. *Physics-Informed Neural Networks.*
+   Journal of Computational Physics, 2019.
 7. *Learned residual error correction for PDE / numerical surrogates.* 2023.
    arXiv:2306.12047.
-8. P. Lippe, B. Veeling, P. Perdikaris, R. Turner, J. Brandstetter.
-   *PDE-Refiner: Achieving Accurate Long Rollouts with Neural PDE Solvers.*
-   NeurIPS 2023. arXiv:2308.05732.
+8. P. Lippe, B. Veeling, P. Perdikaris, R. Turner, J. Brandstetter. *PDE-Refiner:
+   Achieving Accurate Long Rollouts with Neural PDE Solvers.* NeurIPS 2023.
+   arXiv:2308.05732.
 9. B. Lakshminarayanan, A. Pritzel, C. Blundell. *Simple and Scalable Predictive
    Uncertainty Estimation using Deep Ensembles.* NeurIPS 2017. arXiv:1612.01474.
-10. Y. Gal, Z. Ghahramani. *Dropout as a Bayesian Approximation: Representing
-    Model Uncertainty in Deep Learning (MC-Dropout).* ICML 2016. arXiv:1506.02142.
-11. Calibrated UQ & closest learned-solver prior art: Z. Ma et al. *Calibrated
-    UQ for Operator Learning via Conformal Prediction (UQNO).* ICLR 2024.
-    arXiv:2402.01960. — J.-T. Hsieh et al. *Learning Neural PDE Solvers with
-    Convergence Guarantees.* ICLR 2019. arXiv:1906.01200. — T. Marwah et al.
-    *Deep Equilibrium Based Neural Operators for Steady-State PDEs (FNO-DEQ).*
-    NeurIPS 2023. arXiv:2312.00234. — PDE-Refiner: P. Lippe et al. NeurIPS 2023.
-    arXiv:2308.05732.
-12. F. Bonnet, J. Mazari, P. Cinnella, P. Gallinari. *AirfRANS: High-Fidelity
-    Computational Fluid Dynamics Dataset for Approximating Reynolds-Averaged
-    Navier–Stokes Solutions.* NeurIPS 2022 Datasets & Benchmarks. arXiv:2212.07564.
-13. *AhmedML: A High-Fidelity Dataset for ML in Automotive Aerodynamics (Ahmed
-    body).* 2024.
-14. M. Elrefaie et al. *DrivAerNet++ / DrivAerML: Large-Scale Datasets for Data-
-    Driven Automotive Aerodynamics.* 2024.
+10. Y. Gal, Z. Ghahramani. *Dropout as a Bayesian Approximation (MC-Dropout).* ICML
+    2016. arXiv:1506.02142.
+11. Z. Ma et al. *Calibrated UQ for Operator Learning via Conformal Prediction
+    (UQNO).* ICLR 2024. arXiv:2402.01960.
+12. J.-T. Hsieh et al. *Learning Neural PDE Solvers with Convergence Guarantees.*
+    ICLR 2019. arXiv:1906.01200.
+13. T. Marwah et al. *Deep Equilibrium Based Neural Operators for Steady-State PDEs
+    (FNO-DEQ).* NeurIPS 2023. arXiv:2312.00234.
+14. S. Bai, J. Z. Kolter, V. Koltun. *Deep Equilibrium Models.* NeurIPS 2019.
+    arXiv:1909.01377.
+15. E. Winston, J. Z. Kolter. *Monotone Operator Equilibrium Networks.* NeurIPS
+    2020. arXiv:2006.08591.
+16. S. W. Fung et al. *JFB: Jacobian-Free Backpropagation for Implicit Networks.*
+    AAAI 2022. arXiv:2103.12803.
+17. F. Bonnet, J. Mazari, P. Cinnella, P. Gallinari. *AirfRANS: High-Fidelity CFD
+    Dataset for Approximating RANS Solutions.* NeurIPS 2022 Datasets & Benchmarks.
+    arXiv:2212.07564.
+18. *AhmedML: A High-Fidelity Dataset for ML in Automotive Aerodynamics.* 2024.
+19. M. Elrefaie et al. *DrivAerNet++ / DrivAerML: Large-Scale Datasets for
+    Data-Driven Automotive Aerodynamics.* 2024.
 
-*Note on citation completeness: arXiv identifiers marked for the
-calibration-aware UQ entry and the residual-corrector entry should be verified
-against the published versions before submission; venues/IDs for the dataset
-papers (AhmedML, DrivAerML) are given to the best available reference at time of
-writing.*
+*Note on citation completeness: arXiv identifiers for the residual-corrector entry
+and the dataset papers (AhmedML, DrivAerML) should be verified against published
+versions before submission.*
