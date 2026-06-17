@@ -213,6 +213,7 @@ def parse_status(log_text: str) -> dict:
         "v2_spearman": None,      # latest residual<->error Spearman (the headline)
         "v2_result_line": None,   # latest raw eval result string (for the UI)
         "v2_conformal": None,     # latest conformal result string
+        "phase_elapsed_s": None,  # seconds in the current log-silent phase (creep)
     }
 
     # ---- single forward pass; latest match wins for each field ---- #
@@ -465,6 +466,33 @@ def parse_status(log_text: str) -> dict:
     return state
 
 
+def apply_v2_conformal_creep(status, now, log_mtime):
+    """Advance the bar through the long, log-silent v2 conformal phase.
+
+    The conformal MC-dropout pass writes nothing for ~2.5h, so the parser sits
+    frozen. We creep the bar across the conformal slice (0.48..0.99 of the seed)
+    from the wall-clock, anchored to ``log_mtime`` — the time the "split-conformal
+    coverage ..." line was written, which IS when the phase started. Using mtime
+    (not a fresh server timer) means a dashboard restart mid-conformal resumes at
+    the right place instead of snapping backwards. Monotone: only ever raises
+    ``progress`` (via max), and the slice end (0.99) is below the next seed's
+    backbone start. Mutates and returns ``status``.
+    """
+    if status.get("stage") != "v2" or status.get("phase") == "done":
+        return status
+    if status.get("v2_phase") != "conformal" or not log_mtime:
+        return status
+    elapsed = max(0.0, now - log_mtime)
+    frac = min(elapsed / _V2_CONFORMAL_EST_SECS, 0.98)
+    seeds = _FULL["seeds"] or 1
+    seed = status.get("seed") or 0
+    wf = 0.48 + 0.51 * frac          # conformal occupies the 0.48..0.99 tail
+    crept = min(100.0 * (seed + wf) / seeds, 99.5)
+    status["progress"] = max(status.get("progress", 0.0), crept)
+    status["phase_elapsed_s"] = elapsed
+    return status
+
+
 def _v2_eta(state) -> float | None:
     """Rough time-remaining (s) for a v2 run, dominated by backbone epochs.
 
@@ -486,13 +514,22 @@ def _v2_eta(state) -> float | None:
         bb_left_here = 0
     bb_left_future = max(seeds - seed - 1, 0) * bb
     bb_secs = (bb_left_here + bb_left_future) * spe
-    # Corrector+eval+conformal per seed are far cheaper than the backbone; a flat
-    # 15% of a full backbone's wall-time per *remaining* seed is a fair allowance.
+    # Corrector + the two eval passes per seed: ~10% of a backbone's wall-time.
+    ph = state.get("v2_phase")
     seeds_with_tail_left = max(seeds - seed - 1, 0) + (
-        1 if state.get("v2_phase") in ("backbone", "eval-a", None) else 0
+        1 if ph in ("backbone", "eval-a", None) else 0
     )
-    tail_secs = seeds_with_tail_left * 0.15 * bb * spe
-    return float(bb_secs + tail_secs)
+    tail_secs = seeds_with_tail_left * 0.10 * bb * spe
+    # The conformal MC pass is CPU-bound (~_V2_CONFORMAL_EST_SECS) and the single
+    # biggest remaining cost — count it explicitly per seed whose conformal is
+    # still ahead, else the ETA badly under-reports (backbone alone misses ~half).
+    conf_left = max(seeds - seed - 1, 0)        # future seeds' conformal
+    if ph == "conformal":
+        conf_left += 0.5                        # current one ~half done (rough)
+    elif ph in ("backbone", "eval-a", "corrector", "eval-b", None):
+        conf_left += 1                          # current seed's conformal not started
+    conf_secs = conf_left * _V2_CONFORMAL_EST_SECS
+    return float(bb_secs + tail_secs + conf_secs)
 
 
 # The one-time initial AirfRANS rasterise/load takes ~40 min (the dataset is
@@ -508,6 +545,13 @@ _PREP_SLICE = 0.05  # 5% of the overall bar reserved for the initial data load
 # holds ~99% during post-training measurement. Budgets set via --bb/--corr-epochs.
 SINGLE_BB_EPOCHS = 40
 SINGLE_CORR_EPOCHS = 15
+
+# The v2 split-conformal step (MC-dropout + rasterise per case) is CPU-bound and
+# emits NO log lines for its whole duration (~2.5h/seed measured), so the pure
+# parser alone would freeze the bar. apply_v2_conformal_creep() advances it from
+# the wall-clock, anchored to the log's last-write time (= when "split-conformal
+# coverage ..." was printed, i.e. when the phase began). Tune if the box differs.
+_V2_CONFORMAL_EST_SECS = 9000.0  # ~2.5 h
 
 # Substring identifying the run process for Stop / alive-detection. Set from
 # --run-match so the dashboard can watch run_full_research, run_certificates, etc.
@@ -539,22 +583,26 @@ def _compute_progress(state, saw_epoch_for_unit, dataprep) -> float:
         bb = max(SINGLE_BB_EPOCHS, 1)
         ce = max(SINGLE_CORR_EPOCHS, 1)
         seed = state["seed"] if state["seed"] is not None else 0
-        # Per-seed sub-phase fractions, kept strictly ordered so the bar is
-        # monotone across the backbone -> eval-a -> corrector -> eval-b ->
-        # conformal handoffs: backbone 0..0.58, eval-a 0.60, corrector 0.62..0.85,
-        # eval-b 0.88, conformal 0.92.
+        # Per-seed sub-phase fractions, weighted by REAL wall-time (not epoch
+        # count) so the bar tracks elapsed time, and kept strictly ordered so it
+        # is monotone across backbone -> eval-a -> corrector -> eval-b ->
+        # conformal. Measured per-seed wall-times (~80s/backbone-epoch): backbone
+        # ~1.8h, evals ~0.4h, corrector ~0.15h, conformal ~2.5h (CPU-bound). So
+        # conformal alone is ~half the seed and gets the 0.48..0.99 tail; it emits
+        # NO log lines, so its bar is crept from the wall-clock in
+        # apply_v2_conformal_creep (here it just pins the slice start).
         ph = state.get("v2_phase")
         if ph == "conformal":
-            wf = 0.92
+            wf = 0.48
         elif ph == "eval-b":
-            wf = 0.88
+            wf = 0.47
         elif state["corrector_epoch"] is not None or ph == "corrector":
             cep = state["corrector_epoch"]
-            wf = 0.62 + 0.23 * ((cep + 1) / ce if cep is not None else 0.0)
+            wf = 0.40 + 0.05 * ((cep + 1) / ce if cep is not None else 0.0)
         elif ph == "eval-a":
-            wf = 0.60
+            wf = 0.39
         elif state["epoch"] is not None:
-            wf = 0.58 * ((state["epoch"] + 1) / bb)
+            wf = 0.37 * ((state["epoch"] + 1) / bb)
         else:
             wf = 0.0
         overall = (seed + min(wf, 1.0)) / seeds
@@ -1031,6 +1079,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
             mtime = os.path.getmtime(self.log_path) if log_exists else None
         except OSError:
             mtime = None
+
+        # Creep the bar through the log-silent v2 conformal phase (anchored to the
+        # log's last-write time = when conformal began). No effect outside it.
+        apply_v2_conformal_creep(status, time.time(), mtime)
 
         payload = {
             "ok": True,

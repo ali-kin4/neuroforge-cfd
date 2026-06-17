@@ -275,6 +275,40 @@ def test_v2_run_backbone_corrector_and_headline():
     assert d["progress"] == 100.0
 
 
+def test_v2_conformal_creep_advances_with_wallclock():
+    """The conformal phase is log-silent for ~2.5h; apply_v2_conformal_creep must
+    advance the bar from the wall-clock (anchored to log mtime) and be a no-op
+    outside conformal — only ever raising progress (monotone)."""
+    server.SINGLE_BB_EPOCHS = 80
+    conf_log = "\n".join([
+        "[v2] seed 0: Transolver params = 7,350,420",
+        "[v2] seed 0 backbone epoch 79: train_mse=1e-2 (45s)",
+        "[v2] seed 0: split-conformal coverage ...",
+    ])
+    s = parse_status(conf_log)
+    assert s["v2_phase"] == "conformal"
+    base = s["progress"]
+
+    # elapsed 0 -> no advance
+    s0 = parse_status(conf_log)
+    server.apply_v2_conformal_creep(s0, now=1000.0, log_mtime=1000.0)
+    assert abs(s0["progress"] - base) < 1e-6
+
+    # halfway through the estimated duration -> clearly advanced
+    s1 = parse_status(conf_log)
+    server.apply_v2_conformal_creep(
+        s1, now=1000.0 + server._V2_CONFORMAL_EST_SECS / 2, log_mtime=1000.0
+    )
+    assert s1["progress"] > base + 5.0
+    assert s1["phase_elapsed_s"] > 0
+
+    # outside conformal (backbone phase) -> no-op
+    s2 = parse_status("[v2] seed 1 backbone epoch 10: train_mse=1e-1 (45s)")
+    p2 = s2["progress"]
+    server.apply_v2_conformal_creep(s2, now=99999.0, log_mtime=1000.0)
+    assert abs(s2["progress"] - p2) < 1e-6
+
+
 def test_v2_progress_is_monotone_across_seeds_and_phases():
     server.SINGLE_BB_EPOCHS = 80
     server.SINGLE_CORR_EPOCHS = 20

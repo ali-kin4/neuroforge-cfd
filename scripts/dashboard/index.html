@@ -501,7 +501,13 @@ function render(d){
   // subline — for v2, surface the headline result as it forms (the paper's
   // central claim: the residual is a trust signal on a SOTA backbone), else
   // fall back to the latest log line.
-  if(s.v2_spearman!=null){
+  if(s.v2_phase==="conformal" && s.phase_elapsed_s!=null){
+    // Long CPU-bound, log-silent phase — show elapsed so it doesn't look stuck.
+    const m = Math.floor(s.phase_elapsed_s/60);
+    let line = "split-conformal coverage (CPU-bound, ~150 min) · "+m+" min elapsed";
+    if(s.v2_spearman!=null) line += "  ·  detector ρ = "+(s.v2_spearman).toFixed(3);
+    $("subline").textContent = line;
+  } else if(s.v2_spearman!=null){
     let line = "residual↔error ρ = "+(s.v2_spearman).toFixed(3)+
                "  (trust signal on the SOTA Transolver backbone)";
     if(s.v2_conformal) line += "  ·  conformal: "+String(s.v2_conformal).slice(0,60);
