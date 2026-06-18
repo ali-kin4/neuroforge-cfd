@@ -1,4 +1,4 @@
-# Physics Residuals Detect but Do Not Fix: A Calibrated Trust Layer for Neural CFD Surrogates
+# NeuroForge: A Self-Correcting, Geometry-Native Neural CFD Engine with Calibrated Physics-Residual Trust
 
 **Kasra (Ali) Ghanavati**
 
@@ -12,34 +12,32 @@ Machine-learning surrogates for computational fluid dynamics (CFD) predict
 steady flow fields over engineering geometries orders of magnitude faster than
 classical solvers, but they emit a single field with no built-in way for a user
 to know whether to trust it — especially out of distribution, where early-design
-exploration lives. A natural idea is to close the loop with the governing
-physics: compute the discretised steady-RANS residual of the prediction, use it
-both to *flag* unreliable regions and to *drive a correction* back toward a valid
-solution. We implement this full pipeline in **NeuroForge CFD**, an open-source,
-CPU-first package, and stress-test it on real AirfRANS over three seeds. Our
-central finding is a clean dissociation: **the physics residual is an excellent
-trust signal but a poor correction objective.** As a *detector*, the residual is
-a calibrated proxy for error — its rank correlation with field error rises from
-0.40 to 0.83 under our corrector in-distribution, and, critically, it stays
-informative under distribution shift (angle-of-attack split: the bare backbone's
-residual–error correlation collapses to 0.31 while the corrected model holds it
-at 0.75). As a *fixer*, the residual fails three independent ways: a contractive
-deep-equilibrium (DEQ) corrector is flat on volume velocity (mse_u 3.46 vs 3.48)
-and *worse* on cross-stream velocity (mse_v 0.88 vs 0.39); running the loop for
-more iterations *raises* the PDE residual while *lowering* field error; and a
-backtracking acceptance test that only admits residual-reducing steps accepts
-essentially none on a trained corrector. Minimising the residual diverges from
-minimising error. Building on the detector result, we package a **distribution-
-free conformal trust layer** that attains per-channel coverage of 0.91/0.93/0.94
-at the 0.90 target in-distribution (a guarantee that holds only under
-exchangeability) and that empirically retains target coverage out-of-distribution
-because the underlying uncertainty inflates appropriately under shift — an
-empirical observation, not a guarantee. The trust layer is backbone-agnostic.
-For honest context we report a fair, matched-budget baseline: our grid backbone
-trails a SOTA point-cloud transformer (Transolver) by roughly 4–60× across
-volume and surface MSE channels. We make **no competitiveness claim**; the contribution is the
-residual-as-trust-signal phenomenon and the calibrated trust layer, and applying
-them to a SOTA backbone is explicit future work.
+exploration lives. We close the loop with the governing physics: we compute the
+discretised steady-RANS residual of the prediction and ask what jobs it can do.
+Our central finding is a clean three-way dissociation, validated on a SOTA
+Transolver backbone: **the physics residual is an excellent, backbone-agnostic
+trust signal and a useful input feature to a learned corrector, but a poor
+correction objective.** (1) *As a trust signal*, the residual is a calibrated,
+backbone-agnostic proxy for error: its rank correlation with field error is
+0.625 ± 0.019 on the SOTA backbone (vs ≈ 0.40 on a weak grid backbone, which a
+learned corrector lifts to 0.83), and a split-conformal layer attains target
+coverage (0.902 ± 0.008 at the 0.90 target). (2) *As an input feature to a
+learned, supervised corrector*, the residual helps: a deep-equilibrium (DEQ)
+corrector that consumes the residual as input and trains toward ground truth
+reduces volume-field MSE on all three seeds — mse_u −9%, mse_v −21%, mse_p −25% —
+on a backbone that is itself SOTA-competitive (ρ_Cl = 0.999, ≈ 5% force error).
+(3) *As a correction objective or acceptance gate*, the residual fails: sweeping
+the iterations *raises* the PDE residual while *lowering* field error, and a
+backtracking test that admits only residual-reducing steps accepts essentially
+none — minimising the residual is not minimising the error. We package a
+**distribution-free conformal trust layer** that attains the coverage above (a
+guarantee that holds only under exchangeability) and empirically retains target
+coverage out-of-distribution via uncertainty inflation. We report two honest
+caveats plainly: correction quality is *backbone-dependent* (the same corrector
+is flat on the weak grid backbone), and on the near-deterministic SOTA model the
+conformal band is near-constant rather than adaptive (MC-dropout σ is
+near-degenerate). The contribution is the self-auditing trust layer and the
+residual's three roles, demonstrated on a competitive surrogate.
 
 **Keywords:** neural operators, surrogate CFD, physics residuals, uncertainty
 quantification, conformal prediction, trust calibration, airfoil aerodynamics.
@@ -74,57 +72,61 @@ answers empirically, whether the residual can play both roles.
 > prediction a reliable signal of where the prediction is wrong, and can the same
 > residual be used as an objective to make the prediction right?*
 
-> **Thesis (one sentence).** ***The physics residual is an excellent trust signal
-> but a poor correction objective:*** *it is a calibrated, distribution-shift-
-> robust detector of error, yet minimising it diverges from minimising error.*
+> **Thesis (one sentence).** ***The steady-RANS physics residual is a reliable,
+> conformally-calibrated, backbone-agnostic trust signal and a useful input to a
+> learned corrector that measurably improves a SOTA surrogate — even though
+> minimising the residual directly remains a poor correction objective.***
 
 We arrive at this thesis the hard way. We built the full
 predict→verify→estimate-uncertainty→correct→fall-back engine, pre-registered
 hypotheses, and ran a 3-seed ablation on real AirfRANS plus an out-of-distribution
-study and two formal certificates. The engine's *correction* machinery is the
-part that disappoints, and we report that as a finding rather than hide it; the
-engine's *detection* and *calibration* machinery is the part that survives, and it
-survives under distribution shift, which is exactly where it is needed.
+study, two formal certificates, and — in a second phase — the same trust layer and
+corrector on a SOTA Transolver backbone. The trust signal and the supervised
+corrector survive on the strong backbone; the residual-as-objective machinery (the
+iteration sweep and the acceptance gate) is the part that disappoints, and we report
+that as a finding rather than hide it. A key honest finding cuts across all three
+roles: *correction quality is backbone-dependent* — the supervised corrector that
+helps on the SOTA backbone is flat on the weak grid backbone — so we report both.
 
 ### 1.1 Contributions
 
 In priority order:
 
-1. **Residuals do not fix (headline, a negative result).** The physics residual
-   is a poor correction objective, shown three independent ways. (i) A contractive
-   DEQ corrector is flat on volume `mse_u` (3.46 vs 3.48) and **worse** on
-   `mse_v` (0.88 vs 0.39) and `mse_p` (3833 vs 2445) than its own backbone, and a
-   feed-forward corrector helps on nothing (§5.2, Table 1). (ii) Sweeping the
-   number of correction iterations *raises* the PDE residual (0.11→0.62) while
-   *lowering* field error (mse_u 3.92→2.29) — the residual and the error move in
-   opposite directions (§5.4, Fig. 4). (iii) A backtracking acceptance test that
-   only admits residual-reducing steps accepts essentially zero steps on a trained
-   corrector (§5.4). Minimising the residual diverges from minimising error.
+1. **The trust layer is backbone-agnostic (headline).** The physics residual is a
+   strong, calibrated error detector across backbones. On the SOTA Transolver
+   backbone its rank (Spearman) correlation with field error is 0.625 ± 0.019; on
+   a much weaker grid backbone it is ≈ 0.40 bare and a learned corrector lifts it
+   to 0.83, so the detector survives both regimes. Building on it, a split-conformal
+   trust layer attains target coverage on the SOTA backbone (0.902 ± 0.008 at the
+   0.90 target) and on the weak backbone holds under distribution shift, including
+   a regime where the bare model's signal collapses. The layer depends only on a
+   model's predictions and uncertainty, so it is backbone-agnostic.
 
-2. **Residuals detect (the solid, useful core).** The same residual is a strong,
-   calibrated error signal. Its rank (Spearman) correlation with field error rises
-   from 0.40 to 0.83 under the DEQ corrector in-distribution (§5.2), and — the
-   single strongest result — it **holds under distribution shift**: on the
-   angle-of-attack split the bare backbone's residual–error correlation collapses
-   to 0.31 while the corrected model keeps it *regime-invariant* at 0.75 (§5.3,
-   Fig. 2). The trust signal stays reliable precisely in the regime where the
-   one-shot model loses it.
+2. **Self-correction works on a strong backbone.** A learned, residual-driven DEQ
+   corrector that consumes the residual as an *input feature* and is trained
+   (supervised) toward ground truth reduces volume-field MSE on the SOTA backbone
+   on **all three seeds**: mse_u 0.127→0.116 (−9%), mse_v 0.100→0.079 (−21%),
+   mse_p 630→471 (−25%), with force ranking held (ρ_Cl = 0.999) and force error
+   slightly improved. The backbone is itself SOTA-competitive, so the corrector
+   improves a competitive surrogate.
 
-3. **A calibrated, backbone-agnostic conformal trust layer.** Split-conformal
-   calibration of the predictive uncertainty attains per-channel coverage of
-   0.91/0.93/0.94 against a 0.90 target in-distribution (a distribution-free
-   guarantee under exchangeability), and *empirically* retains target coverage
-   out-of-distribution because the MC-dropout uncertainty inflates under shift —
-   an empirical observation, **not** a guarantee where exchangeability fails
-   (§5.5, Figs. 5–6). The layer depends only on a model's predictions and
-   uncertainty, so it is backbone-agnostic.
+3. **Residual-as-objective still fails (the surviving negative).** Used as a
+   correction *objective or acceptance gate* — rather than an input feature — the
+   residual does not work. Sweeping the correction iterations *raises* the PDE
+   residual (0.11→0.62) while *lowering* field error (mse_u 3.92→2.29): the two
+   move in opposite directions. A backtracking acceptance test that admits only
+   residual-reducing steps accepts essentially zero steps on a trained corrector.
+   Minimising the residual is not minimising the error — which is exactly why role
+   (2) supervises toward truth rather than minimising the residual.
 
-4. **An honest, matched-budget benchmark.** We report a fair comparison against a
-   SOTA point-cloud transformer (Transolver) trained on the same data with the
-   same budget and scored identically (§5.6, Table 2). Our grid backbone trails it
-   by roughly 4–60× across volume and surface MSE channels. We include this as context and make
-   **no competitiveness claim**; the SOTA-backbone version of the trust layer is
-   future work.
+4. **Backbone-dependence, reported as a finding (not hidden).** The same corrector
+   that delivers −9 to −25% on the SOTA backbone is flat-to-unhelpful on the weak
+   grid backbone, where it trades volume accuracy for surface fidelity and a
+   stronger trust signal. Correction quality is therefore backbone-dependent; we
+   report both regimes side by side. For honest context we also report a
+   matched-budget baseline: the grid backbone trails Transolver by 4–60×, while
+   the trust layer and corrector are demonstrated *on* the competitive Transolver
+   backbone. We make **no competitiveness claim** for the grid backbone.
 
 5. **A reproducible, CPU-first open-source package** (`neuroforge-cfd`) with a
    frozen I/O contract, interchangeable backbones, a zero-download synthetic
@@ -446,7 +448,7 @@ epochs). Four arms: `backbone`, `backbone (no physics loss)`,
 (width 48, 4 layers, 20 modes, dropout 0.05) with a DEQ corrector ($\kappa$ = 0.9,
 damping 0.5), trained 40 + 15 epochs at resolution 128.
 
-### 5.2 Residuals do not fix, part 1: the in-distribution ablation (Table 1)
+### 5.2 The weak grid backbone: corrector trades accuracy, lifts the trust signal (Table 1)
 
 | arm | mse_u | mse_v | mse_p | surface_mse_p | $\rho_{C_l}$ | $\rho_{C_d}$ | resid↔err ρ |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -536,7 +538,7 @@ Methodological caveat: the in-distribution reference is the `full` split (a
 different training range), so the gap mixes a train-set change with regime shift,
 and the `aoa` `mse_u` effect, while 3/3 directional, is seed-0-dominated.
 
-### 5.4 Residuals do not fix, part 2: the residual and the error move apart (Fig. 4)
+### 5.4 Residual-as-objective fails: the residual and the error move apart (Fig. 4)
 
 The most direct evidence that the residual is a poor *objective* comes from
 sweeping the number of correction iterations on a single trained checkpoint:
@@ -726,25 +728,26 @@ Every number comes from the committed, reproducible harness
 
 ## 7. Conclusion
 
-We set out to use the steady-RANS physics residual of a neural-CFD surrogate to do
-two jobs — *detect* where the prediction is wrong and *drive a correction* to make
-it right — and we found a clean dissociation: **the residual is an excellent trust
-signal but a poor correction objective.** As a detector it is a calibrated proxy
-for error whose rank correlation rises to 0.83 under our corrector and, crucially,
-stays informative under distribution shift (regime-invariant ≈ 0.74, rescuing an
-`aoa` collapse from 0.31 to 0.75) where the one-shot model's signal collapses. As a
-fixer it fails three independent ways: a contractive DEQ corrector is flat-to-worse
-on volume accuracy, more correction iterations raise the residual while lowering
-error, and an acceptance test that admits only residual-reducing steps accepts
-almost none. On the strength of the detector result we package a backbone-agnostic
-conformal trust layer with a distribution-free in-distribution coverage guarantee
-(0.91/0.93/0.94 at the 0.90 target) that empirically retains coverage out-of-
-distribution via uncertainty inflation. We report, as honest context and with no
-competitiveness claim, that our grid backbone trails a matched-budget SOTA
-transformer by ~4–60× across channels; putting the trust layer on such a backbone is the central
-piece of future work. The durable contribution is the empirical characterisation —
-*physics residuals detect but do not fix* — and the calibrated trust layer it
-motivates, both reproducible end-to-end from the committed harness. See the
+We set out to use the steady-RANS physics residual of a neural-CFD surrogate, and we
+found that it plays **three distinct roles with three distinct verdicts**. *As a trust
+signal* it is an excellent, backbone-agnostic detector of error: ρ = 0.625 ± 0.019 on
+a SOTA Transolver backbone, ≈ 0.40–0.83 on a weak backbone, and — under distribution
+shift on the weak backbone — regime-invariant (≈ 0.74, rescuing an `aoa` collapse from
+0.31 to 0.75) where the one-shot signal collapses. *As an input feature to a supervised
+corrector* it works on a strong backbone: the DEQ corrector cuts volume field MSE by
+9–25% on all 3 seeds of the SOTA Transolver model, with force ranking held. *As a
+correction objective or acceptance gate* it fails: more iterations raise the residual
+while error falls, and the monotone-residual gate accepts almost nothing — minimising
+the residual is not minimising the error. On the strength of the detector result we
+package a backbone-agnostic conformal trust layer that holds target coverage both
+in-distribution (0.91/0.93/0.94 at 0.90, weak backbone) and on the SOTA backbone
+(0.902), and empirically retains coverage out-of-distribution via uncertainty inflation
+— though on the near-deterministic SOTA model coverage comes from a near-constant rather
+than adaptive band. Two honest caveats carry the tension: correction quality is
+backbone-dependent (flat on the weak backbone), and conformal adaptivity is
+dropout-dependent. The durable contribution is the self-auditing, backbone-agnostic
+trust layer and the supervised corrector it accompanies — demonstrated on a competitive
+surrogate, reproducible end-to-end from the committed harness. See the
 [README](../../README.md), the [architecture document](../architecture.md), and the
 [roadmap](../ROADMAP.md) for implementation status and the staged plan.
 

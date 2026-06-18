@@ -60,9 +60,13 @@
   @keyframes sheen{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
   /* grid */
-  .grid{display:grid;grid-template-columns:1.35fr 1fr;grid-template-rows:auto auto;gap:11px;flex:1;min-height:0}
+  /* Rows are explicit fractions (NOT auto): auto rows grow with content, which
+     let the loss-canvas push past the viewport and spill out of its card. 1fr
+     1fr bounds each row to half the grid; overflow:hidden clips anything that
+     would otherwise escape. */
+  .grid{display:grid;grid-template-columns:1.35fr 1fr;grid-template-rows:1fr 1fr;gap:11px;flex:1;min-height:0;overflow:hidden}
   .card{background:var(--card);border:1px solid var(--card-brd);border-radius:13px;padding:12px 14px;
-    backdrop-filter:blur(10px);box-shadow:0 8px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;min-height:0}
+    backdrop-filter:blur(10px);box-shadow:0 8px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;min-height:0;overflow:hidden}
   .card h2{font-size:10.5px;margin:0 0 9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;font-weight:600;
     display:flex;align-items:center;gap:7px}
   .card h2 .tag{margin-left:auto;font-size:10px;color:var(--accent);background:var(--accent-dim);

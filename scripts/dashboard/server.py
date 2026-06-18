@@ -419,6 +419,15 @@ def parse_status(log_text: str) -> dict:
     # Keep the dataprep info around (it is what is actively scrolling now).
     state["dataprep"] = last_dataprep
 
+    # Bound the loss history sent to the client. A long multi-seed run logs
+    # hundreds of epoch losses; an unbounded array bloats every poll and the
+    # client sparkline. Downsample EVENLY to <=240 points so the overall
+    # convergence shape is preserved without growing without limit.
+    _lh = state["loss_history"]
+    if len(_lh) > 240:
+        _step = len(_lh) / 240.0
+        state["loss_history"] = [_lh[min(int(i * _step), len(_lh) - 1)] for i in range(240)]
+
     # ---- derive phase ---- #
     if state["phase"] != "done":
         if state["epoch"] is not None or state["corrector_epoch"] is not None:
