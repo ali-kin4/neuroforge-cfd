@@ -523,6 +523,9 @@ def _v2_eta(state) -> float | None:
         bb_left_here = 0
     bb_left_future = max(seeds - seed - 1, 0) * bb
     bb_secs = (bb_left_here + bb_left_future) * spe
+    if V2_ENSEMBLE_MODE:
+        # No per-member corrector; one ensemble eval+conformal at the very end.
+        return float(bb_secs + _V2_ENSEMBLE_TAIL_SECS)
     # Corrector + the two eval passes per seed: ~10% of a backbone's wall-time.
     ph = state.get("v2_phase")
     seeds_with_tail_left = max(seeds - seed - 1, 0) + (
@@ -562,6 +565,12 @@ SINGLE_CORR_EPOCHS = 15
 # coverage ..." was printed, i.e. when the phase began). Tune if the box differs.
 _V2_CONFORMAL_EST_SECS = 9000.0  # ~2.5 h
 
+# Ensemble mode (scripts/run_ensemble_uq.py): each "seed" is a backbone-only
+# ensemble member and there is ONE ensemble conformal pass at the very end (not
+# per seed). Set via --ensemble; changes the v2 progress + ETA accordingly.
+V2_ENSEMBLE_MODE = False
+_V2_ENSEMBLE_TAIL_SECS = 3600.0  # ~1 h for the final ensemble eval + conformal
+
 # Substring identifying the run process for Stop / alive-detection. Set from
 # --run-match so the dashboard can watch run_full_research, run_certificates, etc.
 RUN_MATCH = "run_full_research"
@@ -592,6 +601,12 @@ def _compute_progress(state, saw_epoch_for_unit, dataprep) -> float:
         bb = max(SINGLE_BB_EPOCHS, 1)
         ce = max(SINGLE_CORR_EPOCHS, 1)
         seed = state["seed"] if state["seed"] is not None else 0
+        if V2_ENSEMBLE_MODE:
+            # Each member is backbone-only; backbone fills the whole member slice.
+            # The single final ensemble eval+conformal holds the bar near the top.
+            ep = state["epoch"]
+            wf = ((ep + 1) / bb) if ep is not None else 0.0
+            return max(1.0, min(100.0 * (seed + min(wf, 1.0)) / seeds, 99.5))
         # Per-seed sub-phase fractions, weighted by REAL wall-time (not epoch
         # count) so the bar tracks elapsed time, and kept strictly ordered so it
         # is monotone across backbone -> eval-a -> corrector -> eval-b ->
@@ -1141,12 +1156,19 @@ def main(argv=None) -> int:
                    help="single-run backbone epoch budget (bar scaling)")
     p.add_argument("--corr-epochs", type=int, default=15,
                    help="single-run corrector epoch budget (bar scaling)")
+    p.add_argument("--seeds", type=int, default=3,
+                   help="number of seeds / ensemble members (v2 bar + ETA scaling)")
+    p.add_argument("--ensemble", action="store_true",
+                   help="ensemble run (run_ensemble_uq.py): members are backbone-"
+                        "only with one final conformal; adjusts v2 bar + ETA")
     args = p.parse_args(argv)
 
-    global RUN_MATCH, SINGLE_BB_EPOCHS, SINGLE_CORR_EPOCHS
+    global RUN_MATCH, SINGLE_BB_EPOCHS, SINGLE_CORR_EPOCHS, V2_ENSEMBLE_MODE
     RUN_MATCH = args.run_match
     SINGLE_BB_EPOCHS = args.bb_epochs
     SINGLE_CORR_EPOCHS = args.corr_epochs
+    _FULL["seeds"] = args.seeds
+    V2_ENSEMBLE_MODE = args.ensemble
 
     # Resolve the log relative to CWD; fall back to repo root if not found there
     # (so launching from anywhere still finds the canonical full_run.log).

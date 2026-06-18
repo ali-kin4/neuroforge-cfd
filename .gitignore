@@ -21,6 +21,10 @@ env/
 *.zip
 checkpoints/*.pt
 checkpoints/*.ckpt
+checkpoints/**/*.pt
+checkpoints/**/*.ckpt
+checkpoints/**/*.done
+checkpoints/**/*.tmp
 runs/
 outputs/
 reports/*.html
