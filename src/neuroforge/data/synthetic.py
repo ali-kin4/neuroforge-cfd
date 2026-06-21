@@ -59,6 +59,14 @@ class SyntheticRANS:
         Seed for the case sampler (airfoil / AoA / Re selection).
     domain_bounds : tuple of float, optional
         ``(xmin, xmax, ymin, ymax)`` computational domain.
+    family : str, optional
+        Body family to sample. ``"airfoil"`` (default) samples NACA sections with
+        varying AoA/Re (the original, unchanged behaviour). ``"cylinder"`` samples
+        non-lifting circular cylinders varying Re / radius / centre at zero angle
+        of attack — used as an out-of-distribution geometry for cross-geometry
+        generalisation. The synthetic path is generated in memory and is fully
+        deterministic given ``(seed, family, idx)``; nothing is cached to disk, so
+        cylinder and airfoil sets can never collide.
     """
 
     def __init__(
@@ -66,10 +74,16 @@ class SyntheticRANS:
         resolution: int = 128,
         seed: int = 0,
         domain_bounds: tuple[float, float, float, float] = (-1.0, 2.0, -1.5, 1.5),
+        family: str = "airfoil",
     ) -> None:
         self.resolution = int(resolution)
         self.seed = int(seed)
         self.domain_bounds = tuple(float(b) for b in domain_bounds)
+        self.family = str(family)
+        if self.family not in ("airfoil", "cylinder"):
+            raise ValueError(
+                f"unknown family {family!r} (expected 'airfoil' or 'cylinder')"
+            )
         self._rng = np.random.default_rng(seed)
 
     # ------------------------------------------------------------------ #
@@ -91,9 +105,12 @@ class SyntheticRANS:
         Returns
         -------
         FlowCase
-            A NACA-airfoil case with consistent ``nu = U * c / Re``.
+            A NACA-airfoil case (``family="airfoil"``) or a non-lifting cylinder
+            case (``family="cylinder"``), each with consistent ``nu = U * L / Re``.
         """
         rng = np.random.default_rng((self.seed * 1_000_003 + idx) & 0xFFFFFFFF)
+        if self.family == "cylinder":
+            return self._sample_cylinder_case(rng, idx)
         airfoil = _AIRFOIL_BANK[idx % len(_AIRFOIL_BANK)]
         aoa = float(rng.uniform(-6.0, 12.0))
         reynolds = float(10.0 ** rng.uniform(5.7, 6.7))   # ~5e5 .. 5e6
@@ -105,6 +122,47 @@ class SyntheticRANS:
             u_inf=u_inf,
             resolution=self.resolution,
             domain_bounds=self.domain_bounds,
+        )
+
+    def _sample_cylinder_case(self, rng: np.random.Generator, idx: int) -> FlowCase:
+        """Sample a reproducible non-lifting cylinder :class:`FlowCase`.
+
+        Reynolds number, radius and (small) centre offset are varied for variety;
+        the angle of attack is fixed at zero (a symmetric bluff body has no Kutta
+        condition, and the bound-vortex is gated off anyway), keeping the
+        non-lifting flow exactly top/bottom symmetric. ``Re`` is diameter-based:
+        the reference length is ``Geometry.chord() = 2 * r``.
+
+        :class:`~neuroforge.core.types.FlowCase` is built with the plain
+        constructor (``core/types.py`` is a frozen contract with no cylinder
+        factory) so ``nu = u_inf * (2r) / Re`` stays consistent.
+        """
+        from neuroforge.core.types import (
+            BoundaryConditions,
+            Domain,
+            FluidProperties,
+        )
+        from neuroforge.geometry.shapes import cylinder_geometry
+
+        r = float(rng.uniform(0.35, 0.55))
+        cx = 0.5 + float(rng.uniform(-0.1, 0.1))
+        cy = 0.0  # keep on the symmetry axis (exact y-symmetry at AoA=0)
+        reynolds = float(10.0 ** rng.uniform(5.7, 6.7))   # ~5e5 .. 5e6
+        u_inf = float(rng.uniform(20.0, 50.0))
+
+        geom = cylinder_geometry(cx=cx, cy=cy, r=r, n=200)
+        length = max(geom.chord(), 1e-9)   # diameter = 2r
+        nu = u_inf * length / reynolds
+        return FlowCase(
+            geometry=geom,
+            bc=BoundaryConditions(u_inf=u_inf, aoa_deg=0.0, reynolds=reynolds),
+            fluid=FluidProperties(density=1.0, kinematic_viscosity=nu),
+            domain=Domain(
+                bounds=self.domain_bounds,
+                nx=self.resolution,
+                ny=self.resolution,
+            ),
+            name=f"cylinder_r{r:.2f}_re{reynolds:.0e}_{idx}",
         )
 
     # ------------------------------------------------------------------ #
@@ -181,7 +239,13 @@ class SyntheticRANS:
         -------
         float
             Bound circulation ``Gamma`` (sign per the chosen vortex convention).
+            Exactly ``0.0`` for non-lifting bodies (``meta["lifting"] is False``),
+            e.g. a cylinder or other bluff body, which carry no Kutta condition.
         """
+        # Non-lifting bluff bodies (cylinders etc.) carry no bound circulation.
+        # Airfoils have no "lifting" key -> default True -> behaviour unchanged.
+        if not geom.meta.get("lifting", True):
+            return 0.0
         u_mag = float(np.hypot(u_inf, v_inf)) + 1e-12
         alpha = np.arctan2(v_inf, u_inf)
         # Estimate zero-lift angle from max camber (rough, from the meta data).

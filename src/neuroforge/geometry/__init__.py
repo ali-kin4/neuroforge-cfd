@@ -11,10 +11,12 @@ from .airfoil import airfoil_from_dat, naca_airfoil
 from .encode import case_geometry_fields, encode_case
 from .io import load_obj, load_stl
 from .sdf import signed_distance, solid_mask, surface_normals
+from .shapes import cylinder_geometry
 
 __all__ = [
     "naca_airfoil",
     "airfoil_from_dat",
+    "cylinder_geometry",
     "signed_distance",
     "solid_mask",
     "surface_normals",

@@ -174,10 +174,16 @@ def collate_flow(batch: list[dict]) -> dict:
 
 def _load_pairs(cfg: DataConfig) -> tuple[list, list]:
     """Build (train_pairs, val_pairs) for the configured source."""
-    if cfg.source == "synthetic":
+    if cfg.source in ("synthetic", "synthetic_cylinder"):
         from neuroforge.data.synthetic import SyntheticRANS
 
-        gen = SyntheticRANS(resolution=cfg.resolution, seed=cfg.seed)
+        # ``synthetic`` -> airfoils (default), ``synthetic_cylinder`` -> non-lifting
+        # cylinders. Both are generated in memory and are deterministic given
+        # (seed, family, idx); nothing is cached to disk, so the two families
+        # cannot collide. (DataConfig.source is a free string, so this needs no
+        # change to the frozen config schema.)
+        family = "cylinder" if cfg.source == "synthetic_cylinder" else "airfoil"
+        gen = SyntheticRANS(resolution=cfg.resolution, seed=cfg.seed, family=family)
         train = [
             (c, gen.solve(c))
             for c in (gen.sample_case(i) for i in range(cfg.n_train))
@@ -205,7 +211,10 @@ def _load_pairs(cfg: DataConfig) -> tuple[list, list]:
         )
         return train, val
 
-    raise ValueError(f"unknown data source '{cfg.source}' (expected 'synthetic' or 'airfrans')")
+    raise ValueError(
+        f"unknown data source '{cfg.source}' "
+        "(expected 'synthetic', 'synthetic_cylinder', or 'airfrans')"
+    )
 
 
 def build_dataloaders(cfg: DataConfig) -> tuple[DataLoader, DataLoader, Normalizer]:
