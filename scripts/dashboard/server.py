@@ -638,9 +638,12 @@ def _compute_progress(state, saw_epoch_for_unit, dataprep) -> float:
         bb = max(SINGLE_BB_EPOCHS, 1)
         ce = max(SINGLE_CORR_EPOCHS, 1)
         seed = state["seed"] if state["seed"] is not None else 0
-        if V2_ENSEMBLE_MODE:
-            # Each member is backbone-only; backbone fills the whole member slice.
-            # The single final ensemble eval+conformal holds the bar near the top.
+        if V2_ENSEMBLE_MODE or V2_BACKBONE_ONLY:
+            # Backbone fills the whole seed/member slice (no per-seed corrector or
+            # conformal). Ensemble: one final eval+conformal holds the bar near the
+            # top; backbone-only (run_mgn): a short per-seed whole-cloud eval sits at
+            # the top of each seed's slice. Either way backbone is the bar, so a
+            # finished backbone reads (seed+1)/seeds, not the 0.37 v2 cap below.
             ep = state["epoch"]
             wf = ((ep + 1) / bb) if ep is not None else 0.0
             return max(1.0, min(100.0 * (seed + min(wf, 1.0)) / seeds, 99.5))
