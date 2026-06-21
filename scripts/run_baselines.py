@@ -64,7 +64,21 @@ def _build_model(name: str, width: int, n_layers: int, n_heads: int, n_slices: i
             in_features=F_IN, out_features=F_OUT, width=width, n_layers=n_layers,
             n_heads=n_heads, n_slices=n_slices, dropout=dropout,
         )
-    raise ValueError(f"unknown --model '{name}' (only 'transolver' implemented)")
+    if name == "meshgraphnet":
+        # MeshGraphNet needs an edge set (edge_index + edge_attr) per forward, which
+        # this script's edge-less grid-style train loop does not build. Fail loudly
+        # rather than return a model that crashes later inside model(xb). The full
+        # graph-aware train/eval pipeline lives in scripts/run_mgn.py.
+        raise ValueError(
+            "MeshGraphNet requires a graph (edge_index + edge_attr) per forward, "
+            "which run_baselines.py's train loop does not construct. Use "
+            "scripts/run_mgn.py for the MeshGraphNet backbone (it builds the kNN "
+            "graph and edge features). This branch exists only so --model "
+            "meshgraphnet is a recognised, documented choice."
+        )
+    raise ValueError(
+        f"unknown --model '{name}' (implemented: 'transolver', 'meshgraphnet')"
+    )
 
 
 def _train_one_seed(args, seed: int, train_pcs, normalizer, device) -> tuple[torch.nn.Module, float]:
@@ -176,7 +190,7 @@ def _write_table(table: dict, out_dir: str, meta: dict) -> None:
 
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description="NeuroForge Table 2 baselines (Transolver).")
-    p.add_argument("--model", default="transolver", choices=["transolver"])
+    p.add_argument("--model", default="transolver", choices=["transolver", "meshgraphnet"])
     p.add_argument("--task", default="full", choices=["full", "scarce", "reynolds", "aoa"])
     p.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
     p.add_argument("--n-train", type=int, default=800)
