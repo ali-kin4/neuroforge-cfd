@@ -78,12 +78,12 @@ only residual-reducing steps accepts essentially none---minimising the residual 
 not minimising the error. We package a \textbf{distribution-free conformal trust
 layer} that attains the coverage above (a guarantee that holds only under
 exchangeability) and empirically retains target coverage out-of-distribution via
-uncertainty inflation. We report two honest caveats plainly: correction quality is
-\emph{backbone-dependent} (the same corrector is flat on the weak grid backbone), and
-on the near-deterministic SOTA model the conformal band is near-constant rather than
-adaptive (MC-dropout $\sigma$ is near-degenerate). The contribution is the
-self-auditing trust layer and the residual's three roles, demonstrated on a
-competitive surrogate.
+uncertainty inflation; pairing it with a deep-ensemble $\sigma$ yields an
+\emph{input-adaptive} band on the near-deterministic SOTA model (ECE $0.074$, $q=2.35$),
+where MC-dropout gives a valid but near-constant one. We report one honest caveat
+plainly: correction quality is \emph{backbone-dependent} (the same corrector is flat on
+the weak grid backbone). The contribution is the self-auditing trust layer and the
+residual's three roles, demonstrated on a competitive surrogate.
 
 \vspace{1ex}
 \noindent\textbf{Keywords:} neural operators, surrogate CFD, physics residuals,
@@ -149,8 +149,10 @@ rank (Spearman) correlation with field error is $0.625{\pm}0.019$
 bare and a learned corrector lifts it to $0.83$ (\autoref{sec:indist-ablation}), so the
 detector survives both regimes. Building on it, a split-conformal trust layer attains
 target coverage on the SOTA backbone ($0.902{\pm}0.008$ at the $0.90$ target,
-\autoref{sec:v2}) and on the weak backbone holds under distribution shift, including a
-regime where the bare model's signal collapses (\autoref{sec:ood}, \autoref{sec:conformal}).
+\autoref{sec:v2}); with a deep-ensemble $\sigma$ the band is input-adaptive on that same
+near-deterministic model (ECE $0.074$, \autoref{tab:uq}), and on the weak backbone it
+holds under distribution shift, including a regime where the bare model's signal collapses
+(\autoref{sec:ood}, \autoref{sec:conformal}).
 The layer depends only on a model's predictions and uncertainty, so it is backbone-agnostic.
 
 \item \textbf{Self-correction works on a strong backbone.} A learned, residual-driven DEQ
@@ -579,19 +581,48 @@ is a property of the \emph{weak} backbone; on the strong backbone the signal is 
 the start. Either way the residual is a reliable detector, which is what
 ``backbone-agnostic'' means.
 
-\paragraph{Conformal coverage holds---via a near-constant band (honest nuance).}
-Split-conformal calibration of the pressure channel at $\alpha=0.1$ attains coverage
-$0.902{\pm}0.008$ against the $0.90$ target (3 seeds; \texttt{results/v2/v2\_results.json}).
-Coverage is achieved, but it is achieved by a \textbf{near-constant} band, not adaptive
-per-point uncertainty: this near-deterministic SOTA model has near-degenerate MC-dropout
-$\sigma$ at dropout $0.05$, so the conformal quantile $q$ is enormous ($\approx 1.5$--$1.7
-\times 10^{9}$) and the reliability ECE is $\approx 0.31$. The guarantee is satisfied---the
-band covers at the target level---but on this model the band is essentially a constant width
-rather than an input-adaptive one. We state this plainly: coverage is real, adaptivity at
-this dropout rate is not. (Contrast the weak-backbone certificate in
-\autoref{sec:conformal}, where $q=0.77/1.30/1.75$ and ECE $=0.06$--$0.13$ indicate a genuinely
-adaptive band; recovering adaptivity on the SOTA model---e.g.\ a higher dropout rate or a
-deep ensemble---is future work, \autoref{sec:limitations}.)
+\paragraph{Conformal coverage holds under both uncertainty estimators.}
+Split-conformal calibration of the pressure channel at $\alpha=0.1$ attains target coverage
+on this SOTA backbone with \emph{either} uncertainty estimator: $0.902{\pm}0.008$ with
+MC-dropout (3 seeds; \texttt{results/v2/v2\_results.json}) and $0.915$ with a deep ensemble
+(single run; \texttt{results/uq\_ensemble/uq\_results.json}), both at the $0.90$ target.
+Coverage was never the difficulty---\textbf{adaptivity} was. With MC-dropout this
+near-deterministic model has near-degenerate $\sigma$ at dropout $0.05$, so coverage is
+delivered by a \textbf{near-constant} band: the conformal quantile $q$ is enormous
+($\approx 1.5$--$1.7\times 10^{9}$) and the reliability ECE is $\approx 0.31$.
+
+\paragraph{A deep ensemble recovers an adaptive band on the SOTA model.}
+Replacing MC-dropout with a deep ensemble of $M{=}5$ independently-trained Transolver
+members---using the per-cell standard deviation across members as $\sigma$---converts the
+near-constant band into a genuinely input-adaptive one while preserving coverage
+(\autoref{tab:uq}). On the same $100/100$ calibration/test split, the conformal quantile
+drops from $\approx 10^{9}$ to $q=2.35$, the reliability ECE improves from $\approx 0.31$ to
+$\mathbf{0.074}$, and coverage holds at $0.915$ (target $0.90$, consistent with the
+$\approx{\pm}0.03$ binomial spread at $n_{\text{test}}=100$). This is a single ensemble run,
+not a 3-seed average. The ensemble mean is also more accurate than any single member
+($\rho_{C_l}=0.9995$, $\rho_{C_d}=0.998$, $C_l/C_d$ relative force error $4.4\%/5.7\%$;
+\texttt{results/uq\_ensemble/uq\_results.json}). The practical recipe follows: MC-dropout
+suffices when a constant-width certificate is acceptable, and a deep ensemble is what makes
+the band track the error on a near-deterministic SOTA surrogate.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Conformal calibration of the pressure channel on the SOTA Transolver backbone
+($\alpha=0.1$, $100/100$ cal/test split): MC-dropout vs.\ a deep ensemble ($M{=}5$). Both
+attain target coverage; only the deep ensemble yields an input-adaptive band (finite $q$,
+low ECE). MC-dropout: 3 seeds (mean$\pm$std); deep ensemble: single run. Sources:
+\texttt{results/v2/v2\_results.json}, \texttt{results/uq\_ensemble/uq\_results.json}.}
+\label{tab:uq}
+\begin{tabular}{l c c c l}
+\toprule
+$\sigma$ estimator & coverage (target $0.90$) & $q$ & ECE ($\downarrow$) & band \\
+\midrule
+MC-dropout ($p{=}0.05$) & $0.902{\pm}0.008$ & $\approx 1.6\times 10^{9}$ & $\approx 0.31$ & near-constant \\
+deep ensemble ($M{=}5$) & $0.915$ & $2.35$ & $\mathbf{0.074}$ & \textbf{adaptive} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{The weak grid backbone: corrector trades accuracy, lifts the trust signal}
 \label{sec:indist-ablation}
@@ -807,8 +838,9 @@ explicitly \textbf{do not} assert distribution-free coverage out-of-distribution
 
 The trust layer depends only on a model's predictions and $\sigma$, so it is
 backbone-agnostic; \autoref{sec:v2} demonstrates it on a SOTA Transolver backbone, where
-coverage holds at $0.902{\pm}0.008$ (target $0.90$) though---on that near-deterministic
-model---via a near-constant rather than adaptive band.
+coverage holds at $0.902{\pm}0.008$ (target $0.90$) and a deep-ensemble $\sigma$ makes the
+band input-adaptive on that near-deterministic model ($q=2.35$, ECE $0.074$;
+\autoref{tab:uq}).
 
 \subsection{Honest baseline: the grid backbone trails SOTA}
 \label{sec:baseline}
@@ -926,7 +958,8 @@ only.} DEQ beats the feed-forward corrector on surface MSE, $\rho_{C_d}$, and th
 signal (3/3), but is worse on volume $\texttt{mse\_v}$/$\texttt{mse\_p}$; the two trade
 off.
 \item \textbf{H4 (conformal coverage).} \emph{Supported in-distribution}
-($0.91/0.93/0.94$ at $\alpha=0.1$); \emph{empirical only OOD} (\autoref{sec:conformal}).
+($0.91/0.93/0.94$ at $\alpha=0.1$; SOTA backbone $0.902$, deep-ensemble band adaptive at
+ECE $0.074$, \autoref{tab:uq}); \emph{empirical only OOD} (\autoref{sec:conformal}).
 \item \textbf{H5 (DEQ contraction).} \emph{Supported} (measured factor
 $0.78 < \kappa = 0.9 < 1$).
 \end{itemize}
@@ -967,14 +1000,15 @@ test accepts almost no steps (\autoref{sec:iters}). The DEQ contraction guarante
 correction variable $\delta$, and the acceptance test's monotone-residual guarantee is real
 but vacuous as an accuracy mechanism. The self-correction gains in \autoref{sec:v2} come from
 the \emph{supervised} input-feature path, not from minimising the residual.
-\item \textbf{Conformal band is near-constant on the SOTA model.} On the near-deterministic
-Transolver backbone, MC-dropout $\sigma$ at dropout $0.05$ is near-degenerate, so although
-conformal coverage holds ($0.902$, target $0.90$), the quantile $q$ is enormous
-($\approx 10^9$) and ECE $\approx 0.31$: coverage is delivered by a near-constant band, not
-input-adaptive uncertainty (\autoref{sec:v2}). The weak-backbone certificate
-(\autoref{sec:conformal}) is genuinely adaptive ($q=0.77/1.30/1.75$, ECE $0.06$--$0.13$).
-Recovering adaptive uncertainty on a near-deterministic SOTA model---e.g.\ a higher dropout
-rate or a deep ensemble---is future work.
+\item \textbf{Adaptive uncertainty on the SOTA model requires a deep ensemble.} On the
+near-deterministic Transolver backbone, MC-dropout $\sigma$ at dropout $0.05$ is
+near-degenerate, so although conformal coverage holds ($0.902$, target $0.90$), the
+quantile $q$ is enormous ($\approx 10^9$) and ECE $\approx 0.31$: coverage there is
+delivered by a near-constant band. A deep ensemble of $M{=}5$ members recovers a genuinely
+input-adaptive band on this model ($q=2.35$, ECE $0.074$; \autoref{tab:uq}), at $5\times$
+the training cost. That ensemble certificate is reported as a single run (one cal/test
+split), not a 3-seed average; multi-seed error bars on the ensemble ECE and a study of
+$M$ are future work.
 \item \textbf{Eddy-viscosity channel near-degenerate.} The $\nu_t$ output is effectively
 unlearned at this scale (per-arm MSE $\approx 5\times10^{-8}$); since residuals use
 $\nu_{\mathrm{eff}} = \nu + \nu_t$, the physics term currently leans on the laminar
@@ -1002,10 +1036,11 @@ error falls, and the monotone-residual gate accepts almost nothing---minimising 
 not minimising the error. On the strength of the detector result we package a backbone-agnostic
 conformal trust layer that holds target coverage both in-distribution
 ($0.91/0.93/0.94$ at $0.90$, weak backbone) and on the SOTA backbone ($0.902$), and empirically
-retains coverage out-of-distribution via uncertainty inflation---though on the near-deterministic
-SOTA model coverage comes from a near-constant rather than adaptive band. Two honest caveats
-carry the tension: correction quality is backbone-dependent (flat on the weak backbone), and
-conformal adaptivity is dropout-dependent. The durable contribution is the self-auditing,
+retains coverage out-of-distribution via uncertainty inflation; pairing it with a deep-ensemble
+$\sigma$ makes the band input-adaptive even on the near-deterministic SOTA model ($q=2.35$,
+ECE $0.074$), where MC-dropout alone gives a near-constant one. One honest caveat
+carries the tension: correction quality is backbone-dependent (flat on the weak backbone).
+The durable contribution is the self-auditing,
 backbone-agnostic trust layer and the supervised corrector it accompanies---demonstrated on a
 competitive surrogate, reproducible end-to-end from the committed harness.
 

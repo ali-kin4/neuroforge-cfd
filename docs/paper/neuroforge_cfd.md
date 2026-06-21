@@ -32,12 +32,13 @@ backtracking test that admits only residual-reducing steps accepts essentially
 none — minimising the residual is not minimising the error. We package a
 **distribution-free conformal trust layer** that attains the coverage above (a
 guarantee that holds only under exchangeability) and empirically retains target
-coverage out-of-distribution via uncertainty inflation. We report two honest
-caveats plainly: correction quality is *backbone-dependent* (the same corrector
-is flat on the weak grid backbone), and on the near-deterministic SOTA model the
-conformal band is near-constant rather than adaptive (MC-dropout σ is
-near-degenerate). The contribution is the self-auditing trust layer and the
-residual's three roles, demonstrated on a competitive surrogate.
+coverage out-of-distribution via uncertainty inflation; pairing it with a
+deep-ensemble σ yields an *input-adaptive* band on the near-deterministic SOTA
+model (ECE 0.074, q = 2.35), where MC-dropout gives a valid but near-constant one.
+We report one honest caveat plainly: correction quality is *backbone-dependent*
+(the same corrector is flat on the weak grid backbone). The contribution is the
+self-auditing trust layer and the residual's three roles, demonstrated on a
+competitive surrogate.
 
 **Keywords:** neural operators, surrogate CFD, physics residuals, uncertainty
 quantification, conformal prediction, trust calibration, airfoil aerodynamics.
@@ -741,11 +742,11 @@ while error falls, and the monotone-residual gate accepts almost nothing — min
 the residual is not minimising the error. On the strength of the detector result we
 package a backbone-agnostic conformal trust layer that holds target coverage both
 in-distribution (0.91/0.93/0.94 at 0.90, weak backbone) and on the SOTA backbone
-(0.902), and empirically retains coverage out-of-distribution via uncertainty inflation
-— though on the near-deterministic SOTA model coverage comes from a near-constant rather
-than adaptive band. Two honest caveats carry the tension: correction quality is
-backbone-dependent (flat on the weak backbone), and conformal adaptivity is
-dropout-dependent. The durable contribution is the self-auditing, backbone-agnostic
+(0.902), and empirically retains coverage out-of-distribution via uncertainty inflation;
+pairing it with a deep-ensemble σ makes the band input-adaptive even on the
+near-deterministic SOTA model (q = 2.35, ECE 0.074), where MC-dropout alone gives a
+near-constant one. One honest caveat carries the tension: correction quality is
+backbone-dependent (flat on the weak backbone). The durable contribution is the self-auditing, backbone-agnostic
 trust layer and the supervised corrector it accompanies — demonstrated on a competitive
 surrogate, reproducible end-to-end from the committed harness. See the
 [README](../../README.md), the [architecture document](../architecture.md), and the

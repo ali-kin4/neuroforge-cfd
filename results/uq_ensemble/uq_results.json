@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "task": "full",
+    "members": 5,
+    "epochs": 80,
+    "width": 256,
+    "n_layers": 10,
+    "n_params": 7350420,
+    "uncertainty": "deep-ensemble"
+  },
+  "ensemble_mean_metrics": {
+    "mse_u": 0.0770564159803219,
+    "mse_v": 0.05820172886839647,
+    "mse_p": 439.8188281628172,
+    "mse_speed": 0.07717378433540495,
+    "mse_nut": 4.559165419553621e-09,
+    "surface_mse_p": 6516.123409136185,
+    "rho_cl": 0.999543988599715,
+    "rho_cd": 0.997793444836121,
+    "cl_rel_err_mean": 0.04365512323138182,
+    "cl_rel_err_std": 0.10516189173927283,
+    "cd_rel_err_mean": 0.05737327442199276,
+    "cd_rel_err_std": 0.300335371708984,
+    "cl_mae": 0.05622754200930864,
+    "cd_mae": 0.008394227549898787,
+    "n_cases": 200,
+    "residual_error_spearman": 0.6103232580814522,
+    "residual_error_pearson": 0.6711814269451892
+  },
+  "ensemble_conformal": {
+    "status": "ok",
+    "uncertainty": "deep-ensemble",
+    "channel": 2,
+    "alpha": 0.1,
+    "n_members": 5,
+    "q": 2.352087337434264,
+    "coverage": 0.9154961956739466,
+    "target_coverage": 0.9,
+    "ece": 0.0739961294179643,
+    "n_cal": 100,
+    "n_test": 100
+  }
+}
