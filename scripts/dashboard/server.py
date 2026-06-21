@@ -502,6 +502,26 @@ def apply_v2_conformal_creep(status, now, log_mtime):
     return status
 
 
+def apply_eta_countdown(status, now, log_mtime, running):
+    """Make ``eta_seconds`` tick down LIVE between epoch log lines.
+
+    ``_v2_eta`` only changes when a new epoch is parsed (~every few minutes), so
+    the raw number sits frozen between epochs. We subtract the wall-time elapsed
+    since the log's last write (= ~when the last epoch finished, since backbone
+    training writes only epoch lines) so the displayed ETA counts down every poll.
+    Anchored to ``log_mtime`` (not a server timer) so a dashboard restart resumes
+    at the right value instead of snapping. No-op when the run isn't actively
+    producing output. Mutates and returns ``status``.
+    """
+    eta = status.get("eta_seconds")
+    if eta is None or not running or not log_mtime:
+        return status
+    if status.get("phase") in ("done", "stopped"):
+        return status
+    status["eta_seconds"] = max(0.0, eta - max(0.0, now - log_mtime))
+    return status
+
+
 def _v2_eta(state) -> float | None:
     """Rough time-remaining (s) for a v2 run, dominated by backbone epochs.
 
@@ -523,6 +543,14 @@ def _v2_eta(state) -> float | None:
         bb_left_here = 0
     bb_left_future = max(seeds - seed - 1, 0) * bb
     bb_secs = (bb_left_here + bb_left_future) * spe
+    if V2_BACKBONE_ONLY:
+        # run_mgn: backbone epochs + one whole-cloud eval per seed; no corrector,
+        # no conformal. Count an eval allowance for each seed not yet evaluated
+        # (the current seed's eval is still ahead while it is in the backbone phase).
+        eval_left = max(seeds - seed - 1, 0) + (
+            1 if state.get("v2_phase") in ("backbone", None) else 0
+        )
+        return float(bb_secs + eval_left * _V2_EVAL_TAIL_SECS)
     if V2_ENSEMBLE_MODE:
         # No per-member corrector; one ensemble eval+conformal at the very end.
         return float(bb_secs + _V2_ENSEMBLE_TAIL_SECS)
@@ -570,6 +598,15 @@ _V2_CONFORMAL_EST_SECS = 9000.0  # ~2.5 h
 # per seed). Set via --ensemble; changes the v2 progress + ETA accordingly.
 V2_ENSEMBLE_MODE = False
 _V2_ENSEMBLE_TAIL_SECS = 3600.0  # ~1 h for the final ensemble eval + conformal
+
+# Backbone-only mode (scripts/run_mgn.py): per seed = backbone epochs + ONE
+# whole-cloud eval, with NO learned corrector and NO conformal MC pass. The
+# default v2 ETA adds a corrector tail + a ~2.5h conformal term per seed, which
+# this run never spends (~10h of phantom time that also makes the ETA look frozen
+# since those fixed terms dwarf the per-epoch change). Set via --backbone-only:
+# ETA = remaining backbone epochs + a flat eval allowance per not-yet-eval'd seed.
+V2_BACKBONE_ONLY = False
+_V2_EVAL_TAIL_SECS = 1800.0  # ~30 min whole-cloud eval (+rasterise) per seed
 
 # Substring identifying the run process for Stop / alive-detection. Set from
 # --run-match so the dashboard can watch run_full_research, run_certificates, etc.
@@ -1106,7 +1143,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
         # Creep the bar through the log-silent v2 conformal phase (anchored to the
         # log's last-write time = when conformal began). No effect outside it.
-        apply_v2_conformal_creep(status, time.time(), mtime)
+        _now = time.time()
+        apply_v2_conformal_creep(status, _now, mtime)
+        # Live ETA: count down from the last epoch's wall-time so the number
+        # ticks every poll instead of only stepping when a new epoch is logged.
+        apply_eta_countdown(status, _now, mtime, running)
 
         payload = {
             "ok": True,
@@ -1161,14 +1202,23 @@ def main(argv=None) -> int:
     p.add_argument("--ensemble", action="store_true",
                    help="ensemble run (run_ensemble_uq.py): members are backbone-"
                         "only with one final conformal; adjusts v2 bar + ETA")
+    p.add_argument("--backbone-only", action="store_true",
+                   help="backbone-only run (run_mgn.py): per seed = backbone epochs "
+                        "+ one whole-cloud eval, NO corrector/conformal; ETA drops "
+                        "those phantom terms")
     args = p.parse_args(argv)
 
     global RUN_MATCH, SINGLE_BB_EPOCHS, SINGLE_CORR_EPOCHS, V2_ENSEMBLE_MODE
+    global V2_BACKBONE_ONLY
     RUN_MATCH = args.run_match
     SINGLE_BB_EPOCHS = args.bb_epochs
     SINGLE_CORR_EPOCHS = args.corr_epochs
     _FULL["seeds"] = args.seeds
     V2_ENSEMBLE_MODE = args.ensemble
+    V2_BACKBONE_ONLY = args.backbone_only
+    # run_mgn auto-implies backbone-only even if the flag is omitted.
+    if "mgn" in (args.run_match or "").lower():
+        V2_BACKBONE_ONLY = True
 
     # Resolve the log relative to CWD; fall back to repo root if not found there
     # (so launching from anywhere still finds the canonical full_run.log).
