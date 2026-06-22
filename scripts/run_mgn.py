@@ -243,6 +243,16 @@ def make_mgn_predict_fn(model, pointclouds, point_norm, device, args):
     by_name = {pc.name: pc for pc in pointclouds}
     l_xy, l_norm = _length_scale(point_norm)
     edge_chunk = args.eval_edge_chunk if args.eval_edge_chunk and args.eval_edge_chunk > 0 else None
+    # The whole-cloud eval kNN (cdist over ~180k pts) builds a (chunk, N) distance
+    # tensor; with the training chunk (4096) that is ~2.9GB/case, and because test
+    # clouds vary in size (158k-203k pts) the CUDA caching allocator fragments and
+    # its RESERVED pool grows past 12GB across cases -> driver thrash -> eval slows
+    # from ~7s to minutes/case (a 200-case eval stalled for 10h). Fix: a small eval
+    # kNN chunk (bounds the temp) AND empty_cache() per case (defragments). Both are
+    # numerically exact (kNN is chunk-invariant). Measured: stable ~7s/case, ~23min.
+    eval_knn_chunk = max(int(getattr(args, "eval_knn_chunk", 512)), 1)
+    on_cuda = device.type == "cuda"
+    n_done = [0]
 
     def predict_fn(case: FlowCase) -> FlowField:
         pc = by_name.get(case.name)
@@ -254,11 +264,19 @@ def make_mgn_predict_fn(model, pointclouds, point_norm, device, args):
         feats = point_norm.transform_in(pc.features)  # (M, F_IN)
         pos = torch.from_numpy(np.asarray(pc.pos, np.float32)).to(device)
         with torch.no_grad():
-            ei = knn_edges(pos, k=args.k, chunk=args.knn_chunk)
+            ei = knn_edges(pos, k=args.k, chunk=eval_knn_chunk)
             ea = edge_features(pos, ei, l_xy, l_norm)
             xb = torch.from_numpy(feats).to(device).unsqueeze(0)
             out = model(xb, ei, ea, edge_chunk=edge_chunk).squeeze(0)
             preds = point_norm.inverse_out(out).detach().cpu().numpy().astype(np.float32)  # (M,4) physical
+        # Release this case's GPU tensors and DEFRAGMENT before the next (differently
+        # sized) cloud, so the reserved pool can't creep past VRAM across cases.
+        del pos, ei, ea, xb, out
+        if on_cuda:
+            torch.cuda.empty_cache()
+        n_done[0] += 1
+        if n_done[0] % 25 == 0:
+            log(f"  eval progress: {n_done[0]} cases scored")
 
         domain = case.domain
         raster = rasterize_point_cloud(pc.pos, preds, domain, fill=0.0, method="linear")
@@ -312,7 +330,13 @@ def main(argv=None) -> int:
     p.add_argument("--n-layers", type=int, default=12, help="message-passing steps")
     p.add_argument("--k", type=int, default=8, help="kNN neighbours per node")
     p.add_argument("--aggr", default="sum", choices=["sum", "mean"])
-    p.add_argument("--knn-chunk", type=int, default=4096, help="kNN query block size")
+    p.add_argument("--knn-chunk", type=int, default=4096, help="train kNN query block size")
+    p.add_argument("--eval-knn-chunk", type=int, default=512,
+                   help="eval kNN query block size for the whole-cloud (~180k pt) "
+                        "graph. Small (512) on purpose: bounds the (chunk,N) cdist "
+                        "temp so the CUDA allocator can't fragment past VRAM across "
+                        "the variable-size test clouds (the 10h-stall fix). Exact "
+                        "(kNN is chunk-invariant).")
     p.add_argument("--eval-edge-chunk", type=int, default=500000,
                    help="edge-block size for the whole-cloud eval edge update. The "
                         "default (500k) bounds eval memory to ~one (E,W) tensor: at "
