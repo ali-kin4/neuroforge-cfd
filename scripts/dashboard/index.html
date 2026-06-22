@@ -449,9 +449,16 @@ function render(d){
   const s=d.status||{};
   setPill(s.phase, d.run_detected);
 
-  // elapsed: anchor to first poll; if log mtime known, use server-time delta.
-  if(startTs==null) startTs=d.server_time;
-  $("elapsed").textContent = fmtElapsed(d.server_time - startTs);
+  // runtime: prefer the server's cumulative training compute time (sum of all
+  // logged epoch wall-times). It is total runtime and survives page reloads and
+  // dashboard restarts. Fall back to the page-load-anchored wall clock only
+  // before any epoch has been timed.
+  if(s.compute_s!=null && s.compute_s>0){
+    $("elapsed").textContent = fmtElapsed(Math.round(s.compute_s));
+  } else {
+    if(startTs==null) startTs=d.server_time;
+    $("elapsed").textContent = fmtElapsed(d.server_time - startTs);
+  }
 
   // overall
   const pct = Math.round(s.progress||0);

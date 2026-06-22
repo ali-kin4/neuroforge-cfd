@@ -138,6 +138,11 @@ _V2_DONE_RE = re.compile(r"\[v2\]\s+artifacts in")
 # let the bar advance through the (otherwise log-silent) whole-cloud eval phase. ---
 _V2_SEED_HDR_RE = re.compile(r"\[v2\]\s+=+\s+seed\s+(\d+)/")
 _V2_DONE_SEED_RE = re.compile(r"\[v2\]\s+seed\s+(\d+):\s+already complete")
+# "[v2] seed 1: RESUMED from epoch 70/80" — an in-progress seed picked up from its
+# checkpoint. The next train_mse line is ~one epoch (~8 min) away, so without this
+# the bar would sit at the seed-start floor (e.g. 33%) until then; parse the epoch
+# now so it reflects the true ~60% immediately. "from epoch N" => N done (0..N-1).
+_V2_RESUMED_SEED_RE = re.compile(r"\[v2\]\s+seed\s+(\d+):\s+RESUMED from epoch\s+(\d+)")
 _V2_EVAL_PROG_RE = re.compile(r"\[v2\]\s+eval progress:\s+(\d+)\s+cases")
 _MGN_RESULT_RE = re.compile(r"\[v2\]\s+seed\s+(\d+)\s+eval\s+[0-9.]+s\s+->\s+(.*)$")
 # run_mgn's terminal line is "[v2] FINAL (mean +/- std ...)", NOT "[v2] artifacts in",
@@ -222,6 +227,11 @@ def parse_status(log_text: str) -> dict:
         "v2_phase": None,         # backbone | eval | eval-done | eval-a | corrector | ...
         "eval_cases": 0,          # cases scored so far in the current seed's eval
         "sec_per_epoch": None,    # latest logged backbone wall-time (for ETA)
+        "compute_s": 0.0,         # cumulative training compute time (sum of all
+                                  # logged epoch wall-times). Re-summed from the
+                                  # whole log each poll, so it is total runtime
+                                  # and never resets on page reload / dashboard
+                                  # restart (unlike a client page-load timer).
         "eta_seconds": None,      # estimated time remaining (v2; backbone-dominated)
         "v2_spearman": None,      # latest residual<->error Spearman (the headline)
         "v2_result_line": None,   # latest raw eval result string (for the UI)
@@ -270,6 +280,16 @@ def parse_status(log_text: str) -> dict:
                 state["eval_cases"] = 0
                 state["v2_phase"] = "backbone"
                 continue
+            # run_mgn in-progress seed resumed from checkpoint: set the epoch now so
+            # the bar reflects real progress instead of the seed-start floor (~33%).
+            mr = _V2_RESUMED_SEED_RE.search(seg)
+            if mr:
+                state["stage"] = "v2"
+                state["seed"] = int(mr.group(1))
+                state["epoch"] = max(int(mr.group(2)) - 1, 0)
+                state["eval_cases"] = 0
+                state["v2_phase"] = "backbone"
+                continue
             # run_mgn per-case eval progress: drives the eval sub-bar.
             mep = _V2_EVAL_PROG_RE.search(seg)
             if mep:
@@ -301,6 +321,7 @@ def parse_status(log_text: str) -> dict:
                 spe = _to_float(mb.group(4))
                 if spe is not None:
                     state["sec_per_epoch"] = spe
+                    state["compute_s"] += spe
                 state["v2_phase"] = "backbone"
                 saw_any_epoch_for_current_unit = True
                 last_dataprep = None
@@ -1195,11 +1216,22 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
     # ---- endpoints ---- #
     def _read_log(self):
+        # Logs may be UTF-8 (Bash/python redirect) or UTF-16 (PowerShell `>`
+        # writes UTF-16 LE with a BOM). Sniff the BOM and decode accordingly so
+        # the parser regexes see clean text either way; otherwise UTF-16's
+        # interleaved NULs turn every line into garbage under utf-8.
         try:
-            with open(self.log_path, "r", encoding="utf-8", errors="replace") as f:
-                return f.read()
+            with open(self.log_path, "rb") as f:
+                raw = f.read()
         except OSError:
             return None
+        if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
+            enc = "utf-16"
+        elif raw.startswith(b"\xef\xbb\xbf"):
+            enc = "utf-8-sig"
+        else:
+            enc = "utf-8"
+        return raw.decode(enc, errors="replace")
 
     def _handle_status(self):
         raw = self._read_log()
