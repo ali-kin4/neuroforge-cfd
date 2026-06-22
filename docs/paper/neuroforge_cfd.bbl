@@ -1,4 +1,4 @@
-\begin{thebibliography}{19}
+\begin{thebibliography}{22}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -63,6 +63,15 @@ Jun-Ting Hsieh, Shengjia Zhao, Stephan Eismann, Lucia Mirabella, and Stefano
 \newblock In \emph{International Conference on Learning Representations
   (ICLR)}, 2019.
 \newblock arXiv:1906.01200.
+
+\bibitem[Krishnapriyan et~al.(2021)Krishnapriyan, Gholami, Zhe, Kirby, and
+  Mahoney]{krishnapriyan2021failure}
+Aditi~S. Krishnapriyan, Amir Gholami, Shandian Zhe, Robert~M. Kirby, and
+  Michael~W. Mahoney.
+\newblock Characterizing possible failure modes in physics-informed neural
+  networks.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, 2021.
 
 \bibitem[Lakshminarayanan et~al.(2017)Lakshminarayanan, Pritzel, and
   Blundell]{lakshminarayanan2017ensembles}
@@ -141,6 +150,17 @@ Rishikesh Ranade, Mohammad~Amin Nabian, Kaustubh Tangsali, Ali Kashefi, Max
   external aerodynamics.
 \newblock \emph{arXiv preprint arXiv:2501.13350}, 2025.
 \newblock NVIDIA.
+
+\bibitem[Trefethen \& Bau(1997)Trefethen and Bau]{trefethenbau1997}
+Lloyd~N. Trefethen and David Bau.
+\newblock \emph{Numerical Linear Algebra}.
+\newblock SIAM, 1997.
+
+\bibitem[Wang et~al.(2022)Wang, Yu, and Perdikaris]{wang2022ntk}
+Sifan Wang, Xinling Yu, and Paris Perdikaris.
+\newblock When and why {PINNs} fail to train: A neural tangent kernel
+  perspective.
+\newblock \emph{Journal of Computational Physics}, 449:\penalty0 110768, 2022.
 
 \bibitem[Winston \& Kolter(2020)Winston and Kolter]{winston2020monotone}
 Ezra Winston and J.~Zico Kolter.

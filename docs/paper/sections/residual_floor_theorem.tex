@@ -1,0 +1,115 @@
+% !TeX root = ../neuroforge_cfd.tex
+% ---------------------------------------------------------------------------
+% Residual-floor theorem. Self-contained \input section.
+% Needs amsmath/amsthm + \newtheorem{theorem} (declared in the preamble).
+% Cross-refs: \autoref{tab:iters}, \autoref{sec:iters}.
+% Citations (added to refs.bib): krishnapriyan2021failure, wang2022ntk,
+% trefethenbau1997.
+% NOTE: authored directly (theory-prover agent runs failed on API timeouts); the
+% algebra has been checked by hand. Flagged for a theory-prover / domain-expert
+% review pass before camera-ready.
+% ---------------------------------------------------------------------------
+
+\section{The residual floor: a self-consistent monitor is a good detector but a bad fixer}
+\label{sec:residual_floor}
+
+The iteration sweep of \autoref{sec:iters} (\autoref{tab:iters}) shows a counter-intuitive
+fact: driving the monitored physics residual \emph{down} drives the field error \emph{up}.
+We now explain this exactly. The mechanism is not ill-conditioning per se; it is that the
+\emph{monitored} residual is self-consistent at a field that is not the truth---so its
+minimiser sits away from $u^\star$ by an irreducible amount. The same decomposition that
+forces this also explains why the residual is nonetheless an excellent error
+\emph{detector}: one equation, both verdicts.
+
+\subsection{Setup: the monitored operator}
+\label{sec:rf_operator}
+
+Let $R_h$ be the residual operator the engine actually monitors and (in the
+objective/gate role) minimises: the \emph{discrete} steady incompressible RANS
+\textbf{continuity and momentum} residual on the $(n_y,n_x)$ grid, evaluated on physical
+fields with $\nu_{\mathrm{eff}}=\nu+\nu_t$. By construction (\texttt{Diagnostics.residual\_norm};
+\autoref{sec:method}) it \textbf{omits the no-slip wall term}. Write the objective
+$J(u)=\tfrac12\|R_h(u)\|^2$. Let $u^\star$ be the discrete ground-truth field, define the
+\emph{residual floor} $r^\star:=R_h(u^\star)$, and for any prediction $\hat u$ write the
+error $e:=\hat u-u^\star$ with the first-order expansion
+\begin{equation}
+R_h(\hat u)=r^\star+L\,e+o(\|e\|),\qquad L:=DR_h(u^\star).
+\label{eq:rf-decomp}
+\end{equation}
+
+\begin{theorem}[Residual floor: misplaced minimum, quantified floor, and local divergence]
+\label{thm:residual-floor}
+Assume \textup{(H1)} $R_h$ is the monitored discrete operator above (continuity$+$momentum,
+no-slip omitted); \textup{(H2)} the floor is nonzero, $r^\star:=R_h(u^\star)\neq 0$; and
+\textup{(H3)} $L:=DR_h(u^\star)$ is injective on the admissible subspace. Then:
+\begin{enumerate}
+\item[\textup{(i)}] \emph{(Misplaced minimum, exact.)} The uniform-freestream field $u_\infty$
+satisfies $R_h(u_\infty)=0$ exactly, so $\min_u J=0$; whereas $J(u^\star)=\tfrac12\|r^\star\|^2>0$.
+Hence $u^\star$ is \textbf{not} a minimiser of $J$.
+\item[\textup{(ii)}] \emph{(Misplaced stationarity.)} $\nabla J(u^\star)=L^\top r^\star$, so
+$u^\star$ is a stationary point of $J$ iff $L^\top r^\star=0$; if $r^\star\notin\ker L^\top$,
+gradient flow on $J$ leaves $u^\star$.
+\item[\textup{(iii)}] \emph{(Quantified floor.)} The minimiser of the linearised objective
+$\tfrac12\|r^\star+Le\|^2$ is $e_\infty=-L^{+}r^\star$, leaving irreducible field error
+$\|e_\infty\|=\|L^{+}r^\star\|$, which grows like $1/\sigma_{\min}(L)$ as $L$ becomes
+ill-conditioned.
+\item[\textup{(iv)}] \emph{(Local divergence direction.)} Under residual-gradient flow
+$\dot e=-\nabla J(\hat u)$, the field error obeys
+$\frac{d}{dt}\tfrac12\|e\|^2\big|_{0}=-\|Le\|^2-(Le)\cdot r^\star$. There is an open cone of
+error directions---those with $(Le)\cdot r^\star<-\|Le\|^2$---on which a residual-reducing
+step strictly \textbf{increases} the field error.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+(i) For a spatially constant field every finite-difference derivative vanishes, so the
+discrete continuity and momentum residuals are identically zero: $R_h(u_\infty)=0$, giving
+$J(u_\infty)=0=\min J$ (as $J\ge0$). By (H2), $J(u^\star)=\tfrac12\|r^\star\|^2>0$.
+(ii) $\nabla J(u)=DR_h(u)^\top R_h(u)$; evaluate at $u^\star$ and use \eqref{eq:rf-decomp}.
+(iii) $\tfrac12\|r^\star+Le\|^2$ is convex in $e$; its normal equations $L^\top L e=-L^\top r^\star$
+give $e_\infty=-(L^\top L)^{-1}L^\top r^\star=-L^{+}r^\star$ ($L^\top L$ invertible by (H3)),
+and $\|L^{+}\|_2=1/\sigma_{\min}(L)$.
+(iv) To first order $\dot e|_0=-L^\top(r^\star+Le)$, so
+$\frac{d}{dt}\tfrac12\|e\|^2|_0=e\cdot\dot e=-e^\top L^\top(r^\star+Le)=-\|Le\|^2-(Le)\cdot r^\star$.
+This is positive iff $(Le)\cdot r^\star<-\|Le\|^2$; taking $Le=-\alpha\,r^\star/\|r^\star\|$
+(feasible whenever the projection of $r^\star$ onto $\operatorname{range}L$ is nonzero) the
+condition becomes $0<\alpha<\|r^\star\|$, an open set.
+\end{proof}
+
+\paragraph{Good detector, bad fixer---from one decomposition.} Equation~\eqref{eq:rf-decomp}
+splits the monitored residual into a fixed floor $r^\star$ and an error-driven term $Le$.
+\emph{Far} from the truth, $\|Le\|\gg\|r^\star\|$, so $\|R_h(\hat u)\|\approx\|Le\|$, and since
+$\sigma_{\min}(L)\|e\|\le\|Le\|\le\sigma_{\max}(L)\|e\|$ the residual norm is a two-sided proxy
+for the field error (up to $\kappa(L)$)---this is the calibrated \emph{trust signal}
+(rank correlation up to $0.83$, \autoref{sec:indist-ablation}). \emph{Near} the truth,
+$\|Le\|\lesssim\|r^\star\|$, the floor dominates, and the residual decouples from the error:
+its minimiser is displaced from $u^\star$ by \autoref{thm:residual-floor}(iii) and a
+residual-reducing step can grow the error by (iv)---this is the failure of the residual as a
+correction \emph{objective} (\autoref{sec:iters}). Note the divergence in (iv) vanishes when
+$r^\star=0$: it is driven by the \emph{floor}, not by ill-conditioning, which merely sets the
+floor's magnitude in (iii).
+
+\paragraph{Empirical confirmation.} On $200/200$ real AirfRANS test cases, the monitored
+residual of the ground-truth field is substantially nonzero (\textbf{(H2) holds}):
+$\|r^\star\|$ has mean $0.192$ (median $0.133$), while the uniform-freestream field gives
+$\|R_h(u_\infty)\|=0$ in every case---the objective strictly prefers a physically wrong field
+to the truth (\texttt{results/certificates/residual\_floor\_realdata.json}). A trained
+backbone's over-smoothed prediction sits \emph{below} the truth floor in $160/200$ cases,
+consistent with the loop's drive away from $u^\star$ in \autoref{tab:iters}.
+
+\paragraph{Assumptions, stated plainly.} The theorem is about the \emph{monitored discrete}
+operator $R_h$---what the loop minimises---not the continuous PDE; (H2) holds here because
+$R_h$ omits the no-slip closure \emph{and} the $128^2$ grid under-resolves the boundary layer
+and drops the spatially-varying-$\nu_t$ term $\nabla\nu_t\!\cdot\!\nabla u$. (H3) makes the
+floor a genuine displacement. The detector leg is a \emph{regime} statement: its tightness is
+controlled by $\kappa(L)$, so we claim a positive rank correlation, not an isometry.
+
+\paragraph{Relation to prior work.} \citet{krishnapriyan2021failure} tie ill-conditioning to
+the \emph{optimisation difficulty} of PINN losses, and \citet{wang2022ntk} analyse spectral
+bias and loss-term imbalance in PINN \emph{training dynamics}; both concern trainability, not
+a displacement of the residual minimiser from the truth. The forward-vs-backward error gap
+$\|e\|\!\le\!\|R_h\|/\sigma_{\min}(L)$ is classical \citep{trefethenbau1997}, and a-posteriori
+PINN bounds upper-bound error \emph{by} residual (the benign regime). To our knowledge the
+\emph{residual-floor} statement---that a self-consistent monitored residual makes the truth a
+non-minimiser, yielding ``good detector, bad fixer'' simultaneously---is new for a learned
+neural-operator CFD corrector, and it is exactly the dissociation our experiments report.
