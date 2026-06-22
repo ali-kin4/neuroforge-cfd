@@ -116,6 +116,22 @@ backbone's over-smoothed prediction (here the dropout-FNO of
 \emph{below} the truth floor in $160/200$ cases, consistent with the loop's drive away from
 $u^\star$ in \autoref{tab:iters}.
 
+\paragraph{Robustness to the boundary term.} One might object that the monitored $R_h$
+omits the no-slip term, so the negative is merely an artifact of dropping the boundary
+constraint. We tested this with the \emph{engine's own} boundary-inclusive residual
+$\rho_{\rm res}=\sqrt{r_c^2+r_x^2+r_y^2+r_{bc}^2}$ (the trust-map definition, $r_{bc}$ the
+proximity-weighted no-slip penalty) along the correction sweep (dropout-FNO$+$DEQ, $n{=}10$,
+same regime as \autoref{tab:iters}; \texttt{results/control/bc\_inclusive\_sweep.json}). The
+negative \emph{survives}: as the corrector cuts field error ($\texttt{mse\_u}$
+$3.17\!\to\!2.32$), the boundary-\emph{inclusive} residual rises ($0.145\!\to\!0.811$) in
+lockstep with the boundary-excluded one ($0.125\!\to\!0.807$)---along the correction path the
+prediction and the truth both approximately satisfy no-slip, so $r_{bc}$ stays small and
+roughly constant and the interior floor dominates. (Empirically the uniform field also keeps a
+\emph{lower} $\rho_{\rm res}$ than the truth, $0.073$ vs $0.187$, because $r_{bc}$ is
+non-dimensionalised by $U$ and contributes only $\approx0.07$ in RMS.) We claim this robustness
+for the residual the engine computes \emph{as defined}; a no-slip penalty weighted heavily
+enough to dominate the interior floor is out of scope and untested.
+
 \paragraph{Assumptions, stated plainly.} The theorem is about the \emph{monitored discrete}
 operator $R_h$---what the loop minimises---not the continuous PDE; (H2) holds here because
 $R_h$ omits the no-slip closure \emph{and} the $128^2$ grid under-resolves the boundary layer
