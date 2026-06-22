@@ -5,9 +5,13 @@
 % Cross-refs: \autoref{tab:iters}, \autoref{sec:iters}.
 % Citations (added to refs.bib): krishnapriyan2021failure, wang2022ntk,
 % trefethenbau1997.
-% NOTE: authored directly (theory-prover agent runs failed on API timeouts); the
-% algebra has been checked by hand. Flagged for a theory-prover / domain-expert
-% review pass before camera-ready.
+% NOTE: authored directly (theory-prover agent runs failed on API timeouts); algebra
+% checked by hand, then RED-TEAMED by reviewer-domain-expert (2026-06-22). Fixes applied:
+% the false H3 (L injective) was removed -- L maps 4 field channels to 3 residual
+% channels and a uniform-pressure shift is an exact null mode, so leg (iii) is restated
+% via the Moore-Penrose pseudoinverse (min-norm minimiser, sigma_min = smallest NONZERO
+% singular value) and the kernel is turned into a thesis point (modes the monitor can
+% neither detect nor fix). Legs (i),(ii),(iv) confirmed sound; citations verified real.
 % ---------------------------------------------------------------------------
 
 \section{The residual floor: a self-consistent monitor is a good detector but a bad fixer}
@@ -40,8 +44,9 @@ R_h(\hat u)=r^\star+L\,e+o(\|e\|),\qquad L:=DR_h(u^\star).
 \begin{theorem}[Residual floor: misplaced minimum, quantified floor, and local divergence]
 \label{thm:residual-floor}
 Assume \textup{(H1)} $R_h$ is the monitored discrete operator above (continuity$+$momentum,
-no-slip omitted); \textup{(H2)} the floor is nonzero, $r^\star:=R_h(u^\star)\neq 0$; and
-\textup{(H3)} $L:=DR_h(u^\star)$ is injective on the admissible subspace. Then:
+no-slip omitted); and \textup{(H2)} the floor is nonzero, $r^\star:=R_h(u^\star)\neq 0$. Write
+$L:=DR_h(u^\star)$ and let $\sigma_{\min}$ denote its smallest \emph{nonzero} singular value
+(no injectivity is assumed; $L$ has a non-trivial kernel---see the remark below). Then:
 \begin{enumerate}
 \item[\textup{(i)}] \emph{(Misplaced minimum, exact.)} The uniform-freestream field $u_\infty$
 satisfies $R_h(u_\infty)=0$ exactly, so $\min_u J=0$; whereas $J(u^\star)=\tfrac12\|r^\star\|^2>0$.
@@ -49,10 +54,11 @@ Hence $u^\star$ is \textbf{not} a minimiser of $J$.
 \item[\textup{(ii)}] \emph{(Misplaced stationarity.)} $\nabla J(u^\star)=L^\top r^\star$, so
 $u^\star$ is a stationary point of $J$ iff $L^\top r^\star=0$; if $r^\star\notin\ker L^\top$,
 gradient flow on $J$ leaves $u^\star$.
-\item[\textup{(iii)}] \emph{(Quantified floor.)} The minimiser of the linearised objective
-$\tfrac12\|r^\star+Le\|^2$ is $e_\infty=-L^{+}r^\star$, leaving irreducible field error
-$\|e_\infty\|=\|L^{+}r^\star\|$, which grows like $1/\sigma_{\min}(L)$ as $L$ becomes
-ill-conditioned.
+\item[\textup{(iii)}] \emph{(Quantified floor.)} The \emph{minimum-norm} minimiser of the
+linearised objective $\tfrac12\|r^\star+Le\|^2$ is $e_\infty=-L^{+}r^\star$ ($L^{+}$ the
+Moore--Penrose pseudoinverse), leaving irreducible field error
+$\|e_\infty\|=\|L^{+}r^\star\|\le\|r^\star\|/\sigma_{\min}$, which grows as
+$\sigma_{\min}\to 0$ (ill-conditioning).
 \item[\textup{(iv)}] \emph{(Local divergence direction.)} Under residual-gradient flow
 $\dot e=-\nabla J(\hat u)$, the field error obeys
 $\frac{d}{dt}\tfrac12\|e\|^2\big|_{0}=-\|Le\|^2-(Le)\cdot r^\star$. There is an open cone of
@@ -66,14 +72,15 @@ step strictly \textbf{increases} the field error.
 discrete continuity and momentum residuals are identically zero: $R_h(u_\infty)=0$, giving
 $J(u_\infty)=0=\min J$ (as $J\ge0$). By (H2), $J(u^\star)=\tfrac12\|r^\star\|^2>0$.
 (ii) $\nabla J(u)=DR_h(u)^\top R_h(u)$; evaluate at $u^\star$ and use \eqref{eq:rf-decomp}.
-(iii) $\tfrac12\|r^\star+Le\|^2$ is convex in $e$; its normal equations $L^\top L e=-L^\top r^\star$
-give $e_\infty=-(L^\top L)^{-1}L^\top r^\star=-L^{+}r^\star$ ($L^\top L$ invertible by (H3)),
-and $\|L^{+}\|_2=1/\sigma_{\min}(L)$.
+(iii) $\tfrac12\|r^\star+Le\|^2$ is convex in $e$; its minimum-norm minimiser is the
+least-squares solution $e_\infty=-L^{+}r^\star$, which requires no injectivity (it is the
+Moore--Penrose pseudoinverse of the normal equations $L^\top L e=-L^\top r^\star$), and
+$\|L^{+}\|_2=1/\sigma_{\min}$ with $\sigma_{\min}$ the smallest nonzero singular value of $L$.
 (iv) To first order $\dot e|_0=-L^\top(r^\star+Le)$, so
 $\frac{d}{dt}\tfrac12\|e\|^2|_0=e\cdot\dot e=-e^\top L^\top(r^\star+Le)=-\|Le\|^2-(Le)\cdot r^\star$.
-This is positive iff $(Le)\cdot r^\star<-\|Le\|^2$; taking $Le=-\alpha\,r^\star/\|r^\star\|$
-(feasible whenever the projection of $r^\star$ onto $\operatorname{range}L$ is nonzero) the
-condition becomes $0<\alpha<\|r^\star\|$, an open set.
+This is positive iff $(Le)\cdot r^\star<-\|Le\|^2$; taking $Le$ near $-\alpha\,r^\star/\|r^\star\|$
+(feasible whenever $r^\star$ has a nonzero component in $\operatorname{range}L$) the
+condition holds on an open cone with $0<\alpha<\|r^\star\|$.
 \end{proof}
 
 \paragraph{Good detector, bad fixer---from one decomposition.} Equation~\eqref{eq:rf-decomp}
@@ -89,27 +96,46 @@ correction \emph{objective} (\autoref{sec:iters}). Note the divergence in (iv) v
 $r^\star=0$: it is driven by the \emph{floor}, not by ill-conditioning, which merely sets the
 floor's magnitude in (iii).
 
+\paragraph{The kernel: modes the monitor can neither detect nor fix.} $L$ is genuinely
+non-injective---$R_h$ maps the four field channels $(u,v,p,\nu_t)$ to three residual channels
+(continuity, two momentum), and a uniform pressure offset is an exact null mode (the monitored
+$R_h$ sees $p$ only through $\nabla p$, and omits the no-slip term that would otherwise pin the
+gauge). Error components in $\ker L$---a constant pressure shift, and the residual-blind part of
+$\nu_t$---are therefore \emph{invisible} to the monitor: it can neither flag them (detector) nor
+remove them (fixer). The non-trivial kernel is not a defect of the bound but part of the
+phenomenon: a self-consistent monitor is silent on its own null modes, which is why we report
+coverage on the pressure channel up to a gauge and never claim the residual certifies $\nu_t$.
+
 \paragraph{Empirical confirmation.} On $200/200$ real AirfRANS test cases, the monitored
 residual of the ground-truth field is substantially nonzero (\textbf{(H2) holds}):
 $\|r^\star\|$ has mean $0.192$ (median $0.133$), while the uniform-freestream field gives
 $\|R_h(u_\infty)\|=0$ in every case---the objective strictly prefers a physically wrong field
 to the truth (\texttt{results/certificates/residual\_floor\_realdata.json}). A trained
-backbone's over-smoothed prediction sits \emph{below} the truth floor in $160/200$ cases,
-consistent with the loop's drive away from $u^\star$ in \autoref{tab:iters}.
+backbone's over-smoothed prediction (here the dropout-FNO of
+\texttt{checkpoints/certificates\_deq.pt}, distinct from the Transolver headline) sits
+\emph{below} the truth floor in $160/200$ cases, consistent with the loop's drive away from
+$u^\star$ in \autoref{tab:iters}.
 
 \paragraph{Assumptions, stated plainly.} The theorem is about the \emph{monitored discrete}
 operator $R_h$---what the loop minimises---not the continuous PDE; (H2) holds here because
 $R_h$ omits the no-slip closure \emph{and} the $128^2$ grid under-resolves the boundary layer
-and drops the spatially-varying-$\nu_t$ term $\nabla\nu_t\!\cdot\!\nabla u$. (H3) makes the
-floor a genuine displacement. The detector leg is a \emph{regime} statement: its tightness is
-controlled by $\kappa(L)$, so we claim a positive rank correlation, not an isometry.
+and drops the spatially-varying-$\nu_t$ term $\nabla\nu_t\!\cdot\!\nabla u$. The floor is a
+\emph{genuine} displacement whenever $r^\star$ has a component in $\operatorname{range}L$,
+which it does---$r^\star$ is a discretisation/closure residual, not a pure gauge null mode.
+The detector leg is a \emph{regime} statement: its tightness is controlled by the conditioning
+of $L$ on $(\ker L)^\perp$, so we claim a positive rank correlation, not an isometry.
 
 \paragraph{Relation to prior work.} \citet{krishnapriyan2021failure} tie ill-conditioning to
 the \emph{optimisation difficulty} of PINN losses, and \citet{wang2022ntk} analyse spectral
 bias and loss-term imbalance in PINN \emph{training dynamics}; both concern trainability, not
 a displacement of the residual minimiser from the truth. The forward-vs-backward error gap
-$\|e\|\!\le\!\|R_h\|/\sigma_{\min}(L)$ is classical \citep{trefethenbau1997}, and a-posteriori
-PINN bounds upper-bound error \emph{by} residual (the benign regime). To our knowledge the
-\emph{residual-floor} statement---that a self-consistent monitored residual makes the truth a
-non-minimiser, yielding ``good detector, bad fixer'' simultaneously---is new for a learned
-neural-operator CFD corrector, and it is exactly the dissociation our experiments report.
+$\|e\|\!\le\!\|R_h\|/\sigma_{\min}$ is classical \citep{trefethenbau1997}, and a-posteriori
+PINN bounds upper-bound error \emph{by} residual (the benign regime). That a residual blind to
+certain modes makes the truth a non-minimiser is, in its bare form, elementary (the pressure
+gauge above). Our contribution is sharper and threefold: \textbf{(a)} the \emph{quantified}
+operator-specific floor $\|e_\infty\|=\|L^{+}r^\star\|\le\|r^\star\|/\sigma_{\min}$ for this
+steady-RANS monitor; \textbf{(b)} the \emph{detector/fixer duality}---a single decomposition
+\eqref{eq:rf-decomp} yielding both the positive trust-signal verdict and the negative
+objective verdict, including the undetectable-and-uncorrectable kernel modes; and \textbf{(c)}
+the demonstration on a learned neural-operator CFD corrector (AirfRANS), where this is exactly
+the dissociation our experiments report.
