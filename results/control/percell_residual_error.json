@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "checkpoint": "checkpoints/certificates_deq.pt",
+    "n_cases": 15,
+    "per_cell": "spatial Spearman/Pearson of |residual| vs |speed error| over fluid cells, within each field",
+    "per_case": "Spearman of field-mean residual_norm vs per-case speed rel-L2 (the paper's headline metric)"
+  },
+  "per_cell_spearman_mean": 0.21962330460332288,
+  "per_cell_spearman_std": 0.06023572564103957,
+  "per_cell_pearson_mean": 0.6023339355413804,
+  "per_cell_pearson_std": 0.040894888063124114,
+  "per_case_spearman": 0.5928571428571427,
+  "verdict": "PER-CELL-WEAK-REFRAME-TO-CASE-LEVEL"
+}
