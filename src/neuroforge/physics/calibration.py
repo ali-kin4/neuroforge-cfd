@@ -28,6 +28,7 @@ __all__ = [
     "ConformalCalibrator",
     "calibrate_from_cases",
     "cases_to_error_sigma",
+    "corrected_predict_fn",
     "reliability",
     "expected_calibration_error",
 ]
@@ -255,6 +256,7 @@ def cases_to_error_sigma(
     uq,
     pairs,
     channel: int = 2,
+    normalizer=None,
 ) -> tuple[list[np.ndarray], list[np.ndarray], list[np.ndarray]]:
     """Extract per-cell ``(error, sigma, mask)`` maps for a list of cases.
 
@@ -264,6 +266,32 @@ def cases_to_error_sigma(
     error, σ (in physical units), and fluid mask maps. Shared by
     :func:`calibrate_from_cases` and the calibration-quality reporting in
     ``evaluation``.
+
+    The ``error`` is taken from whatever ``predict_fn`` returns. The default
+    ``predict_fn = Predictor.predict`` scores the **raw backbone** field. To
+    certify the **deployed (DEQ-corrected) field** instead — the output
+    NeuroForge actually ships — pass a corrected predict function built with
+    :func:`corrected_predict_fn` (or any ``FlowCase -> FlowField`` that runs the
+    correction loop). σ is *input-conditional* (a function of the encoded case,
+    not the predicted field), so it is identical for the raw and corrected field
+    by construction; only the error map changes.
+
+    Parameters
+    ----------
+    predict_fn : callable
+        ``FlowCase -> FlowField``. Raw backbone (default) or corrected field.
+    uq : object
+        UQ estimator with ``predict_with_uncertainty(x) -> (mean, std)``.
+    pairs : list of (FlowCase, FlowField)
+        Cases with ground-truth fields.
+    channel : int
+        Output channel (0=u, 1=v, 2=p, 3=nut).
+    normalizer : Normalizer, optional
+        Normaliser used to (a) feed the UQ in normalised space and (b) rescale σ
+        to physical units. Defaults to ``predict_fn.__self__.normalizer`` (the
+        bound-method case), so existing callers are unchanged. Pass it explicitly
+        when ``predict_fn`` is a plain closure with no ``__self__`` (e.g. the
+        corrected predict function), using ``engine.predictor.normalizer``.
     """
     import torch
 
@@ -272,7 +300,9 @@ def cases_to_error_sigma(
     errors: list[np.ndarray] = []
     sigmas: list[np.ndarray] = []
     masks: list[np.ndarray] = []
-    normalizer = getattr(predict_fn.__self__, "normalizer", None)
+    if normalizer is None:
+        normalizer = getattr(predict_fn, "__self__", None)
+        normalizer = getattr(normalizer, "normalizer", None)
     for case, truth in pairs:
         pred = predict_fn(case)
         x = encode_case(case)
@@ -290,12 +320,53 @@ def cases_to_error_sigma(
     return errors, sigmas, masks
 
 
+def corrected_predict_fn(engine):
+    """Build a ``FlowCase -> FlowField`` that returns the DEPLOYED, DEQ-corrected field.
+
+    The default calibration path scores the raw backbone prediction
+    (``Predictor.predict``). NeuroForge, however, ships the *self-corrected*
+    field from :meth:`NeuroForgeEngine.solve`. This helper wraps the engine so a
+    conformal certificate can be calibrated on that deployed output:
+
+    >>> from neuroforge.physics.calibration import calibrate_from_cases, corrected_predict_fn
+    >>> cal = calibrate_from_cases(
+    ...     corrected_predict_fn(engine), uq, pairs, alpha=0.1, channel=2,
+    ...     normalizer=engine.predictor.normalizer,
+    ... )
+
+    It returns the full ``engine.solve(case).field`` — i.e. the field after
+    Neural Residual Iteration *and* any uncertainty-gated fallback patch — so the
+    certified output is exactly what the engine returns to a user, not a
+    hand-rolled corrector call that could drift from the shipped path.
+
+    Parameters
+    ----------
+    engine : NeuroForgeEngine
+        A built engine with a (possibly ``None``) corrector. If the engine has no
+        corrector, ``solve`` returns the raw backbone field, so this degrades
+        gracefully to the raw-field certificate.
+
+    Returns
+    -------
+    callable
+        ``FlowCase -> FlowField`` returning the deployed corrected field. It is a
+        plain closure (no ``__self__``), so pass ``normalizer=`` explicitly to
+        :func:`cases_to_error_sigma` / :func:`calibrate_from_cases`.
+    """
+
+    def _predict(case):
+        return engine.solve(case).field
+
+    return _predict
+
+
 def calibrate_from_cases(
     predict_fn,
     uq,
     pairs,
     alpha: float = 0.1,
     channel: int = 2,
+    normalizer=None,
 ) -> ConformalCalibrator:
     """Fit a :class:`ConformalCalibrator` from a calibration set.
 
@@ -306,7 +377,9 @@ def calibrate_from_cases(
     Parameters
     ----------
     predict_fn : callable
-        ``FlowCase -> FlowField`` (e.g. ``Predictor.predict``).
+        ``FlowCase -> FlowField``. ``Predictor.predict`` (default) certifies the
+        raw backbone; pass :func:`corrected_predict_fn` to certify the deployed
+        DEQ-corrected field.
     uq : object
         UQ estimator with ``predict_with_uncertainty(x) -> (mean, std)``.
     pairs : list of (FlowCase, FlowField)
@@ -315,6 +388,12 @@ def calibrate_from_cases(
         Target miscoverage (coverage ``1 − alpha``).
     channel : int
         Output channel to calibrate (0=u, 1=v, 2=p, 3=nut).
+    normalizer : Normalizer, optional
+        Forwarded to :func:`cases_to_error_sigma`; required when ``predict_fn``
+        is a plain closure (e.g. :func:`corrected_predict_fn`). Defaults to
+        ``predict_fn.__self__.normalizer``.
     """
-    errors, sigmas, masks = cases_to_error_sigma(predict_fn, uq, pairs, channel)
+    errors, sigmas, masks = cases_to_error_sigma(
+        predict_fn, uq, pairs, channel, normalizer=normalizer
+    )
     return ConformalCalibrator(alpha=alpha).fit(errors, sigmas, masks)

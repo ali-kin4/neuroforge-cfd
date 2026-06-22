@@ -26,6 +26,7 @@ from .calibration import (
     ConformalCalibrator,
     calibrate_from_cases,
     cases_to_error_sigma,
+    corrected_predict_fn,
     expected_calibration_error,
     reliability,
 )
@@ -92,6 +93,7 @@ __all__ = [
     "ConformalCalibrator",
     "calibrate_from_cases",
     "cases_to_error_sigma",
+    "corrected_predict_fn",
     "reliability",
     "expected_calibration_error",
     # trust

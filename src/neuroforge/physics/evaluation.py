@@ -239,6 +239,7 @@ def evaluate_calibration(
     alpha: float = 0.1,
     channel: int = 2,
     n_bins: int = 10,
+    normalizer=None,
 ) -> dict[str, float]:
     """Split-conformal calibration quality of the UQ trust map on held-out cases.
 
@@ -261,6 +262,11 @@ def evaluate_calibration(
         Output channel to assess (0=u, 1=v, 2=p, 3=nut; default 2 = pressure).
     n_bins : int
         Number of nominal levels swept for the ECE.
+    normalizer : Normalizer, optional
+        Forwarded to :func:`cases_to_error_sigma`; pass
+        ``engine.predictor.normalizer`` when ``predict_fn`` certifies the
+        deployed corrected field (see
+        :func:`neuroforge.physics.calibration.corrected_predict_fn`).
 
     Returns
     -------
@@ -283,8 +289,8 @@ def evaluate_calibration(
     split = n // 2
     cal_pairs, test_pairs = pairs[:split], pairs[split:]
 
-    ce, cs, cm = cases_to_error_sigma(predict_fn, uq, cal_pairs, channel)
-    te, ts, tm = cases_to_error_sigma(predict_fn, uq, test_pairs, channel)
+    ce, cs, cm = cases_to_error_sigma(predict_fn, uq, cal_pairs, channel, normalizer=normalizer)
+    te, ts, tm = cases_to_error_sigma(predict_fn, uq, test_pairs, channel, normalizer=normalizer)
 
     cal = ConformalCalibrator(alpha=alpha).fit(ce, cs, cm)
     cov = cal.coverage(te, ts, tm)

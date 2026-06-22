@@ -825,6 +825,41 @@ $|\text{error}|/\sigma$ ratio; we therefore claim coverage at the chosen $\alpha
 \textbf{not} full distributional calibration
 (\texttt{results/certificates/h4\_coverage.json}).
 
+\paragraph{The certificate is calibrated on the deployed, corrected field---not the raw
+backbone.} NeuroForge ships the DEQ-corrected field, so the coverage guarantee must hold
+for \emph{that} output; split-conformal calibration, however, applies to whatever
+predictor it scores, and the raw-backbone certificate does \textbf{not} transfer unchanged
+through the corrector. We verify this on the dropout-FNO backbone whose DEQ corrector
+materially changes the field (mean $|\text{corrected}-\text{raw}|\approx 5$), through the
+\emph{same} \texttt{cases\_to\_error\_sigma} path as H4 but with a corrected predict
+function (\texttt{scripts/verify\_conformal\_corrected\_field.py}; $15/15$
+calibration/test). The clean isolation is a \emph{within-run frozen-$q$ contrast}---same
+fitted $q$, same input-conditional $\sigma$, same cases, only the raw vs.\ corrected error
+map---and it shows the direction of the coverage change tracking the direction of the error
+change: where the corrector \emph{enlarges} the error the raw band drops below the $0.90$
+target ($v$ $0.896\rightarrow0.819$, $p$ $0.864\rightarrow0.777$), and where it
+\emph{shrinks} the error the raw band over-covers and stays conservative ($u$
+$0.856\rightarrow0.888$). This is the coverage analogue of detector $\ne$ fixer
+(\autoref{sec:iters}): the DEQ operator contracts in its \emph{own} variable $\delta$ (H5,
+median ratio $0.78$), but the Banach bound governs the correction, not $|\text{error}|/
+\sigma$, so it cannot imply coverage survival---and on $v/p$ residual contraction coincides
+with error \emph{growth}, which is exactly what breaks the raw band. Re-fitting $q$ on the
+corrected calibration field---at no change to $\sigma$, which is input-conditional and
+identical for both fields---restores coverage toward target where it had collapsed ($v$
+$0.819\rightarrow0.894$, $p$ $0.777\rightarrow0.834$) and sharpens it where it was loose
+($u$ $0.888\rightarrow0.874$). We therefore calibrate the shipped certificate on the
+corrected output; split-conformal validity requires only exchangeable corrected-field
+scores, not that $\sigma$ be the corrected field's own uncertainty. These estimates are
+directional at $n=15$ (per-case coverage std $\approx 0.15$--$0.23$, so $\approx\pm0.05$
+standard error), but the same pattern---raw-$q$ under-covers $v/p$ on the corrected field,
+refitting restores it---reproduces on an independent $20/20$ split
+(\texttt{results/certificates/probe\_conformal\_after\_deq.json}); the residual $p$
+under-coverage is the small-sample heavy-tail effect already noted at $n=100$. On the SOTA
+Transolver backbone the DEQ corrector reduces field error on all channels
+(\autoref{sec:v2}, \autoref{tab:v2}), so its raw-field band is \emph{expected} to remain
+conservative (over-covering) on the deployed v2 field; recalibration matters precisely for
+correctors that trade field error for residual reduction, as the dropout-FNO does.
+
 \paragraph{Out-of-distribution coverage (empirical, not a guarantee).} Calibrating $q$ on
 the in-distribution \texttt{full} split and evaluating on the OOD splits, coverage stays
 in the target band: $u$ $0.90/0.91/0.91$, $v$ $0.91/0.94/0.92$, $p$ $0.92/0.94/0.90$

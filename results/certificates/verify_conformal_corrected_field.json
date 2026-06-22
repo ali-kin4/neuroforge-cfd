@@ -1,0 +1,77 @@
+{
+  "meta": {
+    "checkpoint": "checkpoints/certificates_deq.pt",
+    "backbone": "dropout-FNO (real AirfRANS, res128)",
+    "corrector": "DEQCorrector",
+    "code_path": "neuroforge.physics.calibration.cases_to_error_sigma + corrected_predict_fn (the SHIPPED calibration API)",
+    "n_cal": 15,
+    "n_test": 15,
+    "n_mc": 12,
+    "alpha": 0.1,
+    "target_coverage": 0.9,
+    "mean_abs_delta_probe_case": 4.993810176849365,
+    "note": "sigma is input-conditional (function of case, NOT field); identical for raw and corrected by construction. Lead metric: coverage@(1-alpha)."
+  },
+  "per_channel": {
+    "u": {
+      "field_mae_raw": 0.7820711135864258,
+      "field_mae_corrected": 0.6750347018241882,
+      "corrector_reduced_error": true,
+      "raw_certificate": {
+        "q": 0.75890682052924,
+        "coverage": 0.8562628421139147,
+        "ece": 0.014898495931618311
+      },
+      "frozen_q_on_corrected": {
+        "q": 0.75890682052924,
+        "coverage": 0.8881318320046027,
+        "ece": 0.04531766252979369
+      },
+      "recalibrated_corrected": {
+        "q": 0.7119032451703893,
+        "coverage": 0.8743691953645105,
+        "ece": 0.03080422454179336
+      }
+    },
+    "v": {
+      "field_mae_raw": 0.34992292523384094,
+      "field_mae_corrected": 0.4988671839237213,
+      "corrector_reduced_error": false,
+      "raw_certificate": {
+        "q": 1.432475595369094,
+        "coverage": 0.8958206624476042,
+        "ece": 0.13930714227007476
+      },
+      "frozen_q_on_corrected": {
+        "q": 1.432475595369094,
+        "coverage": 0.8190145475466426,
+        "ece": 0.03967000904084819
+      },
+      "recalibrated_corrected": {
+        "q": 1.9334460933053952,
+        "coverage": 0.8941398865784499,
+        "ece": 0.08319963836607217
+      }
+    },
+    "p": {
+      "field_mae_raw": 21.003175735473633,
+      "field_mae_corrected": 26.842130661010742,
+      "corrector_reduced_error": false,
+      "raw_certificate": {
+        "q": 1.6626726251209412,
+        "coverage": 0.8639722199391797,
+        "ece": 0.12175351360236708
+      },
+      "frozen_q_on_corrected": {
+        "q": 1.6626726251209412,
+        "coverage": 0.7772745952165694,
+        "ece": 0.04696679543026217
+      },
+      "recalibrated_corrected": {
+        "q": 2.163841747364395,
+        "coverage": 0.8342976904742336,
+        "ece": 0.07114942056382016
+      }
+    }
+  }
+}
