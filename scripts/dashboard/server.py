@@ -55,6 +55,7 @@ _FULL = dict(
     corrector_epochs=20,  # corrector epochs (trained per DEQ arm)
     arms=3,               # trainings per seed that run a backbone (see below)
     ood_tasks=2,          # reynolds, aoa
+    n_val=200,            # eval cases per seed (backbone-only eval sub-bar)
 )
 
 # --------------------------------------------------------------------------- #
@@ -132,6 +133,14 @@ _V2_CONF_RESULT_RE = re.compile(r"\[v2\]\s+seed\s+\d+:\s+conformal\s+->\s+(.*)$"
 # The very last line of a finished run: "[v2] artifacts in results/v2".
 _V2_DONE_RE = re.compile(r"\[v2\]\s+artifacts in")
 
+# --- run_mgn (backbone-only) extras: seed header, resumed-seed, per-case eval
+# progress, and the MGN eval result line "seed 0 eval 12.3s -> mse_u=...". These
+# let the bar advance through the (otherwise log-silent) whole-cloud eval phase. ---
+_V2_SEED_HDR_RE = re.compile(r"\[v2\]\s+=+\s+seed\s+(\d+)/")
+_V2_DONE_SEED_RE = re.compile(r"\[v2\]\s+seed\s+(\d+):\s+already complete")
+_V2_EVAL_PROG_RE = re.compile(r"\[v2\]\s+eval progress:\s+(\d+)\s+cases")
+_MGN_RESULT_RE = re.compile(r"\[v2\]\s+seed\s+(\d+)\s+eval\s+[0-9.]+s\s+->\s+(.*)$")
+
 # tqdm: "rasterise airfrans/full/train:  30%|###| 242/800 [22:56<1:04:22,  6.92s/it]"
 #       "Loading dataset (task: full, split: train):  30%|..| 240/800 [..]"
 _TQDM_RE = re.compile(
@@ -207,7 +216,8 @@ def parse_status(log_text: str) -> dict:
         "progress": 0.0,          # 0..100
         "last_segment": segments[-1].strip() if segments else None,
         # --- v2 run extras (Transolver backbone + certified trust layer) --- #
-        "v2_phase": None,         # backbone | eval-a | corrector | eval-b | conformal
+        "v2_phase": None,         # backbone | eval | eval-done | eval-a | corrector | ...
+        "eval_cases": 0,          # cases scored so far in the current seed's eval
         "sec_per_epoch": None,    # latest logged backbone wall-time (for ETA)
         "eta_seconds": None,      # estimated time remaining (v2; backbone-dominated)
         "v2_spearman": None,      # latest residual<->error Spearman (the headline)
@@ -237,11 +247,50 @@ def parse_status(log_text: str) -> dict:
                 state["stage_label"] = "NeuroForge v2 run complete"
                 state["phase"] = "done"
                 continue
+            # run_mgn seed header "===== seed N/2 =====": new seed, reset trackers.
+            mh = _V2_SEED_HDR_RE.search(seg)
+            if mh:
+                state["stage"] = "v2"
+                state["seed"] = int(mh.group(1))
+                state["epoch"] = None
+                state["eval_cases"] = 0
+                state["v2_phase"] = "backbone"
+                saw_any_epoch_for_current_unit = False
+                continue
+            # run_mgn resumed seed (training loaded from checkpoint, no epoch lines):
+            # treat the backbone as complete so the bar sits at the eval sub-slice.
+            md = _V2_DONE_SEED_RE.search(seg)
+            if md:
+                state["stage"] = "v2"
+                state["seed"] = int(md.group(1))
+                state["epoch"] = max(SINGLE_BB_EPOCHS - 1, 0)
+                state["eval_cases"] = 0
+                state["v2_phase"] = "backbone"
+                continue
+            # run_mgn per-case eval progress: drives the eval sub-bar.
+            mep = _V2_EVAL_PROG_RE.search(seg)
+            if mep:
+                state["stage"] = "v2"
+                state["eval_cases"] = int(mep.group(1))
+                state["v2_phase"] = "eval"
+                continue
+            # run_mgn eval result "seed N eval 12.3s -> mse_u=..., spearman=...".
+            mmr = _MGN_RESULT_RE.search(seg)
+            if mmr:
+                state["stage"] = "v2"
+                state["seed"] = int(mmr.group(1))
+                state["v2_phase"] = "eval-done"
+                state["v2_result_line"] = mmr.group(2).strip()
+                msp = _V2_SPEARMAN_RE.search(mmr.group(2))
+                if msp:
+                    state["v2_spearman"] = _to_float(msp.group(1))
+                continue
             mb = _V2_BB_RE.search(seg)
             if mb:
                 state["stage"] = "v2"
                 state["seed"] = int(mb.group(1))
                 state["epoch"] = int(mb.group(2))
+                state["eval_cases"] = 0
                 tl = _to_float(mb.group(3))
                 state["train_loss"] = tl
                 if tl is not None:
@@ -545,11 +594,17 @@ def _v2_eta(state) -> float | None:
     bb_secs = (bb_left_here + bb_left_future) * spe
     if V2_BACKBONE_ONLY:
         # run_mgn: backbone epochs + one whole-cloud eval per seed; no corrector,
-        # no conformal. Count an eval allowance for each seed not yet evaluated
-        # (the current seed's eval is still ahead while it is in the backbone phase).
-        eval_left = max(seeds - seed - 1, 0) + (
-            1 if state.get("v2_phase") in ("backbone", None) else 0
-        )
+        # no conformal. Count a full eval for each future seed, plus the unfinished
+        # fraction of the current seed's eval (0 once eval-done, partial during eval).
+        ph = state.get("v2_phase")
+        if ph == "eval-done":
+            cur_eval_left = 0.0
+        elif ph == "eval":
+            nval = max(_FULL.get("n_val") or 200, 1)
+            cur_eval_left = max(1.0 - (state.get("eval_cases") or 0) / nval, 0.0)
+        else:  # still in backbone -> current seed's eval entirely ahead
+            cur_eval_left = 1.0
+        eval_left = max(seeds - seed - 1, 0) + cur_eval_left
         return float(bb_secs + eval_left * _V2_EVAL_TAIL_SECS)
     if V2_ENSEMBLE_MODE:
         # No per-member corrector; one ensemble eval+conformal at the very end.
@@ -606,7 +661,7 @@ _V2_ENSEMBLE_TAIL_SECS = 3600.0  # ~1 h for the final ensemble eval + conformal
 # since those fixed terms dwarf the per-epoch change). Set via --backbone-only:
 # ETA = remaining backbone epochs + a flat eval allowance per not-yet-eval'd seed.
 V2_BACKBONE_ONLY = False
-_V2_EVAL_TAIL_SECS = 1800.0  # ~30 min whole-cloud eval (+rasterise) per seed
+_V2_EVAL_TAIL_SECS = 1400.0  # ~23 min whole-cloud eval (+rasterise) per seed (measured)
 
 # Substring identifying the run process for Stop / alive-detection. Set from
 # --run-match so the dashboard can watch run_full_research, run_certificates, etc.
@@ -639,13 +694,28 @@ def _compute_progress(state, saw_epoch_for_unit, dataprep) -> float:
         ce = max(SINGLE_CORR_EPOCHS, 1)
         seed = state["seed"] if state["seed"] is not None else 0
         if V2_ENSEMBLE_MODE or V2_BACKBONE_ONLY:
-            # Backbone fills the whole seed/member slice (no per-seed corrector or
-            # conformal). Ensemble: one final eval+conformal holds the bar near the
-            # top; backbone-only (run_mgn): a short per-seed whole-cloud eval sits at
-            # the top of each seed's slice. Either way backbone is the bar, so a
-            # finished backbone reads (seed+1)/seeds, not the 0.37 v2 cap below.
+            # Backbone fills (most of) the seed/member slice; no per-seed corrector
+            # or conformal. Ensemble: one final eval+conformal holds the bar near the
+            # top. Backbone-only (run_mgn): backbone fills the first BB_FRAC of the
+            # slice and the per-case whole-cloud eval fills the rest, driven by the
+            # "eval progress: N cases" lines so the bar advances DURING eval instead
+            # of sitting frozen. A finished backbone reads (seed+BB_FRAC)/seeds; a
+            # finished eval reads (seed+1)/seeds.
             ep = state["epoch"]
-            wf = ((ep + 1) / bb) if ep is not None else 0.0
+            bb_done = ((ep + 1) / bb) if ep is not None else 0.0
+            if V2_BACKBONE_ONLY:
+                BB_FRAC = 0.90  # backbone ~90% of a seed's wall-time, eval ~10%
+                ph = state.get("v2_phase")
+                if ph == "eval-done":
+                    wf = 1.0
+                elif ph == "eval" or bb_done >= 1.0:
+                    nval = max(_FULL.get("n_val") or 200, 1)
+                    ef = min((state.get("eval_cases") or 0) / nval, 1.0)
+                    wf = BB_FRAC + (1.0 - BB_FRAC) * ef
+                else:
+                    wf = BB_FRAC * min(bb_done, 1.0)
+            else:
+                wf = min(bb_done, 1.0)
             return max(1.0, min(100.0 * (seed + min(wf, 1.0)) / seeds, 99.5))
         # Per-seed sub-phase fractions, weighted by REAL wall-time (not epoch
         # count) so the bar tracks elapsed time, and kept strictly ordered so it
@@ -1209,6 +1279,8 @@ def main(argv=None) -> int:
                    help="backbone-only run (run_mgn.py): per seed = backbone epochs "
                         "+ one whole-cloud eval, NO corrector/conformal; ETA drops "
                         "those phantom terms")
+    p.add_argument("--n-val", type=int, default=200,
+                   help="eval cases/seed (drives the backbone-only eval sub-bar)")
     args = p.parse_args(argv)
 
     global RUN_MATCH, SINGLE_BB_EPOCHS, SINGLE_CORR_EPOCHS, V2_ENSEMBLE_MODE
@@ -1217,6 +1289,7 @@ def main(argv=None) -> int:
     SINGLE_BB_EPOCHS = args.bb_epochs
     SINGLE_CORR_EPOCHS = args.corr_epochs
     _FULL["seeds"] = args.seeds
+    _FULL["n_val"] = args.n_val
     V2_ENSEMBLE_MODE = args.ensemble
     V2_BACKBONE_ONLY = args.backbone_only
     # run_mgn auto-implies backbone-only even if the flag is omitted.
