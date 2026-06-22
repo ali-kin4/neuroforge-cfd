@@ -140,6 +140,9 @@ _V2_SEED_HDR_RE = re.compile(r"\[v2\]\s+=+\s+seed\s+(\d+)/")
 _V2_DONE_SEED_RE = re.compile(r"\[v2\]\s+seed\s+(\d+):\s+already complete")
 _V2_EVAL_PROG_RE = re.compile(r"\[v2\]\s+eval progress:\s+(\d+)\s+cases")
 _MGN_RESULT_RE = re.compile(r"\[v2\]\s+seed\s+(\d+)\s+eval\s+[0-9.]+s\s+->\s+(.*)$")
+# run_mgn's terminal line is "[v2] FINAL (mean +/- std ...)", NOT "[v2] artifacts in",
+# so without this a completed MGN run would show "stopped" pinned at 99.5%, not done.
+_MGN_DONE_RE = re.compile(r"\[v2\]\s+FINAL \(mean")
 
 # tqdm: "rasterise airfrans/full/train:  30%|###| 242/800 [22:56<1:04:22,  6.92s/it]"
 #       "Loading dataset (task: full, split: train):  30%|..| 240/800 [..]"
@@ -242,7 +245,7 @@ def parse_status(log_text: str) -> dict:
         # backbone wall-time for an ETA, and surface the headline residual<->error
         # Spearman as it forms. Distinct prefix => never clobbers other modes.
         if seg.lstrip().startswith("[v2]"):
-            if _V2_DONE_RE.search(seg):
+            if _V2_DONE_RE.search(seg) or _MGN_DONE_RE.search(seg):
                 state["stage"] = "v2"
                 state["stage_label"] = "NeuroForge v2 run complete"
                 state["phase"] = "done"
