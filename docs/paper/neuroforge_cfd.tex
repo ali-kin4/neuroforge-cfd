@@ -63,9 +63,10 @@ finding is a clean three-way dissociation, validated on a SOTA Transolver backbo
 \textbf{the physics residual is a reliable, backbone-robust trust signal and a
 useful input feature to a learned corrector, but a poor correction objective.} (1)
 \emph{As a trust signal}, the residual is a calibrated, backbone-robust proxy for
-error across the two backbones tested: its per-case rank correlation with field error
-is $0.625{\pm}0.019$ on the SOTA backbone (vs $\approx 0.40$ on a weak grid backbone,
-which a learned corrector lifts to $0.83$), and a split-conformal layer attains target
+error across three architecturally-distinct backbones tested: its per-case rank correlation
+with field error is $0.625{\pm}0.019$ on the SOTA Transolver backbone, $\approx 0.40$ on a
+weak grid Geo-FNO backbone (which a learned corrector lifts to $0.83$), and $0.851{\pm}0.058$
+on a message-passing GNN (MeshGraphNet, bare), and a split-conformal layer attains target
 coverage
 ($0.902{\pm}0.008$ at the $0.90$ target). (2) \emph{As an input feature to a learned,
 supervised corrector}, the residual helps: a deep-equilibrium (DEQ) corrector that
@@ -145,11 +146,14 @@ In priority order:
 
 \begin{enumerate}
 \item \textbf{The trust layer is backbone-robust (headline).} The physics residual is
-a calibrated, \emph{case-level} error detector across the two backbones tested. On the SOTA
+a calibrated, \emph{case-level} error detector across three architecturally-distinct backbones
+tested. On the SOTA
 Transolver backbone its per-case rank (Spearman) correlation with field error is
 $0.625{\pm}0.019$ (\autoref{sec:v2}, \autoref{tab:v2}); on a much weaker grid backbone it is
-$\approx 0.40$ bare and a learned corrector lifts it to $0.83$ (\autoref{sec:indist-ablation}),
-so the detector survives both regimes (per-cell spatial localisation is weaker, \autoref{sec:method}). Building on it, a split-conformal trust layer attains
+$\approx 0.40$ bare and a learned corrector lifts it to $0.83$ (\autoref{sec:indist-ablation});
+and on a param-matched message-passing GNN (MeshGraphNet, bare) it is $0.851{\pm}0.058$
+(\texttt{results/mgn/mgn\_results.json}),
+so the detector is positive and substantial across all three (per-cell spatial localisation is weaker, \autoref{sec:method}). Building on it, a split-conformal trust layer attains
 target coverage on the SOTA backbone ($0.902{\pm}0.008$ at the $0.90$ target,
 \autoref{sec:v2}); with a deep-ensemble $\sigma$ the band is input-adaptive on that same
 near-deterministic model (ECE $0.074$, \autoref{tab:uq}), and on the weak backbone it
@@ -596,8 +600,16 @@ bare weak backbone in \autoref{tab:indist}); the corrector barely moves it
 ($0.635{\pm}0.021$), because the strong backbone's residual is already a good detector
 without correction. The lift-by-corrector effect we report in \autoref{sec:indist-ablation}
 is a property of the \emph{weak} backbone; on the strong backbone the signal is strong from
-the start. Either way the residual is a reliable detector, which is what
-``backbone-robust'' means.
+the start. We add a third, architecturally-distinct data point: a message-passing GNN
+(MeshGraphNet, param-matched at $7.35$M, 3 seeds, bare backbone), where the bare
+case-level residual--error Spearman correlation is $0.851{\pm}0.058$
+(\texttt{results/mgn/mgn\_results.json}). Across three fundamentally different architectures---a
+spectral grid Geo-FNO ($\approx 0.40$ bare), an attention/point-cloud Transolver
+($0.625{\pm}0.019$ bare), and a message-passing GNN MeshGraphNet ($0.851{\pm}0.058$ bare)---the
+correlation is positive and substantial (a $0.40$--$0.85$ range), which is what
+``backbone-robust'' means here. MeshGraphNet is run only as a bare backbone (no corrector and
+no conformal layer), so it speaks only to the trust-signal claim. Either way the residual is a
+reliable detector.
 
 \paragraph{Conformal coverage holds under both uncertainty estimators.}
 Split-conformal calibration of the pressure channel at $\alpha=0.1$ attains target coverage
@@ -1042,8 +1054,9 @@ Every number comes from the committed, reproducible harness
 field MSE by $9$--$25\%$ on the SOTA Transolver backbone (\autoref{sec:v2}) but is
 flat-to-unhelpful on the weak grid backbone (\autoref{sec:indist-ablation}). We report both
 regimes; we do not claim the corrector helps on an arbitrary backbone, only that it helps on a
-strong one. The trust signal, by contrast, is strong on both ($\rho=0.625$ SOTA,
-$\approx 0.40$--$0.83$ weak). We make no competitiveness claim for the grid backbone (it
+strong one. The trust signal, by contrast, is positive and substantial across all three backbones tested
+($\rho=0.625$ SOTA Transolver, $\approx 0.40$--$0.83$ weak grid backbone, $0.851$ bare
+MeshGraphNet GNN). We make no competitiveness claim for the grid backbone (it
 trails SOTA $\sim 4$--$60\times$); the Transolver backbone we run \emph{on} is itself
 competitive.
 \item \textbf{Grid resolution and near-wall blindness.} A uniform $128^2$ Cartesian grid
@@ -1095,8 +1108,9 @@ residual--error divergence robustly in direction but are not multi-seed.
 
 We set out to use the steady-RANS physics residual of a neural-CFD surrogate, and we found
 that it plays \textbf{three distinct roles with three distinct verdicts}. \emph{As a trust
-signal} it is a reliable, backbone-robust (two backbones) case-level detector of error: $\rho=0.625{\pm}0.019$ on a
-SOTA Transolver backbone, $\approx 0.40$--$0.83$ on a weak backbone, and---under distribution
+signal} it is a reliable, backbone-robust (three architecturally-distinct backbones) case-level detector of error: $\rho=0.625{\pm}0.019$ on a
+SOTA Transolver backbone, $\approx 0.40$--$0.83$ on a weak grid backbone, $0.851{\pm}0.058$ on a
+bare message-passing GNN (MeshGraphNet), and---under distribution
 shift on the weak backbone---regime-invariant ($\approx 0.74$, rescuing an \texttt{aoa}
 collapse from $0.31$ to $0.75$) where the one-shot signal collapses. \emph{As an input feature
 to a supervised corrector} it works on a strong backbone: the DEQ corrector cuts volume field
