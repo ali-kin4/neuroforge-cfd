@@ -104,8 +104,26 @@ def _resolve_device(name: str) -> torch.device:
 # --------------------------------------------------------------------------- #
 # Stage 1 — Transolver backbone (point-cloud training, same recipe as baselines)
 # --------------------------------------------------------------------------- #
-def train_transolver(args, seed: int, train_pcs, point_norm, device) -> tuple[torch.nn.Module, float]:
-    """Train the Transolver point model for one seed. Returns (model, sec/epoch)."""
+def train_transolver(args, seed: int, train_pcs, point_norm, device,
+                     ckpt_path: str | None = None,
+                     done_path: str | None = None) -> tuple[torch.nn.Module, float]:
+    """Train the Transolver point model for one seed. Returns (model, sec/epoch).
+
+    Parameters
+    ----------
+    ckpt_path, done_path : str, optional
+        OPTIONAL per-epoch resumability hooks (used by scripts/run_w1_capture.py;
+        the published run leaves them ``None``). When ``ckpt_path`` is given, the
+        full training state (model + opt + np/torch RNG + epoch) is atomically
+        checkpointed (tmp + ``os.replace``) after EVERY epoch; on launch an
+        existing checkpoint is RESUMED from its last epoch (OneCycleLR position is
+        rebuilt by FAST-FORWARDING, not load_state_dict, so it is robust to a
+        changed ``--epochs``), and ``done_path`` (when present) writes a marker
+        so a finished seed is skipped instantly. With both ``None`` (the default)
+        NOTHING in the training math changes — the published behaviour is
+        BYTE-IDENTICAL (the only added code is the resume scaffolding gated on
+        ``ckpt_path is not None``).
+    """
     torch.manual_seed(seed)
     np.random.seed(seed)
 
@@ -124,7 +142,41 @@ def train_transolver(args, seed: int, train_pcs, point_norm, device) -> tuple[to
     rng = np.random.default_rng(seed)
     n_pts = int(args.n_points)
     sec_per_epoch = float("nan")
-    for epoch in range(args.epochs):
+
+    # ---- resume scaffolding (no-op when ckpt_path is None: published path) ----
+    start_epoch = 0
+    if ckpt_path is not None:
+        # Already finished? load weights and return (instant skip).
+        if done_path and os.path.exists(done_path) and os.path.exists(ckpt_path):
+            state = torch.load(ckpt_path, map_location=device, weights_only=False)
+            model.load_state_dict(state["model"])
+            model.eval()
+            log(f"seed {seed}: backbone already complete ({args.epochs} epochs) — loaded checkpoint")
+            return model, float(state.get("sec_per_epoch", float("nan")))
+        # Resume an in-progress seed.
+        if os.path.exists(ckpt_path):
+            state = torch.load(ckpt_path, map_location=device, weights_only=False)
+            model.load_state_dict(state["model"])
+            opt.load_state_dict(state["opt"])
+            start_epoch = int(state["epoch"]) + 1
+            # Rebuild OneCycle position by FAST-FORWARDING (robust to --epochs change).
+            _ff = min(start_epoch * max(len(train_pcs), 1), max(steps, 1))
+            for _ in range(_ff):
+                sched.step()
+            try:
+                rng.bit_generator.state = state["np_rng"]
+            except Exception:
+                pass
+            # dropout>0 consumes torch RNG, so restore it too for faithful resume.
+            try:
+                torch.set_rng_state(state["torch_rng"].cpu())
+                if device.type == "cuda" and state.get("cuda_rng") is not None:
+                    torch.cuda.set_rng_state(state["cuda_rng"].cpu())
+            except Exception:
+                pass
+            log(f"seed {seed}: backbone RESUMED from epoch {start_epoch}/{args.epochs}")
+
+    for epoch in range(start_epoch, args.epochs):
         model.train()
         order = rng.permutation(len(train_pcs))
         agg, n = 0.0, 0
@@ -150,6 +202,22 @@ def train_transolver(args, seed: int, train_pcs, point_norm, device) -> tuple[to
             n += 1
         sec_per_epoch = time.time() - t0
         log(f"seed {seed} backbone epoch {epoch}: train_mse={agg/max(n,1):.4e} ({sec_per_epoch:.1f}s)")
+
+        # ---- per-epoch atomic checkpoint (only when a path was supplied) ----
+        if ckpt_path is not None:
+            tmp = ckpt_path + ".tmp"
+            torch.save({
+                "epoch": epoch,
+                "model": model.state_dict(),
+                "opt": opt.state_dict(),
+                "np_rng": rng.bit_generator.state,
+                "torch_rng": torch.get_rng_state(),
+                "cuda_rng": torch.cuda.get_rng_state() if device.type == "cuda" else None,
+                "sec_per_epoch": sec_per_epoch,
+                "args": vars(args),
+            }, tmp)
+            os.replace(tmp, ckpt_path)  # atomic on the same filesystem
+
     return model, sec_per_epoch
 
 
@@ -189,13 +257,27 @@ def _state_residual(field_norm, inp_phys, dx, dy, nu, grid_norm) -> torch.Tensor
     return residual / std.unsqueeze(-1)
 
 
-def train_corrector(args, seed, predictor, train_pairs, grid_norm, nu, device):
+def train_corrector(args, seed, predictor, train_pairs, grid_norm, nu, device,
+                    zero_residual: bool = False):
     """Train a grid corrector starting each unroll from the rasterised Transolver field.
 
     Mirrors :meth:`Trainer.fit_corrector` (truncated unroll + decaying off-manifold
     noise + per-channel-balanced loss) but the starting state is the FROZEN
     per-case rasterised Transolver prediction — so the corrector learns to map
     *this* backbone's outputs (and its own iterates) toward the truth.
+
+    Parameters
+    ----------
+    zero_residual : bool, optional
+        NULL (without-residual) ABLATION for reviewer finding W1. When True, the
+        physics residual fed to the corrector is permanently zeroed at TRAINING
+        time, and the trained corrector is tagged with ``corrector._zero_residual
+        = True`` so the inference loop (``correction_loop.py``) zeroes the residual
+        the SAME way — keeping train/eval symmetric. Default ``False`` ⇒ the
+        existing published behaviour is BYTE-IDENTICAL: the only new code is one
+        ``if zero_residual:`` guard that is never entered, and ``torch.zeros_like``
+        draws no RNG, so the WITH/NULL pair shares the same RNG stream (a clean
+        paired control).
     """
     torch.manual_seed(seed)
     if args.corrector == "deq":
@@ -265,6 +347,11 @@ def train_corrector(args, seed, predictor, train_pairs, grid_norm, nu, device):
                 # to the residual, not a per-case-constant input.
                 with torch.no_grad():
                     residual_t = _state_residual(state_t, inp_phys_t, dx, dy, nu, grid_norm)
+                if zero_residual:
+                    # NULL (W1) ablation: train the corrector with the residual
+                    # input permanently zeroed. zeros_like draws no RNG so the
+                    # WITH/NULL pair stays a clean paired control.
+                    residual_t = torch.zeros_like(residual_t)
                 delta = corrector(field=state_t, residual=residual_t, geom=geom_t)
                 target_delta = (target_t - state_t).detach()
                 lk, _pc = per_channel_balanced_mse(delta, target_delta, fluid)
@@ -286,6 +373,12 @@ def train_corrector(args, seed, predictor, train_pairs, grid_norm, nu, device):
         history.append(ep)
         log(f"seed {seed} corrector epoch {epoch}: loss={ep:.4e}")
     corrector.eval()
+    if zero_residual:
+        # Tag the instance so the inference loop zeroes the residual identically
+        # (train/eval symmetry for the NULL condition). The WITH corrector never
+        # gets this attribute, so ``getattr(corrector, "_zero_residual", False)``
+        # leaves the published path byte-identical.
+        corrector._zero_residual = True
     return corrector, history
 
 

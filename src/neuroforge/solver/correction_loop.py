@@ -152,6 +152,14 @@ def neural_residual_iteration(
             np.ascontiguousarray(normalizer.norm_out(field.as_array()), DTYPE)
         )[None]
         residual_t = _residual_tensor(field, case, predictor)
+        # NULL (without-residual) ablation for reviewer finding W1: a corrector
+        # trained with its residual input zeroed (scripts/run_v2.train_corrector,
+        # zero_residual=True) tags itself with ``_zero_residual`` so inference
+        # zeroes the residual the SAME way training did (train/eval symmetry).
+        # Default correctors lack the attribute, so this leaves the published DEQ
+        # path byte-identical (getattr default False; zeros_like draws no RNG).
+        if getattr(corrector, "_zero_residual", False):
+            residual_t = torch.zeros_like(residual_t)
         geom_t = torch.from_numpy(
             np.ascontiguousarray(normalizer.norm_in(encode_case(case)), DTYPE)
         )[None]
@@ -185,6 +193,10 @@ def neural_residual_iteration(
         field_norm = normalizer.norm_out(field_arr)
         field_t = torch.from_numpy(np.ascontiguousarray(field_norm, DTYPE))[None]
         residual_t = _residual_tensor(field, case, predictor)
+        # Same NULL-ablation guard as the DEQ branch (see above). Byte-identical
+        # for default correctors (no ``_zero_residual`` attribute).
+        if getattr(corrector, "_zero_residual", False):
+            residual_t = torch.zeros_like(residual_t)
         from neuroforge.geometry.encode import encode_case
 
         geom_phys = encode_case(case)
