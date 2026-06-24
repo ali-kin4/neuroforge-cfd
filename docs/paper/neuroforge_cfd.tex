@@ -1335,6 +1335,27 @@ residual input it ingests. The durable contribution is the self-auditing,
 backbone-robust trust layer and the learned, supervised corrector it accompanies---demonstrated
 on a competitive surrogate, reproducible end-to-end from the committed harness.
 
+\section*{Code and data availability}
+The complete source, training/evaluation harnesses, and per-claim reproduction map
+(\texttt{docs/REPRODUCE.md}) are released as the open-source package \texttt{neuroforge-cfd}
+(\url{https://github.com/ali-kin4/neuroforge-cfd}; archived at Zenodo, DOI to be assigned on
+acceptance). Every headline number maps to a committed script and result file, and a top-level
+manifest (\texttt{results/MANIFEST.json}) records seeds, environment, and SHA-256 hashes for
+hash-drift detection. The two benchmarks are public: AirfRANS \citep{bonnet2022airfrans} and
+DeepCFD \citep{ribeiro2020deepcfd}. The package is CPU-first and runs end-to-end with zero
+downloads via a synthetic data generator; the GPU runs (backbone training) are documented with
+exact commands and expected outputs.
+
+\section*{CRediT author contribution statement}
+\textbf{Ali Jabbary:} Conceptualization, Methodology, Software, Validation, Formal analysis,
+Investigation, Data curation, Writing -- original draft, Writing -- review \& editing,
+Visualization.
+
+\section*{Declaration of competing interests}
+The author declares no competing financial or personal interests. No generative-AI tool was
+used to produce scientific results; any writing assistance was reviewed and verified by the
+author, who takes full responsibility for the content.
+
 \bibliographystyle{tmlr}
 \bibliography{refs}
 
