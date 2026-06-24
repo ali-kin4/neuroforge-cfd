@@ -1217,21 +1217,21 @@ class DashboardHandler(BaseHTTPRequestHandler):
     # ---- endpoints ---- #
     def _read_log(self):
         # Logs may be UTF-8 (Bash/python redirect) or UTF-16 (PowerShell `>`
-        # writes UTF-16 LE with a BOM). Sniff the BOM and decode accordingly so
-        # the parser regexes see clean text either way; otherwise UTF-16's
-        # interleaved NULs turn every line into garbage under utf-8.
+        # writes UTF-16 LE with a BOM) — and a file resumed across both ends up
+        # MIXED (UTF-16 history + UTF-8 appended tail). A single leading-BOM sniff
+        # then mis-decodes the other half (UTF-8 lines render as CJK mojibake).
+        # All log content is ASCII, so: strip every BOM and drop all NUL bytes
+        # (UTF-16 of ASCII is the char +/- a NUL), then decode UTF-8. This renders
+        # both halves correctly regardless of how the encodings are interleaved.
         try:
             with open(self.log_path, "rb") as f:
                 raw = f.read()
         except OSError:
             return None
-        if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
-            enc = "utf-16"
-        elif raw.startswith(b"\xef\xbb\xbf"):
-            enc = "utf-8-sig"
-        else:
-            enc = "utf-8"
-        return raw.decode(enc, errors="replace")
+        for bom in (b"\xff\xfe", b"\xfe\xff", b"\xef\xbb\xbf"):
+            raw = raw.replace(bom, b"")
+        raw = raw.replace(b"\x00", b"")
+        return raw.decode("utf-8", errors="replace")
 
     def _handle_status(self):
         raw = self._read_log()
