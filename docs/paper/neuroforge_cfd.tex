@@ -59,34 +59,39 @@ solvers, but they emit a single field with no built-in way for a user to know
 whether to trust it---especially out of distribution, where early-design exploration
 lives. We close the loop with the governing physics: we compute the discretised
 steady-RANS residual of the prediction and ask what jobs it can do. Our central
-finding is a clean three-way dissociation, validated on a SOTA Transolver backbone:
-\textbf{the physics residual is a reliable, backbone-robust trust signal and a
-useful input feature to a learned corrector, but a poor correction objective.} (1)
+finding is a clean two-way dissociation, validated on a SOTA Transolver backbone:
+\textbf{the physics residual is a reliable, backbone-robust trust signal (it tells you
+\emph{where} the prediction is wrong), but a poor correction objective (it does not tell
+you \emph{how} to fix it).} (1)
 \emph{As a trust signal}, the residual is a calibrated, backbone-robust proxy for
 error across three architecturally-distinct backbones tested: its per-case rank correlation
 with field error is $0.625{\pm}0.019$ on the SOTA Transolver backbone, $\approx 0.40$ on a
 weak grid Geo-FNO backbone (which a learned corrector lifts to $0.83$), and $0.851{\pm}0.058$
 on a message-passing GNN (MeshGraphNet, bare), and a split-conformal layer attains target
 coverage
-($0.902{\pm}0.008$ at the $0.90$ target). (2) \emph{As an input feature to a learned,
-supervised corrector}, the residual helps: a deep-equilibrium (DEQ) corrector that
-consumes the residual as input and trains toward ground truth reduces volume-field
-MSE on all three seeds---$\texttt{mse\_u}$ $-9\%$, $\texttt{mse\_v}$ $-21\%$,
-$\texttt{mse\_p}$ $-25\%$---on a backbone that is itself SOTA-competitive
-($\rho_{C_l}=0.999$, $\approx 5\%$ lift error; drag ranks well, $\rho_{C_d}=0.996$, but
-its magnitude scatter is larger). (3) \emph{As a correction objective
+($0.902{\pm}0.008$ at the $0.90$ target). (2) \emph{As a correction objective
 or acceptance gate}, the residual fails: sweeping the iterations \emph{raises} the
 PDE residual while \emph{lowering} field error, and a backtracking test that admits
 only residual-reducing steps accepts essentially none---minimising the residual is
-not minimising the error. We package a \textbf{distribution-free conformal trust
+not minimising the error. Alongside the trust signal we deploy a learned, supervised
+\textbf{self-correction}: a deep-equilibrium (DEQ) corrector trained toward ground truth
+reduces volume-field MSE on all three seeds---$\texttt{mse\_u}$ $-9\%$, $\texttt{mse\_v}$
+$-21\%$, $\texttt{mse\_p}$ $-25\%$ (gate-verified, $\rho_{C_l}=0.999$)---on a backbone that
+is itself SOTA-competitive ($\approx 5\%$ lift error; drag ranks well, $\rho_{C_d}=0.996$,
+but its magnitude scatter is larger). A controlled ablation that zeros the residual input
+to this corrector at train and inference (3 seeds) matches or slightly exceeds it, so the
+improvement is attributable to the learned correction, not to residual-conditioning. We
+package a \textbf{distribution-free conformal trust
 layer} that attains the coverage above (a guarantee that holds only under
 exchangeability) and empirically retains target coverage out-of-distribution via
 uncertainty inflation; pairing it with a deep-ensemble $\sigma$ yields an
 \emph{input-adaptive} band on the near-deterministic SOTA model (ECE $0.074$, $q=2.35$),
-where MC-dropout gives a valid but near-constant one. We report one honest caveat
-plainly: correction quality is \emph{backbone-dependent} (the same corrector is flat on
-the weak grid backbone). The contribution is the self-auditing trust layer and the
-residual's three roles, demonstrated on a competitive surrogate.
+where MC-dropout gives a valid but near-constant one. We report two honest caveats on the
+corrector plainly: correction quality is \emph{backbone-dependent} (the same corrector is flat
+on the weak grid backbone), and---per the ablation above---its gain is not sourced from the
+residual input. The contribution is the self-auditing trust layer, the residual's
+two roles (trust signal yes, correction objective no), and the learned self-correction it
+accompanies, demonstrated on a competitive surrogate.
 
 \vspace{1ex}
 \noindent\textbf{Keywords:} neural operators, surrogate CFD, physics residuals,
@@ -111,23 +116,26 @@ user cannot distinguish a faithful prediction from a confident hallucination.
 
 The governing physics offers an obvious lever. The steady incompressible RANS residual
 of any candidate field is computable directly from the field, with no ground truth.
-A neural-CFD pipeline could use this residual in three distinct ways: as a
+A neural-CFD pipeline could use this residual in two distinct ways: as a
 \emph{trust signal} that flags \emph{which} predictions to distrust (a case-level error
-proxy that drives a conformal trust layer); as an \emph{input feature} to a learned
-corrector that consumes the residual map and is trained toward ground truth; and as a
-\emph{correction objective or acceptance gate} that a step must reduce. These are not the same role, and---this
-is the crux---they do not earn the same verdict. This paper separates them and answers
-each empirically on a SOTA backbone.
+proxy that drives a conformal trust layer), and as a \emph{correction objective or
+acceptance gate} that a step must reduce. These are not the same role, and---this
+is the crux---they do not earn the same verdict. Put plainly, the residual tells you
+\emph{where} a prediction is wrong, not \emph{how} to fix it. This paper separates the two
+roles and answers each empirically on a SOTA backbone, and---separately---deploys a
+learned, supervised corrector whose gain we attribute by ablation to the learned
+correction, not to the residual.
 
-\paragraph{Research question.} \emph{In which of its three roles---trust signal, input
-feature to a learned corrector, and correction objective/gate---is the steady-RANS
-physics residual of a neural-CFD prediction useful, and does the answer survive on a
-competitive backbone?}
+\paragraph{Research question.} \emph{In which of its two roles---trust signal and correction
+objective/gate---is the steady-RANS physics residual of a neural-CFD prediction useful, and
+does the answer survive on a competitive backbone?}
 
 \paragraph{Thesis (one sentence).} \textbf{\emph{The steady-RANS physics residual is a
-reliable, conformally-calibrated, backbone-robust case-level trust signal and a useful
-input to a learned corrector that measurably improves a SOTA surrogate---even though
-minimising the residual directly remains a poor correction objective.}}
+reliable, conformally-calibrated, backbone-robust case-level trust signal---it tells you
+where a prediction is wrong---even though minimising the residual directly remains a poor
+correction objective; the learned self-correction we deploy reduces error on a SOTA
+surrogate, but a controlled ablation attributes that gain to the learned correction, not to
+feeding it the residual.}}
 
 We arrive at this thesis the hard way. We built the full
 predict$\rightarrow$verify$\rightarrow$estimate-uncertainty$\rightarrow$correct$\rightarrow$fall-back
@@ -136,9 +144,12 @@ out-of-distribution study, two formal certificates, and---in a second phase---th
 trust layer and corrector on a SOTA Transolver backbone. The trust signal and the
 supervised corrector survive on the strong backbone; the residual-as-objective machinery
 (the iteration sweep and the acceptance gate) is the part that disappoints, and we report
-that as a finding rather than hide it. A key honest finding cuts across all three roles:
+that as a finding rather than hide it. Two honest findings accompany the corrector:
 \emph{correction quality is backbone-dependent}---the supervised corrector that helps on
-the SOTA backbone is flat on the weak grid backbone---so we report both.
+the SOTA backbone is flat on the weak grid backbone---and a controlled ablation shows the
+gain is \emph{not} sourced from the residual input (a null corrector with the residual
+channels zeroed matches or slightly exceeds it), so we attribute the gain to the learned
+correction, not to residual-conditioning. We report both.
 
 \subsection{Contributions}
 
@@ -161,24 +172,28 @@ holds under distribution shift, including a regime where the bare model's signal
 (\autoref{sec:ood}, \autoref{sec:conformal}).
 The layer depends only on a model's predictions and uncertainty, so it is backbone-robust.
 
-\item \textbf{Self-correction works on a strong backbone.} A learned, residual-driven DEQ
-corrector that consumes the residual as an \emph{input feature} and is trained (supervised)
-toward ground truth reduces volume-field MSE on the SOTA backbone on \textbf{all three
-seeds}: $\texttt{mse\_u}$ $0.127\rightarrow0.116$ ($-9\%$), $\texttt{mse\_v}$
-$0.100\rightarrow0.079$ ($-21\%$), $\texttt{mse\_p}$ $630\rightarrow471$ ($-25\%$), with
-force ranking held ($\rho_{C_l}=0.999$) and force error slightly improved
-(\autoref{sec:v2}, \autoref{tab:v2}). The backbone is itself SOTA-competitive, so the
-corrector improves a competitive surrogate.
+\item \textbf{Self-correction works on a strong backbone.} A learned DEQ corrector trained
+(supervised) toward ground truth reduces volume-field MSE on the SOTA backbone on
+\textbf{all three seeds}: $\texttt{mse\_u}$ $0.127\rightarrow0.116$ ($-9\%$),
+$\texttt{mse\_v}$ $0.100\rightarrow0.079$ ($-21\%$), $\texttt{mse\_p}$ $630\rightarrow471$
+($-25\%$, gate-verified), with force ranking held ($\rho_{C_l}=0.999$) and force error
+slightly improved (\autoref{sec:v2}, \autoref{tab:v2}). The backbone is itself
+SOTA-competitive, so the corrector improves a competitive surrogate. The deployed corrector
+ingests the residual as an input channel, but a controlled ablation that zeros that input at
+train and inference (3 seeds) matches or slightly exceeds the deployed corrector, so we
+attribute the gain to the learned correction, not to residual-conditioning (\autoref{sec:v2},
+\texttt{results/control/w1\_capture.json}).
 
-\item \textbf{Residual-as-objective still fails (the surviving negative).} Used as a
-correction \emph{objective or acceptance gate}---rather than an input feature---the residual
+\item \textbf{Residual-as-objective fails (the surviving negative).} Used as a
+correction \emph{objective or acceptance gate}, the residual
 does not work. Sweeping the correction iterations \emph{raises} the PDE residual
 ($0.11\rightarrow0.62$) while \emph{lowering} field error
 ($\texttt{mse\_u}$ $3.92\rightarrow2.29$): the two move in opposite directions
 (\autoref{sec:iters}, \autoref{fig:fig4}). A backtracking acceptance test that admits only
 residual-reducing steps accepts essentially zero steps on a trained corrector
 (\autoref{sec:iters}). Minimising the residual is not minimising the error---which is
-exactly why role (2) supervises toward truth rather than minimising the residual.
+exactly why the deployed corrector supervises toward truth rather than minimising the
+residual.
 
 \item \textbf{Backbone-dependence, reported as a finding (not hidden).} The same corrector
 that delivers $-9$ to $-25\%$ on the SOTA backbone is flat-to-unhelpful on the weak grid
@@ -221,7 +236,7 @@ cost and strong accuracy on PDE benchmarks; Transolver++ \citep{luo2025transolve
 scales it to million-scale meshes. We use Transolver in two ways: as a matched-budget
 baseline for our grid backbone (\autoref{sec:baseline}), and as the SOTA backbone our
 trust layer and corrector actually run on (\autoref{sec:v2}), where the residual is a
-calibrated detector and the supervised corrector reduces field MSE.
+calibrated detector and a supervised learned corrector reduces field MSE.
 
 \paragraph{Learned solver-correctors and the ``fixer'' premise.} Several lines of work
 use the discretised residual or a coarse-solution error as a \emph{correction
@@ -231,14 +246,16 @@ deep-equilibrium operators for steady PDEs \citep{marwah2023fnodeq}, iterative r
 \citep{learned2023residualcorrection}. PINNs \citep{raissi2019pinn} embed the residual
 in the training loss. NeuroForge implements a contractive DEQ corrector and a
 feed-forward residual-conditioned corrector squarely in this family. \textbf{Our
-contribution to this line is to separate two roles the prior work conflates.} As a
-correction \emph{objective}---where a step must reduce the residual---residual
-minimisation does not track error minimisation on a real RANS benchmark (the residual
-rises as error falls; the acceptance gate accepts almost nothing). As an \emph{input
-feature} to a corrector \emph{supervised toward ground truth}, the residual is useful: on
-a SOTA backbone our DEQ corrector reduces field MSE by $9$--$25\%$
-(\autoref{sec:v2}). The distinction---residual-as-input helps, residual-as-objective does
-not---sharpens \emph{how} the residual-as-correction premise should be used.
+contribution to this line is to test the residual-as-correction premise head-on and find it
+does not hold.} As a correction \emph{objective}---where a step must reduce the
+residual---residual minimisation does not track error minimisation on a real RANS benchmark
+(the residual rises as error falls; the acceptance gate accepts almost nothing). And when we
+feed the residual as an input \emph{feature} to a corrector supervised toward ground truth, a
+controlled ablation shows the residual input is not the source of the gain: zeroing it at
+train and inference (3 seeds) matches or slightly exceeds the deployed corrector
+(\autoref{sec:v2}, \texttt{results/control/w1\_capture.json}). The residual's value is as a
+\emph{trust signal}---it tells you \emph{where} a prediction is wrong---not as a correction
+mechanism telling you \emph{how} to fix it; the learned correction does the fixing.
 
 \paragraph{Uncertainty quantification and conformal prediction for PDE surrogates.}
 Deep ensembles \citep{lakshminarayanan2017ensembles} and MC-dropout
@@ -260,12 +277,14 @@ regime-disjoint \texttt{reynolds}/\texttt{aoa} splits for the out-of-distributio
 
 The closest prior art treats the physics residual primarily as a \emph{correction
 objective} (PINNs, FNO-DEQ, learned correctors) or treats UQ in isolation from physics.
-NeuroForge's distinctive question is which of three roles the residual can play, evaluated
+NeuroForge's distinctive question is which of two roles the residual can play, evaluated
 head-to-head on the same model and data and then on a SOTA backbone: as a trust
-\emph{signal} (detect error, drive conformal calibration), as an \emph{input feature} to a
-supervised corrector, and as a correction \emph{objective/gate}. Our answer---signal yes,
-input-feature yes (on a strong backbone), objective no---and the resulting calibrated trust
-layer are the contribution. The engine's no-harm/contraction machinery (\autoref{sec:method})
+\emph{signal} (detect error, drive conformal calibration) and as a correction
+\emph{objective/gate}. Our answer---signal yes (it tells you \emph{where} the prediction is
+wrong), objective no---and the resulting calibrated trust layer are the contribution.
+Separately, a learned, supervised corrector reduces field error on the strong backbone, but a
+controlled ablation attributes that gain to the learned correction rather than to the residual
+input. The engine's no-harm/contraction machinery (\autoref{sec:method})
 is retained because it is correct and reproducible; the acceptance-gate guarantee in
 particular is real but, as we show, vacuous as an accuracy mechanism.
 
@@ -275,13 +294,14 @@ particular is real but, as we show, vacuous as an accuracy mechanism.
 \subsection{Pipeline overview}
 
 The engine wraps a one-shot backbone in a verify--estimate--correct--fall-back loop.
-Throughout, the physics residual plays \textbf{three distinct roles with three distinct
+Throughout, the physics residual plays \textbf{two distinct roles with two distinct
 verdicts} (\autoref{sec:experiments}): (i)~as a \emph{trust signal} it detects error and
-drives the conformal layer (reliable, backbone-robust); (ii)~as an \emph{input feature}
-to a corrector \emph{supervised toward ground truth} it improves a SOTA backbone
-(\autoref{sec:v2}); (iii)~as a correction \emph{objective or acceptance gate} it fails
-(\autoref{sec:iters}). We describe all components for completeness and flag, at each one,
-which role it instantiates.
+drives the conformal layer (reliable, backbone-robust---it tells you \emph{where} the
+prediction is wrong); (ii)~as a correction \emph{objective or acceptance gate} it fails
+(\autoref{sec:iters}). Separately, a learned, supervised corrector improves a SOTA backbone
+(\autoref{sec:v2}); the deployed corrector ingests the residual as an input channel, but a
+controlled ablation attributes its gain to the learned correction, not to the residual input.
+We describe all components for completeness and flag, at each one, which role it instantiates.
 
 {\footnotesize
 \begin{verbatim}
@@ -384,14 +404,16 @@ in-distribution coverage level. \autoref{sec:conformal} reports the measured cov
 the coverage-vs-$\alpha$ sweep, and the out-of-distribution behaviour, with the
 exchangeability caveat made explicit.
 
-\subsection{The correction loop: input-feature corrector vs.\ objective/gate}
+\subsection{The correction loop: supervised corrector vs.\ residual objective/gate}
 \label{sec:correction}
 
 The engine offers two correction operators and a backtracking acceptance test, and the
-distinction between them \emph{is} the intellectual core of the paper. The DEQ corrector
-uses the residual as an \emph{input feature} and is trained by supervised regression toward
-ground truth, applied directly without any acceptance test; this is the path that helps on a
-SOTA backbone (\autoref{sec:v2}). The backtracking acceptance test uses the residual as an
+distinction between them \emph{is} the intellectual core of the paper. The DEQ corrector is
+trained by supervised regression toward ground truth and applied directly without any
+acceptance test; it ingests the residual as an input channel (its deployed architecture,
+below), but its gain is attributable to the learned correction rather than to that input
+(the W1 ablation, \autoref{sec:v2}). This is the path that helps on a SOTA backbone
+(\autoref{sec:v2}). The backtracking acceptance test uses the residual as an
 \emph{objective/gate}---a step is admitted only if it lowers the residual norm; this is the
 path that fails (\autoref{sec:iters}). We describe both precisely so the contrast is
 interpretable.
@@ -588,11 +610,29 @@ for every volume channel. \textbf{Surface-pressure} MSE is the one channel the c
 ranking is held at $\rho_{C_l}=0.999$, $\rho_{C_d}$
 $0.995\rightarrow0.996$, and the relative force errors improve ($C_l$ $5.6\%\rightarrow5.2\%$,
 $C_d$ $7.5\%\rightarrow6.7\%$; the $C_d$ \emph{magnitude} per-case scatter remains large,
-std $\approx0.3$--$0.45$, so we lead with the ranking). This is the corrector used as an \emph{input-feature path}
-(supervised toward ground truth, applied without the acceptance test, \autoref{sec:correction}).
+std $\approx0.3$--$0.45$, so we lead with the ranking). This is the corrector trained by
+supervised regression toward ground truth and applied without the acceptance test
+(\autoref{sec:correction}).
 The backbone is itself SOTA-competitive ($\rho_{C_l}=0.999$, $\approx 5\%$ force error,
 matching \autoref{tab:transolver}), so the trust layer and corrector are demonstrated
 \emph{on} a competitive surrogate---not only on the weak grid backbone.
+
+\paragraph{The gain comes from the learned correction, not from feeding it the residual
+(W1 control).} The corrector improves the field by $-9/-21/-25\%$ (gate-verified,
+$\rho_{C_l}=0.999$). To isolate \emph{why}, we train the same DEQ corrector two ways under
+identical architecture, data, optimiser, schedule and seeds, differing only in whether the
+3 residual input channels carry the real residual (WITH) or are permanently zeroed at both
+train and inference (NULL). Across 3 seeds, the null corrector \textbf{matches or slightly
+exceeds} the deployed one: the per-seed paired difference $d = \text{gain}_{\text{WITH}} -
+\text{gain}_{\text{NULL}}$ is negative on all 3 seeds for both $\texttt{mse\_u}$ and
+$\texttt{mse\_speed}$ (mean $d \approx -0.005$ on a $\approx 0.11$ base, $\approx 4\%$; WITH
+beats NULL on $0/3$ seeds; \texttt{results/control/w1\_capture.json}). The residual input is
+therefore \emph{not} the source of the corrector's field-MSE improvement; the improvement is
+attributable to the learned correction architecture, not to residual-conditioning. This is
+consistent with the residual's role elsewhere in the paper: it tells you \emph{where} a
+prediction is wrong (a trust signal), not \emph{how} to fix it. We keep the residual-fed
+corrector as the deployed system---it remains the headline---and report this as a sharpening
+of \emph{attribution}, not a change to the result.
 
 \paragraph{The trust signal is backbone-robust.} On this SOTA backbone the bare
 residual--error correlation is already strong ($0.625{\pm}0.019$, vs $\approx 0.40$ for the
@@ -640,9 +680,9 @@ the band track the error on a near-deterministic SOTA surrogate.
 single backbone ($0.116/0.079/471$), so we do not claim the corrector is the best available
 accuracy mechanism. The two answer different questions on a cost axis: the deep ensemble is the
 better \emph{accuracy} play when $5\times$ the training (and $M\times$ the inference) is
-affordable, while the residual-fed corrector is the better \emph{cheap} play---one backbone
-plus a small corrector---and it is the vehicle for the paper's \emph{scientific} claim (that the
-residual is a useful input feature), not a leaderboard entry. The ensemble and the corrector are
+affordable, while the learned corrector is the better \emph{cheap} play---one backbone
+plus a small corrector---demonstrating cheap learned self-correction on a competitive
+surrogate, not a leaderboard entry. The ensemble and the corrector are
 complementary: the ensemble supplies the adaptive $\sigma$ the conformal certificate needs, and
 either prediction can be wrapped by the same trust layer.
 
@@ -1077,12 +1117,21 @@ holds in our experiments only because the uncertainty inflates appropriately
 effective sample size is below the raw cell count, and the calibration set is small
 ($n=100$); a larger-calibration-set robustness check is future work.
 \item \textbf{Residual-as-objective remains a dead end.} Used as a correction objective or
-acceptance gate (not as a supervised input feature), the residual still fails: more
+acceptance gate, the residual fails: more
 iterations raise the PDE residual while error falls, and the monotone-residual acceptance
 test accepts almost no steps (\autoref{sec:iters}). The DEQ contraction guarantee is in the
 correction variable $\delta$, and the acceptance test's monotone-residual guarantee is real
 but vacuous as an accuracy mechanism. The self-correction gains in \autoref{sec:v2} come from
-the \emph{supervised} input-feature path, not from minimising the residual.
+the \emph{learned, supervised} correction, not from minimising the residual---and, by the W1
+control, not from feeding the corrector the residual either.
+\item \textbf{The corrector's gain is not attributable to the residual input.} The deployed
+DEQ corrector ingests the residual as an input channel, but a controlled ablation that zeros
+that input at train and inference (3 seeds) matches or slightly exceeds it ($\approx 4\%$ on a
+$\approx 0.11$ base; WITH beats NULL on $0/3$ seeds; \texttt{results/control/w1\_capture.json}).
+We therefore attribute the $9$--$25\%$ field-MSE improvement to the learned correction
+architecture, not to residual-conditioning. The residual's demonstrated value is as a trust
+signal (\emph{where} the prediction is wrong), not as a correction input (\emph{how} to fix
+it); the deployed system retains the residual input but does not depend on it for the gain.
 \item \textbf{Adaptive uncertainty on the SOTA model requires a deep ensemble.} On the
 near-deterministic Transolver backbone, MC-dropout $\sigma$ at dropout $0.05$ is
 near-degenerate, so although conformal coverage holds ($0.902$, target $0.90$), the
@@ -1107,26 +1156,29 @@ residual--error divergence robustly in direction but are not multi-seed.
 \section{Conclusion}
 
 We set out to use the steady-RANS physics residual of a neural-CFD surrogate, and we found
-that it plays \textbf{three distinct roles with three distinct verdicts}. \emph{As a trust
-signal} it is a reliable, backbone-robust (three architecturally-distinct backbones) case-level detector of error: $\rho=0.625{\pm}0.019$ on a
+that it plays \textbf{two distinct roles with two distinct verdicts}. \emph{As a trust
+signal} it is a reliable, backbone-robust (three architecturally-distinct backbones) case-level detector of error---it tells you \emph{where} a prediction is wrong: $\rho=0.625{\pm}0.019$ on a
 SOTA Transolver backbone, $\approx 0.40$--$0.83$ on a weak grid backbone, $0.851{\pm}0.058$ on a
 bare message-passing GNN (MeshGraphNet), and---under distribution
 shift on the weak backbone---regime-invariant ($\approx 0.74$, rescuing an \texttt{aoa}
-collapse from $0.31$ to $0.75$) where the one-shot signal collapses. \emph{As an input feature
-to a supervised corrector} it works on a strong backbone: the DEQ corrector cuts volume field
-MSE by $9$--$25\%$ on all 3 seeds of the SOTA Transolver model, with force ranking held. \emph{As
+collapse from $0.31$ to $0.75$) where the one-shot signal collapses. \emph{As
 a correction objective or acceptance gate} it fails: more iterations raise the residual while
 error falls, and the monotone-residual gate accepts almost nothing---minimising the residual is
-not minimising the error. On the strength of the detector result we package a backbone-robust
+not minimising the error. Alongside the trust signal we deploy a learned, supervised
+self-correction that works on a strong backbone: the DEQ corrector cuts volume field MSE by
+$9$--$25\%$ on all 3 seeds of the SOTA Transolver model (gate-verified), with force ranking
+held; a controlled ablation attributes that gain to the learned correction rather than to the
+residual input (the residual tells you \emph{where} to look, not \emph{how} to fix). On the strength of the detector result we package a backbone-robust
 conformal trust layer that holds target coverage both in-distribution
 ($0.91/0.93/0.94$ at $0.90$, weak backbone) and on the SOTA backbone ($0.902$), and empirically
 retains coverage out-of-distribution via uncertainty inflation; pairing it with a deep-ensemble
 $\sigma$ makes the band input-adaptive even on the near-deterministic SOTA model ($q=2.35$,
-ECE $0.074$), where MC-dropout alone gives a near-constant one. One honest caveat
-carries the tension: correction quality is backbone-dependent (flat on the weak backbone).
-The durable contribution is the self-auditing,
-backbone-robust trust layer and the supervised corrector it accompanies---demonstrated on a
-competitive surrogate, reproducible end-to-end from the committed harness.
+ECE $0.074$), where MC-dropout alone gives a near-constant one. Two honest caveats
+accompany the corrector: correction quality is backbone-dependent (flat on the weak backbone),
+and a controlled ablation attributes its gain to the learned correction rather than to the
+residual input it ingests. The durable contribution is the self-auditing,
+backbone-robust trust layer and the learned, supervised corrector it accompanies---demonstrated
+on a competitive surrogate, reproducible end-to-end from the committed harness.
 
 \bibliographystyle{tmlr}
 \bibliography{refs}
