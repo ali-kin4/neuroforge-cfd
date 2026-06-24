@@ -964,10 +964,10 @@ production $100/100$ split and across all three corrector seeds
 \texttt{results/uq\_ensemble/w2\_conformal\_corrected.json}; a faithfulness gate reproduces
 the published backbone $p$-certificate---$q{=}2.35$, coverage $0.915$---exactly). Re-fitting
 $q$ on the corrected calibration field gives a valid certificate (coverage $u/v/p =
-0.88/0.91/0.91$ vs the $0.90$ target) and \emph{sharpens} the band on $v$ and $p$: the
-corrected multiplier shrinks on every seed ($v$ $2.58\rightarrow2.34$, $p$
-$2.35\rightarrow2.10$), so self-correction tightens the calibrated interval, not merely the
-point error. Applying the \emph{backbone's} own $q$ to the corrected field---the direct
+0.88/0.91/0.91$ vs the $0.90$ target), and because the corrected field's error is lower at
+frozen $\sigma$, that accuracy propagates into the certificate as proportionally tighter
+intervals at the same coverage ($q$: $v$ $2.58\rightarrow2.34$, $p$ $2.35\rightarrow2.10$ on
+every seed). Applying the \emph{backbone's} own $q$ to the corrected field---the direct
 ``remains-conservative'' test---over-covers on $v$ and $p$ ($\approx 0.93$), as the field-error
 reduction (\autoref{sec:v2}) predicts, while $u$ holds at $\approx 0.88$, just below target:
 this tracks the backbone's own heavy-tailed $u$ band ($0.881$) and is inherited from it, not
@@ -1093,8 +1093,8 @@ contraction ($0.78 < 1$).}
 \includegraphics[width=\textwidth]{../../results/figures/fig_cylinder_ood.pdf}
 \caption{Cross-geometry OOD (qualitative): an airfoil-trained model on a cylinder.
 (a)~predicted speed; (b)~the physics-residual trust map localises on the body surface where
-the field violates the PDE (no ground truth used); (c)~deep-ensemble variance does not
-localise there. Physics flags \emph{where} the geometry breaks the equations; data-driven
+the field violates the PDE (no ground truth used); (c)~deep-ensemble variance from the five
+members (the uncorrected ensemble, the source of $\sigma$) does not localise there. Physics flags \emph{where} the geometry breaks the equations; data-driven
 variance does not. The residual is a local-violation detector---note the smoothly-wrong wake
 stays dark.}
 \label{fig:cylinder}
