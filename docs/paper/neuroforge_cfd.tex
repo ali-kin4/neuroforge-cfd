@@ -827,6 +827,26 @@ caveat: the in-distribution reference is the \texttt{full} split (a different tr
 range), so the gap mixes a train-set change with regime shift, and the \texttt{aoa}
 $\texttt{mse\_u}$ effect, while 3/3 directional, is seed-0-dominated.
 
+\paragraph{Beyond regime shift: a geometry the model never saw (qualitative).} The splits
+above shift the flow regime \emph{within} the airfoil family; we close with a harder,
+qualitative probe of cross-\emph{geometry} extrapolation. We run the airfoil-trained
+Transolver on a \emph{cylinder}---a bluff body absent from AirfRANS---and ask not whether the
+prediction is good (it is not) but whether the trust layer \emph{flags} the failure. Because
+the physics residual is evaluated against the governing PDE, not a reference field, this needs
+no ground truth (unavailable for a cylinder at these $Re$). \autoref{fig:cylinder} contrasts
+the residual trust map against the deep-ensemble variance on the same case. The residual
+concentrates sharply on the body surface, where the predicted field most violates continuity,
+momentum, and no-slip (near-body vs.\ far-field mean ratio $14.6$--$22.9$ across three
+cylinders, peak at $1.04$--$1.05\,r$); the deep-ensemble variance does \emph{not} localise
+there (ratio $1.2$--$1.5$, its peak drifting into the wake)---member disagreement tracks
+background uncertainty, not the physical failure. A physics-grounded signal flags \emph{where}
+an out-of-distribution geometry breaks the equations; a purely data-driven one, trained on
+airfoils, does not know to. \textbf{Honest scope:} this is a qualitative illustration on one
+geometry family, and the residual is a \emph{local}-violation detector, not a
+global-correctness oracle---it lights the body ring but leaves the smoothly-wrong
+(missing-wake) far field dark, since a locally smooth field is close to a locally valid steady
+solution. It complements, not replaces, the quantitative regime-shift results above.
+
 \subsection{Residual-as-objective fails: the residual and the error move apart}
 \label{sec:iters}
 
@@ -935,11 +955,26 @@ directional at $n=15$ (per-case coverage std $\approx 0.15$--$0.23$, so $\approx
 standard error), but the same pattern---raw-$q$ under-covers $v/p$ on the corrected field,
 refitting restores it---reproduces on an independent $20/20$ split
 (\texttt{results/certificates/probe\_conformal\_after\_deq.json}); the residual $p$
-under-coverage is the small-sample heavy-tail effect already noted at $n=100$. On the SOTA
-Transolver backbone the DEQ corrector reduces field error on all channels
-(\autoref{sec:v2}, \autoref{tab:v2}), so its raw-field band is \emph{expected} to remain
-conservative (over-covering) on the deployed v2 field; recalibration matters precisely for
-correctors that trade field error for residual reduction, as the dropout-FNO does.
+under-coverage is the small-sample heavy-tail effect already noted at $n=100$. On the
+deployed SOTA Transolver backbone we now verify this \emph{directly} rather than by
+extrapolation: through the same conformal path, with $\sigma$ the frozen five-member
+deep-ensemble std and the scored field replaced by the DEQ-corrected output, at the
+production $100/100$ split and across all three corrector seeds
+(\texttt{scripts/run\_w2\_conformal\_corrected.py},
+\texttt{results/uq\_ensemble/w2\_conformal\_corrected.json}; a faithfulness gate reproduces
+the published backbone $p$-certificate---$q{=}2.35$, coverage $0.915$---exactly). Re-fitting
+$q$ on the corrected calibration field gives a valid certificate (coverage $u/v/p =
+0.88/0.91/0.91$ vs the $0.90$ target) and \emph{sharpens} the band on $v$ and $p$: the
+corrected multiplier shrinks on every seed ($v$ $2.58\rightarrow2.34$, $p$
+$2.35\rightarrow2.10$), so self-correction tightens the calibrated interval, not merely the
+point error. Applying the \emph{backbone's} own $q$ to the corrected field---the direct
+``remains-conservative'' test---over-covers on $v$ and $p$ ($\approx 0.93$), as the field-error
+reduction (\autoref{sec:v2}) predicts, while $u$ holds at $\approx 0.88$, just below target:
+this tracks the backbone's own heavy-tailed $u$ band ($0.881$) and is inherited from it, not
+introduced by the corrector. We therefore ship the certificate refit on the corrected output;
+recalibration matters most for correctors that trade field error for residual reduction (the
+dropout-FNO above), and is benign-to-beneficial for the deployed Transolver, whose bands it
+sharpens.
 
 \paragraph{Out-of-distribution coverage (empirical, not a guarantee).} Calibrating $q$ on
 the in-distribution \texttt{full} split and evaluating on the OOD splits, coverage stays
@@ -1051,6 +1086,18 @@ inflation).}
 \caption{In-distribution reliability / coverage-vs-$\alpha$ and the measured DEQ
 contraction ($0.78 < 1$).}
 \label{fig:fig6}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{../../results/figures/fig_cylinder_ood.pdf}
+\caption{Cross-geometry OOD (qualitative): an airfoil-trained model on a cylinder.
+(a)~predicted speed; (b)~the physics-residual trust map localises on the body surface where
+the field violates the PDE (no ground truth used); (c)~deep-ensemble variance does not
+localise there. Physics flags \emph{where} the geometry breaks the equations; data-driven
+variance does not. The residual is a local-violation detector---note the smoothly-wrong wake
+stays dark.}
+\label{fig:cylinder}
 \end{figure}
 
 \subsection{Reading against the pre-registered hypotheses}

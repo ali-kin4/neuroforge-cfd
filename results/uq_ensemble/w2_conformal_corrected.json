@@ -1,0 +1,404 @@
+{
+  "meta": {
+    "experiment": "W2 \u2014 conformal coverage on deployed Transolver+DEQ field",
+    "task": "full",
+    "members": 5,
+    "member_ckpts": [
+      "checkpoints/uq_ensemble\\member0.pt",
+      "checkpoints/uq_ensemble\\member1.pt",
+      "checkpoints/uq_ensemble\\member2.pt",
+      "checkpoints/uq_ensemble\\member3.pt",
+      "checkpoints/uq_ensemble\\member4.pt"
+    ],
+    "n_cal": 100,
+    "n_test": 100,
+    "alpha": 0.1,
+    "channels": [
+      0,
+      1,
+      2
+    ],
+    "seed_split": 0,
+    "resolution": 128,
+    "uncertainty": "deep-ensemble per-cell std (FROZEN; identical to the published backbone sigma)",
+    "sigma_note": "sigma = arr.std(0) over members on PHYSICAL fields; NOT rescaled by std_out (that applies only on the normalised cases_to_error_sigma path, deliberately unused here).",
+    "corrector_choice": {
+      "primary": "seed0",
+      "reasoning": "DEQ correctors were trained on the individual v2_transolver backbones; the ensemble mean is the SAME TYPE of Transolver-on-AirfRANS field, so applying the corrector to it is the intended 'deploy the corrector on the ensemble prediction' semantics.",
+      "correctors": {
+        "seed0": {
+          "path": "checkpoints/v2_transolver\\seed0_corr_with.pt",
+          "config": {
+            "type": "deq",
+            "width": 32,
+            "n_layers": 3
+          },
+          "zero_residual": false,
+          "trained_on": "individual v2_transolver backbone (seed-matched)"
+        },
+        "seed1": {
+          "path": "checkpoints/v2_transolver\\seed1_corr_with.pt",
+          "config": {
+            "type": "deq",
+            "width": 32,
+            "n_layers": 3
+          },
+          "zero_residual": false,
+          "trained_on": "individual v2_transolver backbone (seed-matched)"
+        },
+        "seed2": {
+          "path": "checkpoints/v2_transolver\\seed2_corr_with.pt",
+          "config": {
+            "type": "deq",
+            "width": 32,
+            "n_layers": 3
+          },
+          "zero_residual": false,
+          "trained_on": "individual v2_transolver backbone (seed-matched)"
+        }
+      }
+    },
+    "method": "deployed engine path: NeuroForgeEngine(MeanPredictor, checker, corrector).solve(case).field; uq=None (no fallback). Only field0 (ensemble mean) differs from the W1 deploy path.",
+    "device": "cuda",
+    "timing": {
+      "sec_per_case_ensemble_forward": 15.095963730087764,
+      "sec_per_case_deq_solve": {
+        "seed0": 3.936467181444168,
+        "seed1": 3.8960208857059477,
+        "seed2": 3.8705726766586306
+      },
+      "est_full_ensemble_forward_sec": 3019.192746017553,
+      "note": "ensemble forward is one-time (cached, corrector-independent); DEQ solve repeats per corrector. Multiply DEQ sec/case by n_val and by #correctors."
+    }
+  },
+  "gate": {
+    "published_q": 2.352087337434264,
+    "published_coverage": 0.9154961956739466,
+    "measured_backbone_ch2": {
+      "status": "ok",
+      "channel": 2,
+      "channel_name": "p",
+      "alpha": 0.1,
+      "q": 2.352087337434264,
+      "coverage": 0.9154961956739466,
+      "target_coverage": 0.9,
+      "ece": 0.0739961294179643,
+      "n_cal": 100,
+      "n_test": 100
+    },
+    "q_tol": 0.05,
+    "coverage_tol": 0.01,
+    "q_ok": true,
+    "coverage_ok": true,
+    "gate_passed": true,
+    "is_smoke": false
+  },
+  "backbone_conformal": {
+    "u": {
+      "status": "ok",
+      "channel": 0,
+      "channel_name": "u",
+      "alpha": 0.1,
+      "q": 2.255611584468739,
+      "coverage": 0.8813839179781756,
+      "target_coverage": 0.9,
+      "ece": 0.037220885118290026,
+      "n_cal": 100,
+      "n_test": 100
+    },
+    "v": {
+      "status": "ok",
+      "channel": 1,
+      "channel_name": "v",
+      "alpha": 0.1,
+      "q": 2.5815317508809756,
+      "coverage": 0.9075146610621296,
+      "target_coverage": 0.9,
+      "ece": 0.05781469280336765,
+      "n_cal": 100,
+      "n_test": 100
+    },
+    "p": {
+      "status": "ok",
+      "channel": 2,
+      "channel_name": "p",
+      "alpha": 0.1,
+      "q": 2.352087337434264,
+      "coverage": 0.9154961956739466,
+      "target_coverage": 0.9,
+      "ece": 0.0739961294179643,
+      "n_cal": 100,
+      "n_test": 100
+    }
+  },
+  "corrected_conformal": {
+    "seed0": {
+      "corrected_conformal_refit_q": {
+        "u": {
+          "status": "ok",
+          "channel": 0,
+          "channel_name": "u",
+          "alpha": 0.1,
+          "q": 2.1698255732549985,
+          "coverage": 0.883479456022977,
+          "target_coverage": 0.9,
+          "ece": 0.03773133353261489,
+          "n_cal": 100,
+          "n_test": 100
+        },
+        "v": {
+          "status": "ok",
+          "channel": 1,
+          "channel_name": "v",
+          "alpha": 0.1,
+          "q": 2.342369972433063,
+          "coverage": 0.9086548802923892,
+          "target_coverage": 0.9,
+          "ece": 0.05655206949790291,
+          "n_cal": 100,
+          "n_test": 100
+        },
+        "p": {
+          "status": "ok",
+          "channel": 2,
+          "channel_name": "p",
+          "alpha": 0.1,
+          "q": 2.106526664330264,
+          "coverage": 0.9148527422272488,
+          "target_coverage": 0.9,
+          "ece": 0.07196567631949556,
+          "n_cal": 100,
+          "n_test": 100
+        }
+      },
+      "corrected_conformal_backbone_q": {
+        "u": {
+          "status": "ok",
+          "channel": 0,
+          "channel_name": "u",
+          "alpha": 0.1,
+          "q": 2.255611584468739,
+          "coverage": 0.892637573613478,
+          "target_coverage": 0.9,
+          "ece": 0.04719105451788756,
+          "n_cal": 100,
+          "n_test": 100
+        },
+        "v": {
+          "status": "ok",
+          "channel": 1,
+          "channel_name": "v",
+          "alpha": 0.1,
+          "q": 2.5815317508809756,
+          "coverage": 0.928113183707808,
+          "target_coverage": 0.9,
+          "ece": 0.08277954631601331,
+          "n_cal": 100,
+          "n_test": 100
+        },
+        "p": {
+          "status": "ok",
+          "channel": 2,
+          "channel_name": "p",
+          "alpha": 0.1,
+          "q": 2.352087337434264,
+          "coverage": 0.9337076539527086,
+          "target_coverage": 0.9,
+          "ece": 0.10184358041164995,
+          "n_cal": 100,
+          "n_test": 100
+        }
+      }
+    },
+    "seed1": {
+      "corrected_conformal_refit_q": {
+        "u": {
+          "status": "ok",
+          "channel": 0,
+          "channel_name": "u",
+          "alpha": 0.1,
+          "q": 2.3116948146426575,
+          "coverage": 0.8841703672430423,
+          "target_coverage": 0.9,
+          "ece": 0.04004684143864849,
+          "n_cal": 100,
+          "n_test": 100
+        },
+        "v": {
+          "status": "ok",
+          "channel": 1,
+          "channel_name": "v",
+          "alpha": 0.1,
+          "q": 2.2939783061589365,
+          "coverage": 0.9054628827823814,
+          "target_coverage": 0.9,
+          "ece": 0.054913605280755874,
+          "n_cal": 100,
+          "n_test": 100
+        },
+        "p": {
+          "status": "ok",
+          "channel": 2,
+          "channel_name": "p",
+          "alpha": 0.1,
+          "q": 2.0960242089523136,
+          "coverage": 0.9129242308913125,
+          "target_coverage": 0.9,
+          "ece": 0.0706411730082373,
+          "n_cal": 100,
+          "n_test": 100
+        }
+      },
+      "corrected_conformal_backbone_q": {
+        "u": {
+          "status": "ok",
+          "channel": 0,
+          "channel_name": "u",
+          "alpha": 0.1,
+          "q": 2.255611584468739,
+          "coverage": 0.8782258188777161,
+          "target_coverage": 0.9,
+          "ece": 0.03531388386404887,
+          "n_cal": 100,
+          "n_test": 100
+        },
+        "v": {
+          "status": "ok",
+          "channel": 1,
+          "channel_name": "v",
+          "alpha": 0.1,
+          "q": 2.5815317508809756,
+          "coverage": 0.9293070240586258,
+          "target_coverage": 0.9,
+          "ece": 0.08670233190240957,
+          "n_cal": 100,
+          "n_test": 100
+        },
+        "p": {
+          "status": "ok",
+          "channel": 2,
+          "channel_name": "p",
+          "alpha": 0.1,
+          "q": 2.352087337434264,
+          "coverage": 0.9335252188758671,
+          "target_coverage": 0.9,
+          "ece": 0.10193411998187978,
+          "n_cal": 100,
+          "n_test": 100
+        }
+      }
+    },
+    "seed2": {
+      "corrected_conformal_refit_q": {
+        "u": {
+          "status": "ok",
+          "channel": 0,
+          "channel_name": "u",
+          "alpha": 0.1,
+          "q": 2.383527649531729,
+          "coverage": 0.8876249233433693,
+          "target_coverage": 0.9,
+          "ece": 0.04414309443172398,
+          "n_cal": 100,
+          "n_test": 100
+        },
+        "v": {
+          "status": "ok",
+          "channel": 1,
+          "channel_name": "v",
+          "alpha": 0.1,
+          "q": 2.321710486790883,
+          "coverage": 0.9058604186761746,
+          "target_coverage": 0.9,
+          "ece": 0.05530362189097654,
+          "n_cal": 100,
+          "n_test": 100
+        },
+        "p": {
+          "status": "ok",
+          "channel": 2,
+          "channel_name": "p",
+          "alpha": 0.1,
+          "q": 2.1500064565133674,
+          "coverage": 0.9149951155473515,
+          "target_coverage": 0.9,
+          "ece": 0.07500864409443479,
+          "n_cal": 100,
+          "n_test": 100
+        }
+      },
+      "corrected_conformal_backbone_q": {
+        "u": {
+          "status": "ok",
+          "channel": 0,
+          "channel_name": "u",
+          "alpha": 0.1,
+          "q": 2.255611584468739,
+          "coverage": 0.8742985340478707,
+          "target_coverage": 0.9,
+          "ece": 0.03280047087972535,
+          "n_cal": 100,
+          "n_test": 100
+        },
+        "v": {
+          "status": "ok",
+          "channel": 1,
+          "channel_name": "v",
+          "alpha": 0.1,
+          "q": 2.5815317508809756,
+          "coverage": 0.9278161103732215,
+          "target_coverage": 0.9,
+          "ece": 0.08362287711210203,
+          "n_cal": 100,
+          "n_test": 100
+        },
+        "p": {
+          "status": "ok",
+          "channel": 2,
+          "channel_name": "p",
+          "alpha": 0.1,
+          "q": 2.352087337434264,
+          "coverage": 0.9308250564716687,
+          "target_coverage": 0.9,
+          "ece": 0.09906508186465905,
+          "n_cal": 100,
+          "n_test": 100
+        }
+      }
+    }
+  },
+  "verdict": {
+    "u": {
+      "refit_q_coverage": 0.883479456022977,
+      "refit_q_in_band": false,
+      "refit_q": 2.1698255732549985,
+      "backbone_q": 2.255611584468739,
+      "sharper_than_backbone": true,
+      "backbone_q_on_corrected_coverage": 0.892637573613478,
+      "remains_conservative": false
+    },
+    "v": {
+      "refit_q_coverage": 0.9086548802923892,
+      "refit_q_in_band": true,
+      "refit_q": 2.342369972433063,
+      "backbone_q": 2.5815317508809756,
+      "sharper_than_backbone": true,
+      "backbone_q_on_corrected_coverage": 0.928113183707808,
+      "remains_conservative": true
+    },
+    "p": {
+      "refit_q_coverage": 0.9148527422272488,
+      "refit_q_in_band": true,
+      "refit_q": 2.106526664330264,
+      "backbone_q": 2.352087337434264,
+      "sharper_than_backbone": true,
+      "backbone_q_on_corrected_coverage": 0.9337076539527086,
+      "remains_conservative": true
+    }
+  },
+  "interpretation": {
+    "refit_q": "PROPER certificate. Random in-distribution split => exchangeability holds => test coverage ~= 1-alpha is essentially guaranteed (a VALIDATION, not a surprise). The informative content is SHARPNESS: does corrected-q shrink vs backbone-q?",
+    "backbone_q_on_corrected": "Direct test of the tex claim that the corrected band 'remains conservative' under the backbone's own multiplier: coverage >= target => CONSERVATIVE confirmed.",
+    "exchangeability": "Holds here (random in-distribution case split, no OOD). The distribution-free guarantee is legitimate. Do NOT extend this coverage claim to OOD splits without flagging the exchangeability breach."
+  }
+}
