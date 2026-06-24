@@ -228,24 +228,53 @@ class PhysicsChecker:
     cfg : PhysicsConfig, optional
         Trust-map weights/thresholds and residual settings. Defaults to a fresh
         :class:`~neuroforge.core.config.PhysicsConfig`.
+    include_bc : bool, optional
+        Whether the boundary-condition violation term participates in the trust
+        map and the residual maps. **Default ``True`` reproduces the existing
+        (AirfRANS) behaviour byte-for-byte.** Set ``False`` for the
+        ``interior-only`` verifier used in the cross-dataset trust-signal
+        experiment: the :func:`bc_violation` term assumes an immersed solid in a
+        uniform freestream (no-slip on the body + far-field inlet ring) and does
+        **not** transfer cleanly to a channel flow with explicit wall / inlet /
+        outlet boundaries (DeepCFD). With ``include_bc=False`` the ``bc`` map is
+        an all-zero placeholder (so :func:`bc_violation` is never even called)
+        and the trust map is driven by the interior continuity + momentum
+        residual alone -- the apples-to-apples "same verifier" path.
+
+        Note: the per-case ``residual_norm`` used by
+        :func:`~neuroforge.physics.evaluation.evaluate_cases` (and hence
+        ``residual_error_spearman``) is computed by
+        :meth:`Diagnostics.residual_norm`, which is **already** the interior-only
+        continuity+momentum norm regardless of this flag. ``include_bc`` only
+        changes the trust *map* and whether the (inapplicable) BC term is
+        evaluated -- so the headline trust signal is the *identical scalar
+        function* on AirfRANS and DeepCFD.
     """
 
-    def __init__(self, cfg: PhysicsConfig | None = None) -> None:
+    def __init__(
+        self, cfg: PhysicsConfig | None = None, include_bc: bool = True
+    ) -> None:
         self.cfg = cfg if cfg is not None else PhysicsConfig()
+        self.include_bc = bool(include_bc)
 
     # -- raw residual maps -------------------------------------------------- #
     def residuals(self, field: FlowField, case: FlowCase) -> dict[str, np.ndarray]:
-        """Compute the four residual maps on physical fields.
+        """Compute the residual maps on physical fields.
 
         Returns
         -------
         dict
             Keys ``'continuity'``, ``'momentum_x'``, ``'momentum_y'``, ``'bc'``;
-            each value is a ``(ny, nx)`` ``float32`` map.
+            each value is a ``(ny, nx)`` ``float32`` map. When ``include_bc`` is
+            ``False`` the ``'bc'`` map is an all-zero placeholder and
+            :func:`bc_violation` is not called.
         """
         cont = continuity_residual(field)
         r_x, r_y = momentum_residual(field, case.fluid)
-        bc = bc_violation(field, case)
+        if self.include_bc:
+            bc = bc_violation(field, case)
+        else:
+            bc = np.zeros(field.shape, dtype=DTYPE)
         return {
             "continuity": cont,
             "momentum_x": r_x,

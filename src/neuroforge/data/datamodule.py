@@ -194,6 +194,26 @@ def _load_pairs(cfg: DataConfig) -> tuple[list, list]:
         ]
         return train, val
 
+    if cfg.source == "deepcfd":
+        from neuroforge.data.deepcfd_loader import load_deepcfd
+
+        # DeepCFD is a single pickled array; we slice a deterministic train/val
+        # split by index (first n_train -> train, next n_val -> val). The OOD
+        # geometry-band split used in the trust-signal experiment is built
+        # explicitly in scripts/run_deepcfd.py via load_deepcfd(indices=...);
+        # this datamodule branch is the plain sequential split for parity with
+        # the airfrans/synthetic sources.
+        train = load_deepcfd(
+            root=cfg.root, resolution=cfg.resolution,
+            indices=list(range(cfg.n_train)), cache_dir=cfg.cache_dir,
+        )
+        val = load_deepcfd(
+            root=cfg.root, resolution=cfg.resolution,
+            indices=list(range(cfg.n_train, cfg.n_train + cfg.n_val)),
+            cache_dir=cfg.cache_dir,
+        )
+        return train, val
+
     if cfg.source == "airfrans":
         from neuroforge.data.airfrans_loader import load_airfrans
 
@@ -213,7 +233,7 @@ def _load_pairs(cfg: DataConfig) -> tuple[list, list]:
 
     raise ValueError(
         f"unknown data source '{cfg.source}' "
-        "(expected 'synthetic', 'synthetic_cylinder', or 'airfrans')"
+        "(expected 'synthetic', 'synthetic_cylinder', 'airfrans', or 'deepcfd')"
     )
 
 
