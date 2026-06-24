@@ -183,9 +183,10 @@ The layer depends only on a model's predictions and uncertainty, so it is backbo
 (supervised) toward ground truth reduces volume-field MSE on the SOTA backbone on
 \textbf{all three seeds}: $\texttt{mse\_u}$ $0.127\rightarrow0.116$ ($-9\%$),
 $\texttt{mse\_v}$ $0.100\rightarrow0.079$ ($-21\%$), $\texttt{mse\_p}$ $630\rightarrow471$
-($-25\%$, gate-verified), with force ranking held ($\rho_{C_l}=0.999$) and force error
-slightly improved (\autoref{sec:v2}, \autoref{tab:v2}). The backbone is itself
-SOTA-competitive, so the corrector improves a competitive surrogate. The deployed corrector
+($-25\%$, gate-verified), with internal force-ranking self-consistency held
+($\rho_{C_l}=0.999$; against \emph{official} labels the ranking is recovered at $\rho_D=0.84$,
+magnitude biased, \autoref{sec:v2}). The backbone is a published SOTA architecture (Transolver),
+so the corrector improves a competitive surrogate. The deployed corrector
 ingests the residual as an input channel, but a controlled ablation that zeros that input at
 train and inference (3 seeds) matches or slightly exceeds the deployed corrector, so we
 attribute the gain to the learned correction, not to residual-conditioning (\autoref{sec:v2},
