@@ -882,8 +882,8 @@ versus AirfRANS's turbulent RANS). We train an FNO backbone (3 seeds) on an out-
 split that holds out the largest bodies---forcing a range of per-case errors---and measure the
 same per-case residual--error Spearman correlation (interior continuity+momentum residual;
 \texttt{scripts/run\_deepcfd.py}, \texttt{results/deepcfd/deepcfd\_results.json}). The trust
-signal holds: \textbf{$\texttt{residual\_error\_spearman} = 0.770 \pm 0.119$} (3 seeds),
-comparable to---indeed above---the AirfRANS Transolver value ($0.625$). The error spread is
+signal holds (\autoref{fig:deepcfd}): \textbf{$\texttt{residual\_error\_spearman} = 0.770 \pm
+0.119$} (3 seeds), comparable to---indeed above---the AirfRANS Transolver value ($0.625$). The error spread is
 genuine (per-case rel-$L_2$ median $0.063$, max $0.136$), so the correlation is not degenerate.
 A clean mechanistic reason it can be \emph{sharper} than the turbulent case: laminar flow has
 $\nu_t=0$, so the residual is the \emph{exact} Navier--Stokes residual with no
@@ -1189,6 +1189,19 @@ inflation).}
 \caption{In-distribution reliability / coverage-vs-$\alpha$ and the measured DEQ
 contraction ($0.78 < 1$).}
 \label{fig:fig6}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.75\textwidth]{../../results/figures/fig_deepcfd_trust.pdf}
+\caption{The trust signal generalizes to a second dataset (DeepCFD, 2-D laminar flow over bluff
+bodies; OOD held-out-largest-body split, 3 seeds). Per-case field-mean PDE residual norm
+(interior continuity+momentum) vs.\ rel-$L_2$ speed error: a low residual tracks a low error, as
+on AirfRANS. Per-case Spearman $\rho=0.77{\pm}0.12$ (per seed $0.72/0.66/0.93$; the trend holds
+\emph{within} each seed---the colour-coded clusters span different residual ranges by
+initialisation). The residual is a reference-free error proxy on a geometry family and flow
+regime absent from AirfRANS.}
+\label{fig:deepcfd}
 \end{figure}
 
 \begin{figure}[t]
