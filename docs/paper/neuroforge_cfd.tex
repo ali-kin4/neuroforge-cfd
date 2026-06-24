@@ -262,6 +262,20 @@ train and inference (3 seeds) matches or slightly exceeds the deployed corrector
 \emph{trust signal}---it tells you \emph{where} a prediction is wrong---not as a correction
 mechanism telling you \emph{how} to fix it; the learned correction does the fixing.
 
+\paragraph{Residual-based, data-free error signals.} Closest to our \emph{trust-signal}
+half is recent work that reads the PDE residual as a reference-free indicator of prediction
+error. \citet{roy2025anchor} use a physics-informed, residual-based error estimator to detect
+and correct accumulating error in neural-operator \emph{time-marching}, triggering a classical
+solver when the estimator fires; \citet{song2026structureaware} design an epistemic-UQ scheme
+whose uncertainty bands are aligned with localised residual structure in operator surrogates. We
+share the premise that the residual is a data-free error signal and do not claim to originate
+it. Our distinct contributions are (i)~the head-to-head \emph{dissociation}---the residual is a
+good trust signal but a poor correction objective, established on the same steady-state RANS
+benchmark; (ii)~the \emph{residual-floor theorem} quantifying the operator-specific detection
+limit and the undetectable kernel modes; and (iii)~a split-conformal certificate calibrated on
+the \emph{deployed, corrected} field. Our setting is steady-state external aerodynamics with
+per-case spatial trust, rather than time-marching error control.
+
 \paragraph{Uncertainty quantification and conformal prediction for PDE surrogates.}
 Deep ensembles \citep{lakshminarayanan2017ensembles} and MC-dropout
 \citep{gal2016dropout} are standard epistemic estimators; conformal prediction gives
