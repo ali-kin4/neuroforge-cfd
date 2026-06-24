@@ -63,12 +63,13 @@ finding is a clean two-way dissociation, validated on a SOTA Transolver backbone
 \textbf{the physics residual is a reliable, backbone-robust trust signal (it tells you
 \emph{where} the prediction is wrong), but a poor correction objective (it does not tell
 you \emph{how} to fix it).} (1)
-\emph{As a trust signal}, the residual is a calibrated, backbone-robust proxy for
-error across three architecturally-distinct backbones tested: its per-case rank correlation
-with field error is $0.625{\pm}0.019$ on the SOTA Transolver backbone, $\approx 0.40$ on a
-weak grid Geo-FNO backbone (which a learned corrector lifts to $0.83$), and $0.851{\pm}0.058$
-on a message-passing GNN (MeshGraphNet, bare), and a split-conformal layer attains target
-coverage
+\emph{As a trust signal}, the residual is a calibrated error proxy whose per-case
+rank correlation with field error is consistently positive across three
+architecturally-distinct backbones, though variable in strength: $0.625{\pm}0.019$ on the SOTA
+Transolver backbone, $\approx 0.40$ on a weak grid Geo-FNO backbone (which a learned corrector
+lifts to $0.83$), and $0.851{\pm}0.058$ on a message-passing GNN (MeshGraphNet, bare---whose
+high correlation partly reflects its wide error spread); a split-conformal layer, which depends
+only on predictions and $\sigma$, attains target coverage
 ($0.902{\pm}0.008$ at the $0.90$ target). (2) \emph{As a correction objective
 or acceptance gate}, the residual fails: sweeping the iterations \emph{raises} the
 PDE residual while \emph{lowering} field error, and a backtracking test that admits
@@ -85,8 +86,8 @@ package a \textbf{distribution-free conformal trust
 layer} that attains the coverage above (a guarantee that holds only under
 exchangeability) and empirically retains target coverage out-of-distribution via
 uncertainty inflation; pairing it with a deep-ensemble $\sigma$ yields an
-\emph{input-adaptive} band on the near-deterministic SOTA model (ECE $0.074$, $q=2.35$),
-where MC-dropout gives a valid but near-constant one. We report two honest caveats on the
+\emph{input-adaptive} band on the near-deterministic SOTA model (ECE $0.074$, $q=2.35$; a
+single calibration/test split), where MC-dropout gives a valid but near-constant one. We report two honest caveats on the
 corrector plainly: correction quality is \emph{backbone-dependent} (the same corrector is flat
 on the weak grid backbone), and---per the ablation above---its gain is not sourced from the
 residual input. The contribution is the self-auditing trust layer, the residual's
@@ -156,15 +157,19 @@ correction, not to residual-conditioning. We report both.
 In priority order:
 
 \begin{enumerate}
-\item \textbf{The trust layer is backbone-robust (headline).} The physics residual is
+\item \textbf{A backbone-agnostic trust layer over a consistently positive residual detector (headline).} The physics residual is
 a calibrated, \emph{case-level} error detector across three architecturally-distinct backbones
 tested. On the SOTA
 Transolver backbone its per-case rank (Spearman) correlation with field error is
 $0.625{\pm}0.019$ (\autoref{sec:v2}, \autoref{tab:v2}); on a much weaker grid backbone it is
 $\approx 0.40$ bare and a learned corrector lifts it to $0.83$ (\autoref{sec:indist-ablation});
 and on a param-matched message-passing GNN (MeshGraphNet, bare) it is $0.851{\pm}0.058$
-(\texttt{results/mgn/mgn\_results.json}),
-so the detector is positive and substantial across all three (per-cell spatial localisation is weaker, \autoref{sec:method}). Building on it, a split-conformal trust layer attains
+(\texttt{results/mgn/mgn\_results.json}, a high value that partly reflects that model's wide
+error spread, which is easy to rank),
+so the detector is consistently \emph{positive} across all three, though its \emph{strength}
+varies ($\rho$ from $0.40$ to $0.85$; per-cell spatial localisation is weaker still,
+\autoref{sec:method}). Building on it---and depending only on a model's predictions and
+$\sigma$, hence backbone-agnostic---a split-conformal trust layer attains
 target coverage on the SOTA backbone ($0.902{\pm}0.008$ at the $0.90$ target,
 \autoref{sec:v2}); with a deep-ensemble $\sigma$ the band is input-adaptive on that same
 near-deterministic model (ECE $0.074$, \autoref{tab:uq}), and on the weak backbone it
@@ -630,9 +635,13 @@ beats NULL on $0/3$ seeds; \texttt{results/control/w1\_capture.json}). The resid
 therefore \emph{not} the source of the corrector's field-MSE improvement; the improvement is
 attributable to the learned correction architecture, not to residual-conditioning. This is
 consistent with the residual's role elsewhere in the paper: it tells you \emph{where} a
-prediction is wrong (a trust signal), not \emph{how} to fix it. We keep the residual-fed
-corrector as the deployed system---it remains the headline---and report this as a sharpening
-of \emph{attribution}, not a change to the result.
+prediction is wrong (a trust signal), not \emph{how} to fix it. Since NULL and WITH are
+statistically tied (NULL marginally ahead, $0/3$ seeds for WITH), the residual input is not
+deployed \emph{for accuracy}; we retain it in the as-trained, residual-fed configuration only
+because the residual is already computed for the trust layer and the iteration's acceptance
+test, so conditioning the corrector on it costs nothing extra---and we note that a
+residual-free corrector is an equally valid deployment. We report this as a sharpening of
+\emph{attribution}, not a change to the result.
 
 \paragraph{The trust signal is backbone-robust.} On this SOTA backbone the bare
 residual--error correlation is already strong ($0.625{\pm}0.019$, vs $\approx 0.40$ for the
@@ -646,8 +655,11 @@ case-level residual--error Spearman correlation is $0.851{\pm}0.058$
 (\texttt{results/mgn/mgn\_results.json}). Across three fundamentally different architectures---a
 spectral grid Geo-FNO ($\approx 0.40$ bare), an attention/point-cloud Transolver
 ($0.625{\pm}0.019$ bare), and a message-passing GNN MeshGraphNet ($0.851{\pm}0.058$ bare)---the
-correlation is positive and substantial (a $0.40$--$0.85$ range), which is what
-``backbone-robust'' means here. MeshGraphNet is run only as a bare backbone (no corrector and
+correlation is consistently \emph{positive}, though variable in strength (a $0.40$--$0.85$
+range). This is precisely what ``backbone-robust'' means here: the detector \emph{works} on
+every architecture, not that its strength is uniform across them. (The high MeshGraphNet value
+partly reflects that model's wide error spread---large, dispersed errors are easier to rank by
+residual.) MeshGraphNet is run only as a bare backbone (no corrector and
 no conformal layer), so it speaks only to the trust-signal claim. Either way the residual is a
 reliable detector.
 
@@ -828,24 +840,28 @@ range), so the gap mixes a train-set change with regime shift, and the \texttt{a
 $\texttt{mse\_u}$ effect, while 3/3 directional, is seed-0-dominated.
 
 \paragraph{Beyond regime shift: a geometry the model never saw (qualitative).} The splits
-above shift the flow regime \emph{within} the airfoil family; we close with a harder,
-qualitative probe of cross-\emph{geometry} extrapolation. We run the airfoil-trained
-Transolver on a \emph{cylinder}---a bluff body absent from AirfRANS---and ask not whether the
-prediction is good (it is not) but whether the trust layer \emph{flags} the failure. Because
-the physics residual is evaluated against the governing PDE, not a reference field, this needs
-no ground truth (unavailable for a cylinder at these $Re$). \autoref{fig:cylinder} contrasts
-the residual trust map against the deep-ensemble variance on the same case. The residual
-concentrates sharply on the body surface, where the predicted field most violates continuity,
-momentum, and no-slip (near-body vs.\ far-field mean ratio $14.6$--$22.9$ across three
-cylinders, peak at $1.04$--$1.05\,r$); the deep-ensemble variance does \emph{not} localise
-there (ratio $1.2$--$1.5$, its peak drifting into the wake)---member disagreement tracks
-background uncertainty, not the physical failure. A physics-grounded signal flags \emph{where}
-an out-of-distribution geometry breaks the equations; a purely data-driven one, trained on
-airfoils, does not know to. \textbf{Honest scope:} this is a qualitative illustration on one
-geometry family, and the residual is a \emph{local}-violation detector, not a
-global-correctness oracle---it lights the body ring but leaves the smoothly-wrong
-(missing-wake) far field dark, since a locally smooth field is close to a locally valid steady
-solution. It complements, not replaces, the quantitative regime-shift results above.
+above shift the flow regime \emph{within} the airfoil family; we close with a qualitative probe
+of cross-\emph{geometry} extrapolation. We run the airfoil-trained Transolver on a
+\emph{cylinder}---a bluff body absent from AirfRANS---and ask not whether the prediction is good
+(it is not) but whether the residual---a data-free quantity evaluated against the governing PDE,
+needing no reference field (unavailable for a cylinder at these $Re$)---registers the geometry
+as out-of-distribution. It does, in the residual \emph{magnitude}: the predicted cylinder field
+is uniformly less PDE-consistent than in-distribution airfoils with good predictions
+($\approx 0.6\%$ rel-$L_2$). Normalising each case's residual by its freestream $U^2$ (the
+momentum-residual scale), the dimensionless far-field residual is $\approx 7\times$ higher on
+the cylinder (median $\approx 30\times$; \autoref{fig:cylinder},
+\texttt{results/figures/cylinder\_control\_airfoil\_ratio.json}). This gap holds in the
+\emph{far field}, away from any wall, so it is a genuine geometry-OOD effect---neither a
+near-wall discretisation artifact nor a velocity-scale effect (it survives the $U^2$
+normalisation). \textbf{Honest scope, with a controlled negative.} This is a qualitative
+illustration on one geometry family, and we report a control that \emph{refutes} the tempting
+spatial reading: the residual's bright near-body \emph{ring} is a generic no-slip-wall feature,
+not an OOD localiser---in-distribution airfoils with good predictions show the \emph{same}
+near-body-vs-far-field concentration ratio ($\approx 23$) as the cylinder ($\approx 18$), so
+spatial near-wall concentration cannot be read as ``where the prediction failed.'' The
+out-of-distribution signal is therefore the field-wide residual \emph{magnitude}, not its
+spatial ratio; and the residual remains a local-violation detector, not a global-correctness
+oracle. It complements, not replaces, the quantitative regime-shift results above.
 
 \subsection{Residual-as-objective fails: the residual and the error move apart}
 \label{sec:iters}
@@ -1092,11 +1108,13 @@ contraction ($0.78 < 1$).}
 \centering
 \includegraphics[width=\textwidth]{../../results/figures/fig_cylinder_ood.pdf}
 \caption{Cross-geometry OOD (qualitative): an airfoil-trained model on a cylinder.
-(a)~predicted speed; (b)~the physics-residual trust map localises on the body surface where
-the field violates the PDE (no ground truth used); (c)~deep-ensemble variance from the five
-members (the uncorrected ensemble, the source of $\sigma$) does not localise there. Physics flags \emph{where} the geometry breaks the equations; data-driven
-variance does not. The residual is a local-violation detector---note the smoothly-wrong wake
-stays dark.}
+(a)~predicted speed (visibly broken---the flow is not arrested at the body); (b)~the
+physics-residual map (no ground truth used), elevated field-wide; its bright near-body ring is
+a generic no-slip-wall feature common to all bodies (a matched in-distribution-airfoil control
+shows the same near/far ratio), \emph{not} an OOD localiser; (c)~deep-ensemble variance (the
+uncorrected five members, the source of $\sigma$), for comparison. The OOD signal is the
+field-wide residual \emph{magnitude}---$\approx 7\times$ higher than in-distribution airfoils
+in the far field, away from any wall (\autoref{sec:ood})---not its spatial concentration.}
 \label{fig:cylinder}
 \end{figure}
 
