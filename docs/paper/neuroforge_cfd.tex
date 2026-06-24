@@ -68,7 +68,10 @@ rank correlation with field error is consistently positive across three
 architecturally-distinct backbones, though variable in strength: $0.625{\pm}0.019$ on the SOTA
 Transolver backbone, $\approx 0.40$ on a weak grid Geo-FNO backbone (which a learned corrector
 lifts to $0.83$), and $0.851{\pm}0.058$ on a message-passing GNN (MeshGraphNet, bare---whose
-high correlation partly reflects its wide error spread); a split-conformal layer, which depends
+high correlation partly reflects its wide error spread). It further generalizes to a
+\emph{second dataset}---DeepCFD laminar bluff bodies, a different geometry and flow regime
+($\rho=0.77{\pm}0.12$, 3 seeds)---so the property is not specific to AirfRANS or to turbulent
+RANS. A split-conformal layer, which depends
 only on predictions and $\sigma$, attains target coverage
 ($0.902{\pm}0.008$ at the $0.90$ target). (2) \emph{As a correction objective
 or acceptance gate}, the residual fails: sweeping the iterations \emph{raises} the
@@ -77,9 +80,8 @@ only residual-reducing steps accepts essentially none---minimising the residual 
 not minimising the error. Alongside the trust signal we deploy a learned, supervised
 \textbf{self-correction}: a deep-equilibrium (DEQ) corrector trained toward ground truth
 reduces volume-field MSE on all three seeds---$\texttt{mse\_u}$ $-9\%$, $\texttt{mse\_v}$
-$-21\%$, $\texttt{mse\_p}$ $-25\%$ (gate-verified, $\rho_{C_l}=0.999$)---on a backbone that
-is itself SOTA-competitive ($\approx 5\%$ lift error; drag ranks well, $\rho_{C_d}=0.996$,
-but its magnitude scatter is larger). A controlled ablation that zeros the residual input
+$-21\%$, $\texttt{mse\_p}$ $-25\%$ (gate-verified)---on a backbone that
+is itself a published SOTA architecture (Transolver). A controlled ablation that zeros the residual input
 to this corrector at train and inference (3 seeds) matches or slightly exceeds it, so the
 improvement is attributable to the learned correction, not to residual-conditioning. We
 package a \textbf{distribution-free conformal trust
@@ -564,7 +566,11 @@ and out-of-distribution ablations use the pre-registered protocol
 $n=3$ widens bars by $\approx 1.22\times$). Metrics follow the AirfRANS community protocol
 (\texttt{evaluate\_cases}): per-channel volume MSE (lower is better, well-conditioned),
 surface-pressure MSE on the body, Spearman rank correlation of the force coefficients
-$\rho_{C_l}, \rho_{C_d}$ (closer to 1 is better---what early-design ranking needs), and
+$\rho_{C_l}, \rho_{C_d}$ (closer to 1 is better---what early-design ranking needs; throughout
+the tables these correlate forces integrated from the predicted vs.\ the ground-truth field
+through our grid surface-integrator---a \emph{field-to-field self-consistency} valid for the
+relative arm/condition comparisons, not agreement with AirfRANS's official force labels;
+see \autoref{sec:v2}), and
 \texttt{residual\_error\_spearman} ($> 0$ means a low residual tracks low error). The
 $\nu_t$ channel is near-degenerate at this scale (MSE $\approx 5\times10^{-8}$ for every
 arm) and is omitted from the tables (see \autoref{sec:limitations}).
@@ -625,20 +631,34 @@ $\texttt{mse\_v}$ $-21\%$ ($0.100\rightarrow0.079$), $\texttt{mse\_p}$ $-25\%$
 ($630\rightarrow471$). The per-seed reductions are sign-consistent down on all three seeds
 for every volume channel. \textbf{Surface-pressure} MSE is the one channel the corrector does
 \emph{not} improve on this strong backbone: essentially flat at $10794\rightarrow10811$
-($+0.2\%$; per-seed $-1/-1/+2\%$), which we report for completeness rather than omit. Force
-ranking is held at $\rho_{C_l}=0.999$, $\rho_{C_d}$
-$0.995\rightarrow0.996$, and the relative force errors improve ($C_l$ $5.6\%\rightarrow5.2\%$,
-$C_d$ $7.5\%\rightarrow6.7\%$; the $C_d$ \emph{magnitude} per-case scatter remains large,
-std $\approx0.3$--$0.45$, so we lead with the ranking). This is the corrector trained by
+($+0.2\%$; per-seed $-1/-1/+2\%$), which we report for completeness rather than omit. Internal
+force-ranking consistency is held at $\rho_{C_l}=0.999$, $\rho_{C_d}$
+$0.995\rightarrow0.996$, with relative force errors $C_l$ $5.6\%\rightarrow5.2\%$,
+$C_d$ $7.5\%\rightarrow6.7\%$. This is the corrector trained by
 supervised regression toward ground truth and applied without the acceptance test
 (\autoref{sec:correction}).
-The backbone is itself SOTA-competitive ($\rho_{C_l}=0.999$, $\approx 5\%$ force error,
-matching \autoref{tab:transolver}), so the trust layer and corrector are demonstrated
+
+\textbf{What these force correlations measure---and what they do not.} Our
+$\rho_{C_l}/\rho_{C_d}$ (here and in every table) correlate the force integrated from the
+\emph{predicted} field against the force integrated from the \emph{ground-truth} field through
+the same grid surface-integrator: a field-to-field consistency, valid for the relative
+arm/condition comparisons we draw from it, but \emph{not} agreement with AirfRANS's official
+OpenFOAM force labels (which our pipeline never loads). Recomputed against those official labels
+(\texttt{scripts/recompute\_force\_vs\_official.py}; 200 cases, 3 seeds;
+\texttt{results/control/force\_vs\_official.json}), the deployed backbone recovers force
+\emph{ranking}---$\rho_D=0.84{\pm}0.01$ (drag), $\rho_L=0.88$ (lift)---but not magnitude:
+absolute drag is biased ($\approx 11\times$ relative error) by a $1.5$-cell surface-sampling
+offset in our integrator, and the same integrator on \emph{perfect} fields also yields
+$\rho_D=0.84$, so the model saturates the measurement ceiling rather than the prediction being
+the limit. We therefore read $\rho_{C_l}/\rho_{C_d}$ only as internal consistency, and make no
+claim of accurate absolute forces or of a cross-method force-ranking win (published methods use
+a different force-integration convention). The backbone is itself a published SOTA architecture
+(Transolver, \citealt{wu2024transolver}), so the trust layer and corrector are demonstrated
 \emph{on} a competitive surrogate---not only on the weak grid backbone.
 
 \paragraph{The gain comes from the learned correction, not from feeding it the residual
-(W1 control).} The corrector improves the field by $-9/-21/-25\%$ (gate-verified,
-$\rho_{C_l}=0.999$). To isolate \emph{why}, we train the same DEQ corrector two ways under
+(W1 control).} The corrector improves the field by $-9/-21/-25\%$ (gate-verified).
+To isolate \emph{why}, we train the same DEQ corrector two ways under
 identical architecture, data, optimiser, schedule and seeds, differing only in whether the
 3 residual input channels carry the real residual (WITH) or are permanently zeroed at both
 train and inference (NULL). Across 3 seeds, the null corrector \textbf{matches or slightly
@@ -852,6 +872,24 @@ We do not claim the loop uniformly preserves force ranking under shift. Methodol
 caveat: the in-distribution reference is the \texttt{full} split (a different training
 range), so the gap mixes a train-set change with regime shift, and the \texttt{aoa}
 $\texttt{mse\_u}$ effect, while 3/3 directional, is seed-0-dominated.
+
+\paragraph{A second dataset: the trust signal generalizes beyond AirfRANS.} The strongest
+test of generality is a different dataset entirely. We evaluate the residual trust signal on
+\textbf{DeepCFD} \citep{ribeiro2020deepcfd}---2-D laminar incompressible flow over bluff bodies
+(circles, squares, rhombi): a different geometry family \emph{and} a different regime (laminar,
+versus AirfRANS's turbulent RANS). We train an FNO backbone (3 seeds) on an out-of-distribution
+split that holds out the largest bodies---forcing a range of per-case errors---and measure the
+same per-case residual--error Spearman correlation (interior continuity+momentum residual;
+\texttt{scripts/run\_deepcfd.py}, \texttt{results/deepcfd/deepcfd\_results.json}). The trust
+signal holds: \textbf{$\texttt{residual\_error\_spearman} = 0.770 \pm 0.119$} (3 seeds),
+comparable to---indeed above---the AirfRANS Transolver value ($0.625$). The error spread is
+genuine (per-case rel-$L_2$ median $0.063$, max $0.136$), so the correlation is not degenerate.
+A clean mechanistic reason it can be \emph{sharper} than the turbulent case: laminar flow has
+$\nu_t=0$, so the residual is the \emph{exact} Navier--Stokes residual with no
+turbulence-closure ambiguity---a cleaner error indicator. This is direct evidence that the
+residual-as-trust-signal property is not specific to AirfRANS, its geometry family, or its
+turbulence model. (We report only the trust signal here; DeepCFD's force coefficients carry the
+same self-integrator caveat as \autoref{sec:v2} and are not headlined.)
 
 \paragraph{Beyond regime shift: a geometry the model never saw (qualitative).} The splits
 above shift the flow regime \emph{within} the airfoil family; we close with a qualitative probe
@@ -1067,6 +1105,40 @@ $0.088{\pm}0.013$, $\texttt{mse\_p}$ $628.5{\pm}29$) and the v2 backbone-alone n
 in two separate runs; the differences are within the reported per-seed spread. The v2 run is
 the one we use as the NeuroForge backbone in \autoref{sec:v2}.
 
+\paragraph{Positioning against the published AirfRANS field.} Our trust layer and corrector
+run on a Transolver backbone---a published SOTA architecture \citep{wu2024transolver}---so
+competitiveness comes from that architectural choice, not from re-benchmarking our own metric
+values. We deliberately do \emph{not} place a NeuroForge row in a cross-method comparison:
+AirfRANS results are reported in mutually-incompatible conventions (the AirfRANS-paper baselines
+use standardized-field MSE and force coefficients against official OpenFOAM labels;
+Transolver-lineage papers report relative-$L_2$; our pipeline uses physical-unit MSE and
+self-integrated forces, \autoref{sec:v2}), so any shared cell would mislead. \autoref{tab:airfrans-sota}
+reproduces the canonical AirfRANS-paper baselines as field context. Note the benchmark's
+signature difficulty---drag ranking $\rho_{C_d}$ is near zero or negative for every baseline,
+the headline finding of \citet{bonnet2022airfrans}---which is also why we read our own
+$\rho_{C_d}$ as internal self-consistency rather than a solved drag-ranking claim.
+
+\begin{table}[t]
+\centering\small
+\caption{Published AirfRANS \texttt{full}-task baselines from \citet{bonnet2022airfrans}, as
+field context only. Volume MSE on standardized fields ($\times10^{-2}$); surface $\bar p$
+($\times10^{-1}$); force relative errors (\%); $\rho$ = Spearman rank correlation vs.\
+\emph{official} force labels. NeuroForge is \emph{not} a comparable row (physical-unit MSE,
+self-integrated forces; \autoref{sec:v2}). The near-zero/negative $\rho_{C_d}$ is the
+benchmark's known drag-ranking difficulty.}
+\label{tab:airfrans-sota}
+\begin{tabular}{l r r r r r r}
+\toprule
+method & $\bar u_x$ & $\bar p$ & surf.\ $\bar p$ & $C_L$ err & $C_D$ err & $\rho_{C_l}\,/\,\rho_{C_d}$ \\
+\midrule
+MLP         & $0.95$ & $0.74$ & $1.13$ & $0.77$  & $4.29$  & $0.913\,/\,{-}0.117$ \\
+GraphSAGE   & $0.83$ & $0.66$ & $0.66$ & $0.52$  & $4.05$  & $0.965\,/\,{-}0.303$ \\
+PointNet    & $3.50$ & $1.15$ & $0.93$ & $0.74$  & $14.64$ & $0.938\,/\,{-}0.022$ \\
+Graph U-Net & $1.52$ & $0.66$ & $0.39$ & $0.49$  & $10.39$ & $0.967\,/\,{-}0.138$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Figures}
 
 \begin{figure}[t]
@@ -1185,10 +1257,13 @@ Relatedly, the monitored residual zeroes the solid-adjacent (wall-ring) cells---
 central stencil reaches into the $u\!=\!v\!=\!0$ discontinuity and registers spurious
 values---so the trust signal operates on the bulk and is structurally blind to the immediate
 near-wall band, precisely where near-wall error concentrates on a high-Re airfoil.
-\item \textbf{Single dataset / 2-D.} All results are on 2-D AirfRANS airfoils. 2-D bluff
-bodies and 3-D geometries (AhmedML, \citealp{ahmedml2024}; DrivAerNet++,
-\citealp{elrefaie2024drivaernet}) are roadmap targets; the phenomenon has not been tested
-beyond AirfRANS.
+\item \textbf{Two 2-D datasets; not yet 3-D.} The trust signal is validated on two 2-D
+datasets---turbulent-RANS AirfRANS airfoils and laminar DeepCFD bluff bodies
+(\autoref{sec:ood}, $\rho=0.77{\pm}0.12$)---so the phenomenon is not AirfRANS-specific, but all
+results remain 2-D. Extending the residual verifier to 3-D (AhmedML, \citealp{ahmedml2024};
+DrivAerNet++, \citealp{elrefaie2024drivaernet}) requires 3-D residual operators and multi-TB,
+often unsteady datasets beyond a single-GPU budget; we leave it as genuine future work rather
+than a near-term claim.
 \item \textbf{Conformal coverage out-of-distribution is empirical, not guaranteed.} The
 distribution-free guarantee assumes exchangeability, which fails under shift; OOD coverage
 holds in our experiments only because the uncertainty inflates appropriately
