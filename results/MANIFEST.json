@@ -1,0 +1,250 @@
+{
+  "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
+  "generated_utc": "2026-06-24T16:29:17.336538+00:00",
+  "git_head": "c26e289626451c3dbe3f5ebc123986e018c7fde8",
+  "git_head_short": "c26e289",
+  "environment_that_produced_numbers": {
+    "git_commit": "d2c5556",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.1",
+    "torch": "2.6.0+cu124",
+    "cuda_available": true,
+    "cuda_toolkit": "12.4",
+    "gpu": "NVIDIA GeForce RTX 4070 Ti"
+  },
+  "n_files": 23,
+  "n_missing": 0,
+  "missing": [],
+  "files": [
+    {
+      "path": "results/v2/v2_results.json",
+      "script": "scripts/run_v2.py",
+      "tier": "gpu",
+      "claims": "Transolver backbone -9/-21/-25% MSE; rho_Cl 0.999; trust rho 0.625; MC-dropout coverage 0.902",
+      "sha256": "2019200c00a21e542036392698108f9583f11944391eb01e1f80460dccea927b",
+      "bytes": 5592,
+      "git_tracked": true,
+      "last_commit": "1653c35"
+    },
+    {
+      "path": "results/mgn/mgn_results.json",
+      "script": "scripts/run_mgn.py",
+      "tier": "gpu",
+      "claims": "MeshGraphNet bare trust rho 0.851",
+      "sha256": "f6a20cd6bb2131f50dc686cda0f0b5c855e337ca96c3aafe47c322d7b810fd9a",
+      "bytes": 3453,
+      "git_tracked": true,
+      "last_commit": "eed5be6"
+    },
+    {
+      "path": "results/uq_ensemble/uq_results.json",
+      "script": "scripts/run_ensemble_uq.py",
+      "tier": "gpu",
+      "claims": "deep-ensemble conformal coverage 0.915, ECE 0.074, q 2.35; ensemble-mean accuracy",
+      "sha256": "d75329adf8e1ce1c26273bfebecca37b1517ab3788af0cf312f6efec6df5655d",
+      "bytes": 1195,
+      "git_tracked": true,
+      "last_commit": "bcebf4f"
+    },
+    {
+      "path": "results/uq_ensemble/w2_conformal_corrected.json",
+      "script": "scripts/run_w2_conformal_corrected.py",
+      "tier": "gpu",
+      "claims": "W2 \u2014 conformal coverage on the deployed DEQ-corrected Transolver field",
+      "sha256": "40b9904dc377676acebf25f770327dd358f3a2b36445c01ba5fbf4655b022b89",
+      "bytes": 12525,
+      "git_tracked": true,
+      "last_commit": "56664b0"
+    },
+    {
+      "path": "results/control/w1_capture.json",
+      "script": "scripts/run_w1_capture.py",
+      "tier": "gpu",
+      "claims": "W1 \u2014 null-residual corrector matches/exceeds residual-fed (gain not from residual input)",
+      "sha256": "f2398c1608a96fb56484a6efb8c9bbbe5edf89be34df6bcc7d3f00d3ba4af854",
+      "bytes": 6323,
+      "git_tracked": true,
+      "last_commit": "60381e1"
+    },
+    {
+      "path": "results/control/percell_residual_error.json",
+      "script": "scripts/control_percell_residual_error.py",
+      "tier": "cpu",
+      "claims": "per-cell trust 0.22 Spearman / 0.60 Pearson (case-level vs per-cell scope)",
+      "sha256": "d217759a417a23dfdfc01fc33cbbd464b8f7bdfec0e717b4eb74ecb6981cc843",
+      "bytes": 612,
+      "git_tracked": true,
+      "last_commit": "93f081a"
+    },
+    {
+      "path": "results/control/bc_inclusive_sweep.json",
+      "script": "scripts/control_bc_inclusive_residual.py",
+      "tier": "cpu",
+      "claims": "residual-as-objective negative survives the BC (no-slip) term",
+      "sha256": "95ac1109f893ccd4cc94c6e38f36363be0a791e663ddbca128f679f367570ed4",
+      "bytes": 1593,
+      "git_tracked": true,
+      "last_commit": "f3765cf"
+    },
+    {
+      "path": "results/figures/cylinder_control_airfoil_ratio.json",
+      "script": "scripts/control_cylinder_nearwall_artifact.py",
+      "tier": "cpu",
+      "claims": "cylinder far-field residual ~7x in-dist; near-wall ring is a generic feature (control)",
+      "sha256": "ab5b5641a54e8934c6e4a4f804b86a234cab66cd0817b777718f4d4f5d86655b",
+      "bytes": 9344,
+      "git_tracked": true,
+      "last_commit": "1b7fa14"
+    },
+    {
+      "path": "results/certificates/h4_coverage.json",
+      "script": "scripts/run_certificates.py",
+      "tier": "cpu",
+      "claims": "H4 in-distribution split-conformal coverage 0.911/0.928/0.942",
+      "sha256": "304f6a2e1e8270f46e41fa397e386c60952fc8d6238953c0780b44cfbfdfc7cb",
+      "bytes": 3524,
+      "git_tracked": true,
+      "last_commit": "6888159"
+    },
+    {
+      "path": "results/certificates/h5_contraction.json",
+      "script": "scripts/run_certificates.py",
+      "tier": "cpu",
+      "claims": "H5 DEQ contraction median 0.78 < kappa 0.9",
+      "sha256": "db879825e680fe301c40789a9f9d914705e5e57e52f7bc95d4626d9d50c211e9",
+      "bytes": 798,
+      "git_tracked": true,
+      "last_commit": "6888159"
+    },
+    {
+      "path": "results/certificates/residual_floor_realdata.json",
+      "script": "scripts/probe_residual_floor.py",
+      "tier": "cpu",
+      "claims": "residual floor: ||r*|| mean 0.192; uniform field gives 0 (theorem H2)",
+      "sha256": "08f18a44a6f5b770acf439498afc38c4b72eca9815650fb79f9e880381476d5d",
+      "bytes": 116380,
+      "git_tracked": true,
+      "last_commit": "fd179f2"
+    },
+    {
+      "path": "results/certificates/probe_conformal_after_deq.json",
+      "script": "scripts/probe_conformal_after_deq.py",
+      "tier": "cpu",
+      "claims": "conformal survives DEQ (20/20 independent split)",
+      "sha256": "df8e5a98cd5ee6966d52874a27321f15eb2c3b404d602deb9629eaffb5895c5d",
+      "bytes": 3797,
+      "git_tracked": true,
+      "last_commit": "fd179f2"
+    },
+    {
+      "path": "results/certificates/verify_conformal_corrected_field.json",
+      "script": "scripts/verify_conformal_corrected_field.py",
+      "tier": "cpu",
+      "claims": "certificate on the deployed corrected field (15/15 split)",
+      "sha256": "8d006f9b4f85bcf9134bd6381951fba93006ae40f68ab683ed3269fea41f8107",
+      "bytes": 2463,
+      "git_tracked": true,
+      "last_commit": "9a482c9"
+    },
+    {
+      "path": "results/sensitivity/iters.csv",
+      "script": "scripts/run_sensitivity.py",
+      "tier": "cpu",
+      "claims": "tab:iters \u2014 residual rises (0.11->0.62) while error falls (3.92->2.29)",
+      "sha256": "367aa01204c7ff99873b7a6ac0e0adf91a37a416e73fe1823be6e1370f7847d2",
+      "bytes": 428,
+      "git_tracked": true,
+      "last_commit": "796e03f"
+    },
+    {
+      "path": "results/sensitivity/iters.json",
+      "script": "scripts/run_sensitivity.py",
+      "tier": "cpu",
+      "claims": "iteration-sensitivity sweep (json form of tab:iters)",
+      "sha256": "1015ba8d4bd4246cfd6f64923b9366ab7b66cb665cf7c11d800c6dabebbe8cc1",
+      "bytes": 1624,
+      "git_tracked": true,
+      "last_commit": "796e03f"
+    },
+    {
+      "path": "results/sensitivity/toggles.json",
+      "script": "scripts/run_sensitivity.py",
+      "tier": "cpu",
+      "claims": "trust-gate / acceptance-test toggles are structural no-ops on DEQ",
+      "sha256": "f513022dd05f20c4015febccae1e8e3eabb18de4cfd2f862a7c1d429cda1da5f",
+      "bytes": 1488,
+      "git_tracked": true,
+      "last_commit": "796e03f"
+    },
+    {
+      "path": "results/sensitivity/ood_coverage.json",
+      "script": "scripts/run_sensitivity.py",
+      "tier": "cpu",
+      "claims": "OOD conformal coverage stays in-band (empirical, sec:conformal)",
+      "sha256": "bbe9a3f8e921d598bea0f75db1db86442feb69587f59aa1a7e8242f6624dcf23",
+      "bytes": 922,
+      "git_tracked": true,
+      "last_commit": "796e03f"
+    },
+    {
+      "path": "results/full_research/in_dist/ablation.md",
+      "script": "scripts/run_full_research.py",
+      "tier": "gpu",
+      "claims": "tab:indist \u2014 weak backbone trust 0.40->0.83; corrector trades accuracy",
+      "sha256": "bea7a031e5c634c5c5ec02a99be39983d1d314a13ed4947443666f1b26a857e2",
+      "bytes": 997,
+      "git_tracked": true,
+      "last_commit": "40a4a36"
+    },
+    {
+      "path": "results/full_research/in_dist/ablation.csv",
+      "script": "scripts/run_full_research.py",
+      "tier": "gpu",
+      "claims": "tab:indist (csv)",
+      "sha256": "fe25873152cd08fef1fe2748e83a895e315b52d7f3c67581227a91215ac93ec2",
+      "bytes": 2038,
+      "git_tracked": true,
+      "last_commit": "40a4a36"
+    },
+    {
+      "path": "results/full_research/ood/ablation_ood.md",
+      "script": "scripts/run_full_research.py",
+      "tier": "gpu",
+      "claims": "tab:ood \u2014 aoa trust collapse 0.31->0.75 rescued by corrector",
+      "sha256": "b3ee5370350fbb1de4a374faa4406b6a3e5217428f45b54a5dd9c917cb695284",
+      "bytes": 2284,
+      "git_tracked": true,
+      "last_commit": "40a4a36"
+    },
+    {
+      "path": "results/full_research/ood/ablation_ood.csv",
+      "script": "scripts/run_full_research.py",
+      "tier": "gpu",
+      "claims": "tab:ood (csv)",
+      "sha256": "5d85e98d5e906bb44b3e54bdc0b5f3e5137f8ca6064af32e47018bb76a680d7a",
+      "bytes": 4387,
+      "git_tracked": true,
+      "last_commit": "40a4a36"
+    },
+    {
+      "path": "results/baselines/table2.md",
+      "script": "scripts/run_baselines.py",
+      "tier": "gpu",
+      "claims": "tab:transolver \u2014 grid backbone trails Transolver 4-60x",
+      "sha256": "365815aca97f13fb92b8e270b98faa88c9491ea197494db227c0cd035f05222d",
+      "bytes": 704,
+      "git_tracked": true,
+      "last_commit": "a71bc44"
+    },
+    {
+      "path": "results/baselines/table2.csv",
+      "script": "scripts/run_baselines.py",
+      "tier": "gpu",
+      "claims": "tab:transolver (csv)",
+      "sha256": "3b1acb4138f8b02ebfdc26cd444b08210cb81884251bc74e2d99b05c69255153",
+      "bytes": 663,
+      "git_tracked": true,
+      "last_commit": "a71bc44"
+    }
+  ]
+}

@@ -35,3 +35,6 @@ jobs:
 
       - name: Pytest
         run: pytest -q
+
+      - name: Smoke (package imports + CLI runs)
+        run: neuroforge info
