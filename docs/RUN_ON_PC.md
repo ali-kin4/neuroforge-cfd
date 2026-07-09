@@ -24,8 +24,8 @@ python scripts/run_full_research.py --preset full --cache-dir data/cache
 ```
 
 > Installing with `pip install -e .` puts `neuroforge` on the path, so you do
-> **not** need `PYTHONPATH=src` on the PC. (The `PYTHONPATH=src` form in
-> `CLAUDE.md` is for running from a bare checkout without installing.)
+> **not** need `PYTHONPATH=src` on the PC. (The `PYTHONPATH=src` form is for
+> running from a bare checkout without installing.)
 
 ## 0. Install the CUDA build of PyTorch
 

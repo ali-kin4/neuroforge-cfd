@@ -6,7 +6,7 @@ NeuroForge baselines. It is deliberately NOT registered in the frozen
 ``models.base`` registry: the registry's contract is grid-shaped
 ``(B, C, H, W) -> (B, C, H, W)`` solvers, whereas Transolver maps a point cloud
 ``(B, N, F_IN) -> (B, N, F_OUT)``. Keeping it standalone avoids misrepresenting
-the contract (see ``docs/reviews/baseline_plan.md`` §3).
+the contract (see ``docs/baseline_plan.md`` §3).
 
 Attribution
 -----------

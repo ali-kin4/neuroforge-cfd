@@ -123,10 +123,7 @@ should know about.
    JSONs remain verifiable. **[needs decision — host checkpoints, e.g. a release/Zenodo
    artifact, to make cpu-tier scripts clone-runnable]**
 
-3. **Doc drift.** `CLAUDE.md` says "54 fast tests"; the suite is now **144 passed,
-   4 deselected**. Cosmetic. **[cheap doc fix]**
-
-4. **Determinism.** Seeds are pinned in every headline script
+3. **Determinism.** Seeds are pinned in every headline script
    (`torch.manual_seed` / `np.random.seed` / `np.random.default_rng`), but
    `torch.use_deterministic_algorithms` is **not** set, so GPU runs are not
    bit-reproducible. This is expected and the W1 gate explicitly tolerates "3-seed GPU

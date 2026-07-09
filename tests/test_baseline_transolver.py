@@ -3,7 +3,7 @@
 These do NOT need the airfrans package or the real dataset: a synthetic
 AirfRANS-format point cloud is built and rasterised, then the adapter's
 "perfect predictor -> GT-identical metrics" property (the fairness keystone of
-``docs/reviews/baseline_plan.md`` section 3) is asserted directly.
+``docs/baseline_plan.md`` section 3) is asserted directly.
 """
 
 from __future__ import annotations

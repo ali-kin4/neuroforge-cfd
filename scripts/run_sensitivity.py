@@ -57,7 +57,7 @@ Run:
 
 from __future__ import annotations
 
-# IMPORTANT: import neuroforge before numpy/torch (thread caps, see CLAUDE.md).
+# IMPORTANT: import neuroforge before numpy/torch (thread caps, see src/neuroforge/__init__.py).
 import neuroforge as nf  # noqa: F401
 
 import csv

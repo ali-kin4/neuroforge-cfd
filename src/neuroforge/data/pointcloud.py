@@ -5,7 +5,7 @@ simulation onto a structured grid for the grid backbones), this module keeps the
 AirfRANS simulations as their **native irregular point clouds** — exactly what a
 Transolver / GINO / MeshGraphNet baseline must consume so the comparison in the
 paper's Table 2 is on the representation the baselines were designed for (see
-``docs/EXPERIMENTS.md`` and ``docs/reviews/baseline_plan.md``).
+``docs/EXPERIMENTS.md`` and ``docs/baseline_plan.md``).
 
 AirfRANS raw arrays (airfrans 0.1.2) are ``(M, 12)``::
 

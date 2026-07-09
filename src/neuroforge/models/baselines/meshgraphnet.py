@@ -30,7 +30,7 @@ Same reasoning as ``transolver.py``: the registry's contract is grid-shaped
 ``(B, C, H, W) -> (B, C, H, W)`` solvers, whereas a MeshGraphNet maps a point
 cloud ``(B, N, F_IN) -> (B, N, F_OUT)`` and additionally needs an edge set.
 Keeping it standalone avoids misrepresenting the frozen grid contract (see
-``docs/reviews/baseline_plan.md`` §3).
+``docs/baseline_plan.md`` §3).
 
 Edge-feature convention (built by the CALLER, consumed by the model)
 --------------------------------------------------------------------

@@ -15,7 +15,7 @@ projection that built the ground-truth fields in
 Because a perfect point predictor rasterises to a field identical to the GT, the
 projection adds **no bias between methods** — it only fails to reward sub-grid
 boundary-layer detail, which the grid backbone also cannot represent (a shared,
-documented limitation; see ``docs/reviews/baseline_plan.md`` §3).
+documented limitation; see ``docs/baseline_plan.md`` §3).
 """
 
 from __future__ import annotations
