@@ -1,0 +1,26 @@
+{
+    "title": "NeuroForge: A Self-Correcting, Geometry-Native Neural CFD Engine with Calibrated Physics-Residual Trust",
+    "upload_type": "software",
+    "license": "MIT",
+    "creators": [
+        {
+            "name": "Jabbary, Ali",
+            "affiliation": "Urmia University"
+        }
+    ],
+    "keywords": [
+        "computational fluid dynamics",
+        "neural operators",
+        "physics residuals",
+        "uncertainty quantification",
+        "conformal prediction",
+        "AirfRANS"
+    ],
+    "related_identifiers": [
+        {
+            "identifier": "https://github.com/ali-kin4/neuroforge-cfd",
+            "relation": "isSupplementTo",
+            "scheme": "url"
+        }
+    ]
+}
