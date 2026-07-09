@@ -61,6 +61,10 @@ HEADLINE: list[dict] = [
     {"path": "results/control/w1_capture.json",
      "script": "scripts/run_w1_capture.py", "tier": "gpu",
      "claims": "W1 — null-residual corrector matches/exceeds residual-fed (gain not from residual input)"},
+    # --- force coefficients vs official AirfRANS labels (sec:v2, SOTA positioning) ---
+    {"path": "results/control/force_vs_official.json",
+     "script": "scripts/recompute_force_vs_official.py", "tier": "gpu",
+     "claims": "vs official labels rho_D 0.839, rho_L 0.879; self-consistency 0.995/0.999 reproduced"},
     # --- per-cell vs per-case trust scope ---
     {"path": "results/control/percell_residual_error.json",
      "script": "scripts/control_percell_residual_error.py", "tier": "cpu",

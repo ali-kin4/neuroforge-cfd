@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-06-24T16:29:17.336538+00:00",
-  "git_head": "c26e289626451c3dbe3f5ebc123986e018c7fde8",
-  "git_head_short": "c26e289",
+  "generated_utc": "2026-07-09T10:22:06.096922+00:00",
+  "git_head": "4741d7a9cad6668fe40e5f047b418a94d3f85886",
+  "git_head_short": "4741d7a",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -12,7 +12,7 @@
     "cuda_toolkit": "12.4",
     "gpu": "NVIDIA GeForce RTX 4070 Ti"
   },
-  "n_files": 23,
+  "n_files": 24,
   "n_missing": 0,
   "missing": [],
   "files": [
@@ -65,6 +65,16 @@
       "bytes": 6323,
       "git_tracked": true,
       "last_commit": "60381e1"
+    },
+    {
+      "path": "results/control/force_vs_official.json",
+      "script": "scripts/recompute_force_vs_official.py",
+      "tier": "gpu",
+      "claims": "vs official labels rho_D 0.839, rho_L 0.879; self-consistency 0.995/0.999 reproduced",
+      "sha256": "1c936ddbb103334cc0ba684fbc09d355594c3f9a0d80d1d0bfb0892a469b5e70",
+      "bytes": 4879,
+      "git_tracked": true,
+      "last_commit": ""
     },
     {
       "path": "results/control/percell_residual_error.json",

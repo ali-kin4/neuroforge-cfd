@@ -1,0 +1,77 @@
+{
+  "meta": {
+    "checkpoint": "checkpoints/certificates_deq.pt",
+    "n_cases": 20,
+    "corrector": "DEQCorrector",
+    "injection": "wrapped corrector.forward; only residual arg toggled",
+    "arms": {
+      "A": "real residual",
+      "B": "zeroed residual",
+      "C": "mismatch (neighbour case residual)"
+    },
+    "primary_channel": "mse_speed"
+  },
+  "backbone": {
+    "mse_u": 3.6506320927504516,
+    "mse_speed": 3.74332895303165,
+    "mse_p": 2453.827989006563,
+    "res_norm": 0.11542912162840366
+  },
+  "arm_A": {
+    "mse_u": 2.563657730176898,
+    "mse_speed": 2.4638028288519602,
+    "mse_p": 3353.7342257865653,
+    "res_norm_corr": 0.7011762946844101,
+    "delta_norm": 37.48124723434448
+  },
+  "arm_B": {
+    "mse_u": 1.4163325693065854,
+    "mse_speed": 1.4393888137983255,
+    "mse_p": 2130.916668919703,
+    "res_norm_corr": 0.1789617221802473,
+    "delta_norm": 22.084118843078613
+  },
+  "arm_C": {
+    "mse_u": 3.481212674697157,
+    "mse_speed": 3.3455276386613293,
+    "mse_p": 5196.6547100253765,
+    "res_norm_corr": 0.7561609491705894,
+    "delta_norm": 36.20752115249634
+  },
+  "sanity_gate": {
+    "gain_mse_u": 1.0869743625735544,
+    "gain_mse_speed": 1.2795261241796898,
+    "gain_mse_p": -899.9062367800034,
+    "primary_channel": "mse_speed",
+    "ok": true
+  },
+  "gain_fraction": {
+    "primary": "mse_speed",
+    "gain_A": 1.2795261241796898,
+    "gain_B": 2.303940139233325,
+    "gain_C": 0.39780131437032146,
+    "frac_B": 1.8006198511268319,
+    "frac_C": 0.3108973758744893
+  },
+  "paired_tests": {
+    "B_vs_A": {
+      "n_worse_than_A": 3,
+      "n_nonzero": 20,
+      "frac_worse": 0.15,
+      "wilcoxon_p": 0.001209259033203125
+    },
+    "C_vs_A": {
+      "n_worse_than_A": 16,
+      "n_nonzero": 20,
+      "frac_worse": 0.8,
+      "wilcoxon_p": 0.0031528472900390625
+    }
+  },
+  "delta_magnitude_change": {
+    "B": 0.416488538991539,
+    "C": 0.12084544986815102
+  },
+  "decision_rule": "SUPPORTED iff frac_B<0.50 and frac_C<0.80; REFRAME iff frac_B>0.85; else AMBIGUOUS",
+  "verdict": "REFRAME",
+  "note": "Occlusion is a PROXY on the deployed checkpoint. The clean settle is the from-scratch retrain-without-residual harness (scripts/retrain_without_residual.py, GPU-long, NOT run here)."
+}

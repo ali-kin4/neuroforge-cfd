@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "purpose": "Recompute AirfRANS force-coeff RANKING vs OFFICIAL labels, replacing the self-consistency metric in results/v2/v2_results.json.",
+    "task": "full",
+    "split": "test",
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "n_val": 200,
+    "resolution": 128,
+    "device": "cuda",
+    "smoke": false,
+    "ckpt_dir": "checkpoints/v2_transolver",
+    "data_root": "data\\Dataset",
+    "what_each_is_correlated_against": {
+      "rho_D_official": "Spearman( NF force_coefficients(pred).cd , airfrans Simulation.force_coefficient(reference=True).cd ) [drag, official OpenFOAM reference labels]",
+      "rho_L_official": "Spearman( NF force_coefficients(pred).cl , official reference .cl ) [lift, official labels]",
+      "cd_rel_err_official": "mean(|pred_nf.cd - official.cd| / |official.cd|)",
+      "cl_rel_err_official": "mean(|pred_nf.cl - official.cl| / |official.cl|)",
+      "rho_D_selfconsistency": "Spearman( pred_nf.cd , gt_nf.cd ) -- pred-integral vs GT-integral through the SAME NF integrator (the OLD metric; reproduces ~0.996 by construction).",
+      "rho_L_selfconsistency": "Spearman( pred_nf.cl , gt_nf.cl ) -- OLD metric (reproduces ~0.999 by construction).",
+      "rho_D/L_gt_vs_official": "Spearman( gt_nf , official ) -- seed-independent; isolates integrator/rasterisation mismatch from prediction error. Collapse here => the measurement (not the model) cannot recover official ranking."
+    },
+    "pred_af_skipped": "airfrans' own integrator on our prediction skipped; gt_nf-vs-official isolates the integrator mismatch for free.",
+    "notes": [
+      "rho_cd==drag==rho_D ; rho_cl==lift==rho_L (key mapping pinned).",
+      "A strongly NEGATIVE rho_L vs official would be a lift sign-convention difference (NF wind-axis rotation vs AirfRANS), not genuine anti-ranking.",
+      "rho is scale-invariant: large cd_rel_err with healthy rho is a real integrator-bias finding, not a bug."
+    ]
+  },
+  "integrator_only": {
+    "rho_D_gt_vs_official": 0.8394464861621541,
+    "rho_L_gt_vs_official": 0.8757398934973376,
+    "n_cases": 200
+  },
+  "per_seed": [
+    {
+      "seed": 0,
+      "n_cases": 200,
+      "rho_D_official": 0.8450086252156306,
+      "rho_L_official": 0.8796969924248107,
+      "cd_rel_err_official": 11.163314185564381,
+      "cl_rel_err_official": 1.4513857035811133,
+      "cd_rel_err_official_std": 26.48936640288633,
+      "cl_rel_err_official_std": 3.872261643750645,
+      "rho_D_selfconsistency": 0.9963414085352135,
+      "rho_L_selfconsistency": 0.9989949748743719
+    },
+    {
+      "seed": 1,
+      "n_cases": 200,
+      "rho_D_official": 0.8284917122928074,
+      "rho_L_official": 0.8785944648616216,
+      "cd_rel_err_official": 11.26118763698718,
+      "cl_rel_err_official": 1.5109277998340016,
+      "cd_rel_err_official_std": 26.86365595918688,
+      "cl_rel_err_official_std": 4.199004177350365,
+      "rho_D_selfconsistency": 0.9947078676966925,
+      "rho_L_selfconsistency": 0.9994224855621392
+    },
+    {
+      "seed": 2,
+      "n_cases": 200,
+      "rho_D_official": 0.8429220730518263,
+      "rho_L_official": 0.8789724743118579,
+      "cd_rel_err_official": 11.028817841104136,
+      "cl_rel_err_official": 1.483771396481311,
+      "cd_rel_err_official_std": 25.7648381235861,
+      "cl_rel_err_official_std": 4.033416283498821,
+      "rho_D_selfconsistency": 0.9952733818345461,
+      "rho_L_selfconsistency": 0.9991314782869573
+    }
+  ],
+  "aggregate": {
+    "rho_D_official": {
+      "mean": 0.8388074701867548,
+      "std": 0.0073439122488390485,
+      "per_seed": [
+        0.8450086252156306,
+        0.8284917122928074,
+        0.8429220730518263
+      ]
+    },
+    "rho_L_official": {
+      "mean": 0.87908797719943,
+      "std": 0.0004574548754985153,
+      "per_seed": [
+        0.8796969924248107,
+        0.8785944648616216,
+        0.8789724743118579
+      ]
+    },
+    "cd_rel_err_official": {
+      "mean": 11.1511065545519,
+      "std": 0.09525649654445165,
+      "per_seed": [
+        11.163314185564381,
+        11.26118763698718,
+        11.028817841104136
+      ]
+    },
+    "cl_rel_err_official": {
+      "mean": 1.4820282999654752,
+      "std": 0.024339187820531905,
+      "per_seed": [
+        1.4513857035811133,
+        1.5109277998340016,
+        1.483771396481311
+      ]
+    },
+    "rho_D_selfconsistency": {
+      "mean": 0.9954408860221508,
+      "std": 0.0006773266850532105,
+      "per_seed": [
+        0.9963414085352135,
+        0.9947078676966925,
+        0.9952733818345461
+      ]
+    },
+    "rho_L_selfconsistency": {
+      "mean": 0.9991829795744894,
+      "std": 0.00017828934161808214,
+      "per_seed": [
+        0.9989949748743719,
+        0.9994224855621392,
+        0.9991314782869573
+      ]
+    }
+  }
+}
