@@ -5,11 +5,6 @@
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem[{Anonymous}(2023)]{learned2023residualcorrection}
-{Anonymous}.
-\newblock Learned residual error correction for numerical pde surrogates.
-\newblock \emph{arXiv preprint arXiv:2306.12047}, 2023.
-
 \bibitem[Ashton et~al.(2024)Ashton, Maddix, Gundry, and
   Shabestari]{ahmedml2024}
 Neil Ashton, Danielle Maddix, Samuel Gundry, and Parisa Shabestari.
@@ -63,6 +58,16 @@ Jun-Ting Hsieh, Shengjia Zhao, Stephan Eismann, Lucia Mirabella, and Stefano
 \newblock In \emph{International Conference on Learning Representations
   (ICLR)}, 2019.
 \newblock arXiv:1906.01200.
+
+\bibitem[Jha(2024)]{learned2023residualcorrection}
+Prashant~K. Jha.
+\newblock Residual-based error corrector operator to enhance accuracy and
+  reliability of neural operator surrogates of nonlinear variational
+  boundary-value problems.
+\newblock \emph{Computer Methods in Applied Mechanics and Engineering},
+  419:\penalty0 116595, 2024.
+\newblock \doi{10.1016/j.cma.2023.116595}.
+\newblock arXiv:2306.12047.
 
 \bibitem[Krishnapriyan et~al.(2021)Krishnapriyan, Gholami, Zhe, Kirby, and
   Mahoney]{krishnapriyan2021failure}
