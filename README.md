@@ -251,4 +251,4 @@ arXiv:2402.01960). See [`docs/paper/neuroforge_cfd.md`](docs/paper/neuroforge_cf
 
 ## License
 
-MIT © 2026 Kasra (Ali) Ghanavati
+MIT © 2026 Ali Jabbary
