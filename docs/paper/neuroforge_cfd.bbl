@@ -9,7 +9,7 @@
   Shabestari]{ahmedml2024}
 Neil Ashton, Danielle Maddix, Samuel Gundry, and Parisa Shabestari.
 \newblock {AhmedML}: High-fidelity computational fluid dynamics dataset for
-  incompressible, low-speed turbulent flows.
+  incompressible, low-speed bluff body aerodynamics.
 \newblock \emph{arXiv preprint arXiv:2407.20801}, 2024.
 
 \bibitem[Bai et~al.(2019)Bai, Kolter, and Koltun]{bai2019deq}
@@ -124,9 +124,8 @@ Huakun Luo, Haixu Wu, Hang Zhou, Lanxiang Xing, Yichen Di, Jianmin Wang, and
 \bibitem[Ma et~al.(2024)Ma, Azizzadenesheli, and Anandkumar]{ma2024uqno}
 Ziqi Ma, Kamyar Azizzadenesheli, and Anima Anandkumar.
 \newblock Calibrated uncertainty quantification for operator learning via
-  conformal prediction ({UQNO}).
-\newblock In \emph{International Conference on Learning Representations
-  (ICLR)}, 2024.
+  conformal prediction.
+\newblock \emph{Transactions on Machine Learning Research (TMLR)}, 2024.
 \newblock arXiv:2402.01960.
 
 \bibitem[Marwah et~al.(2023)Marwah, Pokle, Kolter, Lipton, Lu, and
@@ -147,12 +146,12 @@ Maziar Raissi, Paris Perdikaris, and George~E. Karniadakis.
 \newblock \emph{Journal of Computational Physics}, 378:\penalty0 686--707,
   2019.
 
-\bibitem[Ranade et~al.(2025)Ranade, Nabian, Tangsali, Kashefi, Rietmann, Kim,
-  and Choudhry]{ranade2025domino}
-Rishikesh Ranade, Mohammad~Amin Nabian, Kaustubh Tangsali, Ali Kashefi, Max
-  Rietmann, Sanghyun Kim, and Sanjay Choudhry.
+\bibitem[Ranade et~al.(2025)Ranade, Nabian, Tangsali, Kamenev, Hennigh,
+  Cherukuri, and Choudhry]{ranade2025domino}
+Rishikesh Ranade, Mohammad~Amin Nabian, Kaustubh Tangsali, Alexey Kamenev,
+  Oliver Hennigh, Ram Cherukuri, and Sanjay Choudhry.
 \newblock {DoMINO}: A decomposable multi-scale iterative neural operator for
-  external aerodynamics.
+  modeling large scale engineering simulations.
 \newblock \emph{arXiv preprint arXiv:2501.13350}, 2025.
 \newblock NVIDIA.
 
