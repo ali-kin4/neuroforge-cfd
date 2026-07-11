@@ -37,14 +37,18 @@ package is CPU-first, runs end-to-end with zero downloads, and is permanently ar
 Zenodo (DOI 10.5281/zenodo.21277928).
 
 The manuscript is original and is not under consideration by any other journal; a preprint has
-been posted to arXiv, consistent with Elsevier's preprint policy. The work has a single author
-with no competing interests, and the manuscript includes the declarations of generative-AI use
-required by Elsevier policy. I confirm the work complies with the journal's authorship and
-research-integrity policies.
+been posted to arXiv, consistent with Elsevier's preprint policy. Both authors have approved
+this submission and declare no competing interests, and the manuscript includes the
+declarations of generative-AI use required by Elsevier policy. We confirm the work complies
+with the journal's authorship and research-integrity policies.
 
 Thank you for your consideration.
 
 Sincerely,
-Ali Jabbary
+Ali Jabbary (corresponding author, on behalf of both authors)
 Department of Mechanical Engineering, Urmia University
 st_a.jabbary@urmia.ac.ir | https://alijabbary.com
+
+Kasra Ghanavati
+School of Computing and Mathematical Sciences, University of Greenwich
+kg1111r@gre.ac.uk

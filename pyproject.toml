@@ -9,7 +9,10 @@ description = "Self-correcting, geometry-native AI CFD engine: predict flow fiel
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Ali Jabbary", email = "st_a.jabbary@urmia.ac.ir" }]
+authors = [
+  { name = "Ali Jabbary", email = "st_a.jabbary@urmia.ac.ir" },
+  { name = "Kasra Ghanavati", email = "kg1111r@gre.ac.uk" },
+]
 keywords = ["CFD", "neural-operator", "physics-informed", "machine-learning", "aerodynamics", "scientific-computing", "PDE", "transformer"]
 classifiers = [
     "Development Status :: 3 - Alpha",
