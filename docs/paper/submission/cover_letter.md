@@ -47,4 +47,4 @@ Thank you for your consideration.
 Sincerely,
 Ali Jabbary
 Department of Mechanical Engineering, Urmia University
-research@alijabbary.com
+st_a.jabbary@urmia.ac.ir | https://alijabbary.com
