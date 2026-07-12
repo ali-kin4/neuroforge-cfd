@@ -12,7 +12,7 @@ import os
 
 import pytest
 
-from benchmarks.ablation import run_ablation, run_ood_ablation, _seed_ckpt_path
+from benchmarks.ablation import _seed_ckpt_path, run_ablation, run_ood_ablation
 
 
 @pytest.mark.slow

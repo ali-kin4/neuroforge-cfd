@@ -99,8 +99,6 @@ batch/width/epochs):
 
 from __future__ import annotations
 
-import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets thread caps)
-
 import argparse
 import json
 import os
@@ -118,6 +116,7 @@ from run_v2 import (  # noqa: E402
     train_transolver,
 )
 
+import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets thread caps)
 from neuroforge.core.config import Config  # noqa: E402
 from neuroforge.data.airfrans_loader import load_airfrans  # noqa: E402
 from neuroforge.data.pointcloud import (  # noqa: E402
@@ -130,7 +129,6 @@ from neuroforge.physics.evaluation import evaluate_cases  # noqa: E402
 from neuroforge.physics.residuals import PhysicsChecker  # noqa: E402
 from neuroforge.solver.engine import NeuroForgeEngine  # noqa: E402
 from neuroforge.solver.pointcloud_predictor import PointCloudPredictor  # noqa: E402
-
 
 # --------------------------------------------------------------------------- #
 # Published headline (results/v2/v2_results.json) — the GATE targets.

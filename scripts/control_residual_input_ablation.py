@@ -64,14 +64,13 @@ garbage), so it does not drive the verdict.
 =============================================================================================================
 """
 
-import neuroforge  # noqa: F401  -- thread caps before numpy/torch
-
 import json
 import os
 
 import numpy as np
 import torch
 
+import neuroforge  # noqa: F401  -- thread caps before numpy/torch
 from neuroforge.core.config import Config
 from neuroforge.data.airfrans_loader import load_airfrans
 from neuroforge.physics.evaluation import per_channel_mse

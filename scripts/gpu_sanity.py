@@ -43,7 +43,7 @@ def _git_commit() -> str:
         return "unknown"
 
 
-def print_environment() -> "object":
+def print_environment() -> object:
     """Print and return the runtime/hardware manifest."""
     import torch
 

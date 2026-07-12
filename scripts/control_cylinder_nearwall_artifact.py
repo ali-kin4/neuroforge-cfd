@@ -58,8 +58,6 @@ Smoke (1 airfoil, smaller cloud cache):
 
 from __future__ import annotations
 
-import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets BLAS thread caps)
-
 import argparse
 import json
 import os
@@ -67,21 +65,22 @@ import os
 import numpy as np
 import torch
 
+# Import the cylinder figure's OWN builders/loaders (importing != editing) so the
+# deployed-model + residual path is byte-identical to the published figure.
+from make_cylinder_ood_figure import (  # noqa: E402
+    build_cylinder_pointcloud,
+    load_backbone,
+    load_corrector,
+    make_cylinder_case,
+)
+
+import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets BLAS thread caps)
 from neuroforge.core.config import Config
 from neuroforge.data.airfrans_loader import load_airfrans
 from neuroforge.data.pointcloud import load_airfrans_pointclouds
 from neuroforge.physics.residuals import PhysicsChecker
 from neuroforge.solver.engine import NeuroForgeEngine
 from neuroforge.solver.pointcloud_predictor import PointCloudPredictor
-
-# Import the cylinder figure's OWN builders/loaders (importing != editing) so the
-# deployed-model + residual path is byte-identical to the published figure.
-from make_cylinder_ood_figure import (  # noqa: E402
-    load_backbone,
-    load_corrector,
-    make_cylinder_case,
-    build_cylinder_pointcloud,
-)
 
 # Pre-registered bands (chord/diameter == 1; matched-physical == matched-relative).
 NEAR_DELTA = 0.15   # near-body: 0 < sdf <= 0.15

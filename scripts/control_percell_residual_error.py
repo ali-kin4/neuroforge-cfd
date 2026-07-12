@@ -12,14 +12,13 @@ is weak/near-zero, reframe the trust signal as PER-CASE design-triage ("which pr
 to distrust").
 """
 
-import neuroforge  # noqa: F401
-
 import json
 import os
 
 import numpy as np
 from scipy.stats import spearmanr
 
+import neuroforge  # noqa: F401
 from neuroforge.core.config import Config
 from neuroforge.data.airfrans_loader import load_airfrans
 from neuroforge.physics.residuals import PhysicsChecker

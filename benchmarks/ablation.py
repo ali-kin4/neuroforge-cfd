@@ -57,7 +57,7 @@ def _load_seed_checkpoint(out_dir: str, seed):
     if not os.path.exists(path):
         return None
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return json.load(f)
     except Exception:  # corrupt/partial file -> recompute this seed
         return None

@@ -13,14 +13,13 @@ import pytest
 from neuroforge.core.types import (
     BoundaryConditions,
     Domain,
-    FluidProperties,
     FlowCase,
+    FluidProperties,
 )
 from neuroforge.data.synthetic import SyntheticRANS
 from neuroforge.geometry.airfoil import naca_airfoil
 from neuroforge.geometry.sdf import signed_distance, solid_mask
 from neuroforge.geometry.shapes import cylinder_geometry
-
 
 # --------------------------------------------------------------------------- #
 # Geometry: orientation, normals, SDF sign convention

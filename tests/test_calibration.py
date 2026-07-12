@@ -7,7 +7,7 @@ import types
 import numpy as np
 import torch
 
-from neuroforge.core.types import DTYPE, Domain, FlowCase, FlowField
+from neuroforge.core.types import DTYPE, FlowCase, FlowField
 from neuroforge.physics.calibration import (
     ConformalCalibrator,
     cases_to_error_sigma,

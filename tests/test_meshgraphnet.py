@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import neuroforge  # noqa: F401  -- thread caps before torch
-
 import torch
 
+import neuroforge  # noqa: F401  -- thread caps before torch
 from neuroforge.models.baselines.meshgraphnet import (
     MeshGraphNetPointModel,
     edge_features,
@@ -39,8 +38,8 @@ def test_knn_no_self_loops_and_symmetric():
     # no self loops
     assert int((src == dst).sum()) == 0
     # symmetric: the reverse of every edge is also present (set equality)
-    fwd = set(zip(src.tolist(), dst.tolist()))
-    rev = set(zip(dst.tolist(), src.tolist()))
+    fwd = set(zip(src.tolist(), dst.tolist(), strict=True))
+    rev = set(zip(dst.tolist(), src.tolist(), strict=True))
     assert fwd == rev
     # no duplicate directed edges
     assert len(fwd) == src.shape[0]

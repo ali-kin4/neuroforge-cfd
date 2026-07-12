@@ -34,14 +34,14 @@ Does NOT touch results/mgn | checkpoints/mgn | mgn_run.log.
 
 from __future__ import annotations
 
-import neuroforge as nf  # noqa: F401  -- MUST precede numpy/torch (thread caps)
-
 import json
 import os
 import time
 
 import numpy as np
 import torch
+
+import neuroforge as nf  # noqa: F401  -- MUST precede numpy/torch (thread caps)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CKPT = os.path.join(ROOT, "checkpoints", "certificates_deq.pt")

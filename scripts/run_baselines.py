@@ -28,10 +28,10 @@ import json
 import os
 import time
 
-import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets thread caps)
 import numpy as np
 import torch
 
+import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets thread caps)
 from neuroforge.data.airfrans_loader import load_airfrans
 from neuroforge.data.pointcloud import (
     F_IN,

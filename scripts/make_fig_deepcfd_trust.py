@@ -20,12 +20,12 @@ prints a MISMATCH/PASS verdict.
 CPU-only. Always import neuroforge before numpy/torch.
 """
 # MUST be first (caps BLAS threads before numpy/torch)
+import matplotlib
+
 import neuroforge  # noqa: F401
 
-import matplotlib
 matplotlib.use("Agg")
 
-import argparse
 import json
 import os
 import sys
@@ -36,14 +36,15 @@ import torch
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
 from neuroforge.core.config import Config
-from neuroforge.data.datamodule import FlowDataset, Normalizer, collate_flow
+from neuroforge.data.datamodule import FlowDataset, Normalizer
 from neuroforge.data.deepcfd_loader import load_deepcfd, obstacle_areas
 from neuroforge.models.fno import FNO2d
-from neuroforge.physics.evaluation import residual_error_correlation, _spearman
+from neuroforge.physics.evaluation import _spearman
 from neuroforge.physics.residuals import PhysicsChecker
 from neuroforge.solver.engine import Predictor
-from torch.utils.data import DataLoader
+
 
 # Identical to run_deepcfd.build_ood_split (copy so this script is self-contained
 # and provably uses the same logic even if run_deepcfd.py drifts).

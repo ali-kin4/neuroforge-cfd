@@ -65,8 +65,6 @@ MEMORY (read before the full GPU run)
 
 from __future__ import annotations
 
-import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets thread caps)
-
 import argparse
 import json
 import os
@@ -75,6 +73,7 @@ import time
 import numpy as np
 import torch
 
+import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets thread caps)
 from neuroforge.core.config import Config
 from neuroforge.core.types import FlowCase, FlowField
 from neuroforge.data.airfrans_loader import load_airfrans

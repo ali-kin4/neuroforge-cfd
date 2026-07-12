@@ -10,9 +10,10 @@ CPU-only, plotting only. Does not touch results/v2 or any frozen file.
 """
 
 # --- thread caps: import neuroforge FIRST (sets OPENBLAS/OMP/MKL=1) ----------
+import matplotlib
+
 import neuroforge  # noqa: F401  (side effect: caps BLAS threads before numpy)
 
-import matplotlib
 matplotlib.use("Agg")  # non-interactive backend
 
 import csv

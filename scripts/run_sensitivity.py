@@ -57,18 +57,17 @@ Run:
 
 from __future__ import annotations
 
-# IMPORTANT: import neuroforge before numpy/torch (thread caps, see src/neuroforge/__init__.py).
-import neuroforge as nf  # noqa: F401
-
 import csv
 import json
 import os
 import time
 
+import matplotlib
 import numpy as np
 import torch
 
-import matplotlib
+# IMPORTANT: import neuroforge before numpy/torch (thread caps, see src/neuroforge/__init__.py).
+import neuroforge as nf  # noqa: F401
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402

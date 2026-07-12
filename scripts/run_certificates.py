@@ -38,17 +38,16 @@ Run:
 
 from __future__ import annotations
 
-# IMPORTANT: import neuroforge before numpy/torch (thread caps, see src/neuroforge/__init__.py).
-import neuroforge as nf  # noqa: F401
-
 import json
 import os
 import time
 
+import matplotlib
 import numpy as np
 import torch
 
-import matplotlib
+# IMPORTANT: import neuroforge before numpy/torch (thread caps, see src/neuroforge/__init__.py).
+import neuroforge as nf  # noqa: F401
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
@@ -95,7 +94,7 @@ def log(msg: str) -> None:
 # ---------------------------------------------------------------------------- #
 # Train (or load)
 # ---------------------------------------------------------------------------- #
-def get_model() -> "nf.NeuroForge":
+def get_model() -> nf.NeuroForge:
     """Train the dropout-FNO + DEQ corrector on cached AirfRANS, or load it."""
     if os.path.exists(CKPT) and os.environ.get("CERT_RETRAIN", "0") != "1":
         log(f"loading cached checkpoint {CKPT}")

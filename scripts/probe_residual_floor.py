@@ -18,8 +18,6 @@ match the module / synthetic probe EXACTLY. The norm uses only the continuity
 """
 from __future__ import annotations
 
-import neuroforge  # noqa: F401  -- caps BLAS/OMP threads BEFORE numpy/torch
-
 import argparse
 import json
 import os
@@ -27,6 +25,7 @@ import pickle
 
 import numpy as np
 
+import neuroforge  # noqa: F401  -- caps BLAS/OMP threads BEFORE numpy/torch
 from neuroforge.core.types import FlowField
 from neuroforge.physics.residuals import PhysicsChecker
 
@@ -110,6 +109,7 @@ def main() -> None:
     predictor = None
     if args.pred:
         import time
+
         import neuroforge as nf
         t0 = time.time()
         model = nf.NeuroForge.load("checkpoints/certificates_deq.pt", device="cpu")

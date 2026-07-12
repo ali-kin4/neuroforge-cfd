@@ -67,6 +67,16 @@ ignore = ["E501", "B008"]
 # BEFORE importing numpy/torch-backed submodules, so module-level imports are
 # intentionally not at the very top.
 "src/neuroforge/__init__.py" = ["E402"]
+# Research / reproducibility utilities (not shipped library code). These one-off
+# scripts produced the committed paper results; the package (src) and its tests
+# are strictly linted, but these are exempted from stylistic and minor rules:
+# terse one-line statements (E702), the intentional import-neuroforge-before-numpy
+# ordering (E402), zip strict-ness (B905), throwaway loop/temporary vars
+# (B007/B023/F841), and printf-style logging (UP031). Correctness rules that catch
+# real breakage (F401 unused imports, F811 redefinition, F821 undefined names) stay on.
+"scripts/**" = ["E402", "E702", "B905", "B007", "B023", "F841", "UP031", "E741"]
+"benchmarks/**" = ["E402", "E702", "B905", "B007", "B023", "F841", "UP031", "E741"]
+"examples/**" = ["E402", "E702", "B905", "B007", "B023", "F841", "UP031", "E741"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

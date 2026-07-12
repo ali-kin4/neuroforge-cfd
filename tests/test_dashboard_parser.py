@@ -170,7 +170,6 @@ def test_baseline_run_mode():
     # Match the run shape: 3 seeds x 80 backbone epochs (set on the module so the
     # progress math uses the same budget the CLI would pass via --bb-epochs).
     server.SINGLE_BB_EPOCHS = 80
-    bb = 80
 
     def at(seed, epoch):
         lines = [

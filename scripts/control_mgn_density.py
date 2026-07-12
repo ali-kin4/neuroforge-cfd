@@ -77,8 +77,6 @@ Rigorous full-GPU run later (all 200 cases, faithful normalizer on n800):
 
 from __future__ import annotations
 
-import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets BLAS thread caps)
-
 import argparse
 import json
 import os
@@ -88,7 +86,7 @@ import time
 import numpy as np
 import torch
 
-from neuroforge.core.config import Config
+import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets BLAS thread caps)
 from neuroforge.data.airfrans_loader import load_airfrans
 from neuroforge.data.pointcloud import (
     F_IN,

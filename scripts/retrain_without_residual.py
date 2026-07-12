@@ -46,14 +46,13 @@ separately).
 OUTPUT: results/control/retrain_without_residual.json
 """
 
-import neuroforge  # noqa: F401  -- thread caps before numpy/torch
-
 import json
 import os
 
 import numpy as np
 import torch
 
+import neuroforge  # noqa: F401  -- thread caps before numpy/torch
 from neuroforge.core.config import Config, DataConfig
 from neuroforge.data.airfrans_loader import load_airfrans
 from neuroforge.data.datamodule import build_dataloaders
@@ -84,7 +83,6 @@ def _zero_residual_patch():
     builds to ZERO, so the corrector is trained & deployed without residual content.
     Returns a restore() callable. Patches BOTH the training residual and the
     inference-loop residual so the NULL condition is consistent end-to-end."""
-    import neuroforge.train.trainer as tr
     import neuroforge.solver.correction_loop as cl
 
     orig_tr = Trainer._normalised_residual
@@ -201,4 +199,4 @@ if __name__ == "__main__":
         "retrain_without_residual.py is a GPU-LONG job. Comment out this guard and "
         "launch deliberately on the workstation GPU (see module docstring). Do NOT run on CPU."
     )
-    main()  # noqa: unreachable -- intentional guard above
+    main()  # unreachable by design -- the guard above must be removed to run

@@ -21,7 +21,6 @@ from neuroforge.solver.classical import (
 )
 from neuroforge.solver.fallback import ClassicalFallback
 
-
 # --------------------------------------------------------------------------- #
 # Helpers
 # --------------------------------------------------------------------------- #

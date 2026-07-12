@@ -1157,7 +1157,7 @@ def is_paused():
     try:
         if not os.path.exists(_CONTROL_FILE):
             return False
-        with open(_CONTROL_FILE, "r", encoding="utf-8") as f:
+        with open(_CONTROL_FILE, encoding="utf-8") as f:
             return bool(json.load(f).get("paused"))
     except (OSError, ValueError):
         return False

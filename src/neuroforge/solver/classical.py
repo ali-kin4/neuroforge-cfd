@@ -35,7 +35,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from neuroforge.core.types import DTYPE, FluidProperties, FlowCase, FlowField
+from neuroforge.core.types import DTYPE, FlowCase, FlowField, FluidProperties
 from neuroforge.physics.residuals import continuity_residual, momentum_residual
 
 __all__ = ["local_incompressible_solve", "region_residual_norm"]

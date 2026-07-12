@@ -68,31 +68,29 @@ but device is forced cpu here unless you change it):
 
 from __future__ import annotations
 
-import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets thread caps)
-
 import argparse
 import os
 
 import numpy as np
 import torch
 
+import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets thread caps)
 from neuroforge.core.config import Config
 from neuroforge.core.types import (
     DTYPE,
     BoundaryConditions,
     Domain,
-    FluidProperties,
     FlowCase,
+    FluidProperties,
 )
+from neuroforge.data.datamodule import Normalizer
 from neuroforge.data.pointcloud import (
     F_IN,
     F_OUT,
     PointCloudCase,
     PointNormalizer,
 )
-from neuroforge.data.datamodule import Normalizer
 from neuroforge.geometry.shapes import cylinder_geometry
-from neuroforge.geometry.sdf import signed_distance, solid_mask
 from neuroforge.models import build_corrector
 from neuroforge.models.baselines.transolver import TransolverPointModel
 from neuroforge.physics.residuals import PhysicsChecker

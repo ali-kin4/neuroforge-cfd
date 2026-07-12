@@ -280,7 +280,7 @@ class _GNBlock(nn.Module):
         return h, e
 
 
-def _block_runner(block: "_GNBlock", edge_index: torch.Tensor, edge_chunk: int | None):
+def _block_runner(block: _GNBlock, edge_index: torch.Tensor, edge_chunk: int | None):
     """Closure adapting a GN block to ``checkpoint``'s ``fn(*tensors)`` signature.
 
     The edge set and chunk size carry no gradient, so they are captured here

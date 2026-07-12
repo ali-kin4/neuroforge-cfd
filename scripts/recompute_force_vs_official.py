@@ -89,8 +89,6 @@ FULL run (the deciding number — run on GPU; append-log):
 
 from __future__ import annotations
 
-import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets thread caps)
-
 import argparse
 import json
 import os
@@ -99,6 +97,7 @@ import time
 import numpy as np
 import torch
 
+import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets thread caps)
 from neuroforge.core.types import DTYPE
 from neuroforge.data.airfrans_loader import (  # noqa: E402
     AIRFRANS_NU,
@@ -107,11 +106,10 @@ from neuroforge.data.airfrans_loader import (  # noqa: E402
 )
 from neuroforge.data.datamodule import Normalizer  # noqa: E402
 from neuroforge.data.pointcloud import (  # noqa: E402
-    F_IN,
-    F_OUT,
     PointNormalizer,
     load_airfrans_pointclouds,
 )
+
 # The EXACT functions that produced the v2 headline — reused verbatim so the
 # self-consistency reproduction is faithful by construction.
 from neuroforge.models.baselines.transolver import TransolverPointModel  # noqa: E402

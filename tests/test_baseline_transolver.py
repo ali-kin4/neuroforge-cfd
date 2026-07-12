@@ -20,6 +20,7 @@ from neuroforge.data.pointcloud import (
     PointNormalizer,
     _array_to_pointcase,
 )
+from neuroforge.data.synthetic import SyntheticRANS
 from neuroforge.geometry.sdf import surface_normals
 from neuroforge.models.baselines.transolver import (
     PhysicsAttentionIrregularMesh,
@@ -27,7 +28,6 @@ from neuroforge.models.baselines.transolver import (
 )
 from neuroforge.models.baselines.transolver_adapter import make_predict_fn
 from neuroforge.physics.evaluation import evaluate_cases
-from neuroforge.data.synthetic import SyntheticRANS
 
 
 def _mock_airfrans_array(case: FlowCase) -> np.ndarray:

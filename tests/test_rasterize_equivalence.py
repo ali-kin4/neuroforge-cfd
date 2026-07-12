@@ -10,10 +10,10 @@ out-of-hull fill path (the place old/new could silently diverge) is exercised.
 
 from __future__ import annotations
 
-import neuroforge  # noqa: F401  (caps BLAS/OMP threads before numpy)
 import numpy as np
 import pytest
 
+import neuroforge  # noqa: F401  (caps BLAS/OMP threads before numpy)
 from neuroforge.core.types import Domain
 from neuroforge.data.rasterize import rasterize_point_cloud
 

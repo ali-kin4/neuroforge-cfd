@@ -32,7 +32,6 @@ corrector training), aligned to the GT pairs exactly as ``run_baselines`` does.
 
 from __future__ import annotations
 
-import numpy as np
 import torch
 
 from neuroforge.core.types import FlowCase, FlowField

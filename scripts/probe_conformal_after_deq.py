@@ -24,8 +24,6 @@ CPU only; set CUDA_VISIBLE_DEVICES="" before launch. import neuroforge first.
 
 from __future__ import annotations
 
-import neuroforge as nf  # noqa: F401  -- MUST precede numpy/torch (thread caps)
-
 import json
 import os
 import time
@@ -33,6 +31,7 @@ import time
 import numpy as np
 import torch
 
+import neuroforge as nf  # noqa: F401  -- MUST precede numpy/torch (thread caps)
 from neuroforge.core.types import DTYPE
 from neuroforge.geometry.encode import encode_case
 
@@ -63,9 +62,9 @@ def sigma_for_case(uq, predictor, case, n_mc):
 
 
 def main() -> None:
+    from neuroforge.data.airfrans_loader import load_airfrans
     from neuroforge.models.ensemble import MCDropoutUQ
     from neuroforge.physics.calibration import ConformalCalibrator, reliability
-    from neuroforge.data.airfrans_loader import load_airfrans
 
     torch.manual_seed(0)
     np.random.seed(0)

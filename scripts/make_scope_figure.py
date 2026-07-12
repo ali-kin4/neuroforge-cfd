@@ -20,9 +20,10 @@ Run:
 """
 
 # Thread caps: import neuroforge FIRST (sets OPENBLAS/OMP/MKL to 1)
+import matplotlib
+
 import neuroforge  # noqa: F401
 
-import matplotlib
 matplotlib.use("Agg")
 
 import csv
@@ -30,8 +31,8 @@ import json
 import os
 import re
 
-import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.gridspec import GridSpec
 
@@ -287,7 +288,7 @@ hypotheses = [
      "0.91/0.93/0.94 for u/v/p\nat α=0.1"),
     ("H5: DEQ\ncontracts",
      "Supported", 2,
-     f"Measured factor 0.78 < κ=0.9"),
+     "Measured factor 0.78 < κ=0.9"),
 ]
 
 # ---------------------------------------------------------------------------
@@ -305,7 +306,7 @@ fig.text(
 )
 fig.text(
     0.5, 0.955,
-    f"RTX 4070 Ti · 3 seeds throughout · 800 train / 200 val cases (AirfRANS) · 128×128 resolution",
+    "RTX 4070 Ti · 3 seeds throughout · 800 train / 200 val cases (AirfRANS) · 128×128 resolution",
     ha="center", va="top",
     fontsize=10, color="#555555", style="italic",
 )
@@ -611,9 +612,9 @@ print(f"  total (this run): {MEASURED_INDIST_H + MEASURED_OOD_H:.2f} h")
 print()
 print("ESTIMATED additions:")
 print(f"  baseline (~76.8s/ep × 240ep / 3600): ~{76.8*240/3600:.1f} h")
-print(f"  certs + sensitivity: ~1.0 h")
-print(f"  v2 seeds 0+1 backbone+corrector: ~6.7 h (est.)")
-print(f"  v2 seed 2 pending: ~3.4 h (est.)")
+print("  certs + sensitivity: ~1.0 h")
+print("  v2 seeds 0+1 backbone+corrector: ~6.7 h (est.)")
+print("  v2 seed 2 pending: ~3.4 h (est.)")
 print(f"  Total est.: {TOTAL_GPU_H_EST} GPU-hours")
 print()
 print("KEY NUMBERS ON FIGURE:")
@@ -621,11 +622,11 @@ print(f"  Stat cards: {N_TRAININGS} trainings, {EP_TOTAL:,} epochs, {N_SEEDS_CAR
 print(f"              {TOTAL_GPU_H_EST} GPU-h (est.), {N_EXPERIMENTS} configs, {N_METRICS} metrics,")
 print(f"              {N_HYPOTHESES} hypotheses, {N_PAPER_TABLES} tables")
 print(f"  Compute bars (measured): in-dist={MEASURED_INDIST_H}h, OOD={MEASURED_OOD_H}h")
-print(f"  Compute bars (est.): baseline~5.1h, certs~1h, v2-done~6.7h, v2-pending~3.4h")
+print("  Compute bars (est.): baseline~5.1h, certs~1h, v2-done~6.7h, v2-pending~3.4h")
 print(f"  Convergence curves: seeds {seeds_in_log} (from v2_run.log)")
 print(f"    seed 0 final epoch MSE: {seed_curves[0][-1][1]:.4e}")
 print(f"    seed 1 final epoch MSE: {seed_curves[1][-1][1]:.4e}")
-print(f"  Residual Spearman rho (in-dist, from ablation.csv):")
+print("  Residual Spearman rho (in-dist, from ablation.csv):")
 for k, lab in zip(arm_keys, arm_labels):
     m, s = res_spear_indist[k]
     print(f"    {k}: {m:.4f} ± {s:.4f}")

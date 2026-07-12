@@ -7,13 +7,13 @@ package). We drive :func:`_rasterize_pairs` directly with a tiny in-memory
 
 from __future__ import annotations
 
-import neuroforge  # noqa: F401  (caps threads before numpy)
 import numpy as np
 
+import neuroforge  # noqa: F401  (caps threads before numpy)
 from neuroforge.core.types import FlowCase
 from neuroforge.data.airfrans_loader import _rasterize_pairs, _resolve_workers
-from neuroforge.geometry.sdf import surface_normals
 from neuroforge.data.synthetic import SyntheticRANS
+from neuroforge.geometry.sdf import surface_normals
 
 
 def _mock_array(seed: int) -> np.ndarray:

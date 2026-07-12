@@ -71,8 +71,6 @@ out); n_test caps to 247 even if asked for more:
 
 from __future__ import annotations
 
-import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets thread caps)
-
 import argparse
 import json
 import os
@@ -80,16 +78,16 @@ import time
 
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
 
+import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets thread caps)
 from neuroforge.core.config import Config
 from neuroforge.data.datamodule import FlowDataset, Normalizer, collate_flow
 from neuroforge.data.deepcfd_loader import load_deepcfd, obstacle_areas
 from neuroforge.models.fno import FNO2d
 from neuroforge.physics.evaluation import evaluate_cases
-from neuroforge.physics.metrics import field_errors
 from neuroforge.physics.residuals import PhysicsChecker
 from neuroforge.solver.engine import Predictor
-from torch.utils.data import DataLoader
 
 _METRICS = [
     "mse_u", "mse_v", "mse_p", "mse_speed", "surface_mse_p",

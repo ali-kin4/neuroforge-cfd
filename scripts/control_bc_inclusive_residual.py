@@ -15,13 +15,12 @@ Declared before running:
     FALLS with error -> negative was an artifact of dropping no-slip.
 """
 
-import neuroforge  # noqa: F401  -- thread caps before numpy/torch
-
 import json
 import os
 
 import numpy as np
 
+import neuroforge  # noqa: F401  -- thread caps before numpy/torch
 from neuroforge.core.config import Config
 from neuroforge.core.types import FlowField
 from neuroforge.data.airfrans_loader import load_airfrans
