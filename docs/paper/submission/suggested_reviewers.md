@@ -1,14 +1,21 @@
-# Suggested Reviewers — JCP (NeuroForge)
+# Suggested Reviewers — CMAME (NeuroForge)
 
-JCP requests 3–5 suggested reviewers. Below are conflict-light candidates spanning the paper's
-three pillars: neural operators for CFD, the AirfRANS benchmark, and UQ/calibration for PDE
-surrogates. **Action for the author:** remove anyone you have co-authored with, share an
-institution with, or have a personal conflict with (the journal requires arms-length
-reviewers), then enter 3–5 in Editorial Manager with the one-line rationale.
+CMAME requests suggested reviewers (Editorial Manager asks for a set; 3–5 is standard). Below
+are conflict-light candidates spanning the paper's three pillars: neural operators for CFD,
+the AirfRANS benchmark, and UQ/calibration for PDE surrogates.
 
-> Note: I have **not** verified current email/affiliation for each — confirm before entering.
+**Conflict screen (2026-07-12, both authors):** none of the candidates below shares an
+institution with **Ali Jabbary** (Urmia University) or **Kasra Ghanavati** (University of
+Greenwich), and none appears among either author's co-authors (Ali's: Ghasabehi, Shams,
+Jafarmadar, Pourmahmoud, Rosen, Abdollahi, Ahmadi, Samanipour). All are arms-length.
+
+> Note: verify current email/affiliation for each in Editorial Manager before entering.
 > Pick a balance (don't take all from one group). I deliberately avoid suggesting authors of
 > the very closest concurrent work where a competitive conflict is plausible.
+> **Judgment flag on #5 (Goswami):** she co-authored ANCHOR (`roy2025anchor`), the closest
+> prior art the paper positions against. She knows the area cold (a rigorous reviewer) but has
+> a plausible competitive stake in the novelty framing — include only if you want the hardest
+> fair test of positioning; otherwise use #6.
 
 ## Neural operators / ML-for-CFD
 1. **Paris Perdikaris** (physics-informed ML, operator learning) — covers the residual-as-physics
