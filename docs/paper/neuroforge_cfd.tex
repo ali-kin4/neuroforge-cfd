@@ -12,6 +12,22 @@
 \usepackage{booktabs}
 \usepackage{array}
 
+% --- Pipeline schematic (Fig. 1): vector TikZ diagram -----------------------
+\usepackage{pifont}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,backgrounds,fit,shapes.geometric}
+% Palette: colour encodes function (also legible in greyscale).
+\definecolor{ink}{HTML}{1F2937}
+\definecolor{inFill}{HTML}{EEF2F7}\definecolor{inLine}{HTML}{94A3B8}
+\definecolor{pdFill}{HTML}{DBEAFE}\definecolor{pdLine}{HTML}{2563EB}
+\definecolor{rsFill}{HTML}{FEF3C7}\definecolor{rsLine}{HTML}{D97706}
+\definecolor{tsFill}{HTML}{DCFCE7}\definecolor{tsLine}{HTML}{16A34A}
+\definecolor{coFill}{HTML}{EDE9FE}\definecolor{coLine}{HTML}{7C3AED}
+\definecolor{fbFill}{HTML}{F1F5F9}\definecolor{fbLine}{HTML}{64748B}
+\definecolor{ouFill}{HTML}{E2E8F0}\definecolor{ouLine}{HTML}{334155}
+\definecolor{noGood}{HTML}{DC2626}
+\definecolor{lab}{HTML}{6B7280}
+
 % Typesetting tolerance. Overfull boxes (text bleeding into the margin) are the
 % warnings that matter and we keep ZERO of them. The only residual warnings were
 % UNDERFULL boxes: cosmetically invisible loose spacing on lines that end in
@@ -319,7 +335,8 @@ particular is real but, as we show, vacuous as an accuracy mechanism.
 
 \subsection{Pipeline overview}
 
-The engine wraps a one-shot backbone in a verify--estimate--correct--fall-back loop.
+The engine wraps a one-shot backbone in a verify--estimate--correct--fall-back loop
+(\autoref{fig:pipeline}).
 Throughout, the physics residual plays \textbf{two distinct roles with two distinct
 verdicts} (\autoref{sec:experiments}): (i)~as a \emph{trust signal} it detects error and
 drives the conformal layer (reliable, backbone-robust---it tells you \emph{where} the
@@ -329,31 +346,85 @@ prediction is wrong); (ii)~as a correction \emph{objective or acceptance gate} i
 controlled ablation attributes its gain to the learned correction, not to the residual input.
 We describe all components for completeness and flag, at each one, which role it instantiates.
 
-{\footnotesize
-\begin{verbatim}
-CAD / STL / airfoil + BCs
-        |
-        v  geometry-native encoding (SDF + solid mask + coords + freestream + log Re)
-   x in R^{7 x H x W}
-        |
-        v  neural-operator / transformer backbone  f_theta
-   yhat in R^{4 x H x W}  (u, v, p, nu_t)        <---------------+
-        |                                                        |
-        v  physics residual checker  R(.)                        |  correction
-   continuity, momentum_x, momentum_y, BC violation              |  loop
-        |                                                        |  (analysed, limited)
-        v  uncertainty  sigma(.)  (MC-dropout / deep ensemble)   |
-        |                                                        |
-        v  conformal trust layer  +  trust map T                 |
-        |   (the surviving contribution)                         |
-        v  correction operator  c_phi -> Delta ------------------+
-        |   (DEQ fixed point, or feed-forward under acceptance test)
-        v  (only if a region stays low-trust)
-   uncertainty-gated classical CFD patch  (interface)
-        |
-        v  flow field . Cp . forces . uncertainty/residual/trust maps . history
-\end{verbatim}
+\begin{figure}[t]
+\centering
+\resizebox{0.92\linewidth}{!}{%
+\begin{tikzpicture}[
+  >={Stealth[length=2.4mm]},
+  font=\footnotesize, line width=0.7pt, node distance=5.5mm and 12mm,
+  base/.style={rounded corners=2.5pt, draw, align=center, inner sep=4pt,
+               minimum height=9mm, text width=48mm, text=ink},
+  stage/.style   ={base, fill=inFill, draw=inLine},
+  predict/.style ={base, fill=pdFill, draw=pdLine, line width=0.9pt},
+  pivot/.style   ={base, fill=rsFill, draw=rsLine, line width=1.2pt},
+  trust/.style   ={base, fill=tsFill, draw=tsLine},
+  correct/.style ={base, fill=coFill, draw=coLine, line width=0.9pt},
+  fallback/.style={base, fill=fbFill, draw=fbLine, dash pattern=on 3pt off 2pt},
+  output/.style  ={base, fill=ouFill, draw=ouLine, line width=0.9pt},
+  flow/.style    ={->, line width=1.0pt, draw=ink!75},
+  elab/.style    ={font=\scriptsize, text=lab, inner sep=1.5pt, fill=white},
+  roletag/.style ={rounded corners=3pt, font=\scriptsize, inner sep=4pt, align=left,
+                   line width=0.9pt},
+]
+% ---- main vertical spine ----
+\node[stage]   (geo) {\textbf{Geometry \& conditions}\\[1pt]{\scriptsize CAD / STL airfoil $+$ boundary, fluid, domain}};
+\node[stage, below=of geo] (enc) {\textbf{Geometry-native encoding}\\[1pt]{\scriptsize SDF $\cdot$ mask $\cdot$ coords $\cdot$ freestream $\cdot$ $\log_{10}\!\mathrm{Re}$}};
+\node[predict, below=of enc] (bb) {\textbf{Neural-operator backbone} $f_\theta$\\[1pt]{\scriptsize transformer / FNO / message-passing}};
+\node[pivot, below=9mm of bb] (res) {\textbf{Physics residual} $\mathcal{R}(\hat{y})$\\[1pt]{\scriptsize continuity $\cdot$ $x$-, $y$-momentum $\cdot$ BC violation}};
+\node[trust, below=of res] (unc) {\textbf{Uncertainty} $\sigma(\cdot)$\\[1pt]{\scriptsize MC-dropout / deep ensemble}};
+\node[trust, below=of unc] (conf) {\textbf{Conformal trust layer} $\Rightarrow$ trust map $T$\\[1pt]{\scriptsize distribution-free coverage guarantee}};
+\node[correct, below=9mm of conf] (corr) {\textbf{Learned corrector} $c_\phi \Rightarrow \Delta$\\[1pt]{\scriptsize DEQ fixed point / gated feed-forward}};
+\node[fallback, below=of corr] (fb) {\textbf{Uncertainty-gated classical CFD patch}\\[1pt]{\scriptsize only where a region stays low-trust}};
+\node[output, below=of fb] (out) {\textbf{Outputs}\\[1pt]{\scriptsize flow field $\cdot$ $C_p$ $\cdot$ forces $\cdot$ uncertainty / residual / trust maps $\cdot$ history}};
+% ---- spine arrows + tensor annotations ----
+\draw[flow] (geo)  -- (enc);
+\draw[flow] (enc)  -- (bb)  node[elab, midway, left=1mm] {$x\in\mathbb{R}^{7\times H\times W}$};
+\draw[flow] (bb)   -- (res) node[elab, midway, left=1mm] {$\hat{y}\in\mathbb{R}^{4\times H\times W}$};
+\draw[flow, draw=tsLine] (res) -- (unc);
+\draw[flow, draw=tsLine] (unc) -- (conf);
+\draw[flow] (conf) -- (corr);
+\draw[flow] (corr) -- (fb);
+\draw[flow] (fb)   -- (out);
+% ---- role (i): trust SIGNAL (green container) ----
+\begin{scope}[on background layer]
+  \node[draw=tsLine, line width=0.9pt, rounded corners=5pt, dash pattern=on 2pt off 2pt,
+        fill=tsFill!30, fit=(res)(unc)(conf), inner sep=4.5mm] (trustbox) {};
+\end{scope}
+\node[roletag, fill=tsFill, draw=tsLine, text=tsLine!55!black, text width=32mm,
+      right=8mm of trustbox.east, anchor=west] (roleI)
+  {\textbf{Role\,(i): trust \emph{signal}~\textcolor{tsLine}{\ding{51}}}\\[2pt]
+   detects \emph{where} the field is wrong; drives calibration --- reliable, backbone-robust ($\S$5)};
+\draw[->, tsLine, line width=0.9pt] (roleI.west) -- (roleI.west -| trustbox.east);
+% ---- role (ii): correction OBJECTIVE -> rejected (red) ----
+\node[roletag, fill=noGood!5, draw=noGood, text=noGood, text width=31mm,
+      left=9mm of res, anchor=east, dash pattern=on 3pt off 2pt] (roleII)
+  {\textbf{Role\,(ii): correction \emph{objective} / gate}~\textcolor{noGood}{\ding{55}}\\[2pt]
+   \emph{fails} ($\S$5.5) --- the residual minimum is not the truth};
+\draw[->, noGood, line width=0.9pt, dash pattern=on 3pt off 2pt]
+  (res.west) -- (res.west -| roleII.east);
+% ---- correction feedback loop (violet) ----
+\coordinate (yhat) at ($(bb.south)!0.5!(res.north)$);
+\draw[->, coLine, line width=1.1pt, rounded corners=6pt]
+  (corr.east) -- ++(46mm,0) |- (yhat);
+\node[elab, text=coLine!55!black, anchor=west, text width=23mm]
+  at ($(corr.east)+(47mm,9mm)$)
+  {\textbf{correction loop}\\[1pt]corrected field $\hat{y}+\Delta$ re-enters under a monotone-residual no-harm test};
+\end{tikzpicture}%
 }
+\caption{\textbf{The NeuroForge pipeline.} A one-shot neural-operator backbone $f_\theta$
+is wrapped in a verify--estimate--correct--fall-back loop. The physics residual
+$\mathcal{R}(\hat{y})$ (amber) is the pivot of the paper's central \emph{dissociation}:
+as a \textbf{trust signal} (role~i, green) it reliably detects \emph{where} the field is
+wrong and drives the uncertainty and distribution-free conformal layers, robustly across
+backbones; as a \textbf{correction objective / acceptance gate} (role~ii, red) it fails,
+because the minimiser of the discrete residual is not the truth (\autoref{sec:iters}). The
+deployed correction is instead a \emph{learned} corrector $c_\phi$ (violet), whose corrected
+field re-enters under a monotone-residual no-harm test; it ingests the residual as one input
+channel, but a controlled ablation attributes its gain to the learned correction rather than
+to the residual input (\autoref{sec:v2}). Classical CFD is invoked only where a region remains
+low-trust. Tensor shapes follow the frozen 7-input/4-output channel contract.}
+\label{fig:pipeline}
+\end{figure}
 
 \subsection{Geometry-native encoding and governing equations}
 
