@@ -37,7 +37,7 @@ package is CPU-first, runs end-to-end with zero downloads, and is permanently ar
 Zenodo (DOI 10.5281/zenodo.21277928).
 
 The manuscript is original and is not under consideration by any other journal; a preprint has
-been posted to arXiv, consistent with Elsevier's preprint policy. Both authors have approved
+been posted to arXiv (arXiv:2607.10333), consistent with Elsevier's preprint policy. Both authors have approved
 this submission and declare no competing interests, and the manuscript includes the
 declarations of generative-AI use required by Elsevier policy. We confirm the work complies
 with the journal's authorship and research-integrity policies.
