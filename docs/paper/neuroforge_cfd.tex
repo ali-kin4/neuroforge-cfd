@@ -74,47 +74,25 @@
 
 \begin{abstract}
 Machine-learning surrogates for computational fluid dynamics (CFD) predict steady
-flow fields over engineering geometries orders of magnitude faster than classical
-solvers, but they emit a single field with no built-in way for a user to know
-whether to trust it---especially out of distribution, where early-design exploration
-lives. We close the loop with the governing physics: we compute the discretised
-steady-RANS residual of the prediction and ask what jobs it can do. Our central
-finding is a clean two-way dissociation, validated on a SOTA Transolver backbone:
-\textbf{the physics residual is a reliable, backbone-robust trust signal (it tells you
-\emph{where} the prediction is wrong), but a poor correction objective (it does not tell
-you \emph{how} to fix it).} (1)
-\emph{As a trust signal}, the residual is a calibrated error proxy whose per-case
-rank correlation with field error is consistently positive across three
-architecturally-distinct backbones, though variable in strength: $0.625{\pm}0.019$ on the SOTA
-Transolver backbone, $\approx 0.40$ on a weak grid Geo-FNO backbone (which a learned corrector
-lifts to $0.83$), and $0.851{\pm}0.058$ on a message-passing GNN (MeshGraphNet, bare---whose
-high correlation partly reflects its wide error spread). It further generalizes to a
-\emph{second dataset}---DeepCFD laminar bluff bodies, a different geometry and flow regime
-($\rho=0.77{\pm}0.12$, 3 seeds)---so the property is not specific to AirfRANS or to turbulent
-RANS. A split-conformal layer, which depends
-only on predictions and $\sigma$, attains target coverage
-($0.902{\pm}0.008$ at the $0.90$ target). (2) \emph{As a correction objective
-or acceptance gate}, the residual fails: sweeping the iterations \emph{raises} the
-PDE residual while \emph{lowering} field error, and a backtracking test that admits
-only residual-reducing steps accepts essentially none---minimising the residual is
-not minimising the error. Alongside the trust signal we deploy a learned, supervised
-\textbf{self-correction}: a deep-equilibrium (DEQ) corrector trained toward ground truth
-reduces volume-field MSE on all three seeds---$\texttt{mse\_u}$ $-9\%$, $\texttt{mse\_v}$
-$-21\%$, $\texttt{mse\_p}$ $-25\%$ (gate-verified)---on a backbone that
-is itself a published SOTA architecture (Transolver). A controlled ablation that zeros the residual input
-to this corrector at train and inference (3 seeds) matches or slightly exceeds it, so the
-improvement is attributable to the learned correction, not to residual-conditioning. We
-package a \textbf{distribution-free conformal trust
-layer} that attains the coverage above (a guarantee that holds only under
-exchangeability) and empirically retains target coverage out-of-distribution via
-uncertainty inflation; pairing it with a deep-ensemble $\sigma$ yields an
-\emph{input-adaptive} band on the near-deterministic SOTA model (ECE $0.074$, $q=2.35$; a
-single calibration/test split), where MC-dropout gives a valid but near-constant one. We report two honest caveats on the
-corrector plainly: correction quality is \emph{backbone-dependent} (the same corrector is flat
-on the weak grid backbone), and---per the ablation above---its gain is not sourced from the
-residual input. The contribution is the self-auditing trust layer, the residual's
-two roles (trust signal yes, correction objective no), and the learned self-correction it
-accompanies, demonstrated on a competitive surrogate.
+flow fields over engineering geometries far faster than classical solvers, but emit a
+single field with no built-in way to know whether to trust it---especially out of
+distribution. We close the loop with the governing physics: we compute the discretised
+steady-state Reynolds-averaged (RANS) residual of the prediction and ask what jobs it
+can do. Our central finding is a clean \textbf{two-way dissociation}: the physics
+residual is a reliable, backbone-robust \textbf{trust signal} (it tells you \emph{where}
+the prediction is wrong) but a poor \textbf{correction objective} (it does not tell you
+\emph{how} to fix it). \emph{As a trust signal}, the residual's per-case rank correlation
+with field error is consistently positive across three architecturally distinct backbones
+and a second dataset of laminar bluff bodies, and a distribution-free split-conformal layer
+attains its target coverage. \emph{As a correction objective or acceptance gate}, the
+residual fails: reducing it does not reduce field error, and a backtracking test admits
+almost no residual-reducing step. Separately, a learned deep-equilibrium corrector trained
+toward ground truth lowers volume-field error on a state-of-the-art backbone; a controlled
+ablation that removes the residual input matches this gain, so the improvement comes from
+the learned correction, not from conditioning on the residual. The contribution is a
+self-auditing, calibrated trust layer, the residual's two roles (trust signal yes,
+correction objective no), and the learned self-correction it accompanies, demonstrated on
+a competitive surrogate.
 
 \vspace{1ex}
 \noindent\textbf{Keywords:} neural operators, surrogate CFD, physics residuals,
@@ -411,18 +389,13 @@ We describe all components for completeness and flag, at each one, which role it
   {\textbf{correction loop}\\[1pt]corrected field $\hat{y}+\Delta$ re-enters under a monotone-residual no-harm test};
 \end{tikzpicture}%
 }
-\caption{\textbf{The NeuroForge pipeline.} A one-shot neural-operator backbone $f_\theta$
-is wrapped in a verify--estimate--correct--fall-back loop. The physics residual
-$\mathcal{R}(\hat{y})$ (amber) is the pivot of the paper's central \emph{dissociation}:
-as a \textbf{trust signal} (role~i, green) it reliably detects \emph{where} the field is
-wrong and drives the uncertainty and distribution-free conformal layers, robustly across
-backbones; as a \textbf{correction objective / acceptance gate} (role~ii, red) it fails,
-because the minimiser of the discrete residual is not the truth (\autoref{sec:iters}). The
-deployed correction is instead a \emph{learned} corrector $c_\phi$ (violet), whose corrected
-field re-enters under a monotone-residual no-harm test; it ingests the residual as one input
-channel, but a controlled ablation attributes its gain to the learned correction rather than
-to the residual input (\autoref{sec:v2}). Classical CFD is invoked only where a region remains
-low-trust. Tensor shapes follow the frozen 7-input/4-output channel contract.}
+\caption{\textbf{The NeuroForge pipeline.} A one-shot backbone $f_\theta$ is wrapped in a
+verify--estimate--correct--fall-back loop. Colour marks each component's role: the physics
+residual (amber) acts as a reliable \emph{trust signal} (role~i, green) but not as a
+\emph{correction objective/gate} (role~ii, red); the deployed correction is a \emph{learned}
+corrector (violet) applied under a monotone-residual no-harm test. The two roles, and the
+attribution of the corrector's gain, are established and scoped in the text
+(\autoref{sec:method}, \autoref{sec:experiments}).}
 \label{fig:pipeline}
 \end{figure}
 
