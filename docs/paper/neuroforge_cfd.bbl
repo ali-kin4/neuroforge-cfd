@@ -1,4 +1,4 @@
-\begin{thebibliography}{25}
+\begin{thebibliography}{28}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -50,6 +50,13 @@ Yarin Gal and Zoubin Ghahramani.
 \newblock In \emph{International Conference on Machine Learning (ICML)}, 2016.
 \newblock arXiv:1506.02142.
 
+\bibitem[Gopakumar et~al.(2025)Gopakumar, Gray, Zanisi, Nunn, Giles, Kusner,
+  Pamela, and Deisenroth]{gopakumar2025pre}
+Vignesh Gopakumar, Ander Gray, Lorenzo Zanisi, Timothy Nunn, Daniel Giles,
+  Matt~J. Kusner, Stanislas Pamela, and Marc~Peter Deisenroth.
+\newblock Calibrated physics-informed uncertainty quantification.
+\newblock \emph{arXiv preprint arXiv:2502.04406}, 2025.
+
 \bibitem[Hsieh et~al.(2019)Hsieh, Zhao, Eismann, Mirabella, and
   Ermon]{hsieh2019neuralpde}
 Jun-Ting Hsieh, Shengjia Zhao, Stephan Eismann, Lucia Mirabella, and Stefano
@@ -68,6 +75,14 @@ Prashant~K. Jha.
   419:\penalty0 116595, 2024.
 \newblock \doi{10.1016/j.cma.2023.116595}.
 \newblock arXiv:2306.12047.
+
+\bibitem[Jia et~al.(2026)Jia, Xia, Vdovin, Jia, Sebben, and
+  Yang]{jia2026multigranularity}
+Chundong Jia, Chao Xia, Alexey Vdovin, Qing Jia, Simone Sebben, and Zhigang
+  Yang.
+\newblock Multi-granularity conformal prediction for reliable neural-operator
+  automotive aerodynamic surrogates.
+\newblock \emph{arXiv preprint arXiv:2607.17297}, 2026.
 
 \bibitem[Krishnapriyan et~al.(2021)Krishnapriyan, Gholami, Zhe, Kirby, and
   Mahoney]{krishnapriyan2021failure}
@@ -136,6 +151,14 @@ Tanya Marwah, Ashwini Pokle, J.~Zico Kolter, Zachary~C. Lipton, Jianfeng Lu,
 \newblock In \emph{Advances in Neural Information Processing Systems
   (NeurIPS)}, 2023.
 \newblock arXiv:2312.00234.
+
+\bibitem[Mukherjee et~al.(2026)Mukherjee, Fitzsimmons, Del Rey~Fern{\'a}ndez,
+  and Liu]{mukherjee2026certification}
+Amartya Mukherjee, Maxwell Fitzsimmons, David~C. Del Rey~Fern{\'a}ndez, and Jun
+  Liu.
+\newblock Rigorous error certification for neural {PDE} solvers: From empirical
+  residuals to solution guarantees.
+\newblock \emph{arXiv preprint arXiv:2603.19165}, 2026.
 
 \bibitem[Raissi et~al.(2019)Raissi, Perdikaris, and
   Karniadakis]{raissi2019pinn}

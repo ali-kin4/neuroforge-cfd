@@ -28,7 +28,7 @@ forces this also explains why the residual is nonetheless an excellent error
 \subsection{Setup: the monitored operator}
 \label{sec:rf_operator}
 
-Let $R_h$ be the residual operator the engine actually monitors and (in the
+Let $R_h$ be the residual operator the framework actually monitors and (in the
 objective/gate role) minimises: the \emph{discrete} steady incompressible RANS
 \textbf{continuity and momentum} residual on the $(n_y,n_x)$ grid, evaluated on physical
 fields with $\nu_{\mathrm{eff}}=\nu+\nu_t$. By construction (\texttt{Diagnostics.residual\_norm};
@@ -118,7 +118,7 @@ $u^\star$ in \autoref{tab:iters}.
 
 \paragraph{Robustness to the boundary term.} One might object that the monitored $R_h$
 omits the no-slip term, so the negative is merely an artifact of dropping the boundary
-constraint. We tested this with the \emph{engine's own} boundary-inclusive residual
+constraint. We tested this with the \emph{framework's own} boundary-inclusive residual
 $\rho_{\rm res}=\sqrt{r_c^2+r_x^2+r_y^2+r_{bc}^2}$ (the trust-map definition, $r_{bc}$ the
 proximity-weighted no-slip penalty) along the correction sweep (dropout-FNO$+$DEQ, $n{=}10$,
 same regime as \autoref{tab:iters}; \texttt{results/control/bc\_inclusive\_sweep.json}). The
@@ -129,7 +129,7 @@ prediction and the truth both approximately satisfy no-slip, so $r_{bc}$ stays s
 roughly constant and the interior floor dominates. (Empirically the uniform field also keeps a
 \emph{lower} $\rho_{\rm res}$ than the truth, $0.073$ vs $0.187$, because $r_{bc}$ is
 non-dimensionalised by $U$ and contributes only $\approx0.07$ in RMS.) We claim this robustness
-for the residual the engine computes \emph{as defined}; a no-slip penalty weighted heavily
+for the residual the framework computes \emph{as defined}; a no-slip penalty weighted heavily
 enough to dominate the interior floor is out of scope and untested.
 
 \paragraph{Assumptions, stated plainly.} The theorem is about the \emph{monitored discrete}
