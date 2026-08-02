@@ -1,37 +1,43 @@
-# JCP Submission Checklist — NeuroForge
+# JCP Submission Checklist — "The Two Roles of the Physics Residual in Neural CFD Surrogates"
 
 Target: **Journal of Computational Physics** (Elsevier). Submission portal:
 Editorial Manager (https://www.editorialmanager.com/jcomp/).
 
-JCP uses **"Your Paper Your Way"** — the *initial* submission may be a single PDF; you are only
-asked to reformat to the Elsevier template (`elsarticle`) at the revision/acceptance stage. So
-the current `docs/paper/neuroforge_cfd.pdf` (24 pp) is acceptable as-is for first submission.
+History: desk-rejected at CMAME (CMAME-D-26-03937, 2026-08-02, "no new computational
+methodology within scope; suggest ML-oriented journal") under the old engine-framed title.
+Repositioned (title/abstract/claims) + hardened (selective prediction, multi-split
+conformal, bootstrap CIs, repaired force integrator, 5-seed extension) before JCP.
 
-## Ready now (drafted, in `docs/paper/submission/` + paper back-matter)
-- [x] Manuscript PDF — `docs/paper/neuroforge_cfd.pdf` (builds clean, 24 pp)
-- [x] Cover letter — `cover_letter.md`
-- [x] Highlights — `highlights.txt` (5 bullets, each ≤85 chars)
-- [x] Data & code availability statement — in paper back-matter + repo (REPRODUCE.md, MANIFEST.json)
-- [x] CRediT author statement — in paper back-matter (single author)
+JCP uses **"Your Paper Your Way"** — the *initial* submission may be a single PDF; you are
+only asked to reformat to the Elsevier template (`elsarticle`) at the revision/acceptance
+stage. The current `docs/paper/neuroforge_cfd.pdf` is acceptable as-is for first submission.
+
+## Ready now (in `docs/paper/submission/` + paper back-matter)
+- [x] Manuscript PDF — `docs/paper/neuroforge_cfd.pdf` (builds clean; new title)
+- [x] Cover letter — `cover_letter.md` (retargeted to JCP, new title + new results)
+- [x] Highlights — `highlights.txt` (5 bullets, each ≤85 chars, refreshed)
+- [x] Data & code availability — in paper back-matter (Zenodo DOI 10.5281/zenodo.21277928)
+- [x] CRediT author statement — in paper back-matter (two authors)
 - [x] Declaration of competing interests — in paper back-matter (none)
+- [x] Declarations of generative-AI use — in paper back-matter (Elsevier policy)
 - [x] Reproducibility artifacts — committed code, REPRODUCE.md, manifest with hashes
+- [x] Suggested reviewers — `suggested_reviewers.md` (re-check conflicts before entry)
 
-## You must do (need your accounts / decisions — I can't)
-- [ ] **Create an Elsevier / Editorial Manager account** and start the JCP submission.
-- [ ] **Archive the repo on Zenodo to mint a DOI**, then drop the DOI into the back-matter
-      "Code and data availability" (currently "DOI to be assigned on acceptance"). Zenodo +
-      GitHub release integration does this in a few clicks; needs your GitHub/Zenodo auth.
-- [ ] **Suggested reviewers** (JCP asks for 3–5): pick from the neural-operator / ML-for-CFD
-      community — e.g. authors of Transolver, AirfRANS, GINO, conformal-for-operators — avoiding
-      anyone with a conflict. (I can draft a list with rationales if you want.)
-- [ ] **Confirm author metadata** (affiliation, ORCID if you have one).
-- [ ] Decide on optional **graphical abstract** (not required by JCP).
-- [ ] Final read-through of the PDF (it's in your viewer).
+## Author must do (needs your accounts / decisions)
+- [ ] Start the JCP submission in Editorial Manager (jcomp); Ali's EM account: Ali_Kin4.
+- [ ] Confirm author metadata (both authors, ORCIDs, affiliations; co-author email
+      confirmation will go to Kasra).
+- [ ] Enter 3–5 suggested reviewers from `suggested_reviewers.md`.
+- [ ] Optional: attach graphical abstract (exists: private repo `cmame_submission/`
+      `graphical_abstract.png` — "two roles of the physics residual", matches new title).
+- [ ] Final read-through of the PDF.
+- [ ] After submission: post arXiv v2 (new title/abstract) so the preprint matches.
 
 ## At revision stage (only if accepted-with-revisions)
-- [ ] Reformat to `elsarticle` (LaTeX source is ready: `neuroforge_cfd.tex` + `refs.bib`).
+- [ ] Reformat to `elsarticle` (LaTeX source ready: `neuroforge_cfd.tex` + `refs.bib`).
 - [ ] Provide editable source files (.tex, figures) — already in repo.
 
 ## Fallback
-If JCP declines, the same package submits to **CMAME** (similar requirements) or **TMLR**
-(the guaranteed-quality floor; the paper already uses the TMLR template).
+If JCP desk-declines: **TMLR** within the week (the paper already uses the TMLR template;
+internal committee scored it a solid TMLR accept). EAAI is the applications-framed
+alternative if venue IF is preferred over venue identity.

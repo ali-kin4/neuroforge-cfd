@@ -1,46 +1,57 @@
-# Cover Letter — Computer Methods in Applied Mechanics and Engineering
+# Cover Letter — Journal of Computational Physics
 
 Dear Editors,
 
-I am pleased to submit the manuscript **"NeuroForge: A Self-Correcting, Geometry-Native
-Neural CFD Engine with Calibrated Physics-Residual Trust"** for consideration as a Research
-Paper in *Computer Methods in Applied Mechanics and Engineering*.
+I am pleased to submit the manuscript **"The Two Roles of the Physics Residual in Neural
+CFD Surrogates: A Calibrated Trust Signal but a Poor Correction Objective"** for
+consideration as a full-length article in the *Journal of Computational Physics*.
 
-Machine-learning surrogates for CFD predict steady flow fields orders of magnitude faster than
-classical solvers, but they emit a single field with no built-in way for a user to know whether
-to trust it — precisely where early-design exploration and out-of-distribution use live. This
-work closes that loop with the governing physics and asks, rigorously, **what jobs the
-discretised steady-RANS residual can and cannot do.**
+Machine-learning surrogates for CFD predict steady flow fields orders of magnitude faster
+than classical solvers, but they emit a single field with no built-in way for a user to
+know whether to trust it — precisely where early-design exploration and
+out-of-distribution use live. This work closes that loop with the governing physics and
+asks, rigorously, **which jobs the discretised steady-RANS residual can and cannot do.**
 
 **Contributions.**
-- A **clean two-way dissociation**: the physics residual is a calibrated, backbone-agnostic
-  *trust signal* (it tells you *where* a prediction is wrong) but a poor *correction objective*
-  (it does not tell you *how* to fix it). The trust signal is validated across **three
-  architecturally distinct backbones** (Transolver, Geo-FNO, MeshGraphNet) and across
-  **two datasets** — turbulent-RANS AirfRANS airfoils and laminar DeepCFD bluff bodies —
-  so it is not specific to one architecture, geometry, or turbulence model.
-- A **residual-floor theorem** quantifying the operator-specific detection limit and the
-  undetectable kernel modes — a formal result on what the residual can certify.
-- A **distribution-free split-conformal trust certificate calibrated on the deployed,
-  corrected field**, with an honest in-distribution / out-of-distribution scoping.
-- A learned self-correction loop with a monotone-residual no-harm guarantee.
+- A **clean two-way dissociation**, established head-to-head on the same benchmark: the
+  physics residual is a calibrated, backbone-agnostic *trust signal* (it tells you *where*
+  a prediction is wrong) but a poor *correction objective* (it does not tell you *how* to
+  fix it). The trust signal is validated across **three architecturally distinct
+  backbones** (Transolver, Geo-FNO, MeshGraphNet) and **two datasets** (turbulent-RANS
+  AirfRANS airfoils; laminar DeepCFD bluff bodies), with case-level bootstrap confidence
+  intervals throughout.
+- The trust signal supports **near-oracle selective prediction**: AUROC 0.87–0.91 for
+  detecting worst-decile-error cases, and fused with a deep-ensemble spread, AUROC 0.905 —
+  recovering ~93% of the oracle's achievable error reduction at a 10% rejection budget.
+- A **residual-floor theorem** for the monitored discrete operator, quantifying the
+  operator-specific detection limit and the undetectable kernel modes — a formal mechanism
+  for why residual-space smallness cannot by itself certify solution-space accuracy, which
+  we connect to current work on residual-based conformal scores and error certification.
+- A **distribution-free split-conformal certificate calibrated on the deployed, corrected
+  field**, shown robust over 20 calibration/test re-draws (coverage 0.895–0.902 at the
+  0.90 target in every arm), with an honest in-/out-of-distribution scoping.
+- A **repaired force-measurement pipeline**: a control-volume (far-field momentum-balance)
+  integrator recovers official AirfRANS lift from predicted fields at Spearman 0.997 with
+  ~3.7% median magnitude error, and decomposes the remaining drag error into
+  measurement-limited versus model-limited parts.
 
-**Fit for CMAME and reproducibility.** The paper contributes computational methodology for
-engineering simulation: a self-auditing trust layer and a certified correction loop that wrap
-*any* neural surrogate, evaluated with the rigor the journal's readership expects of a numerical
-method. It is explicit throughout about what is *measured* versus *assumed*, and preserves its
-negative results rather than hiding them — including a self-falsifying control on a
-force-ranking metric, which led us to recompute it against the official benchmark labels and
-report the (lower, honest) value. Every headline number maps to a committed script and result
-file via `docs/REPRODUCE.md`, with a manifest recording seeds, environment, and file hashes; the
-package is CPU-first, runs end-to-end with zero downloads, and is permanently archived at
-Zenodo (DOI 10.5281/zenodo.21277928).
+**Fit for JCP and reproducibility.** The paper contributes computational methodology at
+the physics/ML interface: a self-auditing, calibrated trust layer for neural PDE
+surrogates, a formal analysis of the discrete residual as monitor versus objective, and
+controlled attribution experiments (including a null-input corrector control) of the kind
+the journal's readership expects of a numerical method. It is explicit throughout about
+what is *measured* versus *assumed*, and preserves its negative results rather than hiding
+them — including a self-falsifying control on a force-ranking metric that led us to
+recompute against official benchmark labels and repair the integrator. Every headline
+number maps to a committed script and result file via `docs/REPRODUCE.md`, with a manifest
+recording seeds, environment, and file hashes; the package is CPU-first, runs end-to-end
+with zero downloads, and is permanently archived at Zenodo (DOI 10.5281/zenodo.21277928).
 
-The manuscript is original and is not under consideration by any other journal; a preprint has
-been posted to arXiv (arXiv:2607.10333), consistent with Elsevier's preprint policy. Both authors have approved
-this submission and declare no competing interests, and the manuscript includes the
-declarations of generative-AI use required by Elsevier policy. We confirm the work complies
-with the journal's authorship and research-integrity policies.
+The manuscript is original and is not under consideration by any other journal; a preprint
+has been posted to arXiv (arXiv:2607.10333), consistent with Elsevier's preprint policy.
+Both authors have approved this submission and declare no competing interests, and the
+manuscript includes the declarations of generative-AI use required by Elsevier policy. We
+confirm the work complies with the journal's authorship and research-integrity policies.
 
 Thank you for your consideration.
 

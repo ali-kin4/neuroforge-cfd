@@ -4,12 +4,12 @@ Highlights — Journal of Computational Physics
 - Physics residual is a calibrated, backbone-agnostic trust signal for neural CFD
 - Validated across 3 architectures and 2 datasets (turbulent RANS and laminar flow)
 - Residual is a strong error detector but a poor correction objective (dissociation)
+- Near-oracle case rejection: AUROC 0.91 fusing residual with ensemble spread
 - A residual-floor theorem quantifies the operator-specific detection limit
-- Conformal trust certificate calibrated on the deployed, self-corrected flow field
 
 [char counts, for checking — all <= 85:]
 1: 79
 2: 80
 3: 81
-4: 73
-5: 80
+4: 74
+5: 73
