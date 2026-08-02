@@ -31,9 +31,9 @@ asks, rigorously, **which jobs the discretised steady-RANS residual can and cann
   field**, shown robust over 20 calibration/test re-draws (coverage 0.895–0.902 at the
   0.90 target in every arm), with an honest in-/out-of-distribution scoping.
 - A **repaired force-measurement pipeline**: a control-volume (far-field momentum-balance)
-  integrator recovers official AirfRANS lift from predicted fields at Spearman 0.997 with
-  ~3.7% median magnitude error, and decomposes the remaining drag error into
-  measurement-limited versus model-limited parts.
+  integrator recovers official AirfRANS lift from predicted fields at Spearman 0.998 with
+  per-seed median magnitude errors of 3.6–3.9%, and decomposes the remaining drag error
+  into measurement-limited versus model-limited parts.
 
 **Fit for JCP and reproducibility.** The paper contributes computational methodology at
 the physics/ML interface: a self-auditing, calibrated trust layer for neural PDE

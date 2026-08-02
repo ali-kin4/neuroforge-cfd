@@ -74,7 +74,7 @@
 
 \begin{abstract}
 Machine-learning surrogates for computational fluid dynamics (CFD) predict steady
-flow fields over engineering geometries far faster than classical solvers, but emit a
+flow fields far faster than classical solvers, but emit a
 single field with no built-in way to know whether to trust it---especially out of
 distribution. We close the loop with the governing physics: we compute the discretised
 steady-state Reynolds-averaged (RANS) residual of the prediction and ask what jobs it
@@ -176,9 +176,10 @@ near-deterministic model (ECE $0.074$, \autoref{tab:uq}), and on the weak backbo
 holds under distribution shift, including a regime where the bare model's signal collapses
 (\autoref{sec:ood}, \autoref{sec:conformal}).
 The signal also supports \emph{selective prediction}: it detects worst-decile-error cases
-with AUROC $0.87$--$0.91$ across arms, and rank-fused with the ensemble $\sigma$ reaches
-AUROC $0.905$, recovering $\approx 93\%$ of the oracle's achievable error reduction at a
-$10\%$ rejection budget (\autoref{fig:risk_coverage}).
+with AUROC $0.87$--$0.91$ on the AirfRANS arms ($0.83$--$0.98$ including the DeepCFD OOD
+seeds), and rank-fused with the ensemble $\sigma$ reaches AUROC $0.905$, recovering
+$\approx 91\%$ of the oracle's achievable error reduction at a $10\%$ rejection budget
+(\autoref{fig:risk_coverage}).
 The layer depends only on a model's predictions and uncertainty, so it is backbone-robust.
 
 \item \textbf{Learned correction works on a strong backbone.} A learned DEQ corrector trained
@@ -188,8 +189,8 @@ $\texttt{mse\_v}$ $0.100\rightarrow0.079$ ($-21\%$), $\texttt{mse\_p}$ $630\righ
 ($-25\%$, gate-verified), with internal force-ranking self-consistency held
 ($\rho_{C_l}=0.999$; against \emph{official} labels drag ranking is recovered at
 $\rho_D=0.84$, and a repaired control-volume integrator recovers official \emph{lift}
-nearly exactly from the predicted fields, $\rho_L=0.997{\pm}0.001$ with median magnitude
-error $\approx 3.7\%$, \autoref{sec:v2}). The backbone is a published SOTA architecture (Transolver),
+nearly exactly from the predicted fields, $\rho_L=0.998{\pm}0.001$ with per-seed median
+magnitude errors of $3.6$--$3.9\%$, \autoref{sec:v2}). The backbone is a published SOTA architecture (Transolver),
 so the corrector improves a competitive surrogate. The deployed corrector
 ingests the residual as an input channel, but a controlled ablation that zeros that input at
 train and inference (3 seeds) matches or slightly exceeds the deployed corrector, so we
@@ -740,11 +741,11 @@ pressure scheme cuts the ground-truth-field lift magnitude error from $16\%$ to 
 (median), and a \emph{control-volume} (far-field momentum-balance) integrator over the
 outer grid ring recovers official lift from ground-truth fields almost exactly
 ($\rho_L=1.00$, median error $<1\%$) and---the deployment-relevant number---from
-\emph{predicted} fields at $\rho_L = 0.997{\pm}0.001$ with median magnitude error
-$\approx 3.7\%$ across all three seeds: engineering-grade lift from the surrogate. Drag
+\emph{predicted} fields at $\rho_L = 0.998{\pm}0.001$ with per-seed median magnitude
+errors of $3.6$--$3.9\%$: engineering-grade lift from the surrogate. Drag
 decomposes diagnostically: on ground-truth fields the control-volume estimator reduces the
 median drag error from $3.3\times$ to $0.23\times$ (the \emph{measurement} is fixable), but
-on predicted fields it reaches only $\approx 2.6\times$ with a degraded ranking, so the
+on predicted fields it reaches only $\approx 2.7\times$ with a degraded ranking, so the
 remaining drag error is attributable to the \emph{model's} far-field/wake accuracy, not the
 integrator; drag \emph{ranking} is still best served by the near-field scheme
 ($\rho_D=0.84$). We therefore report lift as quantitatively recovered, read
@@ -1184,9 +1185,9 @@ residual$+\sigma$ score reaches \textbf{AUROC $0.905$} (AUPRC $0.681$ against a 
 prevalence baseline). The same residual score transfers: AUROC $0.89$--$0.91$ on the three
 DEQ-corrected arms and $0.83$--$0.98$ on the three DeepCFD OOD seeds. In risk--coverage
 terms, rejecting the $10\%$ least-trusted cases by the fused score reduces the retained
-mean relative-$L_2$ error from $0.0040$ to $0.0035$---recovering $\approx 93\%$ of the
+mean relative-$L_2$ error from $0.0040$ to $0.0035$---recovering $\approx 91\%$ of the
 error reduction an \emph{oracle} that rejects by true error could achieve at that budget
-(the residual alone recovers $\approx 70\%$; random rejection recovers none). Case-level
+(the residual alone recovers $\approx 67\%$; random rejection recovers none). Case-level
 bootstrap $95\%$ CIs ($10^4$ resamples;
 \texttt{results/control/bootstrap\_spearman\_ci.json}) put the ensemble-arm residual
 correlation at $0.610$ $[0.506, 0.698]$ and the fused score at $0.703$ $[0.615, 0.773]$;
