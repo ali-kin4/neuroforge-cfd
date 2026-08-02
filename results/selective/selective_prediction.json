@@ -1,0 +1,823 @@
+{
+  "meta": {
+    "experiment": "selective prediction / risk-coverage / AUROC on trust scores",
+    "date": "2026-08-02 20:03:18",
+    "runtime_sec": 143.79216074943542,
+    "scoring_pass_sec": 143.00808262825012,
+    "device": "cpu (all model outputs served from cache; zero forward passes)",
+    "sources": {
+      "ensemble_cache": "data/cache/w2\\ensemble",
+      "corrected_cache": {
+        "seed0": "data/cache/w2\\corrected\\seed0",
+        "seed1": "data/cache/w2\\corrected\\seed1",
+        "seed2": "data/cache/w2\\corrected\\seed2"
+      },
+      "deepcfd_percase": "results/deepcfd/deepcfd_trust_percase.json",
+      "gt": "AirfRANS full task, test split, resolution 128, limit 200, root data, cache data/cache"
+    },
+    "formulas": {
+      "residual_score": "PhysicsChecker(Config().physics).diagnose(pred, case).residual_norm() -- interior continuity+momentum RMS of L2 magnitude, solid+wall-ring zeroed (Diagnostics.residual_norm, core/types.py ~314). Identical to the scalar behind the published residual_error_spearman.",
+      "rel_l2_error": "||(pred.speed()-gt.speed())[m]|| / (||gt.speed()[m]||+1e-12), m = gt.mask>0.5 -- byte-for-byte evaluation.py evaluate_cases lines ~216-222.",
+      "sigma_vel_score": "fluid-masked (gt.mask>0.5, same mask as the error) mean of 0.5*(std[0]+std[1]); std = frozen 5-member ensemble per-cell std (ddof=0) on physical fields from data/cache/w2/ensemble. sigma_p = same for channel 2 (pressure), recorded alongside.",
+      "fused_score": "0.5*(rankdata(residual)+rankdata(sigma_vel)) -- average of the two scores' ranks.",
+      "flowfield_construction": "FlowField.from_array(cached_arr, case.domain, mask=encode_case(case)[1], sdf=encode_case(case)[0]) -- mirrors run_w2_conformal_corrected.MeanPredictor.predict.",
+      "risk_coverage": "sort by score DESCENDING (highest score = least trusted), reject worst k% (k in [0, 5, 10, 20, 30, 50]), report mean+median rel-L2 of retained; oracle rejects by TRUE error; random = 1000-draw MC (rng seed 0).",
+      "auroc": "Mann-Whitney U from scipy.stats.rankdata midranks: (sum pos ranks - n_pos(n_pos+1)/2)/(n_pos*n_neg). Positives = cases with rel_l2 >= 90% quantile (top decile) within the arm.",
+      "auprc": "average precision over the descending-score PR staircase, tie groups collapsed; baseline = prevalence (~0.10)."
+    }
+  },
+  "gates": {
+    "ensemble_spearman": {
+      "measured": 0.6103232580814522,
+      "published": 0.6103232580814522,
+      "tolerance": 0.02,
+      "published_computed_on": "all 200 cached cases (uq_results.json ensemble_mean_metrics.n_cases = 200)",
+      "passed": true
+    },
+    "n_cases": {
+      "ensemble": 200,
+      "corrected": {
+        "seed0": 200,
+        "seed1": 200,
+        "seed2": 200
+      },
+      "deepcfd": {
+        "seed0": 247,
+        "seed1": 247,
+        "seed2": 247
+      },
+      "passed": true
+    },
+    "deepcfd_spearman": {
+      "per_seed": [
+        {
+          "seed": 0,
+          "spearman_recomputed_here": 0.7166509522611224,
+          "spearman_recomputed_in_json": 0.7166509522611224,
+          "spearman_saved_in_json": 0.7180015417105979,
+          "target_rounded": 0.718,
+          "matches_json_recomputed_exactly": true,
+          "saved_matches_target_3dp": true
+        },
+        {
+          "seed": 1,
+          "spearman_recomputed_here": 0.6571326412624189,
+          "spearman_recomputed_in_json": 0.6571326412624189,
+          "spearman_saved_in_json": 0.6576446866728037,
+          "target_rounded": 0.658,
+          "matches_json_recomputed_exactly": true,
+          "saved_matches_target_3dp": true
+        },
+        {
+          "seed": 2,
+          "spearman_recomputed_here": 0.9340034784049028,
+          "spearman_recomputed_in_json": 0.9340034784049028,
+          "spearman_saved_in_json": 0.9340480733395553,
+          "target_rounded": 0.934,
+          "matches_json_recomputed_exactly": true,
+          "saved_matches_target_3dp": true
+        }
+      ],
+      "note": "gate = (a) our Spearman from the JSON arrays matches the JSON's own residual_error_spearman_recomputed bit-for-bit, AND (b) the JSON's residual_error_spearman_saved (run-time headline) rounds to the published 0.718/0.658/0.934. The recomputed-vs-saved ~1e-3 delta is float32 array serialization, documented in the dump itself.",
+      "passed": true
+    },
+    "all_passed": true
+  },
+  "arms": {
+    "ensemble_mean": {
+      "n_cases": 200,
+      "scores": {
+        "residual": {
+          "spearman": 0.6103232580814522,
+          "auroc_top_decile": 0.8705555555555555,
+          "auprc_top_decile": 0.5920156691272846,
+          "top_decile_threshold_rel_l2": 0.006801791723089762,
+          "n_positives": 20,
+          "prevalence": 0.1,
+          "risk_coverage": {
+            "0": {
+              "n_rejected": 0,
+              "n_retained": 200,
+              "score_mean": 0.0039830916107948065,
+              "score_median": 0.003310680367362313,
+              "oracle_mean": 0.0039830916107948065,
+              "oracle_median": 0.003310680367362313,
+              "random_mean": 0.003983091610794806,
+              "random_median": 0.003310680367362313
+            },
+            "5": {
+              "n_rejected": 10,
+              "n_retained": 190,
+              "score_mean": 0.003768086003914386,
+              "score_median": 0.0032585037516139684,
+              "oracle_mean": 0.003659292314578127,
+              "oracle_median": 0.0031912570561722945,
+              "random_mean": 0.003982254533973122,
+              "random_median": 0.003305744391230582
+            },
+            "10": {
+              "n_rejected": 20,
+              "n_retained": 180,
+              "score_mean": 0.0036258560886445338,
+              "score_median": 0.003099345452580047,
+              "oracle_mean": 0.0034498444523534534,
+              "oracle_median": 0.003053493205967304,
+              "random_mean": 0.003980743716895377,
+              "random_median": 0.00330601266371762
+            },
+            "20": {
+              "n_rejected": 40,
+              "n_retained": 160,
+              "score_mean": 0.0033227795193368596,
+              "score_median": 0.0029654564531893337,
+              "oracle_mean": 0.0031422084938623,
+              "oracle_median": 0.002956454137231432,
+              "random_mean": 0.003982495925185971,
+              "random_median": 0.0033110502189413198
+            },
+            "30": {
+              "n_rejected": 60,
+              "n_retained": 140,
+              "score_mean": 0.003210589570517167,
+              "score_median": 0.002838283887983988,
+              "oracle_mean": 0.0028773200119467956,
+              "oracle_median": 0.0028275090415078646,
+              "random_mean": 0.003980682469631939,
+              "random_median": 0.0033111175239122818
+            },
+            "50": {
+              "n_rejected": 100,
+              "n_retained": 100,
+              "score_mean": 0.0031561889722306826,
+              "score_median": 0.0027781009543339803,
+              "oracle_mean": 0.002494514567189852,
+              "oracle_median": 0.0024724600801921846,
+              "random_mean": 0.0039874920408160585,
+              "random_median": 0.003321173603019572
+            }
+          }
+        },
+        "sigma_vel": {
+          "spearman": 0.6542938573464337,
+          "auroc_top_decile": 0.8938888888888888,
+          "auprc_top_decile": 0.5580032829070328,
+          "top_decile_threshold_rel_l2": 0.006801791723089762,
+          "n_positives": 20,
+          "prevalence": 0.1,
+          "risk_coverage": {
+            "0": {
+              "n_rejected": 0,
+              "n_retained": 200,
+              "score_mean": 0.0039830916107948065,
+              "score_median": 0.003310680367362313,
+              "oracle_mean": 0.0039830916107948065,
+              "oracle_median": 0.003310680367362313,
+              "random_mean": 0.003983091610794806,
+              "random_median": 0.003310680367362313
+            },
+            "5": {
+              "n_rejected": 10,
+              "n_retained": 190,
+              "score_mean": 0.003774028754217064,
+              "score_median": 0.0031912570561722945,
+              "oracle_mean": 0.003659292314578127,
+              "oracle_median": 0.0031912570561722945,
+              "random_mean": 0.003982993338809675,
+              "random_median": 0.0033062414481894752
+            },
+            "10": {
+              "n_rejected": 20,
+              "n_retained": 180,
+              "score_mean": 0.0036007166361013347,
+              "score_median": 0.003053493205967304,
+              "oracle_mean": 0.0034498444523534534,
+              "oracle_median": 0.003053493205967304,
+              "random_mean": 0.0039833657389269864,
+              "random_median": 0.003307407215354549
+            },
+            "20": {
+              "n_rejected": 40,
+              "n_retained": 160,
+              "score_mean": 0.003356369505947944,
+              "score_median": 0.002966954622673072,
+              "oracle_mean": 0.0031422084938623,
+              "oracle_median": 0.002956454137231432,
+              "random_mean": 0.003984910591113566,
+              "random_median": 0.0033119032952787348
+            },
+            "30": {
+              "n_rejected": 60,
+              "n_retained": 140,
+              "score_mean": 0.0031645465707651503,
+              "score_median": 0.002838283887983988,
+              "oracle_mean": 0.0028773200119467956,
+              "oracle_median": 0.0028275090415078646,
+              "random_mean": 0.003980657981894563,
+              "random_median": 0.0033101804647967495
+            },
+            "50": {
+              "n_rejected": 100,
+              "n_retained": 100,
+              "score_mean": 0.002850226772192103,
+              "score_median": 0.0026926650930181126,
+              "oracle_mean": 0.002494514567189852,
+              "oracle_median": 0.0024724600801921846,
+              "random_mean": 0.003982996021294019,
+              "random_median": 0.003313922172194808
+            }
+          }
+        },
+        "sigma_p": {
+          "spearman": 0.5805430135753396,
+          "auroc_top_decile": 0.8552777777777778,
+          "auprc_top_decile": 0.5147874846158698,
+          "top_decile_threshold_rel_l2": 0.006801791723089762,
+          "n_positives": 20,
+          "prevalence": 0.1,
+          "risk_coverage": {
+            "0": {
+              "n_rejected": 0,
+              "n_retained": 200,
+              "score_mean": 0.0039830916107948065,
+              "score_median": 0.003310680367362313,
+              "oracle_mean": 0.0039830916107948065,
+              "oracle_median": 0.003310680367362313,
+              "random_mean": 0.003983091610794806,
+              "random_median": 0.003310680367362313
+            },
+            "5": {
+              "n_rejected": 10,
+              "n_retained": 190,
+              "score_mean": 0.0038194557653346674,
+              "score_median": 0.0031912570561722945,
+              "oracle_mean": 0.003659292314578127,
+              "oracle_median": 0.0031912570561722945,
+              "random_mean": 0.0039827621944818585,
+              "random_median": 0.0033055113949707914
+            },
+            "10": {
+              "n_rejected": 20,
+              "n_retained": 180,
+              "score_mean": 0.0036642283080840204,
+              "score_median": 0.003053493205967304,
+              "oracle_mean": 0.0034498444523534534,
+              "oracle_median": 0.003053493205967304,
+              "random_mean": 0.003979713683845472,
+              "random_median": 0.0033052027227045127
+            },
+            "20": {
+              "n_rejected": 40,
+              "n_retained": 160,
+              "score_mean": 0.0034644188165363667,
+              "score_median": 0.0029619246548646685,
+              "oracle_mean": 0.0031422084938623,
+              "oracle_median": 0.002956454137231432,
+              "random_mean": 0.003982668949863402,
+              "random_median": 0.0033080085210215127
+            },
+            "30": {
+              "n_rejected": 60,
+              "n_retained": 140,
+              "score_mean": 0.003272844544214866,
+              "score_median": 0.0028967822296114467,
+              "oracle_mean": 0.0028773200119467956,
+              "oracle_median": 0.0028275090415078646,
+              "random_mean": 0.003982428725237938,
+              "random_median": 0.0033133606446290077
+            },
+            "50": {
+              "n_rejected": 100,
+              "n_retained": 100,
+              "score_mean": 0.002964056811507732,
+              "score_median": 0.0027588193131296715,
+              "oracle_mean": 0.002494514567189852,
+              "oracle_median": 0.0024724600801921846,
+              "random_mean": 0.003983312708800406,
+              "random_median": 0.003319596834196888
+            }
+          }
+        },
+        "fused": {
+          "spearman": 0.7028211264860554,
+          "auroc_top_decile": 0.9052777777777777,
+          "auprc_top_decile": 0.6811069027968242,
+          "top_decile_threshold_rel_l2": 0.006801791723089762,
+          "n_positives": 20,
+          "prevalence": 0.1,
+          "risk_coverage": {
+            "0": {
+              "n_rejected": 0,
+              "n_retained": 200,
+              "score_mean": 0.0039830916107948065,
+              "score_median": 0.003310680367362313,
+              "oracle_mean": 0.0039830916107948065,
+              "oracle_median": 0.003310680367362313,
+              "random_mean": 0.003983091610794806,
+              "random_median": 0.003310680367362313
+            },
+            "5": {
+              "n_rejected": 10,
+              "n_retained": 190,
+              "score_mean": 0.003757360403954314,
+              "score_median": 0.0031912570561722945,
+              "oracle_mean": 0.003659292314578127,
+              "oracle_median": 0.0031912570561722945,
+              "random_mean": 0.003983540167761723,
+              "random_median": 0.003306661208311138
+            },
+            "10": {
+              "n_rejected": 20,
+              "n_retained": 180,
+              "score_mean": 0.0034953119559396825,
+              "score_median": 0.003053493205967304,
+              "oracle_mean": 0.0034498444523534534,
+              "oracle_median": 0.003053493205967304,
+              "random_mean": 0.003984067733950161,
+              "random_median": 0.0033096852897126047
+            },
+            "20": {
+              "n_rejected": 40,
+              "n_retained": 160,
+              "score_mean": 0.0033036350521349995,
+              "score_median": 0.0029619246548646685,
+              "oracle_mean": 0.0031422084938623,
+              "oracle_median": 0.002956454137231432,
+              "random_mean": 0.00398562127791802,
+              "random_median": 0.0033134768530720757
+            },
+            "30": {
+              "n_rejected": 60,
+              "n_retained": 140,
+              "score_mean": 0.003170391661853766,
+              "score_median": 0.002838283887983988,
+              "oracle_mean": 0.0028773200119467956,
+              "oracle_median": 0.0028275090415078646,
+              "random_mean": 0.003980657056171026,
+              "random_median": 0.003309959335068889
+            },
+            "50": {
+              "n_rejected": 100,
+              "n_retained": 100,
+              "score_mean": 0.002779935107069907,
+              "score_median": 0.0025169264521243896,
+              "oracle_mean": 0.002494514567189852,
+              "oracle_median": 0.0024724600801921846,
+              "random_mean": 0.003982031517913012,
+              "random_median": 0.0033138949082736234
+            }
+          }
+        }
+      }
+    },
+    "corrected_seed0": {
+      "n_cases": 200,
+      "scores": {
+        "residual": {
+          "spearman": 0.6356348908722718,
+          "auroc_top_decile": 0.9141666666666667,
+          "auprc_top_decile": 0.5998097541104608,
+          "top_decile_threshold_rel_l2": 0.006491700752598642,
+          "n_positives": 20,
+          "prevalence": 0.1,
+          "risk_coverage": {
+            "0": {
+              "n_rejected": 0,
+              "n_retained": 200,
+              "score_mean": 0.0039656337537031135,
+              "score_median": 0.0033370340875877595,
+              "oracle_mean": 0.003965633753703114,
+              "oracle_median": 0.0033370340875877595,
+              "random_mean": 0.0039656337537031135,
+              "random_median": 0.0033370340875877595
+            },
+            "5": {
+              "n_rejected": 10,
+              "n_retained": 190,
+              "score_mean": 0.003769937367372916,
+              "score_median": 0.0032982859910403737,
+              "oracle_mean": 0.0036643110307860677,
+              "oracle_median": 0.003291022753278095,
+              "random_mean": 0.003965962727725521,
+              "random_median": 0.0033342698173041085
+            },
+            "10": {
+              "n_rejected": 20,
+              "n_retained": 180,
+              "score_mean": 0.003648844690523604,
+              "score_median": 0.0032448561468565876,
+              "oracle_mean": 0.003463592134478578,
+              "oracle_median": 0.003171999160160137,
+              "random_mean": 0.003964893112850964,
+              "random_median": 0.0033339752154342454
+            },
+            "20": {
+              "n_rejected": 40,
+              "n_retained": 160,
+              "score_mean": 0.0033768191783059174,
+              "score_median": 0.0030162935897308438,
+              "oracle_mean": 0.003156419979569463,
+              "oracle_median": 0.002981779965348577,
+              "random_mean": 0.003965584632762805,
+              "random_median": 0.0033348676350795003
+            },
+            "30": {
+              "n_rejected": 60,
+              "n_retained": 140,
+              "score_mean": 0.0032116781331693028,
+              "score_median": 0.0028825233049230036,
+              "oracle_mean": 0.0029185964455679865,
+              "oracle_median": 0.002793161476037605,
+              "random_mean": 0.0039682627002029965,
+              "random_median": 0.00333662236424617
+            },
+            "50": {
+              "n_rejected": 100,
+              "n_retained": 100,
+              "score_mean": 0.0030195761475027834,
+              "score_median": 0.0026512377554038817,
+              "oracle_mean": 0.0025425935331130772,
+              "oracle_median": 0.0025168195449086026,
+              "random_mean": 0.003959896529371127,
+              "random_median": 0.0033413258109111854
+            }
+          }
+        }
+      }
+    },
+    "corrected_seed1": {
+      "n_cases": 200,
+      "scores": {
+        "residual": {
+          "spearman": 0.6158553963849097,
+          "auroc_top_decile": 0.8919444444444444,
+          "auprc_top_decile": 0.6000257953884613,
+          "top_decile_threshold_rel_l2": 0.006680850109632614,
+          "n_positives": 20,
+          "prevalence": 0.1,
+          "risk_coverage": {
+            "0": {
+              "n_rejected": 0,
+              "n_retained": 200,
+              "score_mean": 0.004134572251809795,
+              "score_median": 0.0035387921535957215,
+              "oracle_mean": 0.004134572251809795,
+              "oracle_median": 0.0035387921535957215,
+              "random_mean": 0.004134572251809795,
+              "random_median": 0.0035387921535957215
+            },
+            "5": {
+              "n_rejected": 10,
+              "n_retained": 190,
+              "score_mean": 0.003942425073619674,
+              "score_median": 0.003439124086409325,
+              "oracle_mean": 0.003840303007936314,
+              "oracle_median": 0.0034384749958939944,
+              "random_mean": 0.0041344273152166214,
+              "random_median": 0.003526166028667466
+            },
+            "10": {
+              "n_rejected": 20,
+              "n_retained": 180,
+              "score_mean": 0.003823568583901894,
+              "score_median": 0.0034216109080784478,
+              "oracle_mean": 0.003636343552710828,
+              "oracle_median": 0.0033451429222275484,
+              "random_mean": 0.0041330202407905935,
+              "random_median": 0.003519512524402683
+            },
+            "20": {
+              "n_rejected": 40,
+              "n_retained": 160,
+              "score_mean": 0.003562835936972872,
+              "score_median": 0.0032382290937147456,
+              "oracle_mean": 0.003349175557947477,
+              "oracle_median": 0.003160140217392519,
+              "random_mean": 0.004132645432771415,
+              "random_median": 0.003515007059090912
+            },
+            "30": {
+              "n_rejected": 60,
+              "n_retained": 140,
+              "score_mean": 0.003429499589550828,
+              "score_median": 0.003048332017866852,
+              "oracle_mean": 0.003073934824392718,
+              "oracle_median": 0.002952164630388498,
+              "random_mean": 0.00413165156903425,
+              "random_median": 0.0035121274594789977
+            },
+            "50": {
+              "n_rejected": 100,
+              "n_retained": 100,
+              "score_mean": 0.0032192544849189587,
+              "score_median": 0.0029318324923457793,
+              "oracle_mean": 0.0027252338463958233,
+              "oracle_median": 0.0026763084789358203,
+              "random_mean": 0.004134581747957717,
+              "random_median": 0.0035143965886816515
+            }
+          }
+        }
+      }
+    },
+    "corrected_seed2": {
+      "n_cases": 200,
+      "scores": {
+        "residual": {
+          "spearman": 0.6665191629790745,
+          "auroc_top_decile": 0.9,
+          "auprc_top_decile": 0.6041633553412131,
+          "top_decile_threshold_rel_l2": 0.007126587634947977,
+          "n_positives": 20,
+          "prevalence": 0.1,
+          "risk_coverage": {
+            "0": {
+              "n_rejected": 0,
+              "n_retained": 200,
+              "score_mean": 0.0042808959897702925,
+              "score_median": 0.0036676420972328694,
+              "oracle_mean": 0.0042808959897702925,
+              "oracle_median": 0.0036676420972328694,
+              "random_mean": 0.0042808959897702925,
+              "random_median": 0.0036676420972328694
+            },
+            "5": {
+              "n_rejected": 10,
+              "n_retained": 190,
+              "score_mean": 0.00407119947456465,
+              "score_median": 0.0036270927047427183,
+              "oracle_mean": 0.003981401976115372,
+              "oracle_median": 0.003618940542314559,
+              "random_mean": 0.004279803300909915,
+              "random_median": 0.0036687002799688432
+            },
+            "10": {
+              "n_rejected": 20,
+              "n_retained": 180,
+              "score_mean": 0.003947285467457804,
+              "score_median": 0.0035701967024419747,
+              "oracle_mean": 0.003772963638196575,
+              "oracle_median": 0.003518534808119727,
+              "random_mean": 0.004280167797834663,
+              "random_median": 0.003674010556482966
+            },
+            "20": {
+              "n_rejected": 40,
+              "n_retained": 160,
+              "score_mean": 0.003693450001547164,
+              "score_median": 0.0034230400531043807,
+              "oracle_mean": 0.0034644903674389852,
+              "oracle_median": 0.0033184219749572965,
+              "random_mean": 0.004281849186171753,
+              "random_median": 0.0036803984486256554
+            },
+            "30": {
+              "n_rejected": 60,
+              "n_retained": 140,
+              "score_mean": 0.003538171290554816,
+              "score_median": 0.003096281827677459,
+              "oracle_mean": 0.0031803712153227765,
+              "oracle_median": 0.0030402936080837226,
+              "random_mean": 0.004280999601676639,
+              "random_median": 0.003682488161353993
+            },
+            "50": {
+              "n_rejected": 100,
+              "n_retained": 100,
+              "score_mean": 0.003256488774878157,
+              "score_median": 0.0029200793341354896,
+              "oracle_mean": 0.0027711709409784764,
+              "oracle_median": 0.00270882425786379,
+              "random_mean": 0.004278497235712148,
+              "random_median": 0.003685250526500284
+            }
+          }
+        }
+      }
+    },
+    "deepcfd_seed0": {
+      "n_cases": 247,
+      "scores": {
+        "residual": {
+          "spearman": 0.7166509522611224,
+          "auroc_top_decile": 0.9320720720720721,
+          "auprc_top_decile": 0.7185541520988703,
+          "top_decile_threshold_rel_l2": 0.10630127154553158,
+          "n_positives": 25,
+          "prevalence": 0.10121457489878542,
+          "risk_coverage": {
+            "0": {
+              "n_rejected": 0,
+              "n_retained": 247,
+              "score_mean": 0.0688671922427298,
+              "score_median": 0.06546381802574663,
+              "oracle_mean": 0.0688671922427298,
+              "oracle_median": 0.06546381802574663,
+              "random_mean": 0.06886719224272982,
+              "random_median": 0.06546381802574663
+            },
+            "5": {
+              "n_rejected": 12,
+              "n_retained": 235,
+              "score_mean": 0.0662967811182827,
+              "score_median": 0.06273969769562225,
+              "oracle_mean": 0.06592052430019227,
+              "oracle_median": 0.06273969769562225,
+              "random_mean": 0.06885567473483026,
+              "random_median": 0.06578520528945754
+            },
+            "10": {
+              "n_rejected": 25,
+              "n_retained": 222,
+              "score_mean": 0.06442272750539356,
+              "score_median": 0.06123208055314915,
+              "oracle_mean": 0.0632694472481376,
+              "oracle_median": 0.06123208055314915,
+              "random_mean": 0.0688504938650768,
+              "random_median": 0.06584637686048418
+            },
+            "20": {
+              "n_rejected": 49,
+              "n_retained": 198,
+              "score_mean": 0.06077894526155995,
+              "score_median": 0.056438532566408905,
+              "oracle_mean": 0.05869344037760788,
+              "oracle_median": 0.056438532566408905,
+              "random_mean": 0.06889102661147935,
+              "random_median": 0.06621721555647536
+            },
+            "30": {
+              "n_rejected": 74,
+              "n_retained": 173,
+              "score_mean": 0.057528445799930446,
+              "score_median": 0.05363114472629585,
+              "oracle_mean": 0.05419254850345875,
+              "oracle_median": 0.053544651784047284,
+              "random_mean": 0.06886479315043854,
+              "random_median": 0.06618395787437478
+            },
+            "50": {
+              "n_rejected": 124,
+              "n_retained": 123,
+              "score_mean": 0.051520763960405724,
+              "score_median": 0.04869806378843826,
+              "oracle_mean": 0.045437951780603766,
+              "oracle_median": 0.045870682600223776,
+              "random_mean": 0.06890458030210171,
+              "random_median": 0.06630542426835291
+            }
+          }
+        }
+      }
+    },
+    "deepcfd_seed1": {
+      "n_cases": 247,
+      "scores": {
+        "residual": {
+          "spearman": 0.6571326412624189,
+          "auroc_top_decile": 0.8295495495495495,
+          "auprc_top_decile": 0.4085756737199123,
+          "top_decile_threshold_rel_l2": 0.10559378288406707,
+          "n_positives": 25,
+          "prevalence": 0.10121457489878542,
+          "risk_coverage": {
+            "0": {
+              "n_rejected": 0,
+              "n_retained": 247,
+              "score_mean": 0.06790630368474813,
+              "score_median": 0.06644119448204085,
+              "oracle_mean": 0.06790630368474815,
+              "oracle_median": 0.06644119448204085,
+              "random_mean": 0.06790630368474816,
+              "random_median": 0.06644119448204085
+            },
+            "5": {
+              "n_rejected": 12,
+              "n_retained": 235,
+              "score_mean": 0.06600691373950458,
+              "score_median": 0.0640102711077012,
+              "oracle_mean": 0.06490328992951894,
+              "oracle_median": 0.0640102711077012,
+              "random_mean": 0.06790192487523566,
+              "random_median": 0.06672527814582022
+            },
+            "10": {
+              "n_rejected": 25,
+              "n_retained": 222,
+              "score_mean": 0.06446660845151778,
+              "score_median": 0.06157414552287576,
+              "oracle_mean": 0.06223696086282396,
+              "oracle_median": 0.06105810050917554,
+              "random_mean": 0.06791879502119309,
+              "random_median": 0.06671747672893004
+            },
+            "20": {
+              "n_rejected": 49,
+              "n_retained": 198,
+              "score_mean": 0.0621425961287501,
+              "score_median": 0.059831937658468094,
+              "oracle_mean": 0.05784602143722333,
+              "oracle_median": 0.057650386938333985,
+              "random_mean": 0.06791123661366999,
+              "random_median": 0.06663190291072868
+            },
+            "30": {
+              "n_rejected": 74,
+              "n_retained": 173,
+              "score_mean": 0.058917821081170704,
+              "score_median": 0.05473115251011055,
+              "oracle_mean": 0.05344578527952078,
+              "oracle_median": 0.052542394227609715,
+              "random_mean": 0.06795665283843232,
+              "random_median": 0.06656233484839842
+            },
+            "50": {
+              "n_rejected": 124,
+              "n_retained": 123,
+              "score_mean": 0.052728089035362254,
+              "score_median": 0.04728262583764569,
+              "oracle_mean": 0.04475364168154125,
+              "oracle_median": 0.043904627560206556,
+              "random_mean": 0.06794092572646908,
+              "random_median": 0.06640874830957859
+            }
+          }
+        }
+      }
+    },
+    "deepcfd_seed2": {
+      "n_cases": 247,
+      "scores": {
+        "residual": {
+          "spearman": 0.9340034784049028,
+          "auroc_top_decile": 0.9758558558558559,
+          "auprc_top_decile": 0.8984673789567406,
+          "top_decile_threshold_rel_l2": 0.1007317464759136,
+          "n_positives": 25,
+          "prevalence": 0.10121457489878542,
+          "risk_coverage": {
+            "0": {
+              "n_rejected": 0,
+              "n_retained": 247,
+              "score_mean": 0.06484344928356783,
+              "score_median": 0.06281719278169559,
+              "oracle_mean": 0.06484344928356785,
+              "oracle_median": 0.06281719278169559,
+              "random_mean": 0.06484344928356785,
+              "random_median": 0.06281719278169559
+            },
+            "5": {
+              "n_rejected": 12,
+              "n_retained": 235,
+              "score_mean": 0.06198443515614125,
+              "score_median": 0.06053608152880315,
+              "oracle_mean": 0.06184410318736006,
+              "oracle_median": 0.06053608152880315,
+              "random_mean": 0.06486020433260259,
+              "random_median": 0.06282413524724523
+            },
+            "10": {
+              "n_rejected": 25,
+              "n_retained": 222,
+              "score_mean": 0.05966022318421652,
+              "score_median": 0.05798568281928768,
+              "oracle_mean": 0.059179266851432724,
+              "oracle_median": 0.05798568281928768,
+              "random_mean": 0.0648362720231111,
+              "random_median": 0.0627796575036769
+            },
+            "20": {
+              "n_rejected": 49,
+              "n_retained": 198,
+              "score_mean": 0.05587264929261041,
+              "score_median": 0.05416759535568382,
+              "oracle_mean": 0.05510849047496071,
+              "oracle_median": 0.05416759535568382,
+              "random_mean": 0.06483986463523943,
+              "random_median": 0.06277255867732993
+            },
+            "30": {
+              "n_rejected": 74,
+              "n_retained": 173,
+              "score_mean": 0.05269156095401938,
+              "score_median": 0.05156814197149362,
+              "oracle_mean": 0.051197955348830204,
+              "oracle_median": 0.05156814197149362,
+              "random_mean": 0.06486297566226533,
+              "random_median": 0.06280644713048701
+            },
+            "50": {
+              "n_rejected": 124,
+              "n_retained": 123,
+              "score_mean": 0.044924008920940776,
+              "score_median": 0.04313413814801099,
+              "oracle_mean": 0.043506378213741766,
+              "oracle_median": 0.04313413814801099,
+              "random_mean": 0.06485110360161653,
+              "random_median": 0.06276854065127556
+            }
+          }
+        }
+      }
+    }
+  }
+}

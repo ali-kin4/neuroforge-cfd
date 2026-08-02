@@ -194,7 +194,14 @@ def wall_shear_stress(field: FlowField, case: FlowCase) -> np.ndarray:
 # --------------------------------------------------------------------------- #
 
 
-def force_coefficients(field: FlowField, case: FlowCase) -> dict[str, float]:
+def force_coefficients(
+    field: FlowField,
+    case: FlowCase,
+    *,
+    p_scheme: str = "offset",
+    tau_scheme: str = "field_abs",
+    d1_cells: float = 1.5,
+) -> dict[str, float]:
     """Integrate surface pressure + wall shear into ``{'cl', 'cd', 'cm'}``.
 
     Method
@@ -227,6 +234,19 @@ def force_coefficients(field: FlowField, case: FlowCase) -> dict[str, float]:
         Physical flow field.
     case : FlowCase
         Geometry + freestream conditions.
+    p_scheme : str, keyword-only
+        ``"offset"`` (default, legacy): pressure sampled ``d1_cells`` off the
+        wall. ``"extrap"``: linear extrapolation to the wall from ``d1_cells``
+        and ``2*d1_cells`` (reduces the off-wall pressure-recovery bias; see
+        ``scripts/design_force_integrator.py``).
+    tau_scheme : str, keyword-only
+        ``"field_abs"`` (default, legacy): unsigned ``wall_shear_stress``
+        magnitude applied along the CCW traversal tangent. ``"field_signed"``:
+        same magnitude, signed by the local tangential-velocity direction.
+        ``"noslip"``: one-sided no-slip difference
+        ``nu_eff(d1) * u_t(d1) / d1`` (signed).
+    d1_cells : float, keyword-only
+        Wall-normal sampling offset in mean-cell units (legacy: 1.5).
 
     Returns
     -------
@@ -257,12 +277,43 @@ def force_coefficients(field: FlowField, case: FlowCase) -> dict[str, float]:
     # collapses the pressure variation and drives Cl -> 0. Offsetting by ~1.5
     # cells recovers the true near-wall pressure (verified ~10-20x more spread).
     cell = 0.5 * (field.domain.dx + field.domain.dy)
-    sample_pts = mid + (1.5 * cell) * nmid
-    p_s = _bilinear_sample(field.p, field.domain, sample_pts)        # kinematic p
-    tau_field = wall_shear_stress(field, case)
-    tau_s = _bilinear_sample(tau_field, field.domain, sample_pts)    # dimensional
+    d1 = d1_cells * cell
+    sample_pts = mid + d1 * nmid
+
+    if p_scheme == "offset":
+        p_s = _bilinear_sample(field.p, field.domain, sample_pts)    # kinematic p
+    elif p_scheme == "extrap":
+        # Linear extrapolation to the wall from d1 and 2*d1: p_wall ~ 2p1 - p2.
+        p1 = _bilinear_sample(field.p, field.domain, sample_pts)
+        p2 = _bilinear_sample(field.p, field.domain, mid + (2.0 * d1) * nmid)
+        p_s = 2.0 * p1 - p2
+    else:
+        raise ValueError(f"unknown p_scheme: {p_scheme!r}")
+
     rho = float(case.fluid.density)
-    tau_kin = tau_s / max(rho, _EPS)  # per-density, to match kinematic pressure
+    if tau_scheme in ("field_abs", "field_signed"):
+        tau_field = wall_shear_stress(field, case)
+        tau_s = _bilinear_sample(tau_field, field.domain, sample_pts)  # dimensional
+        tau_kin = tau_s / max(rho, _EPS)  # per-density, to match kinematic pressure
+        if tau_scheme == "field_signed":
+            u_s = _bilinear_sample(field.u, field.domain, sample_pts)
+            v_s = _bilinear_sample(field.v, field.domain, sample_pts)
+            ut_s = u_s * tmid[:, 0] + v_s * tmid[:, 1]
+            tau_kin = np.sign(ut_s) * tau_kin
+    elif tau_scheme == "noslip":
+        u_s = _bilinear_sample(field.u, field.domain, sample_pts)
+        v_s = _bilinear_sample(field.v, field.domain, sample_pts)
+        ut_s = u_s * tmid[:, 0] + v_s * tmid[:, 1]
+        nu = float(case.fluid.kinematic_viscosity)
+        if field.nut is not None:
+            nut_s = np.clip(
+                _bilinear_sample(field.nut, field.domain, sample_pts), 0.0, None
+            )
+        else:
+            nut_s = 0.0
+        tau_kin = (nu + nut_s) * ut_s / max(d1, _EPS)
+    else:
+        raise ValueError(f"unknown tau_scheme: {tau_scheme!r}")
 
     # Sectional force per unit span, per unit density:
     #   pressure acts along -n (compression onto the surface),
@@ -296,6 +347,55 @@ def force_coefficients(field: FlowField, case: FlowCase) -> dict[str, float]:
     cd = drag / denom
     cm = Mz / (denom * chord)
     return {"cl": float(cl), "cd": float(cd), "cm": float(cm)}
+
+
+def force_coefficients_cv(field: FlowField, case: FlowCase) -> dict[str, float]:
+    """Control-volume (momentum-theorem) force coefficients ``{'cl', 'cd'}``.
+
+    Far-field alternative to surface integration, appropriate when the
+    near-wall region is under-resolved: steady incompressible momentum
+    balance over the outermost grid ring,
+
+    ``F_body = -oint_S [ u (u . n) + (p - p_inf) n ] dS``
+
+    (kinematic pressure; viscous stress on the outer boundary neglected;
+    ``p_inf`` taken as the inflow-edge mean, a gauge choice that cancels over
+    the closed contour up to discretisation error). Forces are rotated into
+    wind axes and non-dimensionalised exactly as in ``force_coefficients``.
+    No pitching moment is computed (the far-field balance gives net force
+    only), so the returned dict has no ``'cm'`` key.
+    """
+    u = np.asarray(field.u, dtype=np.float64)
+    v = np.asarray(field.v, dtype=np.float64)
+    p = np.asarray(field.p, dtype=np.float64)
+    dx, dy = field.domain.dx, field.domain.dy
+
+    a = np.deg2rad(float(case.bc.aoa_deg))
+    ca, sa = np.cos(a), np.sin(a)
+    p_inf = float(p[:, 0].mean())
+
+    def _edge(us, vs, ps, nxe, nye, dl):
+        un = us * nxe + vs * nye
+        fx = us * un + (ps - p_inf) * nxe
+        fy = vs * un + (ps - p_inf) * nye
+        return -np.trapezoid(fx, dx=dl), -np.trapezoid(fy, dx=dl)
+
+    Fx = Fy = 0.0
+    for j, nxe in ((0, -1.0), (-1, 1.0)):        # left (-x) / right (+x) edges
+        gx, gy = _edge(u[:, j], v[:, j], p[:, j], nxe, 0.0, dy)
+        Fx += gx
+        Fy += gy
+    for i, nye in ((0, -1.0), (-1, 1.0)):        # bottom (-y) / top (+y) edges
+        gx, gy = _edge(u[i, :], v[i, :], p[i, :], 0.0, nye, dx)
+        Fx += gx
+        Fy += gy
+
+    drag = Fx * ca + Fy * sa
+    lift = -Fx * sa + Fy * ca
+    u_inf = float(case.bc.u_inf)
+    chord = max(case.reference_length(), _EPS)
+    denom = max(0.5 * u_inf * u_inf * chord, _EPS)
+    return {"cl": float(lift / denom), "cd": float(drag / denom)}
 
 
 # --------------------------------------------------------------------------- #

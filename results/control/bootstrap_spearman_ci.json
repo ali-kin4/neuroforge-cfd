@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "method": "case-level percentile bootstrap, 10000 draws, seed 0",
+    "note": "Backbone per-seed arms have no per-case dump; the ensemble-mean arm on the same 200 cases is the per-case-resolved proxy for the AirfRANS trust-signal headline."
+  },
+  "arms": {
+    "ensemble_mean/residual": {
+      "n_cases": 200,
+      "spearman": 0.6103232580814522,
+      "ci95": [
+        0.5056882280649273,
+        0.6983332745147921
+      ],
+      "boot_mean": 0.6074962526924723,
+      "boot_std": 0.049140187050417755,
+      "n_boot": 10000
+    },
+    "ensemble_mean/sigma_vel": {
+      "n_cases": 200,
+      "spearman": 0.6542938573464337,
+      "ci95": [
+        0.5616455649140144,
+        0.7292042281372403
+      ],
+      "boot_mean": 0.6516762460268949,
+      "boot_std": 0.042482065457232564,
+      "n_boot": 10000
+    },
+    "ensemble_mean/fused": {
+      "n_cases": 200,
+      "spearman": 0.7028211264860554,
+      "ci95": [
+        0.6152307238238159,
+        0.7728173908750616
+      ],
+      "boot_mean": 0.6995624509050047,
+      "boot_std": 0.04017281136015511,
+      "n_boot": 10000
+    },
+    "corrected_seed0/residual": {
+      "n_cases": 200,
+      "spearman": 0.6356348908722718,
+      "ci95": [
+        0.5394657862276236,
+        0.7162597459110256
+      ],
+      "boot_mean": 0.6332429735180488,
+      "boot_std": 0.04511726595056287,
+      "n_boot": 10000
+    },
+    "corrected_seed1/residual": {
+      "n_cases": 200,
+      "spearman": 0.6158553963849097,
+      "ci95": [
+        0.5144549051449364,
+        0.7004307855226336
+      ],
+      "boot_mean": 0.6132935571876434,
+      "boot_std": 0.04755686490166979,
+      "n_boot": 10000
+    },
+    "corrected_seed2/residual": {
+      "n_cases": 200,
+      "spearman": 0.6665191629790745,
+      "ci95": [
+        0.5786546171231381,
+        0.742037523894305
+      ],
+      "boot_mean": 0.6641333812719249,
+      "boot_std": 0.04179964271784435,
+      "n_boot": 10000
+    },
+    "deepcfd_seed0/residual": {
+      "n_cases": 247,
+      "spearman": 0.7166509522611224,
+      "ci95": [
+        0.648020683710913,
+        0.7710201202056535
+      ],
+      "boot_mean": 0.7138111596260982,
+      "boot_std": 0.03149135505423916,
+      "n_boot": 10000
+    },
+    "deepcfd_seed1/residual": {
+      "n_cases": 247,
+      "spearman": 0.6571326412624189,
+      "ci95": [
+        0.5754481218423773,
+        0.723939517165424
+      ],
+      "boot_mean": 0.654877326841827,
+      "boot_std": 0.03787611580000774,
+      "n_boot": 10000
+    },
+    "deepcfd_seed2/residual": {
+      "n_cases": 247,
+      "spearman": 0.9340034784049028,
+      "ci95": [
+        0.9098156345305998,
+        0.949812017383465
+      ],
+      "boot_mean": 0.9320369973874988,
+      "boot_std": 0.010238759340290114,
+      "n_boot": 10000
+    }
+  }
+}

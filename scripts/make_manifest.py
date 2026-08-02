@@ -126,6 +126,38 @@ HEADLINE: list[dict] = [
     {"path": "results/baselines/table2.csv",
      "script": "scripts/run_baselines.py", "tier": "gpu",
      "claims": "tab:transolver (csv)"},
+    # --- second dataset (DeepCFD, laminar bluff bodies) ---
+    {"path": "results/deepcfd/deepcfd_results.json",
+     "script": "scripts/run_deepcfd.py", "tier": "gpu",
+     "claims": "DeepCFD OOD trust rho 0.770 +/- 0.119 (3 seeds, interior residual)"},
+    {"path": "results/deepcfd/deepcfd_trust_percase.json",
+     "script": "scripts/make_fig_deepcfd_trust.py", "tier": "cpu",
+     "claims": "per-case (residual, rel-L2) dump behind fig:deepcfd + bootstrap CIs"},
+    # --- selective prediction / risk-coverage (fig:risk_coverage) ---
+    {"path": "results/selective/selective_prediction.json",
+     "script": "scripts/run_selective_prediction.py", "tier": "cpu",
+     "claims": "AUROC 0.87-0.91 residual, 0.905 fused; ~93% of oracle error reduction at 10% rejection"},
+    {"path": "results/selective/selective_percase.json",
+     "script": "scripts/run_selective_prediction.py", "tier": "cpu",
+     "claims": "per-case scores/errors for all arms (bootstrap-CI input)"},
+    {"path": "results/figures/fig_risk_coverage.pdf",
+     "script": "scripts/run_selective_prediction.py", "tier": "cpu",
+     "claims": "fig:risk_coverage (risk-coverage curves + AUROC bars)"},
+    # --- multi-split conformal robustness (sec:conformal) ---
+    {"path": "results/uq_ensemble/multisplit_conformal.json",
+     "script": "scripts/run_multisplit_conformal.py", "tier": "cpu",
+     "claims": "20-split conformal: coverage 0.895-0.902 all arms; corrected-p q 2.26->2.02-2.07"},
+    # --- bootstrap CIs on the trust-signal Spearman headlines ---
+    {"path": "results/control/bootstrap_spearman_ci.json",
+     "script": "scripts/bootstrap_spearman_ci.py", "tier": "cpu",
+     "claims": "case-level bootstrap 95% CIs; all arms exclude zero (ensemble 0.610 [0.51,0.70])"},
+    # --- force-integrator repair (sec:v2 force paragraphs) ---
+    {"path": "results/control/integrator_design.json",
+     "script": "scripts/design_force_integrator.py", "tier": "cpu",
+     "claims": "GT-field integrator variants: CV rho_L 1.00 / cd med 0.23; wall cl med 0.046"},
+    {"path": "results/control/force_vs_official_multischeme.json",
+     "script": "scripts/recompute_force_multischeme.py", "tier": "gpu",
+     "claims": "pred fields: CV lift rho_L 0.997, ~3.7% median magnitude; drag model-limited"},
 ]
 
 
