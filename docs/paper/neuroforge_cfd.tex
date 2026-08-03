@@ -44,7 +44,7 @@
 % do NOT load it again.
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue,
-  pdftitle={The Two Roles of the Physics Residual in Neural CFD Surrogates: A Calibrated Trust Signal but a Poor Correction Objective},
+  pdftitle={NeuroForge: Self-Auditing Neural CFD Surrogates with Calibrated Physics-Residual Trust},
   pdfauthor={Ali Jabbary, Kasra Ghanavati}}
 
 % \autoref names for amsthm environments (hyperref does not define these by default).
@@ -58,7 +58,7 @@
 \newtheorem{theorem}{Theorem}
 \newtheorem{proposition}{Proposition}
 
-\title{The Two Roles of the Physics Residual in Neural CFD Surrogates:\\ A Calibrated Trust Signal but a Poor Correction Objective}
+\title{NeuroForge: Self-Auditing Neural CFD Surrogates\\ with Calibrated Physics-Residual Trust}
 
 \author{Ali Jabbary \\
   \addr Department of Mechanical Engineering, Urmia University \\
@@ -76,9 +76,9 @@
 Machine-learning surrogates for computational fluid dynamics (CFD) predict steady
 flow fields far faster than classical solvers, but emit a
 single field with no built-in way to know whether to trust it---especially out of
-distribution. We close the loop with the governing physics: we compute the discretised
-steady-state Reynolds-averaged (RANS) residual of the prediction and ask what jobs it
-can do. Our central finding is a clean \textbf{two-way dissociation}: the physics
+distribution. We make the surrogate \emph{audit itself} against the governing physics: we
+compute the discretised steady-state Reynolds-averaged (RANS) residual of the prediction
+and ask what jobs it can do. Our central finding is a clean \textbf{two-way dissociation}: the physics
 residual is a reliable, backbone-robust \textbf{trust signal} (it tells you \emph{where}
 the prediction is wrong) but a poor \textbf{correction objective} (it does not tell you
 \emph{how} to fix it). \emph{As a trust signal}, the residual's per-case rank correlation
@@ -137,6 +137,22 @@ where a prediction is wrong---even though minimising the residual directly remai
 correction objective; the learned correction we deploy reduces error on a SOTA
 surrogate, but a controlled ablation attributes that gain to the learned correction, not to
 feeding it the residual.}}
+
+\paragraph{Self-auditing, defined.} We call a surrogate \emph{self-auditing} if, from its
+own prediction and inputs alone---no ground truth, no reference solver---it supplies three
+measurable things: \textbf{(i)} a case-level \emph{trust score} whose ranking of
+predictions by true error is validated; \textbf{(ii)} a \emph{calibrated error band} with
+a distribution-free guarantee; and \textbf{(iii)} an \emph{accept/reject decision} whose
+efficiency is measured against an oracle. The title is a claim, and the paper is its
+proof obligation: we instantiate all three components with the physics residual at the
+centre---(i) positive residual--error rank correlation across three backbones and two
+datasets (\autoref{sec:v2}); (ii) split-conformal coverage at target, stable across 20
+calibration re-draws (\autoref{sec:conformal}); (iii) near-oracle triage, recovering
+$\approx 91\%$ of the achievable error reduction at a $10\%$ rejection budget
+(\autoref{fig:risk_coverage})---and then quantify the audit's limits: the residual-floor
+theorem (\autoref{sec:residual_floor}) characterises exactly what the monitored residual
+cannot see, and the failed objective/gate role marks what the audit does \emph{not}
+license.
 
 We arrive at this thesis the hard way. We built the full
 predict$\rightarrow$verify$\rightarrow$estimate-uncertainty$\rightarrow$correct$\rightarrow$fall-back
@@ -212,7 +228,11 @@ does not work. Sweeping the correction iterations \emph{raises} the PDE residual
 residual-reducing steps accepts essentially zero steps on a trained corrector
 (\autoref{sec:iters}). Minimising the residual is not minimising the error---which is
 exactly why the deployed corrector supervises toward truth rather than minimising the
-residual.
+residual. The residual-floor theorem locates this failure as a \emph{regime boundary}
+rather than a contradiction of prior successful residual-driven correctors: correction
+works where the discrete residual is (near-)exact at the truth
+\citep{huang2025physicscorrect, learned2023residualcorrection}, and fails where the
+monitored residual carries a floor, as here (\autoref{sec:residual_floor}).
 
 \item \textbf{Backbone-dependence, reported as a finding (not hidden).} The same corrector
 that delivers $-9$ to $-25\%$ on the SOTA backbone is flat-to-unhelpful on the weak grid
@@ -1513,9 +1533,15 @@ $\sigma$ makes the band input-adaptive even on the near-deterministic SOTA model
 ECE $0.074$), where MC-dropout alone gives a near-constant one. Two honest caveats
 accompany the corrector: correction quality is backbone-dependent (flat on the weak backbone),
 and a controlled ablation attributes its gain to the learned correction rather than to the
-residual input it ingests. The durable contribution is the self-auditing,
-backbone-robust trust layer and the learned, supervised corrector it accompanies---demonstrated
-on a competitive surrogate, reproducible end-to-end from the committed harness.
+residual input it ingests. By the criteria of the self-auditing definition in the
+introduction, the surrogate passes all three audits it can pass---a validated trust score
+(i), a calibrated band that survives split-resampling (ii), and near-oracle triage
+(iii)---while the residual-floor theorem fixes the audit's blind spot and the failed
+objective/gate role marks its licence boundary: the audit tells you when \emph{not} to
+trust a prediction, and a separately-supervised corrector, not the audit signal, does the
+fixing. That self-auditing, backbone-robust trust layer and the learned corrector it
+accompanies---demonstrated on a competitive surrogate, reproducible end-to-end from the
+committed harness---are the durable contribution.
 
 \section*{Code and data availability}
 The complete source, training/evaluation harnesses, and per-claim reproduction map

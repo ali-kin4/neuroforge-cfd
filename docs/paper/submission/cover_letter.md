@@ -2,15 +2,21 @@
 
 Dear Editors,
 
-I am pleased to submit the manuscript **"The Two Roles of the Physics Residual in Neural
-CFD Surrogates: A Calibrated Trust Signal but a Poor Correction Objective"** for
-consideration as a full-length article in the *Journal of Computational Physics*.
+I am pleased to submit the manuscript **"NeuroForge: Self-Auditing Neural CFD Surrogates
+with Calibrated Physics-Residual Trust"** for consideration as a full-length article in
+the *Journal of Computational Physics*.
 
 Machine-learning surrogates for CFD predict steady flow fields orders of magnitude faster
 than classical solvers, but they emit a single field with no built-in way for a user to
 know whether to trust it — precisely where early-design exploration and
 out-of-distribution use live. This work closes that loop with the governing physics and
 asks, rigorously, **which jobs the discretised steady-RANS residual can and cannot do.**
+
+The title is a defined, tested claim rather than branding: we call a surrogate
+*self-auditing* if, from its own prediction alone, it supplies (i) a validated case-level
+trust score, (ii) a calibrated, distribution-free error band, and (iii) an accept/reject
+decision with measured near-oracle efficiency — and the paper instantiates, stress-tests,
+and formally bounds each component.
 
 **Contributions.**
 - A **clean two-way dissociation**, established head-to-head on the same benchmark: the
