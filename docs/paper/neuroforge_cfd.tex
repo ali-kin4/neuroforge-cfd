@@ -183,7 +183,8 @@ and on a param-matched message-passing GNN (MeshGraphNet, bare) it is $0.851{\pm
 (\texttt{results/mgn/mgn\_results.json}, a high value that partly reflects that model's wide
 error spread, which is easy to rank),
 so the detector is consistently \emph{positive} across all three, though its \emph{strength}
-varies ($\rho$ from $0.40$ to $0.85$; per-cell spatial localisation is weaker still,
+varies ($\rho$ from $0.40$ to $0.85$; spatial localisation is weaker and
+region-scale---patch pooling doubles it to $\rho{\approx}0.32$,
 \autoref{sec:method}). Building on it---and depending only on a model's predictions and
 $\sigma$, hence backbone-agnostic---a split-conformal trust layer attains
 target coverage on the SOTA backbone ($0.902{\pm}0.008$ at the $0.90$ target,
@@ -545,10 +546,21 @@ spatial rank correlation with error \emph{within} a field is weaker---$0.22{\pm}
 (Spearman) though $0.60$ (Pearson), measured on the deployed corrected field
 (\texttt{results/control/percell\_residual\_error.json}). So the residual carries a coarse
 magnitude-level spatial signal (high-residual regions tend to be high-error) but is not a
-reliable per-cell error \emph{rank}. We therefore use it to flag \emph{which} predictions to
-distrust and treat the per-cell traffic-light map as an illustrative spatial indicator, not a
-validated per-cell error localiser. The conformal band below is the per-cell coverage
-\emph{certificate}; it uses the calibrated $\sigma$, not the raw residual.
+reliable per-cell error \emph{rank}. The spatial signal is, however,
+\textbf{scale-dependent}: a systematic post-processing study on the deployed
+ensemble-mean fields ($n{=}200$;
+\texttt{scripts/percell\_trust\_localization.py},
+\texttt{results/control/percell\_localization.json}) shows that the raw cell-level rank
+correlation ($0.166{\pm}0.155$ on these fields) roughly \emph{doubles} once the map is
+denoised to region scale---$0.323{\pm}0.232$ with $16{\times}16$-cell patch pooling
+($+0.157$, improving $93\%$ of cases; Gaussian smoothing at $\sigma{=}4$ cells gives
+$+0.135$)---and the pooled patches flag top-decile-error \emph{regions} at AUROC
+$0.68$--$0.72$. Dynamic-pressure normalisation does not help ($+0.008$). The honest
+scope is therefore: the residual is a \emph{case-level} ranker and a \emph{moderate
+region-level} locator at $\sim$8--16-cell granularity, not a per-cell error rank. We use
+it to flag \emph{which} predictions to distrust, read the traffic-light map at patch
+scale, and leave per-cell claims to the conformal band below, which is the per-cell
+coverage \emph{certificate}; it uses the calibrated $\sigma$, not the raw residual.
 
 \paragraph{Split-conformal calibration.} Raw $\sigma$ is uncalibrated, so a threshold on
 it carries no guarantee. We add split-conformal calibration (cf.\ \citealp{ma2024uqno}):
