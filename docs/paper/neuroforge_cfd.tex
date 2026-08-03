@@ -366,6 +366,42 @@ controlled ablation attributes that gain to the learned correction rather than t
 input. The framework's no-harm/contraction machinery (\autoref{sec:method})
 is retained because it is correct and reproducible; the acceptance-gate guarantee in
 particular is real but, as we show, vacuous as an accuracy mechanism.
+\autoref{tab:positioning} summarises the positioning: each neighbouring work holds one
+or two of the audit's components, and none combines a validated physics-residual trust
+signal with distribution-free calibration, measured selective prediction, a head-on test
+of the residual's objective role, and a theory of the signal's limits.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Positioning against the closest 2024--2026 work. Columns: \emph{Trust} =
+physics-residual trust signal validated against true error; \emph{Calib.} =
+distribution-free calibrated bands; \emph{Select.} = selective prediction measured
+(risk--coverage / AUROC); \emph{Object.} = residual-as-correction-objective tested;
+\emph{Theory} = formal theory of the signal's limits; \emph{$\ge$3 bb.} = three or more
+backbone families; \emph{$\ge$2 data} = two or more datasets/regimes.
+$\bullet$ = demonstrated, $\circ$ = partial, -- = not a goal of / not reported by that
+work. In the \emph{Object.} column, PhysicsCorrect and the variational corrector
+\emph{succeed} in regimes where the discrete residual is (near-)exact at the truth; we
+test the floored steady-RANS regime where it \emph{fails}---the residual-floor theorem
+(\autoref{sec:residual_floor}) is the boundary between the two.}
+\label{tab:positioning}
+\begin{tabular}{l c c c c c c c}
+\toprule
+ & Trust & Calib. & Select. & Object. & Theory & $\ge$3 bb. & $\ge$2 data \\
+\midrule
+PRE conformal \citep{gopakumar2025pre} & $\bullet$ & $\bullet$ & -- & -- & -- & $\bullet$ & $\bullet$ \\
+Structure-aware UQ \citep{song2026structureaware} & $\circ$ & -- & -- & -- & -- & -- & -- \\
+ANCHOR \citep{roy2025anchor} & $\bullet$ & -- & $\circ$ & -- & -- & -- & -- \\
+PhysicsCorrect \citep{huang2025physicscorrect} & -- & -- & -- & $\bullet$ & $\circ$ & $\bullet$ & $\bullet$ \\
+Variational corrector \citep{learned2023residualcorrection} & -- & -- & -- & $\bullet$ & $\circ$ & -- & -- \\
+Conformal DrivAerML \citep{jia2026multigranularity} & -- & $\bullet$ & -- & -- & -- & $\circ$ & -- \\
+Error certification \citep{mukherjee2026certification} & -- & -- & -- & -- & $\bullet$ & -- & -- \\
+\midrule
+\textbf{This work} & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Method}
 \label{sec:method}
