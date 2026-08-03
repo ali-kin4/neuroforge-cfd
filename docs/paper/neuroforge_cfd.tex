@@ -191,7 +191,13 @@ $\texttt{mse\_v}$ $0.100\rightarrow0.079$ ($-21\%$), $\texttt{mse\_p}$ $630\righ
 $\rho_D=0.84$, and a repaired control-volume integrator recovers official \emph{lift}
 nearly exactly from the predicted fields, $\rho_L=0.998{\pm}0.001$ with per-seed median
 magnitude errors of $3.6$--$3.9\%$, \autoref{sec:v2}). The backbone is a published SOTA architecture (Transolver),
-so the corrector improves a competitive surrogate. The deployed corrector
+so the corrector improves a competitive surrogate.\footnote{Throughout, ``SOTA'' refers
+to Transolver's status as a published state-of-the-art architecture at the time of our
+experiments (ICML 2024); an independent 2026 benchmark still highlights Transolver(++)
+among the strongest aerodynamic surrogates \citep{scherz2026evaluation}, while newer
+architectures have since advanced the AirfRANS accuracy frontier \citep{rigotti2026gist}.
+Our claims concern the trust layer and corrector demonstrated \emph{on} this competitive
+backbone, not an accuracy-leaderboard position.} The deployed corrector
 ingests the residual as an input channel, but a controlled ablation that zeros that input at
 train and inference (3 seeds) matches or slightly exceeds the deployed corrector, so we
 attribute the gain to the learned correction, not to residual-conditioning (\autoref{sec:v2},
@@ -255,8 +261,11 @@ calibrated detector and a supervised learned corrector reduces field MSE.
 use the discretised residual or a coarse-solution error as a \emph{correction
 objective}: learned PDE solvers with convergence guarantees \citep{hsieh2019neuralpde},
 deep-equilibrium operators for steady PDEs \citep{marwah2023fnodeq}, iterative refiners
-\citep{lippe2023pderefiner}, and learned residual-error correctors
-\citep{learned2023residualcorrection}. PINNs \citep{raissi2019pinn} embed the residual
+\citep{lippe2023pderefiner}, learned residual-error correctors
+\citep{learned2023residualcorrection}, and---most recently---training-free correction
+that solves a linearised inverse problem on the PDE residual at each rollout step,
+reporting up to $100\times$ error reduction on transient benchmarks
+\citep{huang2025physicscorrect}. PINNs \citep{raissi2019pinn} embed the residual
 in the training loss. NeuroForge implements a contractive DEQ corrector and a
 feed-forward residual-conditioned corrector squarely in this family. \textbf{Our
 contribution to this line is to test the residual-as-correction premise head-on and find it
@@ -269,6 +278,14 @@ train and inference (3 seeds) matches or slightly exceeds the deployed corrector
 (\autoref{sec:v2}, \texttt{results/control/w1\_capture.json}). The residual's value is as a
 \emph{trust signal}---it tells you \emph{where} a prediction is wrong---not as a correction
 mechanism telling you \emph{how} to fix it; the learned correction does the fixing.
+The prior successes and our negative are consistent, and the residual-floor theorem
+(\autoref{sec:residual_floor}) marks the boundary between them: residual-driven correction
+works where the discrete residual is (near-)exact at the true solution---resolved
+transient PDEs stepped on their training grid \citep{huang2025physicscorrect}, variational
+problems with certified residuals \citep{learned2023residualcorrection}---and fails where
+the monitored residual carries a nonzero floor at the dataset truth, as for our
+under-resolved steady-RANS closure monitor. Our negative is scoped to the latter,
+deployment-realistic regime.
 
 \paragraph{Residual-based, data-free error signals.} Closest to our \emph{trust-signal}
 half is recent work that reads the PDE residual as a reference-free indicator of prediction
