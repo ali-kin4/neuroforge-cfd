@@ -167,6 +167,11 @@ HEADLINE: list[dict] = [
     {"path": "results/control/audit_cost.json",
      "script": "scripts/measure_audit_cost.py", "tier": "cpu",
      "claims": "full audit median 1.7 ms/case (1 CPU thread) vs ~25-min 16-core RANS solve (~1e-6)"},
+    # --- ensemble-size study (limitations: choice of M measured) ---
+    {"path": "results/uq_ensemble/mstudy.json",
+     "script": "scripts/run_ensemble_mstudy.py", "tier": "gpu",
+     "claims": "M=2..5 all 26 subsets: fused AUROC 0.905-0.912 + coverage on-target at every M; "
+               "band adaptivity needs M (q_p 2.35->9.98, ECE 0.074->0.199 as M 5->2)"},
     # --- graphical abstract (JCP submission artefact) ---
     {"path": "results/figures/graphical_abstract.pdf",
      "script": "scripts/make_graphical_abstract.py", "tier": "cpu",

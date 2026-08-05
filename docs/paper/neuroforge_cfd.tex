@@ -923,7 +923,9 @@ accuracy mechanism. The two answer different questions on a cost axis: the deep 
 better \emph{accuracy} play when $5\times$ the training (and $M\times$ the inference) is
 affordable, while the learned corrector is the better \emph{cheap} play---one backbone
 plus a small corrector---demonstrating cheap learned correction on a competitive
-surrogate, not a leaderboard entry. The ensemble and the corrector are
+surrogate, not a leaderboard entry. (The ensemble's cost axis is itself measured: an
+$M$-subset study shows $M{=}2$ already supports the triage decisions while full band
+adaptivity needs $M{\approx}4$--$5$; see \autoref{sec:limitations}.) The ensemble and the corrector are
 complementary: the ensemble supplies the adaptive $\sigma$ the conformal certificate needs, and
 either prediction can be wrapped by the same trust layer.
 
@@ -1558,8 +1560,17 @@ delivered by a near-constant band. A deep ensemble of $M{=}5$ members recovers a
 input-adaptive band on this model ($q=2.35$, ECE $0.074$; \autoref{tab:uq}), at $5\times$
 the training cost. That ensemble certificate comes from a single ensemble training run;
 the calibration/test split is no longer the caveat (20 re-draws: coverage
-$0.899{\pm}0.009$, \autoref{sec:conformal}), but independently retrained ensembles and a
-study of $M$ remain future work.
+$0.899{\pm}0.009$, \autoref{sec:conformal}), and neither is the choice of $M$: sweeping
+\emph{every} member subset of size $M=2..5$ (26 subsets;
+\texttt{scripts/run\_ensemble\_mstudy.py}, \texttt{results/uq\_ensemble/mstudy.json})
+shows the \emph{decision} layer is insensitive to ensemble size---fused AUROC
+$0.905$--$0.912$ and conformal coverage $0.905$--$0.915$ (pressure, $0.90$ target) at
+every $M$, so even $M{=}2$ supports triage---while band \emph{adaptivity} is what $M$
+buys: the pressure quantile inflates $2.35 \rightarrow 3.74 \rightarrow 9.98$ and ECE
+degrades $0.074 \rightarrow 0.113 \rightarrow 0.199$ as $M$ drops $5 \rightarrow 3
+\rightarrow 2$ (coverage holds by widening, not by adapting), with $M{=}4$ already close
+to $M{=}5$ ($q=2.75$, ECE $0.087$). Independently retrained ensembles (beyond member
+subsets of one training run) remain future work.
 \item \textbf{Eddy-viscosity channel near-degenerate.} The $\nu_t$ output is effectively
 unlearned at this scale (per-arm MSE $\approx 5\times10^{-8}$); since residuals use
 $\nu_{\mathrm{eff}} = \nu + \nu_t$, the physics term currently leans on the laminar

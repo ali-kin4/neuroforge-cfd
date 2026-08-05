@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-08-05T12:55:08.150551+00:00",
-  "git_head": "ad5e3fb0df9f2fa8475a0f3d465e88aa3ead0ba1",
-  "git_head_short": "ad5e3fb",
+  "generated_utc": "2026-08-05T13:50:34.539722+00:00",
+  "git_head": "17ff9048787d46ec3d4e99fb979199388b08f250",
+  "git_head_short": "17ff904",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -12,7 +12,7 @@
     "cuda_toolkit": "12.4",
     "gpu": "NVIDIA GeForce RTX 4070 Ti"
   },
-  "n_files": 36,
+  "n_files": 37,
   "n_missing": 0,
   "missing": [],
   "files": [
@@ -64,7 +64,7 @@
       "sha256": "7655379d167c2d33d987f2feaebea41ac10cada2a619937f594f49d429645bc5",
       "bytes": 9294,
       "git_tracked": true,
-      "last_commit": "d7cec80"
+      "last_commit": "b5e7fcc"
     },
     {
       "path": "results/control/force_vs_official.json",
@@ -365,6 +365,16 @@
       "bytes": 2904,
       "git_tracked": true,
       "last_commit": "aedf456"
+    },
+    {
+      "path": "results/uq_ensemble/mstudy.json",
+      "script": "scripts/run_ensemble_mstudy.py",
+      "tier": "gpu",
+      "claims": "M=2..5 all 26 subsets: fused AUROC 0.905-0.912 + coverage on-target at every M; band adaptivity needs M (q_p 2.35->9.98, ECE 0.074->0.199 as M 5->2)",
+      "sha256": "cf6d3237f2e9a5574ad699bfb2ca31ef539d1f4ee53c5eff4911339379bec1a3",
+      "bytes": 36935,
+      "git_tracked": false,
+      "last_commit": ""
     },
     {
       "path": "results/figures/graphical_abstract.pdf",
