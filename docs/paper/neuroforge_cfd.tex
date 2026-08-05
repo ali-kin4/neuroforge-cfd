@@ -149,7 +149,9 @@ centre---(i) positive residual--error rank correlation across three backbones an
 datasets (\autoref{sec:v2}); (ii) split-conformal coverage at target, stable across 20
 calibration re-draws (\autoref{sec:conformal}); (iii) near-oracle triage, recovering
 $\approx 91\%$ of the achievable error reduction at a $10\%$ rejection budget
-(\autoref{fig:risk_coverage})---and then quantify the audit's limits: the residual-floor
+(\autoref{fig:risk_coverage}; the deciding score fuses the residual with the surrogate's
+own ensemble spread---neither needs ground truth---and the residual alone still recovers
+$\approx 67\%$)---and then quantify the audit's limits: the residual-floor
 theorem (\autoref{sec:residual_floor}) characterises exactly what the monitored residual
 cannot see, and the failed objective/gate role marks what the audit does \emph{not}
 license.
