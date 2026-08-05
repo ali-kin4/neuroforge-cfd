@@ -1278,7 +1278,13 @@ bootstrap $95\%$ CIs ($10^4$ resamples;
 correlation at $0.610$ $[0.506, 0.698]$ and the fused score at $0.703$ $[0.615, 0.773]$;
 every arm's CI excludes zero by a wide margin. The trust signal is thus not merely
 correlated with error; it supports near-oracle triage at deployment-relevant rejection
-budgets.
+budgets. The audit is also essentially free at the point of use: computing the full
+residual diagnostic and trust map, the case-level score, the ensemble spread, and the
+conformal band costs a median $1.7$\,ms per case on a single CPU thread
+(\texttt{scripts/measure\_audit\_cost.py}, \texttt{results/control/audit\_cost.json}),
+against the ${\sim}25$-minute, $16$-core RANS solve that produced each AirfRANS case
+\citep{bonnet2022airfrans} --- the certificate costs ${\sim}10^{-6}$ of the computation
+it vouches for.
 
 \begin{figure}[t]
 \centering

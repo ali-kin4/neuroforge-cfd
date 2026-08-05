@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-08-02T19:52:26.945427+00:00",
-  "git_head": "4362c3ce555b384d6a1cce82dba92a707ba89b1d",
-  "git_head_short": "4362c3c",
+  "generated_utc": "2026-08-05T08:30:11.062189+00:00",
+  "git_head": "adbf90129a53f55a47519c0da51e76ad2d2925f1",
+  "git_head_short": "adbf901",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -12,7 +12,7 @@
     "cuda_toolkit": "12.4",
     "gpu": "NVIDIA GeForce RTX 4070 Ti"
   },
-  "n_files": 33,
+  "n_files": 36,
   "n_missing": 0,
   "missing": [],
   "files": [
@@ -61,8 +61,8 @@
       "script": "scripts/run_w1_capture.py",
       "tier": "gpu",
       "claims": "W1 \u2014 null-residual corrector matches/exceeds residual-fed (gain not from residual input)",
-      "sha256": "f2398c1608a96fb56484a6efb8c9bbbe5edf89be34df6bcc7d3f00d3ba4af854",
-      "bytes": 6323,
+      "sha256": "2f06a5b8dd99ca3e954e8047d4f8fcd6e05ceba5cfaebb2bf3d569b893a637e0",
+      "bytes": 2102,
       "git_tracked": true,
       "last_commit": "d7cec80"
     },
@@ -280,11 +280,11 @@
       "path": "results/selective/selective_prediction.json",
       "script": "scripts/run_selective_prediction.py",
       "tier": "cpu",
-      "claims": "AUROC 0.87-0.91 residual, 0.905 fused; ~93% of oracle error reduction at 10% rejection",
+      "claims": "AUROC 0.87-0.91 residual, 0.905 fused; ~91% of oracle error reduction at 10% rejection",
       "sha256": "e12e867a14eebea0efc32ab32c75631067aea69f237eb902925dce74179d7db6",
       "bytes": 33667,
-      "git_tracked": false,
-      "last_commit": ""
+      "git_tracked": true,
+      "last_commit": "a60cf3d"
     },
     {
       "path": "results/selective/selective_percase.json",
@@ -293,8 +293,8 @@
       "claims": "per-case scores/errors for all arms (bootstrap-CI input)",
       "sha256": "79807cfb5625a03025ce45422300c9c34ffdc9924dd824570d88d5fc222dde8f",
       "bytes": 229209,
-      "git_tracked": false,
-      "last_commit": ""
+      "git_tracked": true,
+      "last_commit": "a60cf3d"
     },
     {
       "path": "results/figures/fig_risk_coverage.pdf",
@@ -303,8 +303,8 @@
       "claims": "fig:risk_coverage (risk-coverage curves + AUROC bars)",
       "sha256": "a2d72fd219329d2d87fcd88a83ca34fcc1dc85bf2c0f37fe4b95ebe74da9f5a0",
       "bytes": 25800,
-      "git_tracked": false,
-      "last_commit": ""
+      "git_tracked": true,
+      "last_commit": "a60cf3d"
     },
     {
       "path": "results/uq_ensemble/multisplit_conformal.json",
@@ -313,8 +313,8 @@
       "claims": "20-split conformal: coverage 0.895-0.902 all arms; corrected-p q 2.26->2.02-2.07",
       "sha256": "76479b05633965aea31cb1cbbacedd971ea24d211abc8ac9a6e252818565aec5",
       "bytes": 52222,
-      "git_tracked": false,
-      "last_commit": ""
+      "git_tracked": true,
+      "last_commit": "a60cf3d"
     },
     {
       "path": "results/control/bootstrap_spearman_ci.json",
@@ -323,8 +323,8 @@
       "claims": "case-level bootstrap 95% CIs; all arms exclude zero (ensemble 0.610 [0.51,0.70])",
       "sha256": "38f30756bc09d61b896e7b6e175286d4c11a7990852ee295c63508e2eb1e5e68",
       "bytes": 2899,
-      "git_tracked": false,
-      "last_commit": ""
+      "git_tracked": true,
+      "last_commit": "a60cf3d"
     },
     {
       "path": "results/control/integrator_design.json",
@@ -333,16 +333,46 @@
       "claims": "GT-field integrator variants: CV rho_L 1.00 / cd med 0.23; wall cl med 0.046",
       "sha256": "84d1b868e3ec5acebdaee5ea761ba1a12815841483f09aff6a8e3422d191e47b",
       "bytes": 7491,
-      "git_tracked": false,
-      "last_commit": ""
+      "git_tracked": true,
+      "last_commit": "a60cf3d"
     },
     {
       "path": "results/control/force_vs_official_multischeme.json",
       "script": "scripts/recompute_force_multischeme.py",
       "tier": "gpu",
-      "claims": "pred fields: CV lift rho_L 0.997, ~3.7% median magnitude; drag model-limited",
+      "claims": "pred fields: CV lift rho_L 0.998 +/- 0.001, cl med err 3.6-3.9%/seed; drag model-limited",
       "sha256": "637875ee78f3d026bf310a36dbe7dccba2e8384ba66b28dac476f4dc80eb220c",
       "bytes": 8772,
+      "git_tracked": true,
+      "last_commit": "a60cf3d"
+    },
+    {
+      "path": "results/control/percell_localization.json",
+      "script": "scripts/percell_trust_localization.py",
+      "tier": "cpu",
+      "claims": "cell-level rho 0.166 -> 16x16-patch 0.323 (93% of cases improve); patch AUROC 0.68-0.72",
+      "sha256": "9fb1e192bae4278131e7396905b47de6b3fc8f6170a038b07687ef0e3b9b7afa",
+      "bytes": 89319,
+      "git_tracked": true,
+      "last_commit": "adbf901"
+    },
+    {
+      "path": "results/control/audit_cost.json",
+      "script": "scripts/measure_audit_cost.py",
+      "tier": "cpu",
+      "claims": "full audit median 1.7 ms/case (1 CPU thread) vs ~25-min 16-core RANS solve (~1e-6)",
+      "sha256": "a486235b56c7454a86bd6989b1d50b5588a25337db00c76cf263cf06d4b589c9",
+      "bytes": 2904,
+      "git_tracked": false,
+      "last_commit": ""
+    },
+    {
+      "path": "results/figures/graphical_abstract.pdf",
+      "script": "scripts/make_graphical_abstract.py",
+      "tier": "cpu",
+      "claims": "predict -> audit -> calibrate -> decide strip; median-error showcase case, committed numbers only",
+      "sha256": "9039c54ff2bff1966f56fc49d101e6bb4ac559115ef16f3bb190d10ca31136e5",
+      "bytes": 63278,
       "git_tracked": false,
       "last_commit": ""
     }

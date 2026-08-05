@@ -1,4 +1,4 @@
-# JCP Submission Checklist — "The Two Roles of the Physics Residual in Neural CFD Surrogates"
+# JCP Submission Checklist — "NeuroForge: Self-Auditing Neural CFD Surrogates with Calibrated Physics-Residual Trust"
 
 Target: **Journal of Computational Physics** (Elsevier). Submission portal:
 Editorial Manager (https://www.editorialmanager.com/jcomp/).
@@ -28,8 +28,10 @@ stage. The current `docs/paper/neuroforge_cfd.pdf` is acceptable as-is for first
 - [ ] Confirm author metadata (both authors, ORCIDs, affiliations; co-author email
       confirmation will go to Kasra).
 - [ ] Enter 3–5 suggested reviewers from `suggested_reviewers.md`.
-- [ ] Optional: attach graphical abstract (exists: private repo `cmame_submission/`
-      `graphical_abstract.png` — "two roles of the physics residual", matches new title).
+- [ ] Attach graphical abstract — `results/figures/graphical_abstract.png` (3900x1500 px
+      @300dpi, meets Elsevier spec; "predict -> audit -> calibrate -> decide" strip built
+      by `scripts/make_graphical_abstract.py` from committed numbers only; supersedes the
+      old two-roles figure in the private `cmame_submission/` repo).
 - [ ] Final read-through of the PDF.
 - [ ] After submission: post arXiv v2 (new title/abstract) so the preprint matches.
 

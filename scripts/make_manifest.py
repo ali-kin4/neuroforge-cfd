@@ -136,7 +136,7 @@ HEADLINE: list[dict] = [
     # --- selective prediction / risk-coverage (fig:risk_coverage) ---
     {"path": "results/selective/selective_prediction.json",
      "script": "scripts/run_selective_prediction.py", "tier": "cpu",
-     "claims": "AUROC 0.87-0.91 residual, 0.905 fused; ~93% of oracle error reduction at 10% rejection"},
+     "claims": "AUROC 0.87-0.91 residual, 0.905 fused; ~91% of oracle error reduction at 10% rejection"},
     {"path": "results/selective/selective_percase.json",
      "script": "scripts/run_selective_prediction.py", "tier": "cpu",
      "claims": "per-case scores/errors for all arms (bootstrap-CI input)"},
@@ -157,7 +157,19 @@ HEADLINE: list[dict] = [
      "claims": "GT-field integrator variants: CV rho_L 1.00 / cd med 0.23; wall cl med 0.046"},
     {"path": "results/control/force_vs_official_multischeme.json",
      "script": "scripts/recompute_force_multischeme.py", "tier": "gpu",
-     "claims": "pred fields: CV lift rho_L 0.997, ~3.7% median magnitude; drag model-limited"},
+     "claims": "pred fields: CV lift rho_L 0.998 +/- 0.001, cl med err 3.6-3.9%/seed; drag model-limited"},
+    # --- spatial trust localization (per-cell vs patch scope) ---
+    {"path": "results/control/percell_localization.json",
+     "script": "scripts/percell_trust_localization.py", "tier": "cpu",
+     "claims": "cell-level rho 0.166 -> 16x16-patch 0.323 (93% of cases improve); patch AUROC 0.68-0.72"},
+    # --- audit wall-clock cost (selective-prediction paragraph) ---
+    {"path": "results/control/audit_cost.json",
+     "script": "scripts/measure_audit_cost.py", "tier": "cpu",
+     "claims": "full audit median 1.7 ms/case (1 CPU thread) vs ~25-min 16-core RANS solve (~1e-6)"},
+    # --- graphical abstract (JCP submission artefact) ---
+    {"path": "results/figures/graphical_abstract.pdf",
+     "script": "scripts/make_graphical_abstract.py", "tier": "cpu",
+     "claims": "predict -> audit -> calibrate -> decide strip; median-error showcase case, committed numbers only"},
 ]
 
 

@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "experiment": "wall-clock cost of the audit (per-case, component-wise)",
+    "date": "2026-08-05 11:57:28",
+    "runtime_sec": 403.39442133903503,
+    "repeats_per_component": 5,
+    "timing": "median of repeats per case after one untimed warm-up; fleet stats over per-case medians",
+    "grid": "128x128",
+    "prediction_source": "data/cache/w2\\ensemble (cached 5-member ensemble mean/std; zero forward passes -- audit cost only)",
+    "conformal_q": {
+      "u": 2.325,
+      "v": 2.551,
+      "p": 2.261
+    },
+    "environment": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+      "cpu_count": 24,
+      "numpy": "2.4.6",
+      "blas_thread_caps": {
+        "OPENBLAS_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      }
+    },
+    "load_context": "measured while the 5-seed W1 GPU run was active on this machine (CPU contention possible; audit numbers are therefore conservative upper bounds)",
+    "n_missing": 0
+  },
+  "per_component_ms": {
+    "encode": {
+      "mean_ms": 994.933332000004,
+      "median_ms": 1045.166649999942,
+      "p95_ms": 1227.1435649999376,
+      "max_ms": 1295.5999000000702,
+      "n_cases": 200
+    },
+    "diagnose": {
+      "mean_ms": 1.4821219999998902,
+      "median_ms": 1.5706499999623702,
+      "p95_ms": 2.106615000070633,
+      "max_ms": 2.5255999998989864,
+      "n_cases": 200
+    },
+    "score": {
+      "mean_ms": 0.03552049999143492,
+      "median_ms": 0.03230000004350586,
+      "p95_ms": 0.0539100000196413,
+      "max_ms": 0.06979999989198404,
+      "n_cases": 200
+    },
+    "sigma": {
+      "mean_ms": 0.02573650001977512,
+      "median_ms": 0.024750000079620804,
+      "p95_ms": 0.036005000129080145,
+      "max_ms": 0.0494000000799133,
+      "n_cases": 200
+    },
+    "band": {
+      "mean_ms": 0.037887999998247324,
+      "median_ms": 0.03385000002253946,
+      "p95_ms": 0.05671999996366139,
+      "max_ms": 0.07540000001426961,
+      "n_cases": 200
+    }
+  },
+  "audit_total_ms": {
+    "mean_ms": 1.5812670000093476,
+    "median_ms": 1.6532499997765626,
+    "p95_ms": 2.242644999751064,
+    "max_ms": 2.7201999998851534,
+    "n_cases": 200,
+    "includes": "diagnose + score + sigma + band (per case); fusion adds 0.0004 ms/case amortised"
+  },
+  "fusion_fleet_ms": {
+    "total_ms_for_n_cases": 0.07675000006202026,
+    "per_case_amortised_ms": 0.0003837500003101013,
+    "n_cases": 200
+  },
+  "classical_comparison": {
+    "classical_solve_sec_per_case": 1500.0,
+    "classical_source": "AirfRANS (Bonnet et al., NeurIPS 2022) Table 4: ~25 min per simulation on 16 cores of an AMD Ryzen Threadripper 3960X",
+    "audit_over_classical_median": 1.1021666665177084e-06,
+    "classical_over_audit_median": 907303.7956768338
+  }
+}
