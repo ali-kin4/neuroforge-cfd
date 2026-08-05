@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-08-05T08:30:11.062189+00:00",
-  "git_head": "adbf90129a53f55a47519c0da51e76ad2d2925f1",
-  "git_head_short": "adbf901",
+  "generated_utc": "2026-08-05T12:55:08.150551+00:00",
+  "git_head": "ad5e3fb0df9f2fa8475a0f3d465e88aa3ead0ba1",
+  "git_head_short": "ad5e3fb",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -60,9 +60,9 @@
       "path": "results/control/w1_capture.json",
       "script": "scripts/run_w1_capture.py",
       "tier": "gpu",
-      "claims": "W1 \u2014 null-residual corrector matches/exceeds residual-fed (gain not from residual input)",
-      "sha256": "2f06a5b8dd99ca3e954e8047d4f8fcd6e05ceba5cfaebb2bf3d569b893a637e0",
-      "bytes": 2102,
+      "claims": "5-seed extension: backbone trust rho 0.611 +/- 0.054 (positive 5/5); corrector -8/-21/-25%; W1 null corrector matches/exceeds residual-fed on 5/5 seeds (gain not from residual input)",
+      "sha256": "7655379d167c2d33d987f2feaebea41ac10cada2a619937f594f49d429645bc5",
+      "bytes": 9294,
       "git_tracked": true,
       "last_commit": "d7cec80"
     },
@@ -363,8 +363,8 @@
       "claims": "full audit median 1.7 ms/case (1 CPU thread) vs ~25-min 16-core RANS solve (~1e-6)",
       "sha256": "a486235b56c7454a86bd6989b1d50b5588a25337db00c76cf263cf06d4b589c9",
       "bytes": 2904,
-      "git_tracked": false,
-      "last_commit": ""
+      "git_tracked": true,
+      "last_commit": "aedf456"
     },
     {
       "path": "results/figures/graphical_abstract.pdf",
@@ -373,8 +373,8 @@
       "claims": "predict -> audit -> calibrate -> decide strip; median-error showcase case, committed numbers only",
       "sha256": "9039c54ff2bff1966f56fc49d101e6bb4ac559115ef16f3bb190d10ca31136e5",
       "bytes": 63278,
-      "git_tracked": false,
-      "last_commit": ""
+      "git_tracked": true,
+      "last_commit": "aedf456"
     }
   ]
 }

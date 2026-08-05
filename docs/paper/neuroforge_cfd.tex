@@ -179,7 +179,7 @@ In priority order:
 a calibrated, \emph{case-level} error detector across three architecturally-distinct backbones
 tested. On the SOTA
 Transolver backbone its per-case rank (Spearman) correlation with field error is
-$0.625{\pm}0.019$ (\autoref{sec:v2}, \autoref{tab:v2}); on a much weaker grid backbone it is
+$0.611{\pm}0.054$ over five seeds (\autoref{sec:v2}, \autoref{tab:v2}); on a much weaker grid backbone it is
 $\approx 0.40$ bare and a learned corrector lifts it to $0.83$ (\autoref{sec:indist-ablation});
 and on a param-matched message-passing GNN (MeshGraphNet, bare) it is $0.851{\pm}0.058$
 (\texttt{results/mgn/mgn\_results.json}, a high value that partly reflects that model's wide
@@ -203,8 +203,8 @@ The layer depends only on a model's predictions and uncertainty, so it is backbo
 
 \item \textbf{Learned correction works on a strong backbone.} A learned DEQ corrector trained
 (supervised) toward ground truth reduces volume-field MSE on the SOTA backbone on
-\textbf{all three seeds}: $\texttt{mse\_u}$ $0.127\rightarrow0.116$ ($-9\%$),
-$\texttt{mse\_v}$ $0.100\rightarrow0.079$ ($-21\%$), $\texttt{mse\_p}$ $630\rightarrow471$
+\textbf{all five seeds}: $\texttt{mse\_u}$ $0.133\rightarrow0.122$ ($-8\%$),
+$\texttt{mse\_v}$ $0.096\rightarrow0.076$ ($-21\%$), $\texttt{mse\_p}$ $644\rightarrow485$
 ($-25\%$, gate-verified), with internal force-ranking self-consistency held
 ($\rho_{C_l}=0.999$; against \emph{official} labels drag ranking is recovered at
 $\rho_D=0.84$, and a repaired control-volume integrator recovers official \emph{lift}
@@ -218,7 +218,7 @@ architectures have since advanced the AirfRANS accuracy frontier \citep{rigotti2
 Our claims concern the trust layer and corrector demonstrated \emph{on} this competitive
 backbone, not an accuracy-leaderboard position.} The deployed corrector
 ingests the residual as an input channel, but a controlled ablation that zeros that input at
-train and inference (3 seeds) matches or slightly exceeds the deployed corrector, so we
+train and inference (5 seeds) matches or slightly exceeds the deployed corrector, so we
 attribute the gain to the learned correction, not to residual-conditioning (\autoref{sec:v2},
 \texttt{results/control/w1\_capture.json}).
 
@@ -543,7 +543,7 @@ ensemble or MC-dropout.
 
 \paragraph{Case-level vs.\ per-cell (scope of the residual signal).} Our quantitative trust
 result is \textbf{case-level}: the field-mean residual ranks which whole predictions to
-distrust (per-case Spearman $0.625$, \autoref{sec:v2}). The residual's \emph{per-cell}
+distrust (per-case Spearman $0.611$, \autoref{sec:v2}). The residual's \emph{per-cell}
 spatial rank correlation with error \emph{within} a field is weaker---$0.22{\pm}0.06$
 (Spearman) though $0.60$ (Pearson), measured on the deployed corrected field
 (\texttt{results/control/percell\_residual\_error.json}). So the residual carries a coarse
@@ -764,45 +764,49 @@ weak-grid-backbone runs that establish the backbone-dependence finding.
 \label{sec:v2}
 
 We re-run the trust layer and the DEQ corrector on a \textbf{SOTA Transolver backbone}
-($7.35$M parameters, 80 epochs, AirfRANS \texttt{full}, 3 seeds; corrector trained $20$
+($7.35$M parameters, 80 epochs, AirfRANS \texttt{full}, 5 seeds; corrector trained $20$
 epochs with the backbone frozen), the strongest model in our study. The protocol and
-scoring are identical to \autoref{sec:indist-ablation}; the source is
-\texttt{results/v2/v2\_results.json}. \autoref{tab:v2} reports the backbone alone and with
-the DEQ correction loop.
+scoring are identical to \autoref{sec:indist-ablation}; the sources are
+\texttt{results/v2/v2\_results.json} (original 3-seed study) and
+\texttt{results/control/w1\_capture.json} (identical recipe, extended to five seeds; the
+extension reproduces the 3-seed corrector deltas and $\rho_{C_l}$ within pre-registered
+tolerances). \autoref{tab:v2} reports the backbone alone and with
+the DEQ correction loop over all five seeds.
 
 \begin{table}[t]
 \centering
 \small
 \caption{SOTA Transolver backbone ($7.35$M params, 80 ep, AirfRANS \texttt{full}), alone
-vs.\ with the DEQ correction loop. 3 seeds, mean $\pm$ std (population std,
+vs.\ with the DEQ correction loop. 5 seeds, mean $\pm$ std (population std,
 \texttt{ddof=0}). Lower MSE is better;
 $\rho$ closer to 1 is better;
 resid$\leftrightarrow$err $\rho > 0$ supports the trust signal; conformal coverage targets
-$0.90$. Source: \texttt{results/v2/v2\_results.json}. See \autoref{sec:v2}.}
+$0.90$. Source: \texttt{results/control/w1\_capture.json} (5-seed extension of
+\texttt{results/v2/v2\_results.json}). See \autoref{sec:v2}.}
 \label{tab:v2}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{l r r r r r r}
 \toprule
 metric & $\texttt{mse\_u}$ & $\texttt{mse\_v}$ & $\texttt{mse\_p}$ & $C_l$ rel.\ err & $C_d$ rel.\ err & resid$\leftrightarrow$err $\rho$ \\
 \midrule
-backbone & $0.127{\pm}0.009$ & $0.100{\pm}0.004$ & $630{\pm}42$ & $5.6\%$ & $7.5\%$ & $0.625{\pm}0.019$ \\
-\ + DEQ loop & $0.116{\pm}0.003$ & $0.079{\pm}0.005$ & $471{\pm}15$ & $5.2\%$ & $6.7\%$ & $0.635{\pm}0.021$ \\
-$\Delta$ & $-9\%$ & $-21\%$ & $-25\%$ & $-0.4$pp & $-0.8$pp & $+0.010$ \\
+backbone & $0.133{\pm}0.017$ & $0.096{\pm}0.006$ & $644{\pm}63$ & $5.7\%$ & $7.6\%$ & $0.611{\pm}0.054$ \\
+\ + DEQ loop & $0.122{\pm}0.015$ & $0.076{\pm}0.006$ & $485{\pm}39$ & $5.5\%$ & $6.8\%$ & $0.612{\pm}0.046$ \\
+$\Delta$ & $-8\%$ & $-21\%$ & $-25\%$ & $-0.2$pp & $-0.8$pp & $+0.002$ \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
 
 \paragraph{Learned correction works on a strong backbone.} The DEQ corrector reduces volume
-field MSE on \textbf{all three seeds}: $\texttt{mse\_u}$ $-9\%$ ($0.127\rightarrow0.116$),
-$\texttt{mse\_v}$ $-21\%$ ($0.100\rightarrow0.079$), $\texttt{mse\_p}$ $-25\%$
-($630\rightarrow471$). The per-seed reductions are sign-consistent down on all three seeds
+field MSE on \textbf{all five seeds}: $\texttt{mse\_u}$ $-8\%$ ($0.133\rightarrow0.122$),
+$\texttt{mse\_v}$ $-21\%$ ($0.096\rightarrow0.076$), $\texttt{mse\_p}$ $-25\%$
+($644\rightarrow485$). The per-seed reductions are sign-consistent down on all five seeds
 for every volume channel. \textbf{Surface-pressure} MSE is the one channel the corrector does
-\emph{not} improve on this strong backbone: essentially flat at $10794\rightarrow10811$
-($+0.2\%$; per-seed $-1/-1/+2\%$), which we report for completeness rather than omit. Internal
-force-ranking consistency is held at $\rho_{C_l}=0.999$, $\rho_{C_d}$
-$0.995\rightarrow0.996$, with relative force errors $C_l$ $5.6\%\rightarrow5.2\%$,
-$C_d$ $7.5\%\rightarrow6.7\%$. This is the corrector trained by
+\emph{not} improve on this strong backbone: essentially flat at $9843\rightarrow9899$
+($+0.6\%$; per-seed $-1/-1/+2/+2/+1\%$), which we report for completeness rather than omit. Internal
+force-ranking consistency is held at $\rho_{C_l}=0.999$, $\rho_{C_d}$ flat at
+$0.996$, with relative force errors $C_l$ $5.7\%\rightarrow5.5\%$,
+$C_d$ $7.6\%\rightarrow6.8\%$. This is the corrector trained by
 supervised regression toward ground truth and applied without the acceptance test
 (\autoref{sec:correction}).
 
@@ -843,20 +847,20 @@ a different force-integration convention). The backbone is itself a published SO
 \emph{on} a competitive surrogate---not only on the weak grid backbone.
 
 \paragraph{The gain comes from the learned correction, not from feeding it the residual
-(W1 control).} The corrector improves the field by $-9/-21/-25\%$ (gate-verified).
+(W1 control).} The corrector improves the field by $-8/-21/-25\%$ (gate-verified).
 To isolate \emph{why}, we train the same DEQ corrector two ways under
 identical architecture, data, optimiser, schedule and seeds, differing only in whether the
 3 residual input channels carry the real residual (WITH) or are permanently zeroed at both
-train and inference (NULL). Across 3 seeds, the null corrector \textbf{matches or slightly
+train and inference (NULL). Across 5 seeds, the null corrector \textbf{matches or slightly
 exceeds} the deployed one: the per-seed paired difference $d = \text{gain}_{\text{WITH}} -
-\text{gain}_{\text{NULL}}$ is negative on all 3 seeds for both $\texttt{mse\_u}$ and
-$\texttt{mse\_speed}$ (mean $d \approx -0.005$ on a $\approx 0.11$ base, $\approx 4\%$; WITH
-beats NULL on $0/3$ seeds; \texttt{results/control/w1\_capture.json}). The residual input is
+\text{gain}_{\text{NULL}}$ is negative on all 5 seeds for both $\texttt{mse\_u}$ and
+$\texttt{mse\_speed}$ (mean $d \approx -0.005$ on a $\approx 0.12$ base, $\approx 4\%$; WITH
+beats NULL on $0/5$ seeds; \texttt{results/control/w1\_capture.json}). The residual input is
 therefore \emph{not} the source of the corrector's field-MSE improvement; the improvement is
 attributable to the learned correction architecture, not to residual-conditioning. This is
 consistent with the residual's role elsewhere in the paper: it tells you \emph{where} a
 prediction is wrong (a trust signal), not \emph{how} to fix it. Since NULL and WITH are
-statistically tied (NULL marginally ahead, $0/3$ seeds for WITH), the residual input is not
+statistically tied (NULL marginally ahead, $0/5$ seeds for WITH), the residual input is not
 deployed \emph{for accuracy}; we retain it in the as-trained, residual-fed configuration only
 because the residual is already computed for the trust layer and the iteration's acceptance
 test, so conditioning the corrector on it costs nothing extra---and we note that a
@@ -864,9 +868,11 @@ residual-free corrector is an equally valid deployment. We report this as a shar
 \emph{attribution}, not a change to the result.
 
 \paragraph{The trust signal is backbone-robust.} On this SOTA backbone the bare
-residual--error correlation is already strong ($0.625{\pm}0.019$, vs $\approx 0.40$ for the
-bare weak backbone in \autoref{tab:indist}); the corrector barely moves it
-($0.635{\pm}0.021$), because the strong backbone's residual is already a good detector
+residual--error correlation is already strong ($0.611{\pm}0.054$ over five seeds---per-seed
+$0.611/0.652/0.613/0.667/0.511$, positive on every seed; the wider $n{=}5$ spread is the
+honest error bar), vs $\approx 0.40$ for the
+bare weak backbone in \autoref{tab:indist}; the corrector barely moves it
+($0.612{\pm}0.046$), because the strong backbone's residual is already a good detector
 without correction. The lift-by-corrector effect we report in \autoref{sec:indist-ablation}
 is a property of the \emph{weak} backbone; on the strong backbone the signal is strong from
 the start. We add a third, architecturally-distinct data point: a message-passing GNN
@@ -874,7 +880,7 @@ the start. We add a third, architecturally-distinct data point: a message-passin
 case-level residual--error Spearman correlation is $0.851{\pm}0.058$
 (\texttt{results/mgn/mgn\_results.json}). Across three fundamentally different architectures---a
 spectral grid Geo-FNO ($\approx 0.40$ bare), an attention/point-cloud Transolver
-($0.625{\pm}0.019$ bare), and a message-passing GNN MeshGraphNet ($0.851{\pm}0.058$ bare)---the
+($0.611{\pm}0.054$ bare), and a message-passing GNN MeshGraphNet ($0.851{\pm}0.058$ bare)---the
 correlation is consistently \emph{positive}, though variable in strength (a $0.40$--$0.85$
 range). This is precisely what ``backbone-robust'' means here: the detector \emph{works} on
 every architecture, not that its strength is uniform across them. (The high MeshGraphNet value
@@ -1073,7 +1079,7 @@ split that holds out the largest bodies---forcing a range of per-case errors---a
 same per-case residual--error Spearman correlation (interior continuity+momentum residual;
 \texttt{scripts/run\_deepcfd.py}, \texttt{results/deepcfd/deepcfd\_results.json}). The trust
 signal holds (\autoref{fig:deepcfd}): \textbf{$\texttt{residual\_error\_spearman} = 0.770 \pm
-0.119$} (3 seeds), comparable to---indeed above---the AirfRANS Transolver value ($0.625$). The error spread is
+0.119$} (3 seeds), comparable to---indeed above---the AirfRANS Transolver value ($0.611$). The error spread is
 genuine (per-case rel-$L_2$ median $0.063$, max $0.136$), so the correlation is not degenerate;
 per-seed case-level bootstrap $95\%$ CIs ($10^4$ resamples) are $[0.65,0.77]$, $[0.58,0.72]$
 and $[0.91,0.95]$, all far from zero
@@ -1338,14 +1344,14 @@ on $\texttt{mse\_v}$} ($\approx 10\times$ against the volume-regressed DEQ arm),
 force ranking. Our grid backbone is not a competitive surrogate; we make \textbf{no
 competitiveness claim} for it. The decisive next step follows in \autoref{sec:v2}: we put
 the trust layer and the DEQ corrector \emph{on} this Transolver backbone, where the residual
-is a calibrated detector ($\rho=0.625$) and the corrector reduces field MSE by $9$--$25\%$.
+is a calibrated detector ($\rho=0.611$) and the corrector reduces field MSE by $8$--$25\%$.
 The large grid-backbone gap is itself informative: even a much weaker backbone yields a
 residual that is a calibrated, shift-robust detector of its own errors.
 
 \paragraph{Note on the two Transolver runs.} The Transolver numbers here
 (\autoref{tab:transolver}: $\texttt{mse\_u}$ $0.120{\pm}0.005$, $\texttt{mse\_v}$
 $0.088{\pm}0.013$, $\texttt{mse\_p}$ $628.5{\pm}29$) and the v2 backbone-alone numbers
-(\autoref{tab:v2}: $0.127{\pm}0.009$, $0.100{\pm}0.004$, $630{\pm}42$) are the
+(\autoref{tab:v2}, 5 seeds: $0.133{\pm}0.017$, $0.096{\pm}0.006$, $644{\pm}63$) are the
 \emph{same Transolver architecture at the same budget} ($7.35$M params, 80 epochs), trained
 in two separate runs; the differences are within the reported per-seed spread. The v2 run is
 the one we use as the NeuroForge backbone in \autoref{sec:v2}.
@@ -1470,7 +1476,7 @@ in the far field, away from any wall (\autoref{sec:ood})---not its spatial conce
 corrector helps on nothing and the DEQ corrector regresses volume
 $\texttt{mse\_v}$/$\texttt{mse\_p}$ (3/3) while flat on $\texttt{mse\_u}$. On the
 \textbf{SOTA Transolver backbone} it \emph{is supported}: the DEQ corrector reduces all
-three volume MSE channels on all 3 seeds ($\texttt{mse\_u}$ $-9\%$, $\texttt{mse\_v}$
+three volume MSE channels on all 5 seeds ($\texttt{mse\_u}$ $-8\%$, $\texttt{mse\_v}$
 $-21\%$, $\texttt{mse\_p}$ $-25\%$; \autoref{sec:v2}, \autoref{tab:v2}) with force ranking
 held. Correction quality is therefore backbone-dependent---a finding, not a hidden
 negative---and the supervised corrector works where the backbone is strong.
@@ -1500,11 +1506,11 @@ Every number comes from the committed, reproducible harness
 
 \begin{itemize}
 \item \textbf{Backbone-dependent correction quality.} The supervised DEQ corrector reduces
-field MSE by $9$--$25\%$ on the SOTA Transolver backbone (\autoref{sec:v2}) but is
+field MSE by $8$--$25\%$ on the SOTA Transolver backbone (\autoref{sec:v2}) but is
 flat-to-unhelpful on the weak grid backbone (\autoref{sec:indist-ablation}). We report both
 regimes; we do not claim the corrector helps on an arbitrary backbone, only that it helps on a
 strong one. The trust signal, by contrast, is positive and substantial across all three backbones tested
-($\rho=0.625$ SOTA Transolver, $\approx 0.40$--$0.83$ weak grid backbone, $0.851$ bare
+($\rho=0.611$ SOTA Transolver, $\approx 0.40$--$0.83$ weak grid backbone, $0.851$ bare
 MeshGraphNet GNN). We make no competitiveness claim for the grid backbone (it
 trails SOTA $\sim 4$--$60\times$); the Transolver backbone we run \emph{on} is itself
 competitive.
@@ -1538,9 +1544,9 @@ the \emph{learned, supervised} correction, not from minimising the residual---an
 control, not from feeding the corrector the residual either.
 \item \textbf{The corrector's gain is not attributable to the residual input.} The deployed
 DEQ corrector ingests the residual as an input channel, but a controlled ablation that zeros
-that input at train and inference (3 seeds) matches or slightly exceeds it ($\approx 4\%$ on a
-$\approx 0.11$ base; WITH beats NULL on $0/3$ seeds; \texttt{results/control/w1\_capture.json}).
-We therefore attribute the $9$--$25\%$ field-MSE improvement to the learned correction
+that input at train and inference (5 seeds) matches or slightly exceeds it ($\approx 4\%$ on a
+$\approx 0.12$ base; WITH beats NULL on $0/5$ seeds; \texttt{results/control/w1\_capture.json}).
+We therefore attribute the $8$--$25\%$ field-MSE improvement to the learned correction
 architecture, not to residual-conditioning. The residual's demonstrated value is as a trust
 signal (\emph{where} the prediction is wrong), not as a correction input (\emph{how} to fix
 it); the deployed system retains the residual input but does not depend on it for the gain.
@@ -1570,7 +1576,7 @@ residual--error divergence robustly in direction but are not multi-seed.
 
 We set out to use the steady-RANS physics residual of a neural-CFD surrogate, and we found
 that it plays \textbf{two distinct roles with two distinct verdicts}. \emph{As a trust
-signal} it is a reliable, backbone-robust (three architecturally-distinct backbones) case-level detector of error---it tells you \emph{where} a prediction is wrong: $\rho=0.625{\pm}0.019$ on a
+signal} it is a reliable, backbone-robust (three architecturally-distinct backbones) case-level detector of error---it tells you \emph{where} a prediction is wrong: $\rho=0.611{\pm}0.054$ (five seeds, positive on every seed) on a
 SOTA Transolver backbone, $\approx 0.40$--$0.83$ on a weak grid backbone, $0.851{\pm}0.058$ on a
 bare message-passing GNN (MeshGraphNet), and---under distribution
 shift on the weak backbone---regime-invariant ($\approx 0.74$, rescuing an \texttt{aoa}
@@ -1579,7 +1585,7 @@ a correction objective or acceptance gate} it fails: more iterations raise the r
 error falls, and the monotone-residual gate accepts almost nothing---minimising the residual is
 not minimising the error. Alongside the trust signal we deploy a learned, supervised
 learned correction that works on a strong backbone: the DEQ corrector cuts volume field MSE by
-$9$--$25\%$ on all 3 seeds of the SOTA Transolver model (gate-verified), with force ranking
+$8$--$25\%$ on all 5 seeds of the SOTA Transolver model (gate-verified), with force ranking
 held; a controlled ablation attributes that gain to the learned correction rather than to the
 residual input (the residual tells you \emph{where} to look, not \emph{how} to fix). On the strength of the detector result we package a backbone-robust
 conformal trust layer that holds target coverage both in-distribution

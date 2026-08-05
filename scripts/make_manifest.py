@@ -60,7 +60,8 @@ HEADLINE: list[dict] = [
     # --- W1 residual-input ablation (abstract, sec:v2, limitations) ---
     {"path": "results/control/w1_capture.json",
      "script": "scripts/run_w1_capture.py", "tier": "gpu",
-     "claims": "W1 — null-residual corrector matches/exceeds residual-fed (gain not from residual input)"},
+     "claims": "5-seed extension: backbone trust rho 0.611 +/- 0.054 (positive 5/5); corrector -8/-21/-25%; "
+               "W1 null corrector matches/exceeds residual-fed on 5/5 seeds (gain not from residual input)"},
     # --- force coefficients vs official AirfRANS labels (sec:v2, SOTA positioning) ---
     {"path": "results/control/force_vs_official.json",
      "script": "scripts/recompute_force_vs_official.py", "tier": "gpu",
