@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-08-05T13:50:34.539722+00:00",
-  "git_head": "17ff9048787d46ec3d4e99fb979199388b08f250",
-  "git_head_short": "17ff904",
+  "generated_utc": "2026-08-14T19:22:23.552015+00:00",
+  "git_head": "59a44d09532ab9349d20b3b15620929e5250f70e",
+  "git_head_short": "59a44d0",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -61,8 +61,8 @@
       "script": "scripts/run_w1_capture.py",
       "tier": "gpu",
       "claims": "5-seed extension: backbone trust rho 0.611 +/- 0.054 (positive 5/5); corrector -8/-21/-25%; W1 null corrector matches/exceeds residual-fed on 5/5 seeds (gain not from residual input)",
-      "sha256": "7655379d167c2d33d987f2feaebea41ac10cada2a619937f594f49d429645bc5",
-      "bytes": 9294,
+      "sha256": "8c0395657fde251e85c8277ecbaf91ea825a95c386ecb4d4520ec8ef17518ceb",
+      "bytes": 9002,
       "git_tracked": true,
       "last_commit": "b5e7fcc"
     },
@@ -281,8 +281,8 @@
       "script": "scripts/run_selective_prediction.py",
       "tier": "cpu",
       "claims": "AUROC 0.87-0.91 residual, 0.905 fused; ~91% of oracle error reduction at 10% rejection",
-      "sha256": "e12e867a14eebea0efc32ab32c75631067aea69f237eb902925dce74179d7db6",
-      "bytes": 33667,
+      "sha256": "74e29ac7f1c5a318a2e246f39c76564a66c63c03d89becb3a8470865a57a863a",
+      "bytes": 32845,
       "git_tracked": true,
       "last_commit": "a60cf3d"
     },
@@ -291,8 +291,8 @@
       "script": "scripts/run_selective_prediction.py",
       "tier": "cpu",
       "claims": "per-case scores/errors for all arms (bootstrap-CI input)",
-      "sha256": "79807cfb5625a03025ce45422300c9c34ffdc9924dd824570d88d5fc222dde8f",
-      "bytes": 229209,
+      "sha256": "ce9badb9b697fea18f4714c1d2969cfcf68e282688785b33b34ea061e6f0b960",
+      "bytes": 220884,
       "git_tracked": true,
       "last_commit": "a60cf3d"
     },
@@ -311,8 +311,8 @@
       "script": "scripts/run_multisplit_conformal.py",
       "tier": "cpu",
       "claims": "20-split conformal: coverage 0.895-0.902 all arms; corrected-p q 2.26->2.02-2.07",
-      "sha256": "76479b05633965aea31cb1cbbacedd971ea24d211abc8ac9a6e252818565aec5",
-      "bytes": 52222,
+      "sha256": "8917e1a55df28836d0c997a84daee37d34347cd72a126fe70682ef2b77773a0f",
+      "bytes": 50404,
       "git_tracked": true,
       "last_commit": "a60cf3d"
     },
@@ -321,8 +321,8 @@
       "script": "scripts/bootstrap_spearman_ci.py",
       "tier": "cpu",
       "claims": "case-level bootstrap 95% CIs; all arms exclude zero (ensemble 0.610 [0.51,0.70])",
-      "sha256": "38f30756bc09d61b896e7b6e175286d4c11a7990852ee295c63508e2eb1e5e68",
-      "bytes": 2899,
+      "sha256": "f3d67fc7248e1865dcdec8f71f2eb5f1b541c0898132f032bc8733ef8a839989",
+      "bytes": 2793,
       "git_tracked": true,
       "last_commit": "a60cf3d"
     },
@@ -331,8 +331,8 @@
       "script": "scripts/design_force_integrator.py",
       "tier": "cpu",
       "claims": "GT-field integrator variants: CV rho_L 1.00 / cd med 0.23; wall cl med 0.046",
-      "sha256": "84d1b868e3ec5acebdaee5ea761ba1a12815841483f09aff6a8e3422d191e47b",
-      "bytes": 7491,
+      "sha256": "0f0e3163e916ed2c15ad1182e2477ac74854243d232fb13c82be79c846b1982e",
+      "bytes": 7263,
       "git_tracked": true,
       "last_commit": "a60cf3d"
     },
@@ -341,8 +341,8 @@
       "script": "scripts/recompute_force_multischeme.py",
       "tier": "gpu",
       "claims": "pred fields: CV lift rho_L 0.998 +/- 0.001, cl med err 3.6-3.9%/seed; drag model-limited",
-      "sha256": "637875ee78f3d026bf310a36dbe7dccba2e8384ba66b28dac476f4dc80eb220c",
-      "bytes": 8772,
+      "sha256": "cf1f1485e8137757e5c9d31b9c0407cd32fa4ed32076bfe28fa55ca3d562e15a",
+      "bytes": 8468,
       "git_tracked": true,
       "last_commit": "a60cf3d"
     },
@@ -351,8 +351,8 @@
       "script": "scripts/percell_trust_localization.py",
       "tier": "cpu",
       "claims": "cell-level rho 0.166 -> 16x16-patch 0.323 (93% of cases improve); patch AUROC 0.68-0.72",
-      "sha256": "9fb1e192bae4278131e7396905b47de6b3fc8f6170a038b07687ef0e3b9b7afa",
-      "bytes": 89319,
+      "sha256": "cedd3cba70cb3485e1b0a41fee7d2aa21c2cd412641381d2f5c763266ff97004",
+      "bytes": 86554,
       "git_tracked": true,
       "last_commit": "adbf901"
     },
@@ -361,8 +361,8 @@
       "script": "scripts/measure_audit_cost.py",
       "tier": "cpu",
       "claims": "full audit median 1.7 ms/case (1 CPU thread) vs ~25-min 16-core RANS solve (~1e-6)",
-      "sha256": "a486235b56c7454a86bd6989b1d50b5588a25337db00c76cf263cf06d4b589c9",
-      "bytes": 2904,
+      "sha256": "880603d4ffc8bb7a3298562020234c892f67f27431481330e7964fe762f77769",
+      "bytes": 2820,
       "git_tracked": true,
       "last_commit": "aedf456"
     },
@@ -371,10 +371,10 @@
       "script": "scripts/run_ensemble_mstudy.py",
       "tier": "gpu",
       "claims": "M=2..5 all 26 subsets: fused AUROC 0.905-0.912 + coverage on-target at every M; band adaptivity needs M (q_p 2.35->9.98, ECE 0.074->0.199 as M 5->2)",
-      "sha256": "cf6d3237f2e9a5574ad699bfb2ca31ef539d1f4ee53c5eff4911339379bec1a3",
-      "bytes": 36935,
-      "git_tracked": false,
-      "last_commit": ""
+      "sha256": "eac33c69503bb95650b925cf65b80a5e7b7d9f5892551582b4195f79180abd7a",
+      "bytes": 35628,
+      "git_tracked": true,
+      "last_commit": "9451b57"
     },
     {
       "path": "results/figures/graphical_abstract.pdf",
