@@ -1,5 +1,5 @@
 {
-    "title": "NeuroForge: A Self-Correcting, Geometry-Native Neural CFD Engine with Calibrated Physics-Residual Trust",
+    "title": "NeuroForge: Self-Auditing Neural CFD Surrogates with Calibrated Physics-Residual Trust",
     "upload_type": "software",
     "license": "MIT",
     "creators": [
