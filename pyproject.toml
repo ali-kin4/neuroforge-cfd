@@ -71,12 +71,15 @@ ignore = ["E501", "B008"]
 # scripts produced the committed paper results; the package (src) and its tests
 # are strictly linted, but these are exempted from stylistic and minor rules:
 # terse one-line statements (E702), the intentional import-neuroforge-before-numpy
-# ordering (E402), zip strict-ness (B905), throwaway loop/temporary vars
-# (B007/B023/F841), and printf-style logging (UP031). Correctness rules that catch
+# ordering (E402 for position, I001 for isort grouping -- isort would sort
+# `import neuroforge` after numpy/matplotlib, which silently undoes the BLAS
+# thread caps and costs ~100x on low-core machines), zip strict-ness (B905),
+# throwaway loop/temporary vars (B007/B023/F841), short-lived lambdas (E731), and
+# printf-style logging (UP031). Correctness rules that catch
 # real breakage (F401 unused imports, F811 redefinition, F821 undefined names) stay on.
-"scripts/**" = ["E402", "E702", "B905", "B007", "B023", "F841", "UP031", "E741"]
-"benchmarks/**" = ["E402", "E702", "B905", "B007", "B023", "F841", "UP031", "E741"]
-"examples/**" = ["E402", "E702", "B905", "B007", "B023", "F841", "UP031", "E741"]
+"scripts/**" = ["E402", "I001", "E702", "B905", "B007", "B023", "F841", "UP031", "E741", "E731"]
+"benchmarks/**" = ["E402", "I001", "E702", "B905", "B007", "B023", "F841", "UP031", "E741", "E731"]
+"examples/**" = ["E402", "I001", "E702", "B905", "B007", "B023", "F841", "UP031", "E741", "E731"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
