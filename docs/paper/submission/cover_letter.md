@@ -28,7 +28,8 @@ and formally bounds each component.
   intervals throughout.
 - The trust signal supports **near-oracle selective prediction**: AUROC 0.87–0.91 for
   detecting worst-decile-error cases, and fused with a deep-ensemble spread, AUROC 0.905 —
-  recovering ~93% of the oracle's achievable error reduction at a 10% rejection budget.
+  recovering ~91% of the oracle's achievable error reduction at a 10% rejection budget
+  (the residual alone recovers ~67%).
 - A **residual-floor theorem** for the monitored discrete operator, quantifying the
   operator-specific detection limit and the undetectable kernel modes — a formal mechanism
   for why residual-space smallness cannot by itself certify solution-space accuracy, which
