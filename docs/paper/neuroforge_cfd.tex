@@ -1595,7 +1595,7 @@ collapse from $0.31$ to $0.75$) where the one-shot signal collapses. \emph{As
 a correction objective or acceptance gate} it fails: more iterations raise the residual while
 error falls, and the monotone-residual gate accepts almost nothing---minimising the residual is
 not minimising the error. Alongside the trust signal we deploy a learned, supervised
-learned correction that works on a strong backbone: the DEQ corrector cuts volume field MSE by
+correction that works on a strong backbone: the DEQ corrector cuts volume field MSE by
 $8$--$25\%$ on all 5 seeds of the SOTA Transolver model (gate-verified), with force ranking
 held; a controlled ablation attributes that gain to the learned correction rather than to the
 residual input (the residual tells you \emph{where} to look, not \emph{how} to fix). On the strength of the detector result we package a backbone-robust
