@@ -11,9 +11,21 @@ conformal, bootstrap CIs, repaired force integrator, 5-seed extension) before JC
 **Format (verified against the JCP guide for authors, 2026-08-14):** the guide makes *no*
 mention of "Your Paper Your Way". It states plainly that "a PDF is not an acceptable source
 file" and that you will be asked for "all relevant editable source files upon submission or
-revision". So have `neuroforge_cfd.tex` + `refs.bib` + `sections/` + figures ready to upload
-alongside the PDF at *initial* submission, not just at revision. Reformatting to
-`elsarticle` is still only needed at the revision/acceptance stage.
+revision" — so sources go up at *initial* submission, not just at revision.
+
+**→ Submit `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, 47 pp), NOT the TMLR PDF.**
+The manuscript now builds two ways from shared content, so they cannot drift:
+
+| build | wrapper | for |
+|---|---|---|
+| **elsarticle** | `neuroforge_cfd_elsevier.tex` | **the JCP submission** |
+| TMLR | `neuroforge_cfd.tex` | the TMLR fallback, and arXiv |
+
+Shared by both: `preamble.tex`, `abstract.tex`, `body.tex`, `sections/`, `refs.bib`.
+Source files to upload: `neuroforge_cfd_elsevier.tex`, `preamble.tex`, `abstract.tex`,
+`body.tex`, `sections/residual_floor_theorem.tex`, `refs.bib`,
+`neuroforge_cfd_elsevier.bbl`, and the 9 figure PDFs from `results/figures/`.
+Both builds are warning-clean (0 overfull / underfull / undefined references).
 
 **Abstract:** JCP requires ≤ 250 words. The current abstract body is exactly **250** (the
 `Keywords:` line is not part of it — EM has a separate keywords field). Two constructions
@@ -24,7 +36,7 @@ $\approx 0.9$" → "with AUROC 0.9" and dropping "clean" from "a clean two-way d
 **Keywords:** 7 supplied (limit is 1–7); none contain "and"/"of", per guide.
 
 ## Ready now (in `docs/paper/submission/` + paper back-matter)
-- [x] Manuscript PDF — `docs/paper/neuroforge_cfd.pdf` (builds clean; new title)
+- [x] Manuscript PDF — `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, 47 pp, builds clean; the TMLR `neuroforge_cfd.pdf` is the fallback/arXiv build)
 - [x] Cover letter — `cover_letter.md` (retargeted to JCP, new title + new results)
 - [x] Highlights — `highlights.txt` (5 bullets, each ≤85 chars, refreshed)
 - [x] Data & code availability — in paper back-matter (Zenodo DOI 10.5281/zenodo.21277928)
@@ -58,8 +70,8 @@ $\approx 0.9$" → "with AUROC 0.9" and dropping "clean" from "a clean two-way d
       differently-titled paper. This journal already desk-rejected the work once.
 
 ## At revision stage (only if accepted-with-revisions)
-- [ ] Reformat to `elsarticle` (LaTeX source ready: `neuroforge_cfd.tex` + `refs.bib`).
-- [ ] Provide editable source files (.tex, figures) — already in repo.
+- [x] Reformat to `elsarticle` — **done ahead of submission**, see the format note above.
+- [x] Provide editable source files (.tex, figures) — in repo, list above.
 
 ## Fallback
 If JCP desk-declines: **TMLR** within the week (the paper already uses the TMLR template;
