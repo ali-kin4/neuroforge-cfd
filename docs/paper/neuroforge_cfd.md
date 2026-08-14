@@ -1,9 +1,17 @@
-# NeuroForge: A Self-Correcting, Geometry-Native Neural CFD Engine with Calibrated Physics-Residual Trust
+# NeuroForge — superseded prose draft (v0.2)
 
-**Ali Jabbary** — Department of Mechanical Engineering, Urmia University
+> **⚠️ This file is NOT the manuscript.** It is an early prose draft, kept only because
+> several docs link to it for narrative background. It predates the repositioning: its
+> framing, title, claims and numbers are out of date, and it lists only one author.
+>
+> The authoritative manuscript is **[`neuroforge_cfd.pdf`](neuroforge_cfd.pdf)** (source:
+> [`neuroforge_cfd.tex`](neuroforge_cfd.tex)), titled *"NeuroForge: Self-Auditing Neural
+> CFD Surrogates with Calibrated Physics-Residual Trust"*, by **Ali Jabbary** (Department
+> of Mechanical Engineering, Urmia University) and **Kasra Ghanavati** (School of Computing
+> and Mathematical Sciences, University of Greenwich). Cite that, not this.
 
-*Preprint draft — v0.2 (2026). Corresponding author: st_a.jabbary@urmia.ac.ir. Superseded by
-`neuroforge_cfd.tex` (the authoritative manuscript).*
+*Draft title as written at the time: "A Self-Correcting, Geometry-Native Neural CFD Engine
+with Calibrated Physics-Residual Trust". Corresponding author: st\_a.jabbary@urmia.ac.ir.*
 
 ---
 

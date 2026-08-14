@@ -1,6 +1,6 @@
-# Suggested Reviewers — CMAME (NeuroForge)
+# Suggested Reviewers — JCP (NeuroForge)
 
-CMAME requests suggested reviewers (Editorial Manager asks for a set; 3–5 is standard). Below
+JCP requests suggested reviewers (Editorial Manager asks for a set; 3–5 is standard). Below
 are conflict-light candidates spanning the paper's three pillars: neural operators for CFD,
 the AirfRANS benchmark, and UQ/calibration for PDE surrogates.
 

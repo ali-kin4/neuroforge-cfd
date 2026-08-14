@@ -193,8 +193,11 @@ DEQ corrector win?"* — nothing else.
 
 ## Docs
 
-- [`docs/paper/neuroforge_cfd.md`](docs/paper/neuroforge_cfd.md) — research-paper
-  draft (method, related work, Neural Residual Iteration, experimental protocol).
+- [`docs/paper/neuroforge_cfd.pdf`](docs/paper/neuroforge_cfd.pdf) — **the manuscript**:
+  *NeuroForge: Self-Auditing Neural CFD Surrogates with Calibrated Physics-Residual Trust*
+  (Jabbary & Ghanavati). Source: [`neuroforge_cfd.tex`](docs/paper/neuroforge_cfd.tex).
+  [`neuroforge_cfd.md`](docs/paper/neuroforge_cfd.md) is an earlier prose draft kept for
+  narrative background only — superseded, and not to be cited.
 - [`docs/EXPERIMENTS.md`](docs/EXPERIMENTS.md) — **pre-registered experimental
   protocol**: metrics, splits, ablations, baselines, and *falsification criteria*
   (reproduced one-command via `benchmarks/ablation.py`).
