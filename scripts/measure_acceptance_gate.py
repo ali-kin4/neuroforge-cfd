@@ -74,11 +74,24 @@ import time
 import neuroforge  # noqa: F401  -- MUST precede numpy/torch (sets BLAS thread caps)
 import numpy as np
 
+import torch
+
 from neuroforge.core.config import Config
 from neuroforge.core.types import DTYPE, FlowField
 from neuroforge.data.airfrans_loader import load_airfrans
+from neuroforge.data.datamodule import Normalizer
+from neuroforge.data.pointcloud import (
+    F_IN,
+    F_OUT,
+    PointNormalizer,
+    load_airfrans_pointclouds,
+)
 from neuroforge.geometry.encode import encode_case
+from neuroforge.models import build_corrector
+from neuroforge.models.baselines.transolver import TransolverPointModel
 from neuroforge.physics.residuals import PhysicsChecker
+from neuroforge.solver.engine import NeuroForgeEngine
+from neuroforge.solver.pointcloud_predictor import PointCloudPredictor
 
 # The gate under test, imported from the shipped loop so this cannot drift.
 from neuroforge.solver.correction_loop import _EPS, _MAX_BACKTRACK
@@ -131,6 +144,122 @@ def gate_verdict(y0_arr, delta, case, checker, sdf, mask_geo, n0, gt, err0):
     return False, None, _MAX_BACKTRACK, trials, None
 
 
+def _load_backbone(ckpt_path, device):
+    """Restore the deployed Transolver + both normalisers from seed{k}.pt.
+
+    Same restore path as ``scripts/recompute_force_vs_official.py`` — the
+    normalisers travel inside the checkpoint, so no training data is loaded.
+    """
+    state = torch.load(ckpt_path, map_location=device, weights_only=False)
+    cfg = state["backbone_config"]
+    model = TransolverPointModel(
+        in_features=int(cfg.get("in_features", F_IN)),
+        out_features=int(cfg.get("out_features", F_OUT)),
+        width=int(cfg["width"]), n_layers=int(cfg["n_layers"]),
+        n_heads=int(cfg["n_heads"]), n_slices=int(cfg["n_slices"]),
+        dropout=float(cfg.get("dropout", 0.0)),
+    ).to(device)
+    model.load_state_dict(state["model_state"])
+    model.eval()
+    pn = state["point_norm"]
+    point_norm = PointNormalizer(
+        mean_in=np.asarray(pn["mean_in"], DTYPE), std_in=np.asarray(pn["std_in"], DTYPE),
+        mean_out=np.asarray(pn["mean_out"], DTYPE), std_out=np.asarray(pn["std_out"], DTYPE),
+        eps=float(pn.get("eps", 1e-6)),
+    )
+    grid_norm = Normalizer.from_state_dict(state["grid_norm"])
+    return model, point_norm, grid_norm
+
+
+def _load_corrector(path):
+    state = torch.load(path, map_location="cpu", weights_only=False)
+    corrector = build_corrector(state["corrector_config"])
+    corrector.load_state_dict(state["corrector_state"])
+    corrector.eval()
+    return corrector
+
+
+def deployed_rows(a, checker, pairs, device):
+    """Gate the DEPLOYED step: DEQ correction on its OWN single backbone.
+
+    This is the tab:v2 system (backbone seed k + its seed{k}_corr_with corrector),
+    not the ensemble-mean path. Raw and corrected fields are cached per seed so
+    re-runs are free and resumable.
+    """
+    log(f"deployed path: loading test point clouds (limit {a.n_val}) ...")
+    test_pcs = load_airfrans_pointclouds(
+        root=a.root, task="full", train=False, limit=a.n_val,
+        cache_dir=a.cache_dir, download=False, progress=False,
+    )
+    rows = {}
+    for seed in a.backbone_seeds:
+        bck = os.path.join(a.ckpt_dir, f"seed{seed}.pt")
+        cck = os.path.join(a.ckpt_dir, f"seed{seed}_corr_with.pt")
+        if not (os.path.exists(bck) and os.path.exists(cck)):
+            log(f"seed {seed}: missing checkpoint(s) — skipping")
+            continue
+        cdir = os.path.join(a.deployed_cache_dir, f"seed{seed}")
+        os.makedirs(cdir, exist_ok=True)
+        model, point_norm, grid_norm = _load_backbone(bck, device)
+        pred = PointCloudPredictor(model, test_pcs, point_norm, grid_norm, device=device)
+        corrector = _load_corrector(cck)
+        engine = NeuroForgeEngine(pred, checker, corrector=corrector, config=Config())
+        log(f"seed {seed}: backbone+corrector loaded ({device})")
+
+        key = f"backbone_seed{seed}"
+        rows[key] = []
+        t0 = time.time()
+        n_fwd = 0
+        for i, (case, gt) in enumerate(pairs):
+            npz = os.path.join(cdir, f"{case.name}.npz")
+            if os.path.exists(npz):
+                d = np.load(npz)
+                y0_arr, y1_arr = d["raw"], d["corrected"]
+            else:
+                if not pred.has_cloud(case.name):
+                    continue
+                y0_arr = pred.predict(case).as_array().astype(DTYPE)
+                y1_arr = engine.solve(case).field.as_array().astype(DTYPE)
+                np.savez_compressed(npz, raw=y0_arr, corrected=y1_arr)
+                n_fwd += 1
+
+            stack = encode_case(case)
+            sdf = stack[0].astype(DTYPE)
+            mask_geo = stack[1].astype(DTYPE)
+            y0 = make_field(y0_arr, case, sdf, mask_geo, f"backbone-seed{seed}")
+            n0 = float(checker.diagnose(y0, case).residual_norm())
+            err0 = rel_l2_speed(y0, gt)
+            y1 = make_field(y1_arr, case, sdf, mask_geo, f"corrected-seed{seed}")
+            n1 = float(checker.diagnose(y1, case).residual_norm())
+            err1 = rel_l2_speed(y1, gt)
+            delta = (y1_arr - y0_arr).astype(DTYPE)
+
+            accepted, acc_step, n_bt, trials, err_acc = gate_verdict(
+                y0_arr, delta, case, checker, sdf, mask_geo, n0, gt, err0
+            )
+            rows[key].append({
+                "name": case.name,
+                "residual_before": n0, "residual_after_full_step": n1,
+                "residual_ratio": n1 / max(n0, 1e-30),
+                "err_before": err0, "err_after_full_step": err1,
+                "err_improves": bool(err1 < err0),
+                "err_rel_change": (err1 - err0) / max(err0, 1e-30),
+                "accepted": bool(accepted), "accepted_step": acc_step,
+                "n_backtracks": n_bt,
+                "err_at_accepted_step": err_acc,
+                "err_rel_change_at_accepted_step": (
+                    (err_acc - err0) / max(err0, 1e-30) if err_acc is not None else None),
+                "accepted_step_improves_err": (
+                    bool(err_acc < err0) if err_acc is not None else None),
+                "trials": trials,
+            })
+            if (i + 1) % 25 == 0:
+                log(f"  seed {seed}: {i + 1}/{len(pairs)} "
+                    f"({(time.time() - t0) / (i + 1):.2f}s/case, {n_fwd} forwards)")
+        log(f"seed {seed}: done, {len(rows[key])} cases, {time.time() - t0:.0f}s")
+    return rows
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--root", default="data")
@@ -142,6 +271,13 @@ def main(argv=None) -> int:
     p.add_argument("--out", default="results/control/acceptance_gate.json")
     p.add_argument("--percase-ref", default="results/selective/selective_percase.json")
     p.add_argument("--tol", type=float, default=1e-6, help="faithfulness gate tolerance")
+    p.add_argument("--mode", default="ensemble", choices=["ensemble", "deployed", "both"],
+                   help="'ensemble' = cached ensemble-mean path (CPU, no forwards); "
+                        "'deployed' = tab:v2 system, DEQ on its own backbone (needs GPU)")
+    p.add_argument("--backbone-seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
+    p.add_argument("--ckpt-dir", default="checkpoints/v2_transolver")
+    p.add_argument("--deployed-cache-dir", default="data/cache/acceptance_gate")
+    p.add_argument("--device", default="auto")
     a = p.parse_args(argv)
 
     checker = PhysicsChecker(Config().physics)
@@ -153,11 +289,11 @@ def main(argv=None) -> int:
     ens_dir = os.path.join(a.w2_cache_dir, "ensemble")
     corr_dirs = {s: os.path.join(a.w2_cache_dir, "corrected", s) for s in a.corrector_seeds}
 
-    rows = {s: [] for s in corr_dirs}
+    rows = {s: [] for s in corr_dirs} if a.mode in ("ensemble", "both") else {}
     ens_check = []
     t0 = time.time()
 
-    for i, (case, gt) in enumerate(pairs):
+    for i, (case, gt) in enumerate(pairs if a.mode in ("ensemble", "both") else []):
         epath = os.path.join(ens_dir, f"{case.name}.npz")
         if not os.path.exists(epath):
             continue
@@ -206,6 +342,12 @@ def main(argv=None) -> int:
             })
         if (i + 1) % 50 == 0:
             log(f"  {i + 1}/{len(pairs)} cases ({(time.time() - t0) / (i + 1):.2f}s/case)")
+
+    if a.mode in ("deployed", "both"):
+        dev = a.device
+        if dev == "auto":
+            dev = "cuda" if torch.cuda.is_available() else "cpu"
+        rows.update(deployed_rows(a, checker, pairs, torch.device(dev)))
 
     dt = time.time() - t0
 
