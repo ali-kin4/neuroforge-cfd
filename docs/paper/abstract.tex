@@ -1,0 +1,24 @@
+% Shared abstract prose. Included by BOTH neuroforge_cfd.tex (TMLR) and
+% neuroforge_cfd_elsevier.tex (JCP/elsarticle) so the two cannot drift.
+% JCP limit is 250 words; this body is exactly 250 (the Keywords line is a
+% separate Editorial Manager field and is NOT part of the count).
+Machine-learning surrogates for computational fluid dynamics (CFD) predict steady
+flow fields far faster than classical solvers, but emit a
+single field with no built-in way to know whether to trust it---especially out of
+distribution. We make the surrogate \emph{audit itself} against the governing physics: we
+compute the discretised steady-state Reynolds-averaged (RANS) residual of the prediction
+and ask what jobs it can do. Our central finding is a clean \textbf{two-way dissociation}: the physics
+residual is a reliable, backbone-robust \textbf{trust signal} (it tells you \emph{where}
+the prediction is wrong) but a poor \textbf{correction objective} (it does not tell you
+\emph{how} to fix it). \emph{As a trust signal}, the residual's per-case rank correlation
+with field error is consistently positive across three architecturally distinct backbones
+and a second dataset of laminar bluff bodies; it flags the worst-decile cases with AUROC
+$\approx 0.9$, and a distribution-free split-conformal layer attains its target coverage. \emph{As a correction objective or acceptance gate}, the
+residual fails: reducing it does not reduce field error, and a backtracking test admits
+almost no residual-reducing step. Separately, a learned deep-equilibrium corrector trained
+toward ground truth lowers volume-field error on a state-of-the-art backbone; a controlled
+ablation that removes the residual input matches this gain, so the improvement comes from
+the learned correction, not from conditioning on the residual. The contribution is a
+self-auditing, calibrated trust layer, the residual's two roles (trust signal yes,
+correction objective no), and the learned correction it accompanies, demonstrated on a
+competitive surrogate and released as the open-source \texttt{neuroforge-cfd} package.

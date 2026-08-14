@@ -1,0 +1,64 @@
+% ---------------------------------------------------------------------------
+% JCP / Elsevier build.  Content is SHARED with the TMLR build:
+%   abstract.tex  -- the 250-word abstract (JCP limit)
+%   body.tex      -- Introduction .. back-matter
+% Only the class, front matter and bibliography style differ, so the science
+% cannot drift between the two.  Build:  latexmk -pdf neuroforge_cfd_elsevier
+% ---------------------------------------------------------------------------
+\documentclass[preprint,12pt]{elsarticle}
+
+% elsarticle loads natbib itself -- do NOT load it again.
+\input{preamble}
+
+
+% tmlr.sty declares \sloppy (see the typesetting-tolerance note above, which the
+% shared preamble inherits); elsarticle does not. Without it the long
+% \texttt{path/to/result.json} tokens in the body overflow the narrower
+% single-column measure. Declaring it here reproduces the TMLR build's
+% zero-overfull guarantee rather than hyphenating file paths.
+\sloppy
+\emergencystretch=4em
+
+\journal{Journal of Computational Physics}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{NeuroForge: Self-Auditing Neural CFD Surrogates with Calibrated
+       Physics-Residual Trust}
+
+\author[urmia]{Ali Jabbary\corref{cor1}}
+\ead{st\_a.jabbary@urmia.ac.ir}
+\affiliation[urmia]{organization={Department of Mechanical Engineering,
+                                  Urmia University},
+                    city={Urmia},
+                    country={Iran}}
+
+\author[gre]{Kasra Ghanavati}
+\ead{kg1111r@gre.ac.uk}
+\affiliation[gre]{organization={School of Computing and Mathematical Sciences,
+                                University of Greenwich},
+                  city={London},
+                  country={United Kingdom}}
+
+\cortext[cor1]{Corresponding author.}
+
+\begin{abstract}
+\input{abstract}
+\end{abstract}
+
+\begin{keyword}
+neural operators \sep surrogate CFD \sep physics residuals \sep
+uncertainty quantification \sep conformal prediction \sep
+trust calibration \sep airfoil aerodynamics
+\end{keyword}
+
+\end{frontmatter}
+
+\input{body}
+
+\bibliographystyle{elsarticle-num}
+\bibliography{refs}
+
+\end{document}

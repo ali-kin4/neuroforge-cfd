@@ -1,0 +1,66 @@
+% ---------------------------------------------------------------------------
+% Class-INDEPENDENT preamble, shared by both builds:
+%   neuroforge_cfd.tex           -- TMLR template (fallback venue)
+%   neuroforge_cfd_elsevier.tex  -- elsarticle (JCP submission)
+% Anything here must work under BOTH classes. Class-specific setup (the
+% document class, natbib/tmlr loading, front matter, bibliography style)
+% stays in the two wrappers.
+% ---------------------------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+% max-width table wrapper. Unlike \resizebox{\textwidth}, "max width" only
+% SHRINKS an over-wide table and is a no-op when it already fits, so the two
+% builds (TMLR here, elsarticle in neuroforge_cfd_elsevier.tex) can share
+% body.tex: tables that fit this measure are untouched, and the same tables
+% shrink to fit the narrower single-column Elsevier measure.
+\usepackage{adjustbox}
+
+% --- Pipeline schematic (Fig. 1): vector TikZ diagram -----------------------
+\usepackage{pifont}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,backgrounds,fit,shapes.geometric}
+% Palette: colour encodes function (also legible in greyscale).
+\definecolor{ink}{HTML}{1F2937}
+\definecolor{inFill}{HTML}{EEF2F7}\definecolor{inLine}{HTML}{94A3B8}
+\definecolor{pdFill}{HTML}{DBEAFE}\definecolor{pdLine}{HTML}{2563EB}
+\definecolor{rsFill}{HTML}{FEF3C7}\definecolor{rsLine}{HTML}{D97706}
+\definecolor{tsFill}{HTML}{DCFCE7}\definecolor{tsLine}{HTML}{16A34A}
+\definecolor{coFill}{HTML}{EDE9FE}\definecolor{coLine}{HTML}{7C3AED}
+\definecolor{fbFill}{HTML}{F1F5F9}\definecolor{fbLine}{HTML}{64748B}
+\definecolor{ouFill}{HTML}{E2E8F0}\definecolor{ouLine}{HTML}{334155}
+\definecolor{noGood}{HTML}{DC2626}
+\definecolor{lab}{HTML}{6B7280}
+
+% Typesetting tolerance. Overfull boxes (text bleeding into the margin) are the
+% warnings that matter and we keep ZERO of them. The only residual warnings were
+% UNDERFULL boxes: cosmetically invisible loose spacing on lines that end in
+% unbreakable monospace file-paths (e.g. \texttt{benchmarks/ablation.py}) and the
+% justified bibliography. The TMLR style already declares \sloppy (it accepts
+% loose lines by design); we make \hbadness/\vbadness consistent with that so the
+% build log is warning-free, rather than hyphenating file-paths (which reads
+% worse). \emergencystretch keeps overfull at zero.
+\emergencystretch=3em
+\hbadness=10000
+\vbadness=10000
+
+% hyperref is loaded last, per TMLR convention. natbib is already loaded by tmlr.sty;
+% do NOT load it again.
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue,
+  pdftitle={NeuroForge: Self-Auditing Neural CFD Surrogates with Calibrated Physics-Residual Trust},
+  pdfauthor={Ali Jabbary, Kasra Ghanavati}}
+
+% \autoref names for amsthm environments (hyperref does not define these by default).
+\providecommand{\propositionautorefname}{Proposition}
+\providecommand{\theoremautorefname}{Theorem}
+
+% Theorem-like environments. We formalize ONLY the genuinely formal statements
+% (the Banach contraction and the conformal coverage guarantee under exchangeability).
+% Empirical findings (e.g. OOD coverage) stay in prose, with their caveats intact.
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
