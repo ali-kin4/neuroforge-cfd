@@ -63,6 +63,8 @@ rejects the count, the smallest lossless cuts are "with AUROC $\approx 0.9$" →
       "predict -> audit -> calibrate -> decide" strip built by
       `scripts/make_graphical_abstract.py` from committed numbers only; supersedes the
       old two-roles figure in the private `cmame_submission/` repo.
+- [ ] At the JCP licensing step choose the **subscription** route, NOT open access. JCP is
+      hybrid; the OA option carries an APC and is not wanted.
 - [ ] Final read-through of the PDF.
 - [ ] Post arXiv v2 (new title/abstract) **before or same-day as** the EM submit — not
       after. `cover_letter.md:57` points the editor at arXiv:2607.10333; that page still
@@ -75,31 +77,50 @@ rejects the count, the smallest lossless cuts are "with AUROC $\approx 0.9$" →
 
 ## Fallback
 
-If JCP desk-declines, go to **Machine Learning: Science and Technology** (MLST, IOP
-Publishing; ISSN 2632-2153) — *not* TMLR.
+**Hard constraint: no pay-to-publish.** No article-processing charges, so fully open-access
+venues are out. JCP is hybrid, so the primary target already costs nothing — take the
+subscription route, not the OA option, at the licensing step.
 
-**Why MLST is the right second venue** (checked against the live journal page, 2026-08-20):
-its remit is to bridge "the application of machine learning across the sciences with
-advances in machine learning methods and theory as motivated by physical insights" — which
-is what this paper is. It runs focus collections on *Physics-Informed Machine Learning*,
-*AI and Partial Differential Equations*, and *Explainable Machine Learning in Sciences*,
-and publishes PDE-surrogate/emulator work. Crucially it does **not** require a novel
-numerical scheme — the exact bar CMAME desk-rejected us on, and the residual risk at JCP.
-CMAME's own rejection letter advised an "ML-oriented journal"; this is that, with a journal
-identity and metrics rather than a community-run venue. Impact factor 4.2, CiteScore 6.7.
-Median submission→first decision **5 days** before review, 52 days after — a fast desk
-verdict, which matters for a fallback.
+**Ruled out:** TMLR (author's call). **MLST** (IOP) — looked ideal on scope, but it is fully
+open access at **£2,500 / $3,125** on acceptance, *and* its research papers are "normally not
+more than 8500 words" against this manuscript's ~14,700. Both disqualifying.
 
-**The one thing to settle before submitting there:** MLST is fully open access, so an APC
-applies. IOP is running an expanded APC discount/waiver programme for low- and middle-income
-countries in 2026. It is applied automatically only when *all* authors are in an eligible
-country — which fails here (Ali/Urmia + Kasra/Greenwich) — so use the documented route:
-**request a discretionary waiver or discount by email to the journal office at the point of
-submission.** IOP members also get 25% off. Settle this before formatting work, not after.
+### If JCP desk-declines → Engineering Applications of Artificial Intelligence (EAAI)
 
-**If the APC cannot be waived**, drop to an Elsevier *hybrid* journal (no mandatory fee,
-and the EM account already exists): **Engineering Applications of Artificial Intelligence**
-(applications-framed, high IF) or **Computers & Fluids** (CFD-side, lower IF, would scrutinise
-the uniform 128^2 grid and near-wall blindness harder). Note: I could not verify either
-journal's current guide for authors — ScienceDirect served a CAPTCHA — so confirm scope and
-format yourself before committing.
+Verified against the live guide for authors, 2026-08-21:
+
+| | |
+|---|---|
+| Cost | **Hybrid — free via the subscription route** (it "supports open access", it does not require it) |
+| Impact factor | **9.0** (CiteScore 11.7) — higher than JCP's 3.9 |
+| Length limit | **none** — the only word limit in the entire guide is the 250-word abstract |
+| Publisher | Elsevier, Editorial Manager — the existing account works |
+| Society | A journal of IFAC (International Federation of Automatic Control) |
+
+Scope asks for "the practical application of AI methods in all branches of engineering", and
+requires papers be "validated using public data sets for easy replicability of the research
+results" — which this paper satisfies unusually well (AirfRANS + DeepCFD, hash-manifested).
+The risk is the flip side: EAAI wants a *real-world engineering application*, and this is a
+benchmark-validated methods paper, so lead the cover letter with the aerodynamic-design use
+case rather than the dissociation finding.
+
+**Three concrete prep items before submitting there (do not discover these at 2am):**
+
+1. **Double-anonymized review.** EAAI conceals author identity. The title page (with author
+   details) and an **anonymized manuscript** (without them) are *separate files*. The
+   anonymized file must contain no names, affiliations, or acknowledgements.
+2. **The repository links de-anonymize us.** The back-matter cites
+   `github.com/ali-kin4/neuroforge-cfd` and the Zenodo DOI; the GitHub URL contains the
+   author's username. For review, swap to an anonymized mirror (e.g. anonymous.4open.science)
+   or a "withheld for review" note, and restore the real links at acceptance.
+3. **Keywords: 7 → 6.** EAAI allows 1–6; the paper currently lists 7. Drop one (suggest
+   "trust calibration", already implied by "conformal prediction").
+
+Abstract is fine as-is: EAAI's cap is 250 words and the abstract is 249. Highlights are fine:
+3–5 bullets, ≤85 characters — the existing file already complies.
+
+### Third option, if EAAI declines
+
+**Computers & Fluids** (Elsevier, hybrid/free; IF 3.0, CiteScore 5.6). CFD-side audience, so
+expect harder scrutiny of the uniform 128^2 grid and the near-wall blindness than an AI
+venue would apply. Lower metrics than both above, but scope-safe and costs nothing.
