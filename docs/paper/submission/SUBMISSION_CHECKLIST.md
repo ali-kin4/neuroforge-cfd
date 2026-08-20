@@ -13,13 +13,13 @@ mention of "Your Paper Your Way". It states plainly that "a PDF is not an accept
 file" and that you will be asked for "all relevant editable source files upon submission or
 revision" — so sources go up at *initial* submission, not just at revision.
 
-**→ Submit `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, 48 pp), NOT the TMLR PDF.**
+**→ Submit `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, 48 pp), NOT the TMLR-styled PDF.**
 The manuscript now builds two ways from shared content, so they cannot drift:
 
 | build | wrapper | for |
 |---|---|---|
 | **elsarticle** | `neuroforge_cfd_elsevier.tex` | **the JCP submission** |
-| TMLR | `neuroforge_cfd.tex` | the TMLR fallback, and arXiv |
+| TMLR-styled | `neuroforge_cfd.tex` | the arXiv/preprint build (TMLR is no longer the fallback — see Fallback) |
 
 Shared by both: `preamble.tex`, `abstract.tex`, `body.tex`, `sections/`, `refs.bib`.
 Source files to upload: `neuroforge_cfd_elsevier.tex`, `preamble.tex`, `abstract.tex`,
@@ -36,7 +36,7 @@ rejects the count, the smallest lossless cuts are "with AUROC $\approx 0.9$" →
 **Keywords:** 7 supplied (limit is 1–7); none contain "and"/"of", per guide.
 
 ## Ready now (in `docs/paper/submission/` + paper back-matter)
-- [x] Manuscript PDF — `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, 48 pp, builds clean; the TMLR `neuroforge_cfd.pdf` is the fallback/arXiv build)
+- [x] Manuscript PDF — `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, 48 pp, builds clean; the TMLR-styled `neuroforge_cfd.pdf` is the arXiv/preprint build)
 - [x] Cover letter — `cover_letter.md` (retargeted to JCP, new title + new results)
 - [x] Highlights — `highlights.txt` (5 bullets, each ≤85 chars, refreshed)
 - [x] Data & code availability — in paper back-matter (Zenodo DOI 10.5281/zenodo.21277928)
@@ -74,6 +74,32 @@ rejects the count, the smallest lossless cuts are "with AUROC $\approx 0.9$" →
 - [x] Provide editable source files (.tex, figures) — in repo, list above.
 
 ## Fallback
-If JCP desk-declines: **TMLR** within the week (the paper already uses the TMLR template;
-internal committee scored it a solid TMLR accept). EAAI is the applications-framed
-alternative if venue IF is preferred over venue identity.
+
+If JCP desk-declines, go to **Machine Learning: Science and Technology** (MLST, IOP
+Publishing; ISSN 2632-2153) — *not* TMLR.
+
+**Why MLST is the right second venue** (checked against the live journal page, 2026-08-20):
+its remit is to bridge "the application of machine learning across the sciences with
+advances in machine learning methods and theory as motivated by physical insights" — which
+is what this paper is. It runs focus collections on *Physics-Informed Machine Learning*,
+*AI and Partial Differential Equations*, and *Explainable Machine Learning in Sciences*,
+and publishes PDE-surrogate/emulator work. Crucially it does **not** require a novel
+numerical scheme — the exact bar CMAME desk-rejected us on, and the residual risk at JCP.
+CMAME's own rejection letter advised an "ML-oriented journal"; this is that, with a journal
+identity and metrics rather than a community-run venue. Impact factor 4.2, CiteScore 6.7.
+Median submission→first decision **5 days** before review, 52 days after — a fast desk
+verdict, which matters for a fallback.
+
+**The one thing to settle before submitting there:** MLST is fully open access, so an APC
+applies. IOP is running an expanded APC discount/waiver programme for low- and middle-income
+countries in 2026. It is applied automatically only when *all* authors are in an eligible
+country — which fails here (Ali/Urmia + Kasra/Greenwich) — so use the documented route:
+**request a discretionary waiver or discount by email to the journal office at the point of
+submission.** IOP members also get 25% off. Settle this before formatting work, not after.
+
+**If the APC cannot be waived**, drop to an Elsevier *hybrid* journal (no mandatory fee,
+and the EM account already exists): **Engineering Applications of Artificial Intelligence**
+(applications-framed, high IF) or **Computers & Fluids** (CFD-side, lower IF, would scrutinise
+the uniform 128^2 grid and near-wall blindness harder). Note: I could not verify either
+journal's current guide for authors — ScienceDirect served a CAPTCHA — so confirm scope and
+format yourself before committing.
