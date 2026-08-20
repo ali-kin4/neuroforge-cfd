@@ -163,6 +163,12 @@ HEADLINE: list[dict] = [
     {"path": "results/control/percell_localization.json",
      "script": "scripts/percell_trust_localization.py", "tier": "cpu",
      "claims": "cell-level rho 0.166 -> 16x16-patch 0.323 (93% of cases improve); patch AUROC 0.68-0.72"},
+    # --- acceptance-gate measurement (sec:iters, the residual-as-GATE verdict) ---
+    {"path": "results/control/acceptance_gate.json",
+     "script": "scripts/measure_acceptance_gate.py", "tier": "gpu",
+     "claims": "monotone-residual gate admits a step on 99.8%% of deployed cases (the full "
+               "correction on 50.7%%); the admitted step lowers true rel-L2 error on 89.3%% of "
+               "them by a median 5.8%% -- the guarantee is real AND useful, not vacuous"},
     # --- audit wall-clock cost (selective-prediction paragraph) ---
     {"path": "results/control/audit_cost.json",
      "script": "scripts/measure_audit_cost.py", "tier": "cpu",

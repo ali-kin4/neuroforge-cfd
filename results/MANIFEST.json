@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-08-14T19:22:23.552015+00:00",
-  "git_head": "59a44d09532ab9349d20b3b15620929e5250f70e",
-  "git_head_short": "59a44d0",
+  "generated_utc": "2026-08-20T17:30:18.596028+00:00",
+  "git_head": "67e32d90eda88ab026312fbe1aa5c8c7b020e69f",
+  "git_head_short": "67e32d9",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -12,7 +12,7 @@
     "cuda_toolkit": "12.4",
     "gpu": "NVIDIA GeForce RTX 4070 Ti"
   },
-  "n_files": 37,
+  "n_files": 38,
   "n_missing": 0,
   "missing": [],
   "files": [
@@ -355,6 +355,16 @@
       "bytes": 86554,
       "git_tracked": true,
       "last_commit": "adbf901"
+    },
+    {
+      "path": "results/control/acceptance_gate.json",
+      "script": "scripts/measure_acceptance_gate.py",
+      "tier": "gpu",
+      "claims": "monotone-residual gate admits a step on 99.8%% of deployed cases (the full correction on 50.7%%); the admitted step lowers true rel-L2 error on 89.3%% of them by a median 5.8%% -- the guarantee is real AND useful, not vacuous",
+      "sha256": "b87d1fb6bdda69fe0bc8abd62e4f626c0587ad6bc2bc56649406b1d56b8fbc17",
+      "bytes": 1276590,
+      "git_tracked": true,
+      "last_commit": "67e32d9"
     },
     {
       "path": "results/control/audit_cost.json",

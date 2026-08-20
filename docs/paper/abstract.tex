@@ -13,9 +13,9 @@ the prediction is wrong) but a poor \textbf{correction objective} (it does not t
 \emph{how} to fix it). \emph{As a trust signal}, the residual's per-case rank correlation
 with field error is consistently positive across three architecturally distinct backbones
 and a second dataset of laminar bluff bodies; it flags the worst-decile cases with AUROC
-$\approx 0.9$, and a distribution-free split-conformal layer attains its target coverage. \emph{As a correction objective or acceptance gate}, the
-residual fails: reducing it does not reduce field error, and a backtracking test admits
-almost no residual-reducing step. Separately, a learned deep-equilibrium corrector trained
+$\approx 0.9$, and a distribution-free split-conformal layer attains its target coverage. \emph{As a correction objective}, the
+residual fails: reducing it does not reduce field error. The monotone-residual acceptance
+gate built on it, by contrast, does help. Separately, a learned deep-equilibrium corrector trained
 toward ground truth lowers volume-field error on a state-of-the-art backbone; a controlled
 ablation that removes the residual input matches this gain, so the improvement comes from
 the learned correction, not from conditioning on the residual. The contribution is a

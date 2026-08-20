@@ -29,9 +29,9 @@ roles and answers each empirically on a SOTA backbone, and---separately---deploy
 learned, supervised corrector whose gain we attribute by ablation to the learned
 correction, not to the residual.
 
-\paragraph{Research question.} \emph{In which of its two roles---trust signal and correction
-objective/gate---is the steady-RANS physics residual of a neural-CFD prediction useful, and
-does the answer survive on a competitive backbone?}
+\paragraph{Research question.} \emph{In which of its roles---trust signal, correction
+objective, and acceptance gate---is the steady-RANS physics residual of a neural-CFD
+prediction useful, and does the answer survive on a competitive backbone?}
 
 \paragraph{Thesis (one sentence).} \textbf{\emph{The steady-RANS physics residual is a
 reliable, conformally-calibrated, backbone-robust case-level trust signal---it tells you
@@ -55,17 +55,18 @@ $\approx 91\%$ of the achievable error reduction at a $10\%$ rejection budget
 own ensemble spread---neither needs ground truth---and the residual alone still recovers
 $\approx 67\%$)---and then quantify the audit's limits: the residual-floor
 theorem (\autoref{sec:residual_floor}) characterises exactly what the monitored residual
-cannot see, and the failed objective/gate role marks what the audit does \emph{not}
-license.
+cannot see, and the failed \emph{objective} role marks what the audit does \emph{not}
+license---the audit tells you where to look, not how to fix.
 
 We arrive at this thesis the hard way. We built the full
 predict$\rightarrow$verify$\rightarrow$estimate-uncertainty$\rightarrow$correct$\rightarrow$fall-back
 pipeline, pre-registered hypotheses, and ran a 3-seed ablation on real AirfRANS plus an
 out-of-distribution study, two formal certificates, and---in a second phase---the same
 trust layer and corrector on a SOTA Transolver backbone. The trust signal and the
-supervised corrector survive on the strong backbone; the residual-as-objective machinery
-(the iteration sweep and the acceptance gate) is the part that disappoints, and we report
-that as a finding rather than hide it. Two honest findings accompany the corrector:
+supervised corrector survive on the strong backbone; residual \emph{minimisation} is the
+part that disappoints---the iteration sweep drives residual and error apart---and we report
+that as a finding rather than hide it. The acceptance gate built on the same residual is a
+\emph{separate} mechanism, and measured directly it works (\autoref{sec:iters}). Two honest findings accompany the corrector:
 \emph{correction quality is backbone-dependent}---the supervised corrector that helps on
 the SOTA backbone is flat on the weak grid backbone---and a controlled ablation shows the
 gain is \emph{not} sourced from the residual input (a null corrector with the residual
@@ -124,14 +125,18 @@ train and inference (5 seeds) matches or slightly exceeds the deployed corrector
 attribute the gain to the learned correction, not to residual-conditioning (\autoref{sec:v2},
 \texttt{results/control/w1\_capture.json}).
 
-\item \textbf{Residual-as-objective fails (the surviving negative).} Used as a
-correction \emph{objective or acceptance gate}, the residual
+\item \textbf{Residual-as-objective fails---but the gate built on it works (a separated
+verdict).} Used as a correction \emph{objective}, the residual
 does not work. Sweeping the correction iterations \emph{raises} the PDE residual
 ($0.11\rightarrow0.62$) while \emph{lowering} field error
 ($\texttt{mse\_u}$ $3.92\rightarrow2.29$): the two move in opposite directions
-(\autoref{sec:iters}, \autoref{fig:fig4}). A backtracking acceptance test that admits only
-residual-reducing steps accepts essentially zero steps on a trained corrector
-(\autoref{sec:iters}). Minimising the residual is not minimising the error---which is
+(\autoref{sec:iters}, \autoref{fig:fig4}). The \emph{acceptance gate} is a distinct
+mechanism and earns a distinct verdict: measured over $1200$ gated steps it admits a step on
+$99.8\%$ of deployed cases (the full correction on half of them), and the admitted step
+lowers true field error on $89.3\%$ of them by a median $5.8\%$ (\autoref{sec:iters},
+\texttt{results/control/acceptance\_gate.json}). The monotone-residual guarantee is thus
+cheap, provably non-worsening \emph{and} useful---it is residual \emph{minimisation}, not
+the gate, that fails. Minimising the residual is not minimising the error---which is
 exactly why the deployed corrector supervises toward truth rather than minimising the
 residual. The residual-floor theorem locates this failure as a \emph{regime boundary}
 rather than a contradiction of prior successful residual-driven correctors: correction
@@ -196,7 +201,7 @@ feed-forward residual-conditioned corrector squarely in this family. \textbf{Our
 contribution to this line is to test the residual-as-correction premise head-on and find it
 does not hold.} As a correction \emph{objective}---where a step must reduce the
 residual---residual minimisation does not track error minimisation on a real RANS benchmark
-(the residual rises as error falls; the acceptance gate accepts almost nothing). And when we
+(the residual rises as error falls). And when we
 feed the residual as an input \emph{feature} to a corrector supervised toward ground truth, a
 controlled ablation shows the residual input is not the source of the gain: zeroing it at
 train and inference (3 seeds) matches or slightly exceeds the deployed corrector
@@ -264,13 +269,16 @@ objective} (PINNs, FNO-DEQ, learned correctors) or treats UQ in isolation from p
 NeuroForge's distinctive question is which of two roles the residual can play, evaluated
 head-to-head on the same model and data and then on a SOTA backbone: as a trust
 \emph{signal} (detect error, drive conformal calibration) and as a correction
-\emph{objective/gate}. Our answer---signal yes (it tells you \emph{where} the prediction is
-wrong), objective no---and the resulting calibrated trust layer are the contribution.
+\emph{objective}, with the acceptance \emph{gate} built on it judged separately. Our
+answer---signal yes (it tells you \emph{where} the prediction is wrong), objective no, gate
+yes---and the resulting calibrated trust layer are the contribution.
 Separately, a learned, supervised corrector reduces field error on the strong backbone, but a
 controlled ablation attributes that gain to the learned correction rather than to the residual
 input. The framework's no-harm/contraction machinery (\autoref{sec:method})
 is retained because it is correct and reproducible; the acceptance-gate guarantee in
-particular is real but, as we show, vacuous as an accuracy mechanism.
+particular is real and, as we now measure, materially useful---it admits a step on $99.8\%$
+of deployed cases and that step lowers field error on $89.3\%$ of them
+(\autoref{sec:iters}).
 \autoref{tab:positioning} summarises the positioning: each neighbouring work holds one
 or two of the audit's components, and none combines a validated physics-residual trust
 signal with distribution-free calibration, measured selective prediction, a head-on test
@@ -320,8 +328,8 @@ The NeuroForge framework wraps a one-shot backbone in a verify--estimate--correc
 Throughout, the physics residual plays \textbf{two distinct roles with two distinct
 verdicts} (\autoref{sec:experiments}): (i)~as a \emph{trust signal} it detects error and
 drives the conformal layer (reliable, backbone-robust---it tells you \emph{where} the
-prediction is wrong); (ii)~as a correction \emph{objective or acceptance gate} it fails
-(\autoref{sec:iters}). Separately, a learned, supervised corrector improves a SOTA backbone
+prediction is wrong); (ii)~as a correction \emph{objective} it fails---though the
+\emph{acceptance gate} built on it does work (\autoref{sec:iters}). Separately, a learned, supervised corrector improves a SOTA backbone
 (\autoref{sec:v2}); the deployed corrector ingests the residual as an input channel, but a
 controlled ablation attributes its gain to the learned correction, not to the residual input.
 We describe all components for completeness and flag, at each one, which role it instantiates.
@@ -378,8 +386,9 @@ We describe all components for completeness and flag, at each one, which role it
 % ---- role (ii): correction OBJECTIVE -> rejected (red) ----
 \node[roletag, fill=noGood!5, draw=noGood, text=noGood, text width=31mm,
       left=9mm of res, anchor=east, dash pattern=on 3pt off 2pt] (roleII)
-  {\textbf{Role\,(ii): correction \emph{objective} / gate}~\textcolor{noGood}{\ding{55}}\\[2pt]
-   \emph{fails} ($\S$5.5) --- the residual minimum is not the truth};
+  {\textbf{Role\,(ii): correction \emph{objective}}~\textcolor{noGood}{\ding{55}}\\[2pt]
+   \emph{fails} ($\S$5.5) --- the residual minimum is not the truth
+   (the acceptance \emph{gate} built on it does work)};
 \draw[->, noGood, line width=0.9pt, dash pattern=on 3pt off 2pt]
   (res.west) -- (res.west -| roleII.east);
 % ---- correction feedback loop (violet) ----
@@ -394,7 +403,7 @@ We describe all components for completeness and flag, at each one, which role it
 \caption{\textbf{The NeuroForge pipeline.} A one-shot backbone $f_\theta$ is wrapped in a
 verify--estimate--correct--fall-back loop. Colour marks each component's role: the physics
 residual (amber) acts as a reliable \emph{trust signal} (role~i, green) but not as a
-\emph{correction objective/gate} (role~ii, red); the deployed correction is a \emph{learned}
+\emph{correction objective} (role~ii, red); the deployed correction is a \emph{learned}
 corrector (violet) applied under a monotone-residual no-harm test. The two roles, and the
 attribution of the corrector's gain, are established and scoped in the text
 (\autoref{sec:method}, \autoref{sec:experiments}).}
@@ -487,7 +496,7 @@ in-distribution coverage level. \autoref{sec:conformal} reports the measured cov
 the coverage-vs-$\alpha$ sweep, and the out-of-distribution behaviour, with the
 exchangeability caveat made explicit.
 
-\subsection{The correction loop: supervised corrector vs.\ residual objective/gate}
+\subsection{The correction loop: supervised corrector, residual objective, and gate}
 \label{sec:correction}
 
 The framework offers two correction operators and a backtracking acceptance test, and the
@@ -496,9 +505,9 @@ trained by supervised regression toward ground truth and applied directly withou
 acceptance test; it ingests the residual as an input channel (its deployed architecture,
 below), but its gain is attributable to the learned correction rather than to that input
 (the W1 ablation, \autoref{sec:v2}). This is the path that helps on a SOTA backbone
-(\autoref{sec:v2}). The backtracking acceptance test uses the residual as an
-\emph{objective/gate}---a step is admitted only if it lowers the residual norm; this is the
-path that fails (\autoref{sec:iters}). We describe both precisely so the contrast is
+(\autoref{sec:v2}). The backtracking acceptance test uses the residual as a \emph{gate}---a
+step is admitted only if it lowers the residual norm; measured, this path works, while
+residual \emph{minimisation} as an objective is the one that fails (\autoref{sec:iters}). We describe both precisely so the contrast is
 interpretable.
 
 \paragraph{Feed-forward corrector + backtracking acceptance test.} A small residual CNN
@@ -514,9 +523,10 @@ $N(y_0) \ge N(y_1) \ge \dots \ge N(y_K)$---the residual norm is monotone non-inc
 across accepted steps. This is the convergence discipline of a classical solver. Its
 weakness is exactly the one we exploit as a finding: the test is satisfiable by the
 identity (zero step), so a corrector that cannot reduce the residual is simply rejected.
-Empirically (\autoref{sec:iters}) a trained corrector accepts essentially no steps,
-because reducing the field error and reducing the PDE residual are not the same
-objective.
+Empirically (\autoref{sec:iters}) the test rarely refuses outright: backtracking finds an
+admissible damped step on $99.8\%$ of deployed cases, and that step lowers true error. It
+throttles rather than blocks---even though reducing the field error and reducing the PDE
+residual are not the same objective.
 
 \paragraph{Contractive DEQ corrector.} To give the loop a genuine convergence guarantee
 in its \emph{own} iteration variable, the correction $\delta$ is defined as the fixed
@@ -1058,20 +1068,33 @@ DEQ contraction of \autoref{sec:conformal}: the contraction is in the correction
 $\delta$, which converges; the PDE residual of the \emph{output field} is a different
 quantity, and it is the one that rises.)
 
-\paragraph{The acceptance test accepts almost nothing.} On the feed-forward corrector the
-backtracking acceptance test---which admits only residual-reducing steps---is the honest
-``certified'' version of the loop. Because the test is satisfiable by the identity (zero
-step), a corrector that cannot reduce the \emph{residual} is simply rejected, and the
-feed-forward corrector---flat-to-worse on every accuracy metric in \autoref{tab:indist}---has
-essentially no residual-reducing step to offer, so the certified loop makes almost no
-accepted progress. The corrector that \emph{does} help on the design metrics (DEQ) is
-precisely the one applied \textbf{without} the acceptance test (\autoref{sec:correction}).
-The ``certified self-correction'' guarantee is therefore real but vacuous as an accuracy
-mechanism: it correctly refuses to make the residual worse, and in doing so does almost
-nothing. (This structural argument rests on the acceptance test's definition plus the
-\autoref{tab:indist} feed-forward result; we do not have a committed artifact that
-quantifies the accepted-step count, and flag it as the thinnest leg of the
-residual-as-objective negative.) We
+\paragraph{The acceptance gate is a throttle, not a filter---and it works.} Earlier drafts
+of this paper argued from the acceptance test's \emph{definition} that it must accept almost
+nothing: the test is satisfiable by the identity (zero step), so a corrector that cannot
+reduce the residual is simply rejected. We have now measured it instead of arguing it, and
+the structural argument was wrong. Over $1200$ gated steps
+(\texttt{scripts/measure\_acceptance\_gate.py},
+\texttt{results/control/acceptance\_gate.json}; $200$ AirfRANS \texttt{full} test cases
+$\times$ 3 seeds, on both the deployed Transolver$+$DEQ system and the ensemble-mean path,
+with the accept rule, backtrack count and tolerance imported from the shipped
+\texttt{correction\_loop} so the gate under test is the deployed gate), the test admits a
+step on \textbf{$99.8\%$} of deployed cases---the \emph{full} correction on $50.7\%$ of
+them---and refuses outright on one case in $600$. The mechanism is backtracking: where the
+full step would raise the residual it is refused, but a halved step lowers it and is
+admitted (on the ensemble path the residual ratio falls from a median $1.027$ at the full
+step to $0.975$ at half). Crucially the admitted step is not empty progress: it lowers true
+rel-$L_2$ error on \textbf{$89.3\%$} of deployed cases, by a median $\mathbf{5.8\%}$
+($74.3\%$ and $2.6\%$ on the ensemble-mean path, where the correction has less headroom
+because the ensemble mean is already the more accurate field, \autoref{sec:v2}). The
+``certified self-correction'' guarantee is therefore real \emph{and} useful: a cheap,
+provably non-worsening gate that also happens to improve accuracy. This does not rescue the
+residual as an \emph{objective}---the full step still raises the residual on half the
+deployed cases while error falls, and \autoref{tab:iters} still shows residual and error
+moving apart under iteration. It does mean the two mechanisms deserve separate verdicts,
+and we now report them separately. (Scope: a single gated step applied counterfactually to
+the deployed DEQ correction, which the shipped DEQ path bypasses by design; not a re-run of
+the multi-iteration feed-forward loop of \autoref{tab:indist}, whose corrector checkpoints
+were not retained.) We
 additionally note that for the DEQ corrector the trust-gating and acceptance-test toggles
 are structural no-ops---the DEQ branch bypasses both---so the only live correction knob is
 the applied-delta step size (\texttt{results/sensitivity/toggles.json}).
@@ -1442,12 +1465,14 @@ holds in our experiments only because the uncertainty inflates appropriately
 (\autoref{sec:conformal}). Scores are also pooled over spatially-correlated cells, so the
 effective sample size is below the raw cell count, and the calibration set is small
 ($n=100$); a larger-calibration-set robustness check is future work.
-\item \textbf{Residual-as-objective remains a dead end.} Used as a correction objective or
-acceptance gate, the residual fails: more
-iterations raise the PDE residual while error falls, and the monotone-residual acceptance
-test accepts almost no steps (\autoref{sec:iters}). The DEQ contraction guarantee is in the
-correction variable $\delta$, and the acceptance test's monotone-residual guarantee is real
-but vacuous as an accuracy mechanism. The correction gains in \autoref{sec:v2} come from
+\item \textbf{Residual-as-objective remains a dead end (the gate does not).} Used as a
+correction \emph{objective} the residual fails: more iterations raise the PDE residual while
+error falls (\autoref{sec:iters}). The DEQ contraction guarantee is in the correction
+variable $\delta$, not in the output's PDE residual. The \emph{acceptance gate} built on the
+residual is a different mechanism and we no longer claim it is vacuous: measured, it admits
+a step on $99.8\%$ of deployed cases and that step lowers true error on $89.3\%$ of them
+(\autoref{sec:iters}). That measurement is a single gated step on the deployed corrector,
+not the multi-iteration feed-forward loop, which remains untested at this granularity. The correction gains in \autoref{sec:v2} come from
 the \emph{learned, supervised} correction, not from minimising the residual---and, by the W1
 control, not from feeding the corrector the residual either.
 \item \textbf{The corrector's gain is not attributable to the residual input.} The deployed
@@ -1498,9 +1523,10 @@ SOTA Transolver backbone, $\approx 0.40$--$0.83$ on a weak grid backbone, $0.851
 bare message-passing GNN (MeshGraphNet), and---under distribution
 shift on the weak backbone---regime-invariant ($\approx 0.74$, rescuing an \texttt{aoa}
 collapse from $0.31$ to $0.75$) where the one-shot signal collapses. \emph{As
-a correction objective or acceptance gate} it fails: more iterations raise the residual while
-error falls, and the monotone-residual gate accepts almost nothing---minimising the residual is
-not minimising the error. Alongside the trust signal we deploy a learned, supervised
+a correction objective} it fails: more iterations raise the residual while error falls---minimising the residual is
+not minimising the error. The monotone-residual \emph{gate} built on that same residual,
+by contrast, we measure to be real and useful: it admits a step on $99.8\%$ of deployed
+cases and that step lowers true error on $89.3\%$ of them by a median $5.8\%$. Alongside the trust signal we deploy a learned, supervised
 correction that works on a strong backbone: the DEQ corrector cuts volume field MSE by
 $8$--$25\%$ on all 5 seeds of the SOTA Transolver model (gate-verified), with force ranking
 held; a controlled ablation attributes that gain to the learned correction rather than to the
@@ -1516,9 +1542,9 @@ residual input it ingests. By the criteria of the self-auditing definition in th
 introduction, the surrogate passes all three audits it can pass---a validated trust score
 (i), a calibrated band that survives split-resampling (ii), and near-oracle triage
 (iii)---while the residual-floor theorem fixes the audit's blind spot and the failed
-objective/gate role marks its licence boundary: the audit tells you when \emph{not} to
-trust a prediction, and a separately-supervised corrector, not the audit signal, does the
-fixing. That self-auditing, backbone-robust trust layer and the learned corrector it
+\emph{objective} role marks its licence boundary: the audit tells you when \emph{not} to
+trust a prediction, and a separately-supervised corrector, not residual minimisation, does
+the fixing---though the cheap monotone-residual gate is a genuine safety net around it. That self-auditing, backbone-robust trust layer and the learned corrector it
 accompanies---demonstrated on a competitive surrogate, reproducible end-to-end from the
 committed harness---are the durable contribution.
 
