@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-08-20T17:30:18.596028+00:00",
-  "git_head": "67e32d90eda88ab026312fbe1aa5c8c7b020e69f",
-  "git_head_short": "67e32d9",
+  "generated_utc": "2026-08-20T17:32:27.428568+00:00",
+  "git_head": "ebcdb7bd191697dbfa6013ef195ef5243b61073e",
+  "git_head_short": "ebcdb7b",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -361,8 +361,8 @@
       "script": "scripts/measure_acceptance_gate.py",
       "tier": "gpu",
       "claims": "monotone-residual gate admits a step on 99.8%% of deployed cases (the full correction on 50.7%%); the admitted step lowers true rel-L2 error on 89.3%% of them by a median 5.8%% -- the guarantee is real AND useful, not vacuous",
-      "sha256": "b87d1fb6bdda69fe0bc8abd62e4f626c0587ad6bc2bc56649406b1d56b8fbc17",
-      "bytes": 1276590,
+      "sha256": "7b2785e6a80edf09f7dc6d6a8e4c2660fa54ceda0c0c3a2c3d5c0a4f38d42563",
+      "bytes": 1242432,
       "git_tracked": true,
       "last_commit": "67e32d9"
     },
