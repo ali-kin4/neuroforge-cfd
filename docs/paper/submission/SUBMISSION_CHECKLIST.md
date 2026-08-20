@@ -13,7 +13,7 @@ mention of "Your Paper Your Way". It states plainly that "a PDF is not an accept
 file" and that you will be asked for "all relevant editable source files upon submission or
 revision" — so sources go up at *initial* submission, not just at revision.
 
-**→ Submit `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, 47 pp), NOT the TMLR PDF.**
+**→ Submit `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, 48 pp), NOT the TMLR PDF.**
 The manuscript now builds two ways from shared content, so they cannot drift:
 
 | build | wrapper | for |
@@ -27,16 +27,16 @@ Source files to upload: `neuroforge_cfd_elsevier.tex`, `preamble.tex`, `abstract
 `neuroforge_cfd_elsevier.bbl`, and the 9 figure PDFs from `results/figures/`.
 Both builds are warning-clean (0 overfull / underfull / undefined references).
 
-**Abstract:** JCP requires ≤ 250 words. The current abstract body is exactly **250** (the
+**Abstract:** JCP requires ≤ 250 words. The current abstract body is **249** (the
 `Keywords:` line is not part of it — EM has a separate keywords field). Two constructions
-make word counters disagree, so EM may report 251–252: `$\approx 0.9$` and the em-dash in
-`it---especially`. If EM rejects the count, the smallest lossless cuts are "with AUROC
-$\approx 0.9$" → "with AUROC 0.9" and dropping "clean" from "a clean two-way dissociation".
+make naive counters read ~252: `$\approx 0.9$` and the em-dash in `it---especially`. If EM
+rejects the count, the smallest lossless cuts are "with AUROC $\approx 0.9$" → "with AUROC
+0.9" and dropping "clean" from "a clean two-way dissociation".
 
 **Keywords:** 7 supplied (limit is 1–7); none contain "and"/"of", per guide.
 
 ## Ready now (in `docs/paper/submission/` + paper back-matter)
-- [x] Manuscript PDF — `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, 47 pp, builds clean; the TMLR `neuroforge_cfd.pdf` is the fallback/arXiv build)
+- [x] Manuscript PDF — `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, 48 pp, builds clean; the TMLR `neuroforge_cfd.pdf` is the fallback/arXiv build)
 - [x] Cover letter — `cover_letter.md` (retargeted to JCP, new title + new results)
 - [x] Highlights — `highlights.txt` (5 bullets, each ≤85 chars, refreshed)
 - [x] Data & code availability — in paper back-matter (Zenodo DOI 10.5281/zenodo.21277928)

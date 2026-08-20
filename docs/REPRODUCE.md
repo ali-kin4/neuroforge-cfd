@@ -58,8 +58,8 @@ resumable (atomic per-epoch checkpoints).
 
 | Paper claim / number | Command | Output file | Tier |
 |---|---|---|---|
-| Trust rho = **0.625**±0.019 (Transolver bare); MC-dropout coverage **0.902**±0.008 | `python scripts/run_v2.py --task full --n-train 800 --n-val 200 --epochs 80 --dropout 0.05 --seeds 0 1 2 --corrector deq --conformal` | `results/v2/v2_results.json` | GPU |
-| Self-correction **mse_u −9% / mse_v −21% / mse_p −25%**, rho_Cl 0.999 | same run (`loop_per_seed` vs `backbone_per_seed`) | `results/v2/v2_results.json` | GPU |
+| Trust rho = **0.611**±0.054 (Transolver bare, **5 seeds** — supersedes the 3-seed 0.625±0.019); MC-dropout coverage **0.902**±0.008 | `python scripts/run_w1_capture.py --task full --n-train 800 --n-val 200 --epochs 80 --resolution 128 --seeds 0 1 2 3 4` (3-seed original: `scripts/run_v2.py ... --conformal`) | `results/control/w1_capture.json` (coverage: `results/v2/v2_results.json`) | GPU |
+| Self-correction **mse_u −8% / mse_v −21% / mse_p −25%** (5 seeds; the 3-seed run reported −9% on mse_u), rho_Cl 0.999 | same run (`loop_per_seed` vs `backbone_per_seed`) | `results/control/w1_capture.json`, `results/v2/v2_results.json` | GPU |
 | **W1 control**: null-residual corrector matches/exceeds residual-fed (gain not from residual input) | `python scripts/run_w1_capture.py --task full --n-train 800 --n-val 200 --epochs 80 --resolution 128 --seeds 0 1 2` | `results/control/w1_capture.json` | GPU |
 | Third backbone: **MeshGraphNet bare trust rho = 0.851**±0.058 | `python scripts/run_mgn.py --task full --n-train 800 --n-val 200 --epochs 80 --seeds 0 1 2` | `results/mgn/mgn_results.json` | GPU |
 | Deep-ensemble adaptive band: **coverage 0.915, ECE 0.074, q 2.35** | `python scripts/run_ensemble_uq.py --task full --n-train 800 --n-val 200 --epochs 80 --members 5` | `results/uq_ensemble/uq_results.json` | GPU |
@@ -89,6 +89,14 @@ resumable (atomic per-epoch checkpoints).
 | OOD conformal coverage stays in-band | `python scripts/run_sensitivity.py` | `results/sensitivity/ood_coverage.json` | CPU* |
 | Toggles are structural no-ops on DEQ | `python scripts/run_sensitivity.py` | `results/sensitivity/toggles.json` | CPU* |
 | Cylinder cross-geometry OOD (fig:cylinder, ~7× far-field residual; near-wall ring control) | `python scripts/control_cylinder_nearwall_artifact.py` | `results/figures/cylinder_control_airfoil_ratio.json` | CPU* |
+| **Acceptance gate** admits a step on **99.8%** of deployed cases (full step 50.7%); admitted step lowers true error on **89.3%** by median **5.8%** | `python scripts/measure_acceptance_gate.py --mode both --backbone-seeds 0 1 2` | `results/control/acceptance_gate.json` (+ `.md`) | GPU (ensemble arm: CPU) |
+| **Selective prediction**: AUROC 0.87–0.91 residual, **0.905** fused; ~**91%** of oracle error reduction at 10% rejection (residual alone ~67%) | `python scripts/run_selective_prediction.py` | `results/selective/selective_prediction.json`, `selective_percase.json` | CPU |
+| **Multi-split conformal** (20 re-draws): coverage 0.895–0.902 every arm; corrected-p q 2.26→2.02–2.07 | `python scripts/run_multisplit_conformal.py` | `results/uq_ensemble/multisplit_conformal.json` | CPU |
+| **Bootstrap 95% CIs** on the trust-signal Spearmans; every arm excludes zero (ensemble 0.610 [0.51, 0.70]) | `python scripts/bootstrap_spearman_ci.py` | `results/control/bootstrap_spearman_ci.json` | CPU |
+| **Repaired force integrator**: control-volume lift rho_L **0.998**±0.001 from predicted fields, median 3.6–3.9% | `python scripts/design_force_integrator.py`, `python scripts/recompute_force_multischeme.py` | `results/control/integrator_design.json`, `force_vs_official_multischeme.json` | GPU |
+| **Spatial trust scale**: cell-level rho 0.166 → **0.323** at 16×16 patch pooling (93% of cases improve) | `python scripts/percell_trust_localization.py` | `results/control/percell_localization.json` (+ `.md`) | CPU |
+| **Audit cost** median **1.7 ms/case** (1 CPU thread), ~1e-6 of a 16-core RANS solve | `python scripts/measure_audit_cost.py` | `results/control/audit_cost.json` | CPU |
+| **Ensemble-size study** M=2..5 (all 26 subsets): fused AUROC 0.905–0.912 at every M; band adaptivity needs M≈4–5 (ECE 0.074→0.199) | `python scripts/run_ensemble_mstudy.py` | `results/uq_ensemble/mstudy.json` (+ `.md`) | GPU |
 
 ### Figures
 

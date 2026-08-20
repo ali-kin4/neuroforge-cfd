@@ -19,11 +19,11 @@ user cannot distinguish a faithful prediction from a confident hallucination.
 
 The governing physics offers an obvious lever. The steady incompressible RANS residual
 of any candidate field is computable directly from the field, with no ground truth.
-A neural-CFD pipeline could use this residual in two distinct ways: as a
+A neural-CFD pipeline could use this residual in three distinct ways: as a
 \emph{trust signal} that flags \emph{which} predictions to distrust (a case-level error
-proxy that drives a conformal trust layer), and as a \emph{correction objective or
-acceptance gate} that a step must reduce. These are not the same role, and---this
-is the crux---they do not earn the same verdict. Put plainly, the residual tells you
+proxy that drives a conformal trust layer), as a \emph{correction objective} that a step
+should minimise, and as an \emph{acceptance gate} that a step must not worsen. These are
+not the same role, and---this is the crux---they do not earn the same verdict. Put plainly, the residual tells you
 \emph{where} a prediction is wrong, not \emph{how} to fix it. This paper separates the two
 roles and answers each empirically on a SOTA backbone, and---separately---deploys a
 learned, supervised corrector whose gain we attribute by ablation to the learned
