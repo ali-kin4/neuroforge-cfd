@@ -53,6 +53,7 @@ Full fleet as reported in the paper:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import platform
@@ -290,8 +291,20 @@ def main(argv=None) -> int:
         devices = [d.strip() for d in a.devices.split(",") if d.strip()]
 
     t_start = time.time()
+    # A wall-clock journal is only valid on the machine that produced it, so the
+    # stamp fingerprints the hardware and stack as well as the run parameters. A
+    # journal copied to another machine (or a different GPU, torch build or thread
+    # cap) simply misses on every key and the run re-measures from scratch, rather
+    # than silently reporting someone else's timings as yours.
+    host = "|".join([
+        platform.platform(), platform.processor(), str(os.cpu_count()),
+        torch.__version__,
+        torch.cuda.get_device_name(0) if torch.cuda.is_available() else "nocuda",
+        str(os.environ.get("OMP_NUM_THREADS")),
+    ])
+    host_id = hashlib.sha256(host.encode("utf-8")).hexdigest()[:12]
     ckpt = Checkpoint(a.progress, enabled=bool(a.progress) and not a.no_resume,
-                      stamp=f"r{a.resolution}s{a.seed}x{a.repeats}")
+                      stamp=f"{host_id}r{a.resolution}s{a.seed}x{a.repeats}")
     log(f"loading AirfRANS full/test (res {a.resolution}, limit {a.n_val}) ...")
     pairs = load_airfrans(
         root=a.root, task="full", train=False, resolution=a.resolution,
@@ -475,6 +488,7 @@ def main(argv=None) -> int:
             "speedup_classical_over_deployed": a.classical_solve_sec * 1e3 / fastest,
         }
 
+    result["meta"]["host_fingerprint"] = host_id
     result["meta"]["progress_journal"] = a.progress or None
     result["meta"]["measurements_replayed_from_journal"] = int(
         sum(1 for _ in ckpt.done)) if ckpt.enabled else 0

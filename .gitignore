@@ -66,3 +66,7 @@ results/**/_smoke/
 
 # LaTeX spell-check aux
 *.spl
+
+# machine-specific wall-clock journal (see measure_inference_cost.py):
+# replaying it on other hardware would report this machine timings as yours
+results/control/_cache/inference_cost_progress.jsonl
