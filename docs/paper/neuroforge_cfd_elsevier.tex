@@ -5,7 +5,7 @@
 % Only the class, front matter and bibliography style differ, so the science
 % cannot drift between the two.  Build:  latexmk -pdf neuroforge_cfd_elsevier
 % ---------------------------------------------------------------------------
-\documentclass[preprint,12pt]{elsarticle}
+\documentclass[preprint,12pt,a4paper]{elsarticle}
 
 % elsarticle loads natbib itself -- do NOT load it again.
 \input{preamble}
@@ -58,7 +58,7 @@ trust calibration \sep airfoil aerodynamics
 
 \input{body}
 
-\bibliographystyle{elsarticle-num}
+\bibliographystyle{elsarticle-num-names}
 \bibliography{refs}
 
 \end{document}

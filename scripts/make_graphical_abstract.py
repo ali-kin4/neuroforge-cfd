@@ -30,8 +30,11 @@ Showcased case: the case whose rel-L2 speed error is closest to the fleet
 median -- deliberately typical, not cherry-picked (recorded in the output
 meta printed to stdout).
 
-Elsevier size spec: minimum 531 (h) x 1328 (w) px at 300 dpi. We emit
-13.0 x 5.0 inches at 300 dpi = 3900 x 1500 px (ratio preserved).
+Elsevier size spec: minimum 531 (h) x 1328 (w) px, readable at 5 x 13 cm.
+That ratio is 1328/531 = 2.5009, so we emit 13.0 x 5.2 inches at 300 dpi
+= 3900 x 1560 px -- exactly 2.5:1, and 2.9x the minimum linear size. Type
+sizes below are chosen so the smallest label is >= 7 pt when the figure is
+shown at its 5 x 13 cm display size.
 
 Run (CPU, seconds):
     .venv/Scripts/python.exe scripts/make_graphical_abstract.py
@@ -53,6 +56,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.patches import FancyArrowPatch  # noqa: E402
+from matplotlib.ticker import MaxNLocator  # noqa: E402
 
 from neuroforge.core.config import Config  # noqa: E402
 from neuroforge.core.types import DTYPE, FlowField  # noqa: E402
@@ -98,6 +102,7 @@ def main(argv=None) -> int:
     p.add_argument("--percase-json", default="results/selective/selective_percase.json")
     p.add_argument("--selective-json", default="results/selective/selective_prediction.json")
     p.add_argument("--audit-cost-json", default="results/control/audit_cost.json")
+    p.add_argument("--gate-json", default="results/control/acceptance_gate.json")
     p.add_argument("--out-base", default="results/figures/graphical_abstract")
     args = p.parse_args(argv)
 
@@ -135,10 +140,25 @@ def main(argv=None) -> int:
     speed = pred.speed()
     solid = np.asarray(mask_geo) <= 0.5
 
+    # Crop panels 1-2 to the body + near wake. The AirfRANS domain is mostly
+    # uniform freestream; at the 5 cm display height the interesting structure
+    # would otherwise be a few millimetres across. Window is derived from the
+    # solid mask (no hand-tuned constants per case) and biased downstream so
+    # the wake -- where the residual concentrates -- stays in frame.
+    _ys, _xs = np.nonzero(solid)
+    _chord = max(int(_xs.max() - _xs.min()), 1)
+    _cy = 0.5 * (_ys.min() + _ys.max())
+    x0 = max(0, int(_xs.min() - 0.45 * _chord))
+    x1 = min(speed.shape[1], int(_xs.max() + 1.05 * _chord))
+    _halfy = 0.5 * (x1 - x0)
+    y0 = max(0, int(_cy - _halfy))
+    y1 = min(speed.shape[0], int(_cy + _halfy))
+    crop = (slice(y0, y1), slice(x0, x1))
+
     # ---- figure scaffold ----
     plt.rcParams.update({
         "font.family": "sans-serif",
-        "font.size": 10,
+        "font.size": 11,
         "axes.edgecolor": C_AXIS,
         "axes.labelcolor": C_INK,
         "text.color": C_INK,
@@ -149,14 +169,14 @@ def main(argv=None) -> int:
         "axes.facecolor": C_SURFACE,
         "savefig.facecolor": C_SURFACE,
     })
-    fig = plt.figure(figsize=(13.0, 5.0))
+    fig = plt.figure(figsize=(13.0, 5.2))
     gs = fig.add_gridspec(
-        1, 4, left=0.035, right=0.985, top=0.80, bottom=0.13, wspace=0.52,
+        1, 4, left=0.026, right=0.978, top=0.815, bottom=0.125, wspace=0.66,
     )
     fig.suptitle(
         "Self-auditing neural CFD: the surrogate checks its own prediction "
         "against the governing physics — and decides",
-        fontsize=14.5, y=0.955, fontweight="bold",
+        fontsize=14.2, y=0.963, fontweight="bold",
     )
 
     step_titles = [
@@ -166,31 +186,33 @@ def main(argv=None) -> int:
         "surrogate speed field",
         "physics-residual map (no ground truth)",
         "trust score ranks true error (200 cases)",
-        "reject the least-trusted → near-oracle",
+        "reject least-trusted → near-oracle",
     ]
 
     # ---- panel 1: prediction ----
     ax1 = fig.add_subplot(gs[0, 0])
-    speed_show = np.ma.masked_where(solid, speed)
+    speed_show = np.ma.masked_where(solid, speed)[crop]
     im1 = ax1.imshow(speed_show, origin="lower", cmap="viridis",
                      interpolation="nearest")
-    ax1.imshow(np.ma.masked_where(~solid, np.zeros_like(speed)), origin="lower",
-               cmap="gray", vmin=0, vmax=1, interpolation="nearest")
+    ax1.imshow(np.ma.masked_where(~solid, np.zeros_like(speed))[crop],
+               origin="lower", cmap="gray", vmin=0, vmax=1,
+               interpolation="nearest")
     cb1 = fig.colorbar(im1, ax=ax1, fraction=0.046, pad=0.03)
-    cb1.set_label("|U|  (m/s)", fontsize=8)
-    cb1.ax.tick_params(labelsize=7)
+    cb1.set_label("|U|  (m/s)", fontsize=9.5)
+    cb1.ax.tick_params(labelsize=8.5)
 
     # ---- panel 2: residual audit ----
     ax2 = fig.add_subplot(gs[0, 1])
-    res_show = np.ma.masked_where(solid, residual_mag)
+    res_show = np.ma.masked_where(solid, residual_mag)[crop]
     vmax = float(np.percentile(residual_mag[~solid], 99))
     im2 = ax2.imshow(res_show, origin="lower", cmap="magma", vmin=0.0,
                      vmax=max(vmax, 1e-9), interpolation="nearest")
-    ax2.imshow(np.ma.masked_where(~solid, np.zeros_like(speed)), origin="lower",
-               cmap="gray", vmin=0, vmax=1, interpolation="nearest")
+    ax2.imshow(np.ma.masked_where(~solid, np.zeros_like(speed))[crop],
+               origin="lower", cmap="gray", vmin=0, vmax=1,
+               interpolation="nearest")
     cb2 = fig.colorbar(im2, ax=ax2, fraction=0.046, pad=0.03)
-    cb2.set_label("dimensionless residual", fontsize=8)
-    cb2.ax.tick_params(labelsize=7)
+    cb2.set_label("dimensionless residual", fontsize=9.5)
+    cb2.ax.tick_params(labelsize=8.5)
 
     for ax in (ax1, ax2):
         ax.set_xticks([])
@@ -209,22 +231,24 @@ def main(argv=None) -> int:
     ax3.scatter([showcase["residual"]], [showcase["rel_l2"]], s=70,
                 facecolors="none", edgecolors=C_INK, linewidths=1.4, zorder=4)
     ax3.annotate("panels 1–2", (showcase["residual"], showcase["rel_l2"]),
-                 textcoords="offset points", xytext=(8, -12), fontsize=7.5,
+                 textcoords="offset points", xytext=(8, -13), fontsize=8.5,
                  color=C_INK)
     ens_scores = selective["arms"]["ensemble_mean"]["scores"]
     rho = ens_scores["residual"]["spearman"]
     auroc_fused = ens_scores["fused"]["auroc_top_decile"]
     ax3.text(0.03, 0.97,
              f"Spearman ρ = {rho:.2f}\nfused AUROC = {auroc_fused:.2f}",
-             transform=ax3.transAxes, va="top", ha="left", fontsize=9)
-    ax3.text(0.985, 0.985, "worst decile", transform=ax3.transAxes, va="top",
-             ha="right", fontsize=7.5, color=C_BAD)
-    ax3.set_xlabel("physics-residual trust score", fontsize=9)
-    ax3.set_ylabel("true rel-$L_2$ speed error", fontsize=9)
+             transform=ax3.transAxes, va="top", ha="left", fontsize=10.5)
+    ax3.text(0.985, 0.82, "worst decile", transform=ax3.transAxes, va="top",
+             ha="right", fontsize=8.5, color=C_BAD)
+    ax3.set_xlabel("physics-residual trust score", fontsize=10.5)
+    ax3.set_ylabel("true rel-$L_2$ speed error", fontsize=10.5)
     ax3.grid(color=C_GRID, lw=0.6)
     ax3.set_axisbelow(True)
     ax3.spines[["top", "right"]].set_visible(False)
-    ax3.tick_params(labelsize=8)
+    ax3.tick_params(labelsize=9)
+    ax3.yaxis.set_major_locator(MaxNLocator(nbins=5))
+    ax3.xaxis.set_major_locator(MaxNLocator(nbins=5))
 
     # ---- panel 4: decision (risk-coverage + certificate facts) ----
     ax4 = fig.add_subplot(gs[0, 3])
@@ -242,24 +266,33 @@ def main(argv=None) -> int:
     ax4.scatter([10], [k10["score_mean"]], s=60, facecolors="none",
                 edgecolors=C_INK, linewidths=1.4, zorder=4)
     ax4.annotate("reject 10%:\n~91% of oracle", (10, k10["score_mean"]),
-                 textcoords="offset points", xytext=(14, -26), fontsize=7.5)
-    ax4.set_xlabel("cases rejected by audit (%)", fontsize=9)
-    ax4.set_ylabel("mean error of retained cases", fontsize=9)
+                 textcoords="offset points", xytext=(14, -28), fontsize=8.5)
+    ax4.set_xlabel("cases rejected by audit (%)", fontsize=10.5)
+    ax4.set_ylabel("mean error of retained cases", fontsize=10.5)
     ax4.set_xticks(ks)
     ax4.grid(axis="y", color=C_GRID, lw=0.6)
     ax4.set_axisbelow(True)
     ax4.spines[["top", "right"]].set_visible(False)
-    ax4.tick_params(labelsize=8)
-    ax4.legend(frameon=False, fontsize=7.5, loc="lower left")
+    ax4.tick_params(labelsize=9)
+    ax4.yaxis.set_major_locator(MaxNLocator(nbins=5))
+    ax4.legend(frameon=False, fontsize=8.5, loc="lower left")
 
-    cert_lines = [f"conformal coverage {COVERAGE_RANGE} @ 0.90 target"]
+    cert_lines = [f"conformal coverage {COVERAGE_RANGE} @ 0.90"]
     if os.path.exists(args.audit_cost_json):
         with open(args.audit_cost_json, encoding="utf-8") as f:
             cost = json.load(f)
         ms = cost["audit_total_ms"]["median_ms"]
-        cert_lines.append(f"audit cost ≈ {ms:.0f} ms/case (CPU)")
-    ax4.text(0.985, 0.985, "\n".join(cert_lines), transform=ax4.transAxes,
-             va="top", ha="right", fontsize=7.5, color=C_INK,
+        cert_lines.append(f"audit ≈ {ms:.0f} ms/case (CPU)")
+    if os.path.exists(args.gate_json):
+        with open(args.gate_json, encoding="utf-8") as f:
+            gate = json.load(f)
+        arms = [v for k, v in gate["summary"].items() if k.startswith("backbone_")]
+        if arms:
+            acc = sum(a["n_accepted"] for a in arms)
+            tot = sum(a["n_cases"] for a in arms)
+            cert_lines[-1] += f" · gate admits {acc}/{tot}"
+    ax4.text(0.99, 0.995, "\n".join(cert_lines), transform=ax4.transAxes,
+             va="top", ha="right", fontsize=7.2, color=C_INK,
              bbox=dict(boxstyle="round,pad=0.35", facecolor="white",
                        edgecolor=C_AXIS, lw=0.8))
 
@@ -268,14 +301,14 @@ def main(argv=None) -> int:
     for ax, title, sub in zip(axes, step_titles, step_subs):
         pos = ax.get_position()
         cx = 0.5 * (pos.x0 + pos.x1)
-        fig.text(cx, 0.875, title, ha="center", va="bottom", fontsize=12,
+        fig.text(cx, 0.888, title, ha="center", va="bottom", fontsize=13,
                  fontweight="bold")
-        fig.text(cx, 0.845, sub, ha="center", va="bottom", fontsize=8.5,
+        fig.text(cx, 0.858, sub, ha="center", va="bottom", fontsize=9.5,
                  color=C_MUTED)
     for a, b in zip(axes[:-1], axes[1:]):
         pa, pb = a.get_position(), b.get_position()
         arrow = FancyArrowPatch(
-            (pa.x1 + 0.004, 0.885), (pb.x0 - 0.004, 0.885),
+            (pa.x1 + 0.004, 0.898), (pb.x0 - 0.004, 0.898),
             transform=fig.transFigure, arrowstyle="-|>", mutation_scale=14,
             color=C_MUTED, lw=1.2, shrinkA=0, shrinkB=0,
         )
@@ -285,7 +318,7 @@ def main(argv=None) -> int:
     fig.savefig(args.out_base + ".png", dpi=300)
     fig.savefig(args.out_base + ".pdf")
     plt.close(fig)
-    log(f"wrote {args.out_base}.png / .pdf (3900x1500 px @300dpi)")
+    log(f"wrote {args.out_base}.png / .pdf (3900x1560 px @300dpi, 2.5:1)")
     return 0
 
 

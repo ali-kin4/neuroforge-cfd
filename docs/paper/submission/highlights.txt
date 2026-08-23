@@ -1,15 +1,5 @@
-Highlights — Journal of Computational Physics
-(Elsevier: 3–5 bullets, each <= 85 characters including spaces.)
-
-- Self-auditing neural CFD: calibrated physics-residual trust, no ground truth needed
-- Validated across 3 architectures and 2 datasets (turbulent RANS and laminar flow)
-- Residual is a strong error detector but a poor correction objective (dissociation)
-- Near-oracle case rejection: AUROC 0.91 fusing residual with ensemble spread
-- A residual-floor theorem quantifies the operator-specific detection limit
-
-[char counts, for checking — all <= 85:]
-1: 84
-2: 80
-3: 81
-4: 74
-5: 73
+Self-auditing neural CFD: calibrated physics-residual trust, no ground truth needed
+Validated across 3 architectures and 2 datasets (turbulent RANS and laminar flow)
+Residual is a strong error detector but a poor correction objective (dissociation)
+Near-oracle case rejection: AUROC 0.91 fusing residual with ensemble spread
+A residual-floor theorem quantifies the operator-specific detection limit

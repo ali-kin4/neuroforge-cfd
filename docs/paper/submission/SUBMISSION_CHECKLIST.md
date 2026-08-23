@@ -1,19 +1,33 @@
 # JCP Submission Checklist — "NeuroForge: Self-Auditing Neural CFD Surrogates with Calibrated Physics-Residual Trust"
 
-Target: **Journal of Computational Physics** (Elsevier). Submission portal:
-Editorial Manager (https://www.editorialmanager.com/jcomp/).
+Target: **Journal of Computational Physics** (Elsevier).
+
+**Submission portal (verified 2026-08-23):** Editorial Manager's *Submit New
+Manuscript* now **redirects** to Elsevier's new service at
+<https://submit.elsevier.com/JCOMP>. That service is a separate flow: it says it
+cannot be used to continue an EM-started submission, and it emails EM log-in details
+*after* you finish. Sign in with **st_a.jabbary@urmia.ac.ir** (the corresponding-author
+address and the identity behind EM account `AJabbary-884`) — Chrome autofills
+`light.knight32@gmail.com` there, which would file the paper under a second Elsevier
+identity. "Try another account" → that email → "Sign in with a one-time link" avoids
+both the wrong account and the wrong saved password.
 
 History: desk-rejected at CMAME (CMAME-D-26-03937, 2026-08-02, "no new computational
 methodology within scope; suggest ML-oriented journal") under the old engine-framed title.
 Repositioned (title/abstract/claims) + hardened (selective prediction, multi-split
 conformal, bootstrap CIs, repaired force integrator, 5-seed extension) before JCP.
 
-**Format (verified against the JCP guide for authors, 2026-08-14):** the guide makes *no*
-mention of "Your Paper Your Way". It states plainly that "a PDF is not an acceptable source
-file" and that you will be asked for "all relevant editable source files upon submission or
-revision" — so sources go up at *initial* submission, not just at revision.
+**Format (guide verified 2026-08-14; portal re-verified 2026-08-23):** the guide makes
+*no* mention of "Your Paper Your Way", and says you will be asked for "all relevant
+editable source files upon submission or revision". The **submission portal itself is
+narrower** and it governs: its on-page instructions read *"If you have written your
+manuscript using LaTeX you need to upload a PDF. We will not attempt to extract your
+metadata. You do not need to upload your LaTeX source files until revision."* The
+required-file dropdown offers only **Manuscript / Declaration of competing interests /
+Cover letter**; LaTeX sources appear under *optional* files. So: PDF now, sources at
+revision.
 
-**→ Submit `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, 48 pp), NOT the TMLR-styled PDF.**
+**→ Submit `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, A4, 46 pp), NOT the TMLR-styled PDF.**
 The manuscript now builds two ways from shared content, so they cannot drift:
 
 | build | wrapper | for |
@@ -27,7 +41,20 @@ Source files to upload: `neuroforge_cfd_elsevier.tex`, `preamble.tex`, `abstract
 `neuroforge_cfd_elsevier.bbl`, and the 9 figure PDFs from `results/figures/`.
 Both builds are warning-clean (0 overfull / underfull / undefined references).
 
-**Abstract:** JCP requires ≤ 250 words. The current abstract body is **249** (the
+**Two build settings that must not be reverted** (both fixed 2026-08-23):
+
+1. `\documentclass[preprint,12pt,a4paper]{elsarticle}` — without `a4paper` the class
+   emits **US letter**, which Elsevier does not use.
+2. `\bibliographystyle{elsarticle-num-names}` — **not** `elsarticle-num`. The plain
+   `-num` style writes bare `\bibitem{key}` with no author data, so every `\citet{...}`
+   in the paper rendered as **"(author?) [23]"**. There were 12 of these in Related
+   Work, in the PDF that was first uploaded. The TMLR build uses a natbib-compatible
+   `.bbl` and never showed them, which is why it went unnoticed. If you regenerate the
+   `.bbl`, delete it first and re-run `latexmk` so BibTeX picks up the right style, then
+   check: `pdftotext neuroforge_cfd_elsevier.pdf - | grep -c 'author?'` must print `0`.
+
+**Abstract:** JCP requires ≤ 250 words. Counted on the *rendered* text (the way a
+copyeditor would), the abstract body is **248–249** (the
 `Keywords:` line is not part of it — EM has a separate keywords field). Two constructions
 make naive counters read ~252: `$\approx 0.9$` and the em-dash in `it---especially`. If EM
 rejects the count, the smallest lossless cuts are "with AUROC $\approx 0.9$" → "with AUROC
@@ -36,15 +63,31 @@ rejects the count, the smallest lossless cuts are "with AUROC $\approx 0.9$" →
 **Keywords:** 7 supplied (limit is 1–7); none contain "and"/"of", per guide.
 
 ## Ready now (in `docs/paper/submission/` + paper back-matter)
-- [x] Manuscript PDF — `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, 48 pp, builds clean; the TMLR-styled `neuroforge_cfd.pdf` is the arXiv/preprint build)
+- [x] Manuscript PDF — `docs/paper/neuroforge_cfd_elsevier.pdf` (elsarticle, A4, 46 pp, builds clean; the TMLR-styled `neuroforge_cfd.pdf` is the arXiv/preprint build)
 - [x] Cover letter — `cover_letter.md` (retargeted to JCP, new title + new results)
-- [x] Highlights — `highlights.txt` (5 bullets, each ≤85 chars, refreshed)
+- [x] Highlights — `highlights.txt`, **bullets only, nothing else**. It previously also
+      carried a title line, the Elsevier rule restated as a note, and a character-count
+      appendix; all of that was working scaffolding and none of it may reach the
+      journal, so the file is now exactly the five bullets and is upload-ready as-is.
+      (Do not add a second `Highlights.txt` alongside it — Windows' filesystem is
+      case-insensitive, so the two names are the same file and one silently clobbers
+      the other.) Guide limits, kept here now that the appendix is gone: **3–5 bullets,
+      each ≤ 85 characters including spaces**, and the word "highlights" must appear in
+      the file name. Current lengths: 83 / 81 / 82 / 75 / 73.
 - [x] Data & code availability — in paper back-matter (Zenodo DOI 10.5281/zenodo.21277928)
 - [x] CRediT author statement — in paper back-matter (two authors)
 - [x] Declaration of competing interests — in paper back-matter (none)
 - [x] Declarations of generative-AI use — in paper back-matter (Elsevier policy)
 - [x] Reproducibility artifacts — committed code, REPRODUCE.md, manifest with hashes
 - [x] Suggested reviewers — `suggested_reviewers.md` (re-check conflicts before entry)
+- [x] Funding statement — added to back-matter 2026-08-23 ("no specific grant",
+      confirmed by the author). The guide lists funding as a required policy item.
+- [x] Acknowledgements — added to back-matter 2026-08-23. The guide requires a separate
+      section placed *directly before the reference list*; it was missing entirely.
+- [x] Computational cost — JCP's aims and scope require "efficacy, robustness,
+      computational complexity, as well as reproducibility". Complexity was one
+      sentence; it is now a measured subsection (`scripts/measure_inference_cost.py`,
+      `results/control/inference_cost.json`).
 
 ## Author must do (needs your accounts / decisions)
 - [ ] Start the JCP submission in Editorial Manager (jcomp). EM username — **confirm which**:
@@ -58,16 +101,18 @@ rejects the count, the smallest lossless cuts are "with AUROC $\approx 0.9$" →
 - [ ] Enter 3–5 suggested reviewers from `suggested_reviewers.md`.
 - [ ] Attach graphical abstract — upload **`results/figures/graphical_abstract.pdf`**, NOT
       the .png: Elsevier's preferred types are TIFF, EPS, PDF or MS Office, and PNG is not
-      on that list. Spec is 531 x 1328 px (h x w) "or proportionally more"; the .png form is
-      1500 x 3900 (aspect 2.60 vs 2.50 — both dimensions well above the minimum, fine).
+      on that list. Spec is 531 x 1328 px (h x w) "or proportionally more", i.e. aspect **2.5009**,
+      readable at 5 x 13 cm. Rebuilt 2026-08-23 at 13.0 x 5.2 in = **3900 x 1560 px,
+      aspect exactly 2.50** (it was 2.60), panels 1–2 cropped to the body and near wake
+      and all type enlarged so the smallest label clears ~7 pt at the 5 cm display size.
       "predict -> audit -> calibrate -> decide" strip built by
       `scripts/make_graphical_abstract.py` from committed numbers only; supersedes the
       old two-roles figure in the private `cmame_submission/` repo.
 - [ ] At the JCP licensing step choose the **subscription** route, NOT open access. JCP is
       hybrid; the OA option carries an APC and is not wanted.
 - [ ] Final read-through of the PDF.
-- [ ] Post arXiv v2 (new title/abstract) **before or same-day as** the EM submit — not
-      after. `cover_letter.md:57` points the editor at arXiv:2607.10333; that page still
+- [x] Post arXiv v2 (new title/abstract) **before or same-day as** the EM submit — not
+      after. **Done** (submitted 2026-08-21, replacement of arXiv:2607.10333). `cover_letter.md:57` points the editor at arXiv:2607.10333; that page still
       shows the *old* title, so an editor clicking it during desk-check lands on a
       differently-titled paper. This journal already desk-rejected the work once.
 

@@ -1,166 +1,327 @@
-\begin{thebibliography}{10}
-\expandafter\ifx\csname url\endcsname\relax
-  \def\url#1{\texttt{#1}}\fi
-\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
-\expandafter\ifx\csname href\endcsname\relax
-  \def\href#1#2{#2} \def\path#1{#1}\fi
-
-\bibitem{scherz2026evaluation}
-J.~Scherz, D.~Hines, P.~Bekemeyer, Evaluation of state-of-the-art deep learning
-  architectures for aerodynamical predictions, arXiv preprint arXiv:2607.13866
-  (2026).
-
-\bibitem{rigotti2026gist}
-M.~Rigotti, N.~Thumiger, T.~Frick, {GIST}: Gauge-invariant spectral
-  transformers for scalable graph neural operators, arXiv preprint
-  arXiv:2603.16849 (2026).
-
-\bibitem{huang2025physicscorrect}
-X.~Huang, P.~Perdikaris, {PhysicsCorrect}: A training-free approach for stable
-  neural {PDE} simulations, arXiv preprint arXiv:2507.02227AAAI 2026 (2025).
-
-\bibitem{learned2023residualcorrection}
-P.~K. Jha, Residual-based error corrector operator to enhance accuracy and
-  reliability of neural operator surrogates of nonlinear variational
-  boundary-value problems, Computer Methods in Applied Mechanics and
-  Engineering 419 (2024) 116595, arXiv:2306.12047.
-\newblock \href {https://doi.org/10.1016/j.cma.2023.116595}
-  {\path{doi:10.1016/j.cma.2023.116595}}.
-
-\bibitem{li2021fno}
-Z.~Li, N.~Kovachki, K.~Azizzadenesheli, B.~Liu, K.~Bhattacharya, A.~Stuart,
-  A.~Anandkumar, Fourier neural operator for parametric partial differential
-  equations, in: International Conference on Learning Representations (ICLR),
-  2021, arXiv:2010.08895.
-
-\bibitem{li2022geofno}
-Z.~Li, D.~Z. Huang, B.~Liu, A.~Anandkumar, Fourier neural operator with learned
-  deformations for pdes on general geometries, arXiv preprint arXiv:2207.05209
-  (2022).
-
-\bibitem{ranade2025domino}
-R.~Ranade, M.~A. Nabian, K.~Tangsali, A.~Kamenev, O.~Hennigh, R.~Cherukuri,
-  S.~Choudhry, {DoMINO}: A decomposable multi-scale iterative neural operator
-  for modeling large scale engineering simulations, arXiv preprint
-  arXiv:2501.13350NVIDIA (2025).
-
-\bibitem{wu2024transolver}
-H.~Wu, H.~Luo, H.~Wang, J.~Wang, M.~Long, Transolver: A fast transformer solver
-  for {PDE}s on general geometries, in: International Conference on Machine
-  Learning (ICML), 2024, arXiv:2402.02366.
-
-\bibitem{luo2025transolverpp}
-H.~Luo, H.~Wu, H.~Zhou, L.~Xing, Y.~Di, J.~Wang, M.~Long, Transolver++: An
-  accurate neural solver for {PDE}s on million-scale geometries, arXiv preprint
-  arXiv:2502.02414 (2025).
-
-\bibitem{hsieh2019neuralpde}
-J.-T. Hsieh, S.~Zhao, S.~Eismann, L.~Mirabella, S.~Ermon, Learning neural {PDE}
-  solvers with convergence guarantees, in: International Conference on Learning
-  Representations (ICLR), 2019, arXiv:1906.01200.
-
-\bibitem{marwah2023fnodeq}
-T.~Marwah, A.~Pokle, J.~Z. Kolter, Z.~C. Lipton, J.~Lu, A.~Risteski, Deep
-  equilibrium based neural operators for steady-state {PDE}s, in: Advances in
-  Neural Information Processing Systems (NeurIPS), 2023, arXiv:2312.00234.
-
-\bibitem{lippe2023pderefiner}
-P.~Lippe, B.~S. Veeling, P.~Perdikaris, R.~E. Turner, J.~Brandstetter,
-  {PDE}-refiner: Achieving accurate long rollouts with neural {PDE} solvers,
-  in: Advances in Neural Information Processing Systems (NeurIPS), 2023,
-  arXiv:2308.05732.
-
-\bibitem{raissi2019pinn}
-M.~Raissi, P.~Perdikaris, G.~E. Karniadakis, Physics-informed neural networks:
-  A deep learning framework for solving forward and inverse problems involving
-  nonlinear partial differential equations, Journal of Computational Physics
-  378 (2019) 686--707.
-
-\bibitem{roy2025anchor}
-R.~Roy, D.~Nayak, S.~Goswami, {ANCHOR}: Error-controlled adaptive numerical
-  correction for neural operator time marching, arXiv preprint arXiv:2512.19643
-  (2025).
-
-\bibitem{song2026structureaware}
-H.~Song, Z.~Li, M.~Deng, X.~Li, D.~Pan, Z.~Lai, W.~Wang, Structure-aware
-  epistemic uncertainty quantification for neural operator {PDE} surrogates,
-  arXiv preprint arXiv:2603.11052 (2026).
-
-\bibitem{gopakumar2025pre}
-V.~Gopakumar, A.~Gray, L.~Zanisi, T.~Nunn, D.~Giles, M.~J. Kusner, S.~Pamela,
-  M.~P. Deisenroth, Calibrated physics-informed uncertainty quantification,
-  arXiv preprint arXiv:2502.04406 (2025).
-
-\bibitem{mukherjee2026certification}
-A.~Mukherjee, M.~Fitzsimmons, D.~C. Del Rey~Fern{\'a}ndez, J.~Liu, Rigorous
-  error certification for neural {PDE} solvers: From empirical residuals to
-  solution guarantees, arXiv preprint arXiv:2603.19165 (2026).
-
-\bibitem{lakshminarayanan2017ensembles}
-B.~Lakshminarayanan, A.~Pritzel, C.~Blundell, Simple and scalable predictive
-  uncertainty estimation using deep ensembles, in: Advances in Neural
-  Information Processing Systems (NeurIPS), 2017, arXiv:1612.01474.
-
-\bibitem{gal2016dropout}
-Y.~Gal, Z.~Ghahramani, Dropout as a bayesian approximation: Representing model
-  uncertainty in deep learning, in: International Conference on Machine
-  Learning (ICML), 2016, arXiv:1506.02142.
-
-\bibitem{ma2024uqno}
-Z.~Ma, K.~Azizzadenesheli, A.~Anandkumar, Calibrated uncertainty quantification
-  for operator learning via conformal prediction, Transactions on Machine
-  Learning Research (TMLR)ArXiv:2402.01960 (2024).
-
-\bibitem{jia2026multigranularity}
-C.~Jia, C.~Xia, A.~Vdovin, Q.~Jia, S.~Sebben, Z.~Yang, Multi-granularity
-  conformal prediction for reliable neural-operator automotive aerodynamic
-  surrogates, arXiv preprint arXiv:2607.17297 (2026).
-
-\bibitem{bonnet2022airfrans}
-F.~Bonnet, J.~A. Mazari, P.~Cinnella, P.~Gallinari, {AirfRANS}: High fidelity
-  computational fluid dynamics dataset for approximating reynolds-averaged
-  navier-stokes solutions, in: Advances in Neural Information Processing
-  Systems (NeurIPS) Datasets and Benchmarks Track, 2022, arXiv:2212.07564.
-
-\bibitem{bai2019deq}
-S.~Bai, J.~Z. Kolter, V.~Koltun, Deep equilibrium models, in: Advances in
-  Neural Information Processing Systems (NeurIPS), 2019, arXiv:1909.01377.
-
-\bibitem{winston2020monotone}
-E.~Winston, J.~Z. Kolter, Monotone operator equilibrium networks, in: Advances
-  in Neural Information Processing Systems (NeurIPS), 2020, arXiv:2006.08591.
-
-\bibitem{fung2022jfb}
-S.~W. Fung, H.~Heaton, Q.~Li, D.~McKenzie, S.~Osher, W.~Yin, {JFB}:
-  Jacobian-free backpropagation for implicit networks, in: AAAI Conference on
-  Artificial Intelligence, 2022, arXiv:2103.12803.
-
-\bibitem{ribeiro2020deepcfd}
-M.~D. Ribeiro, A.~Rehman, S.~Ahmed, A.~Dengel, {DeepCFD}: Efficient
-  steady-state laminar flow approximation with deep convolutional neural
-  networks, arXiv preprint arXiv:2004.08826 (2020).
-
-\bibitem{krishnapriyan2021failure}
-A.~S. Krishnapriyan, A.~Gholami, S.~Zhe, R.~M. Kirby, M.~W. Mahoney,
-  Characterizing possible failure modes in physics-informed neural networks,
-  in: Advances in Neural Information Processing Systems (NeurIPS), 2021.
-
-\bibitem{wang2022ntk}
-S.~Wang, X.~Yu, P.~Perdikaris, When and why {PINNs} fail to train: A neural
-  tangent kernel perspective, Journal of Computational Physics 449 (2022)
-  110768.
-
-\bibitem{trefethenbau1997}
-L.~N. Trefethen, D.~Bau, Numerical Linear Algebra, SIAM, 1997.
-
-\bibitem{ahmedml2024}
-N.~Ashton, D.~Maddix, S.~Gundry, P.~Shabestari, {AhmedML}: High-fidelity
-  computational fluid dynamics dataset for incompressible, low-speed bluff body
-  aerodynamics, arXiv preprint arXiv:2407.20801 (2024).
-
-\bibitem{elrefaie2024drivaernet}
-M.~Elrefaie, F.~Morar, A.~Dai, F.~Ahmed, {DrivAerNet++}: A large-scale
-  multimodal car dataset with computational fluid dynamics simulations and deep
-  learning benchmarks, arXiv preprint arXiv:2406.09624 (2024).
+\begin{thebibliography}{35}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\href}[2]{#2}
+\providecommand{\path}[1]{#1}
+\providecommand{\DOIprefix}{doi:}
+\providecommand{\ArXivprefix}{arXiv:}
+\providecommand{\URLprefix}{URL: }
+\providecommand{\Pubmedprefix}{pmid:}
+\providecommand{\doi}[1]{\href{http://dx.doi.org/#1}{\path{#1}}}
+\providecommand{\Pubmed}[1]{\href{pmid:#1}{\path{#1}}}
+\providecommand{\bibinfo}[2]{#2}
+\ifx\xfnm\relax \def\xfnm[#1]{\unskip,\space#1}\fi
+%Type = Article
+\bibitem[{Scherz et~al.(2026)Scherz, Hines, and
+  Bekemeyer}]{scherz2026evaluation}
+\bibinfo{author}{J.~Scherz}, \bibinfo{author}{D.~Hines},
+  \bibinfo{author}{P.~Bekemeyer},
+\newblock \bibinfo{title}{Evaluation of state-of-the-art deep learning
+  architectures for aerodynamical predictions},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2607.13866}
+  (\bibinfo{year}{2026}).
+%Type = Article
+\bibitem[{Rigotti et~al.(2026)Rigotti, Thumiger, and Frick}]{rigotti2026gist}
+\bibinfo{author}{M.~Rigotti}, \bibinfo{author}{N.~Thumiger},
+  \bibinfo{author}{T.~Frick},
+\newblock \bibinfo{title}{{GIST}: Gauge-invariant spectral transformers for
+  scalable graph neural operators},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2603.16849}
+  (\bibinfo{year}{2026}).
+%Type = Article
+\bibitem[{Huang and Perdikaris(2025)}]{huang2025physicscorrect}
+\bibinfo{author}{X.~Huang}, \bibinfo{author}{P.~Perdikaris},
+\newblock \bibinfo{title}{{PhysicsCorrect}: A training-free approach for stable
+  neural {PDE} simulations},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2507.02227}
+  (\bibinfo{year}{2025}). \bibinfo{note}{AAAI 2026}.
+%Type = Article
+\bibitem[{Jha(2024)}]{learned2023residualcorrection}
+\bibinfo{author}{P.~K. Jha},
+\newblock \bibinfo{title}{Residual-based error corrector operator to enhance
+  accuracy and reliability of neural operator surrogates of nonlinear
+  variational boundary-value problems},
+\newblock \bibinfo{journal}{Computer Methods in Applied Mechanics and
+  Engineering} \bibinfo{volume}{419} (\bibinfo{year}{2024})
+  \bibinfo{pages}{116595}. \DOIprefix\doi{10.1016/j.cma.2023.116595},
+  \bibinfo{note}{arXiv:2306.12047}.
+%Type = Inproceedings
+\bibitem[{Li et~al.(2021)Li, Kovachki, Azizzadenesheli, Liu, Bhattacharya,
+  Stuart, and Anandkumar}]{li2021fno}
+\bibinfo{author}{Z.~Li}, \bibinfo{author}{N.~Kovachki},
+  \bibinfo{author}{K.~Azizzadenesheli}, \bibinfo{author}{B.~Liu},
+  \bibinfo{author}{K.~Bhattacharya}, \bibinfo{author}{A.~Stuart},
+  \bibinfo{author}{A.~Anandkumar},
+\newblock \bibinfo{title}{Fourier neural operator for parametric partial
+  differential equations},
+\newblock in: \bibinfo{booktitle}{International Conference on Learning
+  Representations (ICLR)}, \bibinfo{year}{2021}.
+  \bibinfo{note}{ArXiv:2010.08895}.
+%Type = Article
+\bibitem[{Li et~al.(2022)Li, Huang, Liu, and Anandkumar}]{li2022geofno}
+\bibinfo{author}{Z.~Li}, \bibinfo{author}{D.~Z. Huang},
+  \bibinfo{author}{B.~Liu}, \bibinfo{author}{A.~Anandkumar},
+\newblock \bibinfo{title}{Fourier neural operator with learned deformations for
+  pdes on general geometries},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2207.05209}
+  (\bibinfo{year}{2022}).
+%Type = Article
+\bibitem[{Ranade et~al.(2025)Ranade, Nabian, Tangsali, Kamenev, Hennigh,
+  Cherukuri, and Choudhry}]{ranade2025domino}
+\bibinfo{author}{R.~Ranade}, \bibinfo{author}{M.~A. Nabian},
+  \bibinfo{author}{K.~Tangsali}, \bibinfo{author}{A.~Kamenev},
+  \bibinfo{author}{O.~Hennigh}, \bibinfo{author}{R.~Cherukuri},
+  \bibinfo{author}{S.~Choudhry},
+\newblock \bibinfo{title}{{DoMINO}: A decomposable multi-scale iterative neural
+  operator for modeling large scale engineering simulations},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2501.13350}
+  (\bibinfo{year}{2025}). \bibinfo{note}{NVIDIA}.
+%Type = Inproceedings
+\bibitem[{Wu et~al.(2024)Wu, Luo, Wang, Wang, and Long}]{wu2024transolver}
+\bibinfo{author}{H.~Wu}, \bibinfo{author}{H.~Luo}, \bibinfo{author}{H.~Wang},
+  \bibinfo{author}{J.~Wang}, \bibinfo{author}{M.~Long},
+\newblock \bibinfo{title}{Transolver: A fast transformer solver for {PDE}s on
+  general geometries},
+\newblock in: \bibinfo{booktitle}{International Conference on Machine Learning
+  (ICML)}, \bibinfo{year}{2024}. \bibinfo{note}{ArXiv:2402.02366}.
+%Type = Article
+\bibitem[{Luo et~al.(2025)Luo, Wu, Zhou, Xing, Di, Wang, and
+  Long}]{luo2025transolverpp}
+\bibinfo{author}{H.~Luo}, \bibinfo{author}{H.~Wu}, \bibinfo{author}{H.~Zhou},
+  \bibinfo{author}{L.~Xing}, \bibinfo{author}{Y.~Di},
+  \bibinfo{author}{J.~Wang}, \bibinfo{author}{M.~Long},
+\newblock \bibinfo{title}{Transolver++: An accurate neural solver for {PDE}s on
+  million-scale geometries},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2502.02414}
+  (\bibinfo{year}{2025}).
+%Type = Inproceedings
+\bibitem[{Hsieh et~al.(2019)Hsieh, Zhao, Eismann, Mirabella, and
+  Ermon}]{hsieh2019neuralpde}
+\bibinfo{author}{J.-T. Hsieh}, \bibinfo{author}{S.~Zhao},
+  \bibinfo{author}{S.~Eismann}, \bibinfo{author}{L.~Mirabella},
+  \bibinfo{author}{S.~Ermon},
+\newblock \bibinfo{title}{Learning neural {PDE} solvers with convergence
+  guarantees},
+\newblock in: \bibinfo{booktitle}{International Conference on Learning
+  Representations (ICLR)}, \bibinfo{year}{2019}.
+  \bibinfo{note}{ArXiv:1906.01200}.
+%Type = Inproceedings
+\bibitem[{Marwah et~al.(2023)Marwah, Pokle, Kolter, Lipton, Lu, and
+  Risteski}]{marwah2023fnodeq}
+\bibinfo{author}{T.~Marwah}, \bibinfo{author}{A.~Pokle}, \bibinfo{author}{J.~Z.
+  Kolter}, \bibinfo{author}{Z.~C. Lipton}, \bibinfo{author}{J.~Lu},
+  \bibinfo{author}{A.~Risteski},
+\newblock \bibinfo{title}{Deep equilibrium based neural operators for
+  steady-state {PDE}s},
+\newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
+  Systems (NeurIPS)}, \bibinfo{year}{2023}. \bibinfo{note}{ArXiv:2312.00234}.
+%Type = Inproceedings
+\bibitem[{Lippe et~al.(2023)Lippe, Veeling, Perdikaris, Turner, and
+  Brandstetter}]{lippe2023pderefiner}
+\bibinfo{author}{P.~Lippe}, \bibinfo{author}{B.~S. Veeling},
+  \bibinfo{author}{P.~Perdikaris}, \bibinfo{author}{R.~E. Turner},
+  \bibinfo{author}{J.~Brandstetter},
+\newblock \bibinfo{title}{{PDE}-refiner: Achieving accurate long rollouts with
+  neural {PDE} solvers},
+\newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
+  Systems (NeurIPS)}, \bibinfo{year}{2023}. \bibinfo{note}{ArXiv:2308.05732}.
+%Type = Article
+\bibitem[{Raissi et~al.(2019)Raissi, Perdikaris, and
+  Karniadakis}]{raissi2019pinn}
+\bibinfo{author}{M.~Raissi}, \bibinfo{author}{P.~Perdikaris},
+  \bibinfo{author}{G.~E. Karniadakis},
+\newblock \bibinfo{title}{Physics-informed neural networks: A deep learning
+  framework for solving forward and inverse problems involving nonlinear
+  partial differential equations},
+\newblock \bibinfo{journal}{Journal of Computational Physics}
+  \bibinfo{volume}{378} (\bibinfo{year}{2019}) \bibinfo{pages}{686--707}.
+%Type = Article
+\bibitem[{Roy et~al.(2025)Roy, Nayak, and Goswami}]{roy2025anchor}
+\bibinfo{author}{R.~Roy}, \bibinfo{author}{D.~Nayak},
+  \bibinfo{author}{S.~Goswami},
+\newblock \bibinfo{title}{{ANCHOR}: Error-controlled adaptive numerical
+  correction for neural operator time marching},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2512.19643}
+  (\bibinfo{year}{2025}).
+%Type = Article
+\bibitem[{Song et~al.(2026)Song, Li, Deng, Li, Pan, Lai, and
+  Wang}]{song2026structureaware}
+\bibinfo{author}{H.~Song}, \bibinfo{author}{Z.~Li}, \bibinfo{author}{M.~Deng},
+  \bibinfo{author}{X.~Li}, \bibinfo{author}{D.~Pan}, \bibinfo{author}{Z.~Lai},
+  \bibinfo{author}{W.~Wang},
+\newblock \bibinfo{title}{Structure-aware epistemic uncertainty quantification
+  for neural operator {PDE} surrogates},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2603.11052}
+  (\bibinfo{year}{2026}).
+%Type = Article
+\bibitem[{Gopakumar et~al.(2025)Gopakumar, Gray, Zanisi, Nunn, Giles, Kusner,
+  Pamela, and Deisenroth}]{gopakumar2025pre}
+\bibinfo{author}{V.~Gopakumar}, \bibinfo{author}{A.~Gray},
+  \bibinfo{author}{L.~Zanisi}, \bibinfo{author}{T.~Nunn},
+  \bibinfo{author}{D.~Giles}, \bibinfo{author}{M.~J. Kusner},
+  \bibinfo{author}{S.~Pamela}, \bibinfo{author}{M.~P. Deisenroth},
+\newblock \bibinfo{title}{Calibrated physics-informed uncertainty
+  quantification},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2502.04406}
+  (\bibinfo{year}{2025}).
+%Type = Article
+\bibitem[{Becker and Rannacher(2001)}]{beckerrannacher2001dwr}
+\bibinfo{author}{R.~Becker}, \bibinfo{author}{R.~Rannacher},
+\newblock \bibinfo{title}{An optimal control approach to a posteriori error
+  estimation in finite element methods},
+\newblock \bibinfo{journal}{Acta Numerica} \bibinfo{volume}{10}
+  (\bibinfo{year}{2001}) \bibinfo{pages}{1--102}.
+  \DOIprefix\doi{10.1017/S0962492901000010}.
+%Type = Article
+\bibitem[{Hillebrecht and Unger(2025)}]{hillebrecht2025posteriori}
+\bibinfo{author}{B.~Hillebrecht}, \bibinfo{author}{B.~Unger},
+\newblock \bibinfo{title}{Rigorous a posteriori error bounds for {PDE}-defined
+  {PINNs}},
+\newblock \bibinfo{journal}{IEEE Transactions on Neural Networks and Learning
+  Systems} \bibinfo{volume}{36} (\bibinfo{year}{2025})
+  \bibinfo{pages}{1583--1593}. \DOIprefix\doi{10.1109/TNNLS.2023.3335837}.
+%Type = Article
+\bibitem[{Mukherjee et~al.(2026)Mukherjee, Fitzsimmons, Del Rey~Fern{\'a}ndez,
+  and Liu}]{mukherjee2026certification}
+\bibinfo{author}{A.~Mukherjee}, \bibinfo{author}{M.~Fitzsimmons},
+  \bibinfo{author}{D.~C. Del Rey~Fern{\'a}ndez}, \bibinfo{author}{J.~Liu},
+\newblock \bibinfo{title}{Rigorous error certification for neural {PDE}
+  solvers: From empirical residuals to solution guarantees},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2603.19165}
+  (\bibinfo{year}{2026}).
+%Type = Inproceedings
+\bibitem[{Lakshminarayanan et~al.(2017)Lakshminarayanan, Pritzel, and
+  Blundell}]{lakshminarayanan2017ensembles}
+\bibinfo{author}{B.~Lakshminarayanan}, \bibinfo{author}{A.~Pritzel},
+  \bibinfo{author}{C.~Blundell},
+\newblock \bibinfo{title}{Simple and scalable predictive uncertainty estimation
+  using deep ensembles},
+\newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
+  Systems (NeurIPS)}, \bibinfo{year}{2017}. \bibinfo{note}{ArXiv:1612.01474}.
+%Type = Inproceedings
+\bibitem[{Gal and Ghahramani(2016)}]{gal2016dropout}
+\bibinfo{author}{Y.~Gal}, \bibinfo{author}{Z.~Ghahramani},
+\newblock \bibinfo{title}{Dropout as a bayesian approximation: Representing
+  model uncertainty in deep learning},
+\newblock in: \bibinfo{booktitle}{International Conference on Machine Learning
+  (ICML)}, \bibinfo{year}{2016}. \bibinfo{note}{ArXiv:1506.02142}.
+%Type = Article
+\bibitem[{Ma et~al.(2024)Ma, Azizzadenesheli, and Anandkumar}]{ma2024uqno}
+\bibinfo{author}{Z.~Ma}, \bibinfo{author}{K.~Azizzadenesheli},
+  \bibinfo{author}{A.~Anandkumar},
+\newblock \bibinfo{title}{Calibrated uncertainty quantification for operator
+  learning via conformal prediction},
+\newblock \bibinfo{journal}{Transactions on Machine Learning Research (TMLR)}
+  (\bibinfo{year}{2024}). \bibinfo{note}{ArXiv:2402.01960}.
+%Type = Article
+\bibitem[{Yu et~al.(2026)Yu, Ho, and Wang}]{yu2026conformalpinn}
+\bibinfo{author}{Y.~Yu}, \bibinfo{author}{C.~H. Ho}, \bibinfo{author}{Y.~Wang},
+\newblock \bibinfo{title}{A conformal prediction framework for uncertainty
+  quantification in physics-informed neural networks},
+\newblock \bibinfo{journal}{Journal of Computational Physics}
+  \bibinfo{volume}{561} (\bibinfo{year}{2026}) \bibinfo{pages}{114979}.
+  \DOIprefix\doi{10.1016/j.jcp.2026.114979}.
+%Type = Article
+\bibitem[{Garg and Chakraborty(2025)}]{garg2025dfuq}
+\bibinfo{author}{S.~Garg}, \bibinfo{author}{S.~Chakraborty},
+\newblock \bibinfo{title}{Distribution free uncertainty quantification for
+  neuroscience-inspired deep neural operators},
+\newblock \bibinfo{journal}{Journal of Computational Physics}
+  \bibinfo{volume}{534} (\bibinfo{year}{2025}) \bibinfo{pages}{114012}.
+  \DOIprefix\doi{10.1016/j.jcp.2025.114012}.
+%Type = Article
+\bibitem[{Jia et~al.(2026)Jia, Xia, Vdovin, Jia, Sebben, and
+  Yang}]{jia2026multigranularity}
+\bibinfo{author}{C.~Jia}, \bibinfo{author}{C.~Xia},
+  \bibinfo{author}{A.~Vdovin}, \bibinfo{author}{Q.~Jia},
+  \bibinfo{author}{S.~Sebben}, \bibinfo{author}{Z.~Yang},
+\newblock \bibinfo{title}{Multi-granularity conformal prediction for reliable
+  neural-operator automotive aerodynamic surrogates},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2607.17297}
+  (\bibinfo{year}{2026}).
+%Type = Inproceedings
+\bibitem[{Bonnet et~al.(2022)Bonnet, Mazari, Cinnella, and
+  Gallinari}]{bonnet2022airfrans}
+\bibinfo{author}{F.~Bonnet}, \bibinfo{author}{J.~A. Mazari},
+  \bibinfo{author}{P.~Cinnella}, \bibinfo{author}{P.~Gallinari},
+\newblock \bibinfo{title}{{AirfRANS}: High fidelity computational fluid
+  dynamics dataset for approximating reynolds-averaged navier-stokes
+  solutions},
+\newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
+  Systems (NeurIPS) Datasets and Benchmarks Track}, \bibinfo{year}{2022}.
+  \bibinfo{note}{ArXiv:2212.07564}.
+%Type = Inproceedings
+\bibitem[{Bai et~al.(2019)Bai, Kolter, and Koltun}]{bai2019deq}
+\bibinfo{author}{S.~Bai}, \bibinfo{author}{J.~Z. Kolter},
+  \bibinfo{author}{V.~Koltun},
+\newblock \bibinfo{title}{Deep equilibrium models},
+\newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
+  Systems (NeurIPS)}, \bibinfo{year}{2019}. \bibinfo{note}{ArXiv:1909.01377}.
+%Type = Inproceedings
+\bibitem[{Winston and Kolter(2020)}]{winston2020monotone}
+\bibinfo{author}{E.~Winston}, \bibinfo{author}{J.~Z. Kolter},
+\newblock \bibinfo{title}{Monotone operator equilibrium networks},
+\newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
+  Systems (NeurIPS)}, \bibinfo{year}{2020}. \bibinfo{note}{ArXiv:2006.08591}.
+%Type = Inproceedings
+\bibitem[{Fung et~al.(2022)Fung, Heaton, Li, McKenzie, Osher, and
+  Yin}]{fung2022jfb}
+\bibinfo{author}{S.~W. Fung}, \bibinfo{author}{H.~Heaton},
+  \bibinfo{author}{Q.~Li}, \bibinfo{author}{D.~McKenzie},
+  \bibinfo{author}{S.~Osher}, \bibinfo{author}{W.~Yin},
+\newblock \bibinfo{title}{{JFB}: Jacobian-free backpropagation for implicit
+  networks},
+\newblock in: \bibinfo{booktitle}{AAAI Conference on Artificial Intelligence},
+  \bibinfo{year}{2022}. \bibinfo{note}{ArXiv:2103.12803}.
+%Type = Article
+\bibitem[{Ribeiro et~al.(2020)Ribeiro, Rehman, Ahmed, and
+  Dengel}]{ribeiro2020deepcfd}
+\bibinfo{author}{M.~D. Ribeiro}, \bibinfo{author}{A.~Rehman},
+  \bibinfo{author}{S.~Ahmed}, \bibinfo{author}{A.~Dengel},
+\newblock \bibinfo{title}{{DeepCFD}: Efficient steady-state laminar flow
+  approximation with deep convolutional neural networks},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2004.08826}
+  (\bibinfo{year}{2020}).
+%Type = Inproceedings
+\bibitem[{Krishnapriyan et~al.(2021)Krishnapriyan, Gholami, Zhe, Kirby, and
+  Mahoney}]{krishnapriyan2021failure}
+\bibinfo{author}{A.~S. Krishnapriyan}, \bibinfo{author}{A.~Gholami},
+  \bibinfo{author}{S.~Zhe}, \bibinfo{author}{R.~M. Kirby},
+  \bibinfo{author}{M.~W. Mahoney},
+\newblock \bibinfo{title}{Characterizing possible failure modes in
+  physics-informed neural networks},
+\newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
+  Systems (NeurIPS)}, \bibinfo{year}{2021}.
+%Type = Article
+\bibitem[{Wang et~al.(2022)Wang, Yu, and Perdikaris}]{wang2022ntk}
+\bibinfo{author}{S.~Wang}, \bibinfo{author}{X.~Yu},
+  \bibinfo{author}{P.~Perdikaris},
+\newblock \bibinfo{title}{When and why {PINNs} fail to train: A neural tangent
+  kernel perspective},
+\newblock \bibinfo{journal}{Journal of Computational Physics}
+  \bibinfo{volume}{449} (\bibinfo{year}{2022}) \bibinfo{pages}{110768}.
+%Type = Book
+\bibitem[{Trefethen and Bau(1997)}]{trefethenbau1997}
+\bibinfo{author}{L.~N. Trefethen}, \bibinfo{author}{D.~Bau},
+  \bibinfo{title}{Numerical Linear Algebra}, \bibinfo{publisher}{SIAM},
+  \bibinfo{year}{1997}.
+%Type = Article
+\bibitem[{Ashton et~al.(2024)Ashton, Maddix, Gundry, and
+  Shabestari}]{ahmedml2024}
+\bibinfo{author}{N.~Ashton}, \bibinfo{author}{D.~Maddix},
+  \bibinfo{author}{S.~Gundry}, \bibinfo{author}{P.~Shabestari},
+\newblock \bibinfo{title}{{AhmedML}: High-fidelity computational fluid dynamics
+  dataset for incompressible, low-speed bluff body aerodynamics},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2407.20801}
+  (\bibinfo{year}{2024}).
+%Type = Article
+\bibitem[{Elrefaie et~al.(2024)Elrefaie, Morar, Dai, and
+  Ahmed}]{elrefaie2024drivaernet}
+\bibinfo{author}{M.~Elrefaie}, \bibinfo{author}{F.~Morar},
+  \bibinfo{author}{A.~Dai}, \bibinfo{author}{F.~Ahmed},
+\newblock \bibinfo{title}{{DrivAerNet++}: A large-scale multimodal car dataset
+  with computational fluid dynamics simulations and deep learning benchmarks},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2406.09624}
+  (\bibinfo{year}{2024}).
 
 \end{thebibliography}

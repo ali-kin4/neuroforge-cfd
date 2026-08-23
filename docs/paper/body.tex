@@ -229,7 +229,20 @@ as a conformal nonconformity score, obtaining data-free coverage guarantees---in
 problem. Our residual-floor theorem (\autoref{sec:residual_floor}) supplies a concrete
 mechanism for that gap in the discrete steady-RANS setting: the monitored residual has a
 nonzero floor at the reference solution and a kernel of undetectable modes, so residual-space
-smallness cannot by itself certify solution-space accuracy. From the theory side,
+smallness cannot by itself certify solution-space accuracy. The question we put to the residual---can a quantity computable without the true
+solution certify that solution's accuracy?---is the defining question of
+a-posteriori error estimation, and the classical answer is instructive: residual
+magnitude is not itself an error estimate, and becomes one only when weighted by the
+solution of an adjoint problem measuring how strongly each local residual propagates
+into the functional of interest \citep{beckerrannacher2001dwr}. The neural analogue
+keeps that structure: \citet{hillebrecht2025posteriori} bound the true error of a
+PDE-defined PINN by its residual scaled by a stability constant of the underlying
+operator. Both results are conditional on a property our monitor does not have---that
+the residual vanishes at the exact solution---and the residual-floor theorem is
+precisely a statement of how that condition fails for an under-resolved discrete
+steady-RANS operator. That is why we use the residual to \emph{rank} cases rather than
+to \emph{bound} them, and obtain the bound from conformal calibration instead.
+From the theory side,
 \citet{mukherjee2026certification} prove that vanishing residuals guarantee solution
 convergence only under additional compactness assumptions; our setting is the practical
 complement, where the discrete monitored residual provably does \emph{not} vanish at the
@@ -245,7 +258,13 @@ per-case spatial trust, rather than time-marching error control.
 Deep ensembles \citep{lakshminarayanan2017ensembles} and MC-dropout
 \citep{gal2016dropout} are standard epistemic estimators; conformal prediction gives
 distribution-free coverage and has been applied to operator learning
-\citep{ma2024uqno}. Concurrently with this work, \citet{jia2026multigranularity} develop
+\citep{ma2024uqno}. Within this journal the same combination is being pursued from both
+the PINN and the operator side: \citet{yu2026conformalpinn} conformalise the output of
+a physics-informed network, and \citet{garg2025dfuq} give distribution-free bands for
+neural operators. Both calibrate the \emph{raw} surrogate; we calibrate the field the
+user actually receives---the corrected one---which matters here because the correction
+step changes the very error distribution the quantile is fitted to
+(\autoref{sec:conformal}). Concurrently with this work, \citet{jia2026multigranularity} develop
 multi-granularity conformal calibration (case-level quantile regression plus
 residual-normalised point-level bands) for neural-operator automotive surrogates on
 DrivAerML; their nonconformity scales are purely data-driven, whereas our trust signal is
@@ -1575,3 +1594,18 @@ drafting and editing the manuscript text. After using this tool, the authors rev
 edited the content as needed and take full responsibility for the content of the
 published article. The use of AI assistance in developing the research software is
 described in the Implementation section.
+
+
+\section*{Funding}
+This research received no specific grant from funding agencies in the public, commercial,
+or not-for-profit sectors. All experiments reported here were run on a single consumer
+workstation (one NVIDIA RTX 4070 Ti for backbone training; every audit-side measurement is
+CPU-only), which is part of why the reproduction package is CPU-first.
+
+\section*{Acknowledgements}
+We thank the authors of AirfRANS \citep{bonnet2022airfrans} and DeepCFD
+\citep{ribeiro2020deepcfd} for releasing their datasets, benchmark splits, and reference
+force labels publicly; the cross-dataset and force-recovery results in this paper exist
+only because those artefacts are open. We also thank the maintainers of the open-source
+scientific Python and PyTorch ecosystems on which the released package depends. Assistance
+from generative AI tools in preparing the manuscript text is declared separately above.
