@@ -173,6 +173,11 @@ HEADLINE: list[dict] = [
     {"path": "results/control/audit_cost.json",
      "script": "scripts/measure_audit_cost.py", "tier": "cpu",
      "claims": "full audit median 1.7 ms/case (1 CPU thread) vs ~25-min 16-core RANS solve (~1e-6)"},
+    # --- full-pipeline wall-clock cost (sec:cost, JCP complexity requirement) ---
+    {"path": "results/control/inference_cost.json",
+     "script": "scripts/measure_inference_cost.py", "tier": "gpu",
+     "claims": "deployed solve 3822 ms/case (backbone 2080 + correction 1747) on one RTX 4070 Ti; audit 1.13 ms = 0.03%% of it; 5-member ensemble 4.86x a single backbone "
+               "(linear in M, measured not assumed); audit O(N) in cells, slope 0.64 over a 16x range; ~286x faster end-to-end than the ~25-min 16-core RANS solve"},
     # --- ensemble-size study (limitations: choice of M measured) ---
     {"path": "results/uq_ensemble/mstudy.json",
      "script": "scripts/run_ensemble_mstudy.py", "tier": "gpu",

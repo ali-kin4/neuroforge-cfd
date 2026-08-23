@@ -19,6 +19,18 @@
 \sloppy
 \emergencystretch=4em
 
+% elsarticle's run-in \paragraph appends a full stop to the heading
+%   \def\els@bparagraph#1{\elsparagraph*{#1.}}
+% and every \paragraph title in body.tex already ends in one, so the Elsevier
+% build rendered 54 headings as "Title.." while the shared TMLR build (whose
+% \paragraph adds nothing) rendered them correctly. Drop the class's period and
+% let the shared source supply it, so both builds agree.
+\makeatletter
+\def\els@aparagraph[#1]#2{\elsparagraph[#1]{#2}}
+\def\els@bparagraph#1{\elsparagraph*{#1}}
+\makeatother
+
+
 \journal{Journal of Computational Physics}
 
 \begin{document}

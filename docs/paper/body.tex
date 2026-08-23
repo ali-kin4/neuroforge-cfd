@@ -167,6 +167,23 @@ retain the retraction of stale single-seed numbers from earlier drafts
 we make a competitiveness claim only for the Transolver backbone our trust layer runs on
 (\autoref{sec:v2}), not for the grid backbone.
 
+\paragraph{How to read this paper.} The argument is long because the controls are the
+argument, so it is worth saying where each kind of evidence lives.
+\autoref{sec:method} defines the audit and proves its two properties---contraction under
+the acceptance gate, and split-conformal coverage---and \autoref{sec:residual_floor}
+states the residual-floor theorem that bounds what the audit can detect at all.
+\emph{Does it work?} \autoref{sec:v2} (trust signal and learned correction on a
+competitive backbone) and \autoref{sec:conformal} (calibrated bands, selective
+prediction). \emph{Does it keep working?} \autoref{sec:v2} and \autoref{sec:ood} across
+three backbone families, two datasets and a regime shift, with five-seed spreads and
+case-level bootstrap intervals throughout, and \autoref{sec:indist-ablation} for the
+controls---including the ones that falsified claims we had previously made.
+\emph{What does it cost?} \autoref{sec:cost} times every stage of the deployed pipeline.
+\emph{Can it be checked?} Every number here maps to a committed script and result file
+through \texttt{docs/REPRODUCE.md}, with a manifest recording seeds, environment and
+SHA-256 hashes. Readers who want only the central result can read
+\autoref{sec:v2}, \autoref{sec:iters} and \autoref{sec:cost}.
+
 \section{Related Work}
 
 \paragraph{Neural operators (FNO / Geo-FNO).} Fourier Neural Operators learn a
@@ -1262,6 +1279,90 @@ backbone-robust; \autoref{sec:v2} demonstrates it on a SOTA Transolver backbone,
 coverage holds at $0.902{\pm}0.008$ (target $0.90$) and a deep-ensemble $\sigma$ makes the
 band input-adaptive on that near-deterministic model ($q=2.35$, ECE $0.074$;
 \autoref{tab:uq}).
+
+\subsection{Computational cost and complexity}
+\label{sec:cost}
+
+A trust layer is only deployable if auditing costs materially less than the prediction it
+audits. We therefore time every stage of the deployed pipeline on the AirfRANS \texttt{full}
+test set at resolution $128$ (\texttt{scripts/measure\_inference\_cost.py},
+\texttt{results/control/inference\_cost.json}; $100$ cases, median of two timed repeats after
+an untimed warm-up, CUDA synchronised around each repeat, on one RTX 4070 Ti with the
+package's single-thread BLAS cap in force). \autoref{tab:cost} reports the result.
+
+\begin{table}[t]
+\centering
+\small
+\caption{\textbf{Per-case wall-clock cost of the deployed pipeline}
+($128^2$ grid, $100$ AirfRANS \texttt{full} test cases, medians). \emph{Where} is the device
+each stage actually runs on. The audit is the entire certificate: residual maps, trust map,
+case-level score and conformal band. The classical anchor is the cost of generating one
+AirfRANS case, as reported by its authors ($\approx 25$ min on $16$ CPU cores); it is
+quoted for scale, not as a matched-hardware benchmark.}
+\label{tab:cost}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l l r r l}
+\toprule
+stage & where & median & p95 & share of a deployed solve \\
+\midrule
+encode (geometry $\to$ input planes) & CPU, 1 thread & $1413$\,ms & $1620$\,ms & preprocessing \\
+backbone forward + rasterise & GPU & $2080$\,ms & $3537$\,ms & $54.4\%$ \\
+correction (Neural Residual Iteration) & GPU & $1747$\,ms & $2950$\,ms & $45.7\%$ \\
+\midrule
+\textbf{deployed solve} (backbone + correction) & GPU & $\mathbf{3822}$\,\textbf{ms} & $6400$\,ms & $100\%$ \\
+\midrule
+\textbf{audit} (residuals + trust + score + band) & CPU, 1 thread & $\mathbf{1.13}$\,\textbf{ms} & $2.49$\,ms & $\mathbf{0.03\%}$ \\
+deep ensemble, $M{=}5$ (for the fused score) & GPU & $10\,114$\,ms & $10\,546$\,ms & $265\%$ \\
+\midrule
+classical steady-RANS solve \citep{bonnet2022airfrans} & 16 CPU cores & ${\sim}1\,500$\,s & --- & ${\sim}39\,000\%$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{The certificate is free; the ensemble is not.} The audit costs $1.13$\,ms against
+a $3822$\,ms solve---one part in $3\,400$, or $0.03\%$. End to end, a case costs $5.24$\,s
+(encode $+$ solve $+$ audit) against the ${\sim}1500$\,s that produced its label, a
+${\sim}286\times$ reduction, and the certificate is invisible inside that. This is the
+quantitative form of the paper's claim that the surrogate can audit itself: the trust score,
+the trust map and the conformal band are obtained for three hundredths of a percent of the
+computation they vouch for, and they require no ground truth.
+
+The deep-ensemble spread does not share that property. Measured directly by loading five
+independent backbones, $M{=}5$ costs $4.86\times$ a single backbone---linear in $M$, as
+expected, and confirmed rather than assumed---which is $2.1$ deployed solves of \emph{extra}
+compute. The two halves of the fused score therefore sit at opposite ends of the cost scale,
+and this sharpens the selective-prediction result of \autoref{sec:conformal} into a
+deployment choice rather than a single operating point: the residual alone recovers
+$\approx 67\%$ of the oracle's achievable error reduction at essentially zero marginal cost,
+while fusing it with the ensemble spread reaches $\approx 91\%$ but triples the compute
+budget per case. A practitioner who cannot afford five backbones still gets two thirds of the
+benefit for nothing; one who can, buys the last third at a known, measured price.
+
+\paragraph{Scaling.} The audit's operation count is $O(N)$ in the number of grid cells
+$N=n_yn_x$: every term is a fixed-width finite-difference stencil, a mask, or a reduction.
+Empirically, over a $16\times$ range in $N$ ($64^2$ to $256^2$, fields resampled purely to
+vary array extent) the audit rises only $6.3\times$, a log--log slope of $0.64$
+($R^2=0.99$)---sub-linear because per-call fixed costs (allocation, Python dispatch) still
+dominate at these sizes. The asymptotic rate is the $O(N)$ of the operation count; the
+practical consequence is that the audit's share of the pipeline \emph{falls} as grids grow,
+since the backbone and the corrector both carry super-linear cost in resolution. Across the
+test fleet the backbone's cost showed no measurable dependence on the native cloud size, but
+that range is only $1.21\times$ wide ($163\,590$--$197\,146$ points) and cloud size explains
+$3\%$ of the timing variance ($R^2=0.03$); we therefore report the observation and decline to
+fit a scaling law to it.
+
+\paragraph{What these numbers are not.} The backbone stage times the Transolver forward pass
+\emph{and} the rasterisation of its point-cloud output onto the grid; the latter is
+single-threaded NumPy under the package's BLAS cap, so the GPU figures are conservative upper
+bounds on the model itself rather than a tuned inference benchmark. The encode stage is
+likewise unoptimised CPU preprocessing and would be cached in any real design loop, where the
+same geometry is queried at many operating points. The classical anchor comes from the
+AirfRANS authors on $16$ CPU cores \citep{bonnet2022airfrans}; ours is one consumer GPU plus
+one CPU thread, so the ${\sim}286\times$ figure indicates the order of the gap, not a
+controlled speed-up measurement. None of these caveats touch the ratio the paper actually
+depends on---audit against solve---because both sides of it were measured in the same run, on
+the same cases, under the same thread caps.
 
 \subsection{Honest baseline: the grid backbone trails SOTA}
 \label{sec:baseline}

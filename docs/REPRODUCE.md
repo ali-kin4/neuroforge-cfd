@@ -96,6 +96,7 @@ resumable (atomic per-epoch checkpoints).
 | **Repaired force integrator**: control-volume lift rho_L **0.998**±0.001 from predicted fields, median 3.6–3.9% | `python scripts/design_force_integrator.py`, `python scripts/recompute_force_multischeme.py` | `results/control/integrator_design.json`, `force_vs_official_multischeme.json` | GPU |
 | **Spatial trust scale**: cell-level rho 0.166 → **0.323** at 16×16 patch pooling (93% of cases improve) | `python scripts/percell_trust_localization.py` | `results/control/percell_localization.json` (+ `.md`) | CPU |
 | **Audit cost** median **1.7 ms/case** (1 CPU thread), ~1e-6 of a 16-core RANS solve | `python scripts/measure_audit_cost.py` | `results/control/audit_cost.json` | CPU |
+| **Inference cost** deployed solve **3.82 s/case** (RTX 4070 Ti; backbone 2.08 s + correction 1.75 s); audit **1.13 ms** = **0.03%** of it; ensemble M=5 costs **4.86x** a single backbone; ~286x faster end-to-end than the ~25-min 16-core RANS solve | `python scripts/measure_inference_cost.py --n-val 100 --repeats 2 --devices cuda --ensemble-k 5 --classical-solve-sec 1500` | `results/control/inference_cost.json` | GPU |
 | **Ensemble-size study** M=2..5 (all 26 subsets): fused AUROC 0.905–0.912 at every M; band adaptivity needs M≈4–5 (ECE 0.074→0.199) | `python scripts/run_ensemble_mstudy.py` | `results/uq_ensemble/mstudy.json` (+ `.md`) | GPU |
 
 ### Figures

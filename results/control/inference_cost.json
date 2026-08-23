@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "experiment": "wall-clock cost of the deployed pipeline (per-case, stage-wise)",
+    "date": "2026-08-23 18:59:35",
+    "grid": "128x128",
+    "backbone_seed": 0,
+    "repeats_per_stage": 2,
+    "timing": "median of repeats per case after one untimed warm-up; CUDA synchronised around every repeat; fleet stats over per-case medians",
+    "load_context": "idle machine; no other GPU or CPU jobs running",
+    "environment": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+      "cpu_count": 24,
+      "torch": "2.6.0+cu124",
+      "numpy": "2.4.6",
+      "cuda_device": "NVIDIA GeForce RTX 4070 Ti",
+      "blas_thread_caps": {
+        "OPENBLAS_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      }
+    },
+    "progress_journal": "results/control/_cache/inference_cost_progress.jsonl",
+    "measurements_replayed_from_journal": 475,
+    "runtime_sec": 3935.395658016205
+  },
+  "per_device": {
+    "cuda": {
+      "backbone_ms": {
+        "mean_ms": 2472.8231029999915,
+        "median_ms": 2080.433724999807,
+        "p95_ms": 3537.1647700000494,
+        "max_ms": 10887.602199999947,
+        "n_cases": 100
+      },
+      "solve_ms": {
+        "mean_ms": 4388.872361000005,
+        "median_ms": 3821.9026750000467,
+        "p95_ms": 6400.453472500067,
+        "max_ms": 14918.658299999834,
+        "n_cases": 100
+      },
+      "correction_ms": {
+        "mean_ms": 1916.0492580000143,
+        "median_ms": 1746.7596499998308,
+        "p95_ms": 2949.6727074999058,
+        "max_ms": 4544.690649999893,
+        "n_cases": 100
+      },
+      "backbone_params": 7350420,
+      "points_per_case": {
+        "min": 163590,
+        "median": 180132.5,
+        "max": 197146
+      },
+      "scaling_vs_points": {
+        "exponent": 1.5496276295662907,
+        "r2": 0.033195050698468065,
+        "n": 100
+      },
+      "ensemble_ms": {
+        "mean_ms": 10116.786266000017,
+        "median_ms": 10113.792000000103,
+        "p95_ms": 10545.858640000097,
+        "max_ms": 12051.46859999968,
+        "n_cases": 25,
+        "k": 5,
+        "note": "K independent backbones, first 25 cases"
+      },
+      "ensemble_over_single": 4.861386295783607
+    }
+  },
+  "encode_ms": {
+    "mean_ms": 1432.4838989999876,
+    "median_ms": 1412.73477499999,
+    "p95_ms": 1620.4750474999742,
+    "max_ms": 1791.6099999999915,
+    "n_cases": 100
+  },
+  "audit_ms": {
+    "mean_ms": 1.4025665000053777,
+    "median_ms": 1.1280249998435465,
+    "p95_ms": 2.488207499902728,
+    "max_ms": 4.239149999875735,
+    "n_cases": 100,
+    "note": "diagnose + residual_norm on the CPU numpy path; cross-check against results/control/audit_cost.json"
+  },
+  "audit_vs_grid": {
+    "rows": {
+      "64": {
+        "cells": 4096,
+        "median_ms": 0.4711249998763378,
+        "n_cases": 10
+      },
+      "96": {
+        "cells": 9216,
+        "median_ms": 0.9144749997176405,
+        "n_cases": 10
+      },
+      "128": {
+        "cells": 16384,
+        "median_ms": 1.0669749999578926,
+        "n_cases": 10
+      },
+      "192": {
+        "cells": 36864,
+        "median_ms": 1.8965999997817562,
+        "n_cases": 10
+      },
+      "256": {
+        "cells": 65536,
+        "median_ms": 2.9533749998336134,
+        "n_cases": 10
+      }
+    },
+    "scaling_vs_cells": {
+      "exponent": 0.636894567937719,
+      "r2": 0.9865990027800746,
+      "n": 5
+    },
+    "note": "fields nearest-neighbour resampled purely to vary array extent; not physically meaningful, no accuracy computed from them"
+  },
+  "classical_comparison": {
+    "classical_solve_sec_per_case": 1500.0,
+    "classical_source": "AirfRANS (Bonnet et al., NeurIPS 2022) Table 4: ~25 min per simulation on 16 cores of an AMD Ryzen Threadripper 3960X",
+    "deployed_solve_median_ms": 3821.9026750000467,
+    "speedup_classical_over_deployed": 392.47467231749476
+  }
+}
