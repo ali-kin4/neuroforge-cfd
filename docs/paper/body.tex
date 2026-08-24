@@ -465,7 +465,7 @@ $\nu_{\mathrm{eff}} = \nu + \nu_t$, pointwise:
 \text{$x$-momentum:}\quad & r_x = u\,\frac{\partial u}{\partial x} + v\,\frac{\partial u}{\partial y} + \frac{\partial p}{\partial x} - \nu_{\mathrm{eff}}\,\nabla^2 u, \\
 \text{$y$-momentum:}\quad & r_y = u\,\frac{\partial v}{\partial x} + v\,\frac{\partial v}{\partial y} + \frac{\partial p}{\partial y} - \nu_{\mathrm{eff}}\,\nabla^2 v.
 \end{align}
-Because $p$ is kinematic, no explicit density appears. Derivatives use central finite
+Because $p$ is kinematic, no explicit density appears. \textbf{Scope of the turbulence term.} The learned $\nu_t$ channel is near-degenerate at the scale we train (MSE $\approx 5\times10^{-8}$; \autoref{sec:limitations}), so in practice $\nu_{\mathrm{eff}}\approx\nu$ and the monitored operator behaves as a laminar Navier--Stokes residual evaluated on turbulent-RANS data. This is a genuine limitation of the present instantiation rather than of the method---the verifier is written for $\nu_{\mathrm{eff}}$ and inherits a trained $\nu_t$ unchanged---and we flag it here because it is one of the reasons the residual floor of \autoref{sec:residual_floor} is nonzero (the operator also drops the $\nabla\nu_t\!\cdot\!\nabla u$ term). It does not weaken the dissociation we report: the trust signal is validated on a bare message-passing GNN ($\rho=0.851$) and on a second, \emph{laminar} dataset ($\rho=0.77\pm0.12$), so neither verdict depends on the turbulence closure being active. Derivatives use central finite
 differences with one-sided stencils at the borders; residuals are zeroed inside the
 solid. A boundary-condition violation map $r_{bc}$ adds a \textbf{no-slip} term
 penalising velocity magnitude in the thin fluid band adjacent to the wall (weighted by
