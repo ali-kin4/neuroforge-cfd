@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "script": "scripts/bc_weight_sweep.py",
+    "source": "results/control/bc_inclusive_sweep.json",
+    "monitor": "rho(lambda) = sqrt(||R_h||^2 + lambda * mean(bc^2))",
+    "note": "post-hoc reweighting of already-logged components; no forward passes",
+    "n_cases": 10,
+    "checkpoint": "checkpoints/certificates_deq.pt"
+  },
+  "A_spurious_minimum": {
+    "truth_bc2": 0.007307919894002771,
+    "uniform_bc2": 0.0053235552817611645,
+    "rows": [
+      {
+        "lambda": 0.0,
+        "rho_uniform": 0.0,
+        "rho_truth": 0.16627342775464057,
+        "uniform_below_truth": true
+      },
+      {
+        "lambda": 1.0,
+        "rho_uniform": 0.07296269787885563,
+        "rho_truth": 0.1869619551440358,
+        "uniform_below_truth": true
+      },
+      {
+        "lambda": 10.0,
+        "rho_uniform": 0.23072830952791998,
+        "rho_truth": 0.3173736783624398,
+        "uniform_below_truth": true
+      },
+      {
+        "lambda": 100.0,
+        "rho_uniform": 0.7296269787885563,
+        "rho_truth": 0.8708839430013362,
+        "uniform_below_truth": true
+      },
+      {
+        "lambda": 1000.0,
+        "rho_uniform": 2.3072830952791996,
+        "rho_truth": 2.708425141439218,
+        "uniform_below_truth": true
+      },
+      {
+        "lambda": 10000.0,
+        "rho_uniform": 7.296269787885564,
+        "rho_truth": 8.550254136153205,
+        "uniform_below_truth": true
+      },
+      {
+        "lambda": 1000000.0,
+        "rho_uniform": 72.96269787885564,
+        "rho_truth": 85.48653426625475,
+        "uniform_below_truth": true
+      }
+    ],
+    "holds_for_all_sampled_lambda": true,
+    "holds_for_all_lambda_closed_form": true
+  },
+  "B_dissociation": {
+    "mse_u_start": 3.172899788060889,
+    "mse_u_end": 2.3214709562350473,
+    "error_falls": true,
+    "delta_interior_r2": 0.6352600292035494,
+    "delta_bc2": 0.0019000408363013532,
+    "rows": [
+      {
+        "lambda": 0.0,
+        "rho_start": 0.12461675480008125,
+        "rho_end": 0.8067151695489884,
+        "rho_rises": true
+      },
+      {
+        "lambda": 1.0,
+        "rho_start": 0.14516325078955694,
+        "rho_end": 0.8113152527961265,
+        "rho_rises": true
+      },
+      {
+        "lambda": 10.0,
+        "rho_start": 0.2663825700112263,
+        "rho_end": 0.851598562218343,
+        "rho_rises": true
+      },
+      {
+        "lambda": 100.0,
+        "rho_start": 0.7548726487731071,
+        "rho_end": 1.1811421712475647,
+        "rho_rises": true
+      },
+      {
+        "lambda": 1000.0,
+        "rho_start": 2.357660522311288,
+        "rho_end": 2.8449717053021875,
+        "rho_rises": true
+      },
+      {
+        "lambda": 10000.0,
+        "rho_start": 7.446198181922048,
+        "rho_end": 8.664960228222418,
+        "rho_rises": true
+      },
+      {
+        "lambda": 1000000.0,
+        "rho_start": 74.45165768620473,
+        "rho_end": 86.2770272352633,
+        "rho_rises": true
+      }
+    ],
+    "holds_for_all_sampled_lambda": true,
+    "holds_for_all_lambda_closed_form": true,
+    "lambda_that_would_flip_it": null
+  },
+  "verdict": "NO-WEIGHTING-RESCUES-THE-RESIDUAL"
+}

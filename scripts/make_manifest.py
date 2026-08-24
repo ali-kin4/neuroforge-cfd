@@ -173,6 +173,14 @@ HEADLINE: list[dict] = [
     {"path": "results/control/audit_cost.json",
      "script": "scripts/measure_audit_cost.py", "tier": "cpu",
      "claims": "full audit median 1.7 ms/case (1 CPU thread) vs ~25-min 16-core RANS solve (~1e-6)"},
+    # --- is the nu_t channel actually learned? (Limitations, sec:method) ---
+    {"path": "results/control/nut_learned.json",
+     "script": "scripts/check_nut_learned.py", "tier": "cpu",
+     "claims": "nu_t over fluid cells mean 8.19e-5 vs laminar nu 1.56e-5 (5.2x, 84%% of nu_eff); channel is learned, backbone-dependently: R2 0.996 grid backbone, 0.67-0.70 MeshGraphNet against nu_t's own fluid-masked variance"},
+    # --- does any no-slip weight rescue the residual? (sec:residual_floor) ---
+    {"path": "results/control/bc_weight_sweep.json",
+     "script": "scripts/bc_weight_sweep.py", "tier": "cpu",
+     "claims": "post-hoc sweep of the no-slip weight lambda on already-logged components: the uniform field stays a spurious minimum and the residual still rises as error falls, for every lambda >= 0 (closed form, no crossover weight)"},
     # --- full-pipeline wall-clock cost (sec:cost, JCP complexity requirement) ---
     {"path": "results/control/inference_cost.json",
      "script": "scripts/measure_inference_cost.py", "tier": "gpu",

@@ -97,6 +97,8 @@ resumable (atomic per-epoch checkpoints).
 | **Spatial trust scale**: cell-level rho 0.166 → **0.323** at 16×16 patch pooling (93% of cases improve) | `python scripts/percell_trust_localization.py` | `results/control/percell_localization.json` (+ `.md`) | CPU |
 | **Audit cost** median **1.7 ms/case** (1 CPU thread), ~1e-6 of a 16-core RANS solve | `python scripts/measure_audit_cost.py` | `results/control/audit_cost.json` | CPU |
 | **Inference cost** deployed solve **3.82 s/case** (RTX 4070 Ti; backbone 2.08 s + correction 1.75 s); audit **1.13 ms** = **0.03%** of it; ensemble M=5 costs **4.86x** a single backbone; ~286x faster end-to-end than the ~25-min 16-core RANS solve | `python scripts/measure_inference_cost.py --n-val 100 --repeats 2 --devices cuda --ensemble-k 5 --classical-solve-sec 1500` | `results/control/inference_cost.json` | GPU |
+| **nu_t is learned** (not "effectively unlearned"): over fluid cells nu_t mean **8.19e-5** vs laminar nu **1.56e-5** -> **5.2x**, **84%** of nu_eff; **R2 = 0.996** (grid backbone), **0.67-0.70** (MeshGraphNet) against nu_t's own fluid-masked variance | `python scripts/check_nut_learned.py` | `results/control/nut_learned.json` | CPU |
+| **No no-slip weight rescues the residual**: sweeping lambda in `sqrt(||R_h||^2 + lambda*mean(bc^2))` post hoc, the uniform field stays a spurious minimum and the residual still rises as error falls, for **every lambda >= 0** (closed form) | `python scripts/bc_weight_sweep.py` | `results/control/bc_weight_sweep.json` | CPU |
 | **Ensemble-size study** M=2..5 (all 26 subsets): fused AUROC 0.905–0.912 at every M; band adaptivity needs M≈4–5 (ECE 0.074→0.199) | `python scripts/run_ensemble_mstudy.py` | `results/uq_ensemble/mstudy.json` (+ `.md`) | GPU |
 
 ### Figures

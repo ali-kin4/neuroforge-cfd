@@ -128,9 +128,22 @@ lockstep with the boundary-excluded one ($0.125\!\to\!0.807$)---along the correc
 prediction and the truth both approximately satisfy no-slip, so $r_{bc}$ stays small and
 roughly constant and the interior floor dominates. (Empirically the uniform field also keeps a
 \emph{lower} $\rho_{\rm res}$ than the truth, $0.073$ vs $0.187$, because $r_{bc}$ is
-non-dimensionalised by $U$ and contributes only $\approx0.07$ in RMS.) We claim this robustness
-for the residual the framework computes \emph{as defined}; a no-slip penalty weighted heavily
-enough to dominate the interior floor is out of scope and untested.
+non-dimensionalised by $U$ and contributes only $\approx0.07$ in RMS.) The objection generalises---\emph{some} no-slip weight might rescue the residual---and
+we can close it in full rather than concede it. Writing the weighted monitor
+$\rho_\lambda=\sqrt{\|R_h\|^2+\lambda\,\overline{r_{bc}^2}}$, both logged components are
+recoverable at every sweep point, so $\lambda$ can be swept post hoc at no computational
+cost (\texttt{scripts/bc\_weight\_sweep.py}, \texttt{results/control/bc\_weight\_sweep.json}).
+Both legs survive for \emph{every} $\lambda\ge0$, in closed form rather than on a grid of
+sampled values. \textbf{(A)}~The uniform field remains a spurious minimum: it has both a
+smaller interior residual and a smaller no-slip term than the truth
+($\overline{r_{bc}^2}=0.0053$ versus $0.0073$---on a $128^2$ grid the boundary layer is
+sub-cell, so the rasterised truth itself carries near-wall velocity), hence
+$\rho_\lambda(u_\infty)<\rho_\lambda(u^\star)$ for all $\lambda$. \textbf{(B)}~Along the
+correction path, where field error falls ($3.17\!\to\!2.32$), \emph{both} increments are
+positive---the interior term by $+0.635$ and the no-slip term by $+0.0019$---so
+$\rho_\lambda$ rises for all $\lambda$; there is no crossover weight. Up-weighting the
+boundary condition cannot convert this residual into a usable correction objective,
+because the no-slip violation grows along the very path that reduces the error.
 
 \paragraph{Assumptions, stated plainly.} The theorem is about the \emph{monitored discrete}
 operator $R_h$---what the loop minimises---not the continuous PDE; (H2) holds here because

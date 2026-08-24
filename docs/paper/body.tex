@@ -465,7 +465,7 @@ $\nu_{\mathrm{eff}} = \nu + \nu_t$, pointwise:
 \text{$x$-momentum:}\quad & r_x = u\,\frac{\partial u}{\partial x} + v\,\frac{\partial u}{\partial y} + \frac{\partial p}{\partial x} - \nu_{\mathrm{eff}}\,\nabla^2 u, \\
 \text{$y$-momentum:}\quad & r_y = u\,\frac{\partial v}{\partial x} + v\,\frac{\partial v}{\partial y} + \frac{\partial p}{\partial y} - \nu_{\mathrm{eff}}\,\nabla^2 v.
 \end{align}
-Because $p$ is kinematic, no explicit density appears. \textbf{Scope of the turbulence term.} The learned $\nu_t$ channel is near-degenerate at the scale we train (MSE $\approx 5\times10^{-8}$; \autoref{sec:limitations}), so in practice $\nu_{\mathrm{eff}}\approx\nu$ and the monitored operator behaves as a laminar Navier--Stokes residual evaluated on turbulent-RANS data. This is a genuine limitation of the present instantiation rather than of the method---the verifier is written for $\nu_{\mathrm{eff}}$ and inherits a trained $\nu_t$ unchanged---and we flag it here because it is one of the reasons the residual floor of \autoref{sec:residual_floor} is nonzero (the operator also drops the $\nabla\nu_t\!\cdot\!\nabla u$ term). It does not weaken the dissociation we report: the trust signal is validated on a bare message-passing GNN ($\rho=0.851$) and on a second, \emph{laminar} dataset ($\rho=0.77\pm0.12$), so neither verdict depends on the turbulence closure being active. Derivatives use central finite
+Because $p$ is kinematic, no explicit density appears. \textbf{The turbulence term is live.} Over the fluid cells of the 200-case AirfRANS test split the eddy viscosity averages $\nu_t = 8.2\times10^{-5}$ against a laminar $\nu = 1.56\times10^{-5}$: $\nu_t\approx5.2\,\nu$, supplying $\approx84\%$ of $\nu_{\mathrm{eff}}$. The monitored operator is therefore a genuine RANS residual rather than a laminar one under another name, and the closure the surrogate predicts is what the audit consumes. The channel is learned, though backbone-dependently: against $\nu_t$'s own fluid-masked variance, $R^2 = 0.996$ on the grid backbone and $0.67$--$0.70$ on MeshGraphNet (\texttt{scripts/check\_nut\_learned.py}). We report $R^2$ rather than raw MSE here deliberately: $\nu_t$ is three to four orders of magnitude smaller than $u$, so a per-channel MSE compared across channels understates its accuracy for purely dimensional reasons. What the operator \emph{does} omit is the spatially varying term $\nabla\nu_t\!\cdot\!\nabla u$, which is one reason the residual floor of \autoref{sec:residual_floor} is nonzero. Derivatives use central finite
 differences with one-sided stencils at the borders; residuals are zeroed inside the
 solid. A boundary-condition violation map $r_{bc}$ adds a \textbf{no-slip} term
 penalising velocity magnitude in the thin fluid band adjacent to the wall (weighted by
@@ -690,8 +690,11 @@ through our grid surface-integrator---a \emph{field-to-field self-consistency} v
 relative arm/condition comparisons, not agreement with AirfRANS's official force labels;
 see \autoref{sec:v2}), and
 \texttt{residual\_error\_spearman} ($> 0$ means a low residual tracks low error). The
-$\nu_t$ channel is near-degenerate at this scale (MSE $\approx 5\times10^{-8}$ for every
-arm) and is omitted from the tables (see \autoref{sec:limitations}).
+$\nu_t$ channel is omitted from the tables because its raw MSE is not comparable to the
+other channels ($\nu_t$ is three to four orders of magnitude smaller than $u$); measured
+against its own fluid-masked variance it is learned, backbone-dependently ($R^2 = 0.996$
+grid backbone, $0.67$--$0.70$ MeshGraphNet; \texttt{scripts/check\_nut\_learned.py}, and see
+\autoref{sec:limitations}).
 
 With $n=3$ we report \textbf{per-seed sign-consistency} plus effect-size magnitude rather
 than p-values, which are meaningless at $n=3$. An effect called ``robust'' below is
@@ -1623,10 +1626,13 @@ degrades $0.074 \rightarrow 0.113 \rightarrow 0.199$ as $M$ drops $5 \rightarrow
 \rightarrow 2$ (coverage holds by widening, not by adapting), with $M{=}4$ already close
 to $M{=}5$ ($q=2.75$, ECE $0.087$). Independently retrained ensembles (beyond member
 subsets of one training run) remain future work.
-\item \textbf{Eddy-viscosity channel near-degenerate.} The $\nu_t$ output is effectively
-unlearned at this scale (per-arm MSE $\approx 5\times10^{-8}$); since residuals use
-$\nu_{\mathrm{eff}} = \nu + \nu_t$, the physics term currently leans on the laminar
-viscosity. A trainable $\nu_t$ target is future work.
+\item \textbf{Eddy-viscosity accuracy is backbone-dependent.} Measured against $\nu_t$'s
+own fluid-masked variance on the AirfRANS test split, the channel is well predicted on
+the grid backbone ($R^2 = 0.996$) but only moderately on MeshGraphNet ($R^2 = 0.67$--$0.70$;
+\texttt{scripts/check\_nut\_learned.py}). Because $\nu_t\approx5.2\,\nu$ on this data and supplies
+$\approx84\%$ of $\nu_{\mathrm{eff}}$, a backbone with a weak $\nu_t$ carries that error straight into
+the monitored residual---so the audit's own operator is only as turbulent as the closure
+the surrogate predicts. Sharpening $\nu_t$ on the weaker backbones is future work.
 \item \textbf{Classical fallback is a stub interface.} The trust-gated fallback fixes the
 integration seam and reports what would run; the OpenFOAM/SU2 backends are not implemented
 and bear on no quantitative claim.
