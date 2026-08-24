@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "script": "scripts/check_nut_learned.py",
+    "cache": "data/cache/airfrans_full_test_r128_n200.pkl",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "nu_laminar": 1.56e-05
+  },
+  "nut_fluid_stats": {
+    "n_cases": 200,
+    "fluid_fraction": 0.9905447387695312,
+    "mean": 8.185454116438553e-05,
+    "std": 0.001123192337298799,
+    "var": 1.261561026566739e-06,
+    "min": 0.0,
+    "max": 0.07162538170814514
+  },
+  "nu_eff_composition": {
+    "nu_laminar": 1.56e-05,
+    "mean_nut": 8.185454116438553e-05,
+    "ratio_nut_over_nu": 5.247085972075995,
+    "turbulent_share_of_nu_eff": 0.8399253660874967
+  },
+  "arms": {
+    "grid_backbone_seed0": {
+      "mse_nut": 5.156359894397879e-09,
+      "r2": 0.9959127146560396,
+      "rmse": 7.180779828401564e-05,
+      "rmse_frac_of_std": 0.06393188049760783,
+      "source": "results/baselines/seed0.json"
+    },
+    "meshgraphnet_seed0": {
+      "mse_nut": 4.15548199628697e-07,
+      "r2": 0.6706079286869016,
+      "rmse": 0.0006446302813463675,
+      "rmse_frac_of_std": 0.5739268867313139,
+      "source": "results/mgn/mgn_results.json"
+    },
+    "meshgraphnet_seed1": {
+      "mse_nut": 3.825670843006523e-07,
+      "r2": 0.6967510280958938,
+      "rmse": 0.0006185200759075265,
+      "rmse_frac_of_std": 0.5506804626133981,
+      "source": "results/mgn/mgn_results.json"
+    },
+    "meshgraphnet_seed2": {
+      "mse_nut": 3.845479975704865e-07,
+      "r2": 0.6951808200535409,
+      "rmse": 0.0006201193413936437,
+      "rmse_frac_of_std": 0.5521043198042007,
+      "source": "results/mgn/mgn_results.json"
+    }
+  },
+  "verdict": {
+    "channel_unlearned": false,
+    "nu_eff_dominated_by_laminar": false
+  }
+}
