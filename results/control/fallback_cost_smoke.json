@@ -1,0 +1,183 @@
+{
+  "verdict": "INCONCLUSIVE -- the full-domain solve DIVERGED on every case (0 accepted by the no-harm gate). The timings above are time-to-blow-up, not time-to-converge, so they do not answer the cost question. The FULL baseline the hybrid must beat cannot currently be run at this scope.",
+  "converged_cold": 0,
+  "converged_warm": 0,
+  "nonfinite_residuals": 16,
+  "meta": {
+    "question": "is a full-domain classical solve at 128^2 costly enough for a trust-triggered local fallback to be worth building?",
+    "cache": "airfrans_full_test_r128_n10.pkl",
+    "n_cases": 10,
+    "max_outer": 200,
+    "timing": "single wall-clock per case (no repeats); medians over cases",
+    "caveat": "cold start freezes nu_eff at the laminar value -- a cost probe, not a faithful RANS baseline",
+    "caveat_neural": "neural_forward times the bundled CPU demo FNO via pretrained(), including per-call geometry encoding. It is orders of magnitude slower than the deployed Transolver on GPU -- do NOT quote the ratios below as the hybrid's speedup",
+    "caveat_cold_residual": "a uniform freestream field has EXACTLY zero residual for this operator (residual-floor theorem, leg i), so the no-harm gate can never accept a cold-start solve: it is comparing against a perfect zero",
+    "environment": {
+      "platform": "Windows-11-10.0.26200-SP0",
+      "blas_thread_caps": {
+        "OPENBLAS_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      }
+    }
+  },
+  "full_solve_cold": {
+    "median_seconds": 2.0488338499999372,
+    "per_case": [
+      {
+        "seconds": 2.3688330999993923,
+        "cells_solved": 16146,
+        "accepted": false,
+        "residual_before": 0.0,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 0.6199427999999898,
+        "cells_solved": 16258,
+        "accepted": false,
+        "residual_before": 0.0,
+        "residual_after": 942.8206156273801
+      },
+      {
+        "seconds": 2.379011900000478,
+        "cells_solved": 16277,
+        "accepted": false,
+        "residual_before": 0.0,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 2.743589499999871,
+        "cells_solved": 16310,
+        "accepted": false,
+        "residual_before": 0.0,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 2.048718000000008,
+        "cells_solved": 16322,
+        "accepted": false,
+        "residual_before": 0.0,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 2.243478500000492,
+        "cells_solved": 16232,
+        "accepted": false,
+        "residual_before": 0.0,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 1.968709900000249,
+        "cells_solved": 16138,
+        "accepted": false,
+        "residual_before": 0.0,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 2.0056605999998283,
+        "cells_solved": 16164,
+        "accepted": false,
+        "residual_before": 0.0,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 2.0489496999998664,
+        "cells_solved": 16171,
+        "accepted": false,
+        "residual_before": 0.0,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 1.9722623000016029,
+        "cells_solved": 16148,
+        "accepted": false,
+        "residual_before": 0.0,
+        "residual_after": NaN
+      }
+    ]
+  },
+  "full_solve_warm": {
+    "median_seconds": 3.9196928999999727,
+    "per_case": [
+      {
+        "seconds": 4.883304200000566,
+        "cells_solved": 16146,
+        "accepted": false,
+        "residual_before": 460.5396060126883,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 3.8698334000000614,
+        "cells_solved": 16258,
+        "accepted": false,
+        "residual_before": 1355.111186758303,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 2.9845079999995505,
+        "cells_solved": 16277,
+        "accepted": false,
+        "residual_before": 3838.1691906679853,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 0.6509017000007589,
+        "cells_solved": 16310,
+        "accepted": false,
+        "residual_before": 2131.142865515128,
+        "residual_after": 2762.9025532932833
+      },
+      {
+        "seconds": 1.527095299999928,
+        "cells_solved": 16322,
+        "accepted": false,
+        "residual_before": 3457.7219994968227,
+        "residual_after": 3652.7488915549307
+      },
+      {
+        "seconds": 5.391374499999074,
+        "cells_solved": 16232,
+        "accepted": false,
+        "residual_before": 1754.5130961652644,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 3.969552399999884,
+        "cells_solved": 16138,
+        "accepted": false,
+        "residual_before": 1864.2931073680638,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 5.169876600000862,
+        "cells_solved": 16164,
+        "accepted": false,
+        "residual_before": 5965.439324425662,
+        "residual_after": NaN
+      },
+      {
+        "seconds": 0.9091456999994989,
+        "cells_solved": 16171,
+        "accepted": false,
+        "residual_before": 673.5677163874125,
+        "residual_after": 744.9327143257682
+      },
+      {
+        "seconds": 4.174157400000695,
+        "cells_solved": 16148,
+        "accepted": false,
+        "residual_before": 932.5755654112957,
+        "residual_after": NaN
+      }
+    ]
+  },
+  "neural_forward": {
+    "available": true,
+    "median_seconds": 0.8333493499994802,
+    "device": "cpu",
+    "n": 10
+  },
+  "audit_cost_reference_seconds": 0.0017,
+  "ratio_cold_over_neural": 2.458553366605752,
+  "ratio_warm_over_neural": 4.703541077943383
+}
