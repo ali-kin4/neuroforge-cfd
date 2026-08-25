@@ -23,6 +23,18 @@ prediction (the turbulence field is not evolved). Solid cells (``mask < 0.5``)
 inside the box are held at the no-slip condition ``u = v = 0`` and excluded from
 the pressure update.
 
+**Scope: small patches only.** The scheme is validated for sub-regions whose box
+border carries Dirichlet values from a surrounding solution. It is *not* a
+general-purpose solver: run over the whole domain, where that border is the real
+far-field and wall boundary, it diverges (measured on 10/10 AirfRANS cases,
+``scripts/smoke_fallback_cost.py``). Two known limits drive this -- the collocated
+grid has no Rhie-Chow coupling, and ``nu_eff`` is frozen rather than evolved, so
+the patch does not solve the RANS system its input came from. Accepted patches
+lower the region *residual*; measured against ground truth they do not lower true
+field error (``scripts/probe_patch_acceptance.py``, 0/140 trials, and 0 again when
+handed exact boundary data). Treat this backend as a residual-reducing local
+smoother, not as a correction method.
+
 **No-harm guarantee.** The patch is only accepted if it *reduces* the combined
 physics residual norm over the flagged region (continuity + momentum, measured
 with the same verifier the engine trusts, scoped to fluid cells). Otherwise the
@@ -41,6 +53,16 @@ from neuroforge.physics.residuals import continuity_residual, momentum_residual
 __all__ = ["local_incompressible_solve", "region_residual_norm"]
 
 _EPS = 1e-12
+
+# Velocity magnitudes beyond this multiple of the incoming field's peak speed
+# mean the explicit predictor has gone unstable, not that the flow accelerated.
+_DIVERGENCE_FACTOR = 1.0e3
+
+# Below this, the baseline region residual is an exact (or near-exact) zero and
+# the no-harm test is vacuous: nothing can beat it. A uniform freestream is the
+# canonical case -- it is an exact zero of this operator without being a
+# solution of the boundary-value problem.
+_DEGENERATE_BASELINE = 1.0e-12
 
 
 # --------------------------------------------------------------------------- #
@@ -246,14 +268,26 @@ def local_incompressible_solve(
 
     fluid_props = case.fluid
 
-    def _attach_meta(out: FlowField, ran: bool, before: float, after: float, note: str):
+    def _attach_meta(out: FlowField, ran: bool, before: float, after: float, note: str,
+                     diverged: bool = False):
+        # A blown-up solve produces a non-finite residual; report it as None so
+        # callers (and JSON) get an explicit "no value" rather than a NaN that
+        # silently compares False against every threshold.
+        after_f = float(after)
+        before_f = float(before)
         out.meta = dict(out.meta)
         out.meta["fallback"] = {
             "backend": "numpy",
             "ran": bool(ran),
             "region_cells": n_cells,
-            "residual_before": float(before),
-            "residual_after": float(after),
+            "residual_before": before_f if np.isfinite(before_f) else None,
+            "residual_after": after_f if np.isfinite(after_f) else None,
+            "diverged": bool(diverged),
+            # The no-harm test cannot fire against a zero baseline; flag it so a
+            # rejection here is not mistaken for "the patch made things worse".
+            "degenerate_baseline": bool(
+                np.isfinite(before_f) and before_f <= _DEGENERATE_BASELINE
+            ),
             "note": note,
         }
         return out
@@ -354,6 +388,16 @@ def local_incompressible_solve(
         )
         return out
 
+    # Divergence guard. The explicit predictor can run away long before it
+    # produces a non-finite value: magnitudes overflow to something huge but
+    # still finite, the loop happily burns every remaining iteration, and the
+    # residual check downstream then overflows to inf/NaN. Bail as soon as the
+    # velocity leaves any physically plausible band around the field we were
+    # handed, so a blown-up solve costs a few iterations instead of all of them
+    # and is reported as divergence rather than as a failed no-harm test.
+    speed_cap = _DIVERGENCE_FACTOR * (umax + 1.0)
+    diverged = False
+
     prev_cont = np.inf
     iters_run = 0
     for it in range(int(max_outer)):
@@ -412,6 +456,11 @@ def local_incompressible_solve(
             and np.all(np.isfinite(v_new))
             and np.all(np.isfinite(p_new))
         ):
+            diverged = True
+            break
+
+        if max(np.abs(u_new).max(), np.abs(v_new).max()) > speed_cap:
+            diverged = True
             break
 
         u, v, p = u_new, v_new, p_new
@@ -447,7 +496,9 @@ def local_incompressible_solve(
     # ---- No-harm acceptance test -------------------------------------- #
     # Accept only if the region residual strictly improved (tiny slack to avoid
     # rejecting on float noise when already near machine precision).
-    improved = after < before - 1e-12 * max(before, 1.0)
+    improved = bool(
+        np.isfinite(after) and after < before - 1e-12 * max(before, 1.0)
+    )
     if improved:
         return _attach_meta(
             candidate,
@@ -465,14 +516,23 @@ def local_incompressible_solve(
         field.as_array(), field.domain, mask=field.mask, sdf=field.sdf,
         meta=dict(field.meta),
     )
-    return _attach_meta(
-        out,
-        False,
-        before,
-        after,
-        (
+    if diverged:
+        why = (
+            f"local SIMPLE solve on a {h}x{w} sub-box DIVERGED after {iters_run} "
+            "iters (velocity left the plausible band or went non-finite); patch "
+            "rejected, field returned unchanged"
+        )
+    elif np.isfinite(before) and before <= _DEGENERATE_BASELINE:
+        why = (
+            f"local SIMPLE solve on a {h}x{w} sub-box ({iters_run} iters): the "
+            f"baseline region residual is {before:.4e}, an exact zero of this "
+            "operator, so the no-harm test cannot fire -- rejection here says "
+            "nothing about the patch's quality; field returned unchanged"
+        )
+    else:
+        why = (
             f"local SIMPLE solve on a {h}x{w} sub-box ({iters_run} iters) did not "
             f"reduce the region residual ({before:.4e} -> {after:.4e}); "
             "patch rejected (no-harm guarantee), field returned unchanged"
-        ),
-    )
+        )
+    return _attach_meta(out, False, before, after, why, diverged=diverged)
