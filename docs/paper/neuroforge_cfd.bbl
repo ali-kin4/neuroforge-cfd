@@ -1,4 +1,4 @@
-\begin{thebibliography}{31}
+\begin{thebibliography}{35}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -18,6 +18,13 @@ Shaojie Bai, J.~Zico Kolter, and Vladlen Koltun.
 \newblock In \emph{Advances in Neural Information Processing Systems
   (NeurIPS)}, 2019.
 \newblock arXiv:1909.01377.
+
+\bibitem[Becker \& Rannacher(2001)Becker and Rannacher]{beckerrannacher2001dwr}
+Roland Becker and Rolf Rannacher.
+\newblock An optimal control approach to a posteriori error estimation in
+  finite element methods.
+\newblock \emph{Acta Numerica}, 10:\penalty0 1--102, 2001.
+\newblock \doi{10.1017/S0962492901000010}.
 
 \bibitem[Bonnet et~al.(2022)Bonnet, Mazari, Cinnella, and
   Gallinari]{bonnet2022airfrans}
@@ -50,12 +57,27 @@ Yarin Gal and Zoubin Ghahramani.
 \newblock In \emph{International Conference on Machine Learning (ICML)}, 2016.
 \newblock arXiv:1506.02142.
 
+\bibitem[Garg \& Chakraborty(2025)Garg and Chakraborty]{garg2025dfuq}
+Shailesh Garg and Souvik Chakraborty.
+\newblock Distribution free uncertainty quantification for
+  neuroscience-inspired deep neural operators.
+\newblock \emph{Journal of Computational Physics}, 534:\penalty0 114012, 2025.
+\newblock \doi{10.1016/j.jcp.2025.114012}.
+
 \bibitem[Gopakumar et~al.(2025)Gopakumar, Gray, Zanisi, Nunn, Giles, Kusner,
   Pamela, and Deisenroth]{gopakumar2025pre}
 Vignesh Gopakumar, Ander Gray, Lorenzo Zanisi, Timothy Nunn, Daniel Giles,
   Matt~J. Kusner, Stanislas Pamela, and Marc~Peter Deisenroth.
 \newblock Calibrated physics-informed uncertainty quantification.
 \newblock \emph{arXiv preprint arXiv:2502.04406}, 2025.
+
+\bibitem[Hillebrecht \& Unger(2025)Hillebrecht and
+  Unger]{hillebrecht2025posteriori}
+Birgit Hillebrecht and Benjamin Unger.
+\newblock Rigorous a posteriori error bounds for {PDE}-defined {PINNs}.
+\newblock \emph{IEEE Transactions on Neural Networks and Learning Systems},
+  36\penalty0 (1):\penalty0 1583--1593, 2025.
+\newblock \doi{10.1109/TNNLS.2023.3335837}.
 
 \bibitem[Hsieh et~al.(2019)Hsieh, Zhao, Eismann, Mirabella, and
   Ermon]{hsieh2019neuralpde}
@@ -242,5 +264,12 @@ Haixu Wu, Huakun Luo, Haowen Wang, Jianmin Wang, and Mingsheng Long.
   geometries.
 \newblock In \emph{International Conference on Machine Learning (ICML)}, 2024.
 \newblock arXiv:2402.02366.
+
+\bibitem[Yu et~al.(2026)Yu, Ho, and Wang]{yu2026conformalpinn}
+Yifan Yu, Cheuk~Hin Ho, and Yangshuai Wang.
+\newblock A conformal prediction framework for uncertainty quantification in
+  physics-informed neural networks.
+\newblock \emph{Journal of Computational Physics}, 561:\penalty0 114979, 2026.
+\newblock \doi{10.1016/j.jcp.2026.114979}.
 
 \end{thebibliography}
