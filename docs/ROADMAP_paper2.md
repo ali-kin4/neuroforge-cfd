@@ -359,6 +359,55 @@ it is not a training problem (the exact answer fails identically), not a
 projection artifact (mask-aware round-trip is identical), and not fixable by
 post-hoc boundary-layer reconstruction.
 
+### The crossover: a warm start pays while the layer spans ~2 surrogate cells
+
+`scripts/reynolds_crossover.py`, 5 Reynolds numbers x 2 cases x 3 arms on one
+C-grid, 800-iteration budget. The controlling parameter is not Reynolds number
+but
+
+    delta / h  =  boundary-layer thickness / surrogate cell size
+
+with `delta = 0.37 c / Re^0.2` and `h = 3 c / (N - 1)` on the 3-chord crop. Saving
+at residual 1e-3, against a cold start:
+
+| Re | delta/h | oracle_mesh (control) | **oracle_128** |
+|----:|-------:|----------------------:|---------------:|
+| 1e3 | 3.93 | +93.4% | **+57.6%** |
+| 1e4 | 2.48 | +97.5% | **+14.4%** |
+| 1e5 | 1.57 | +83.0% | -18.0% |
+| 1e6 | 0.99 | +71.2% | -27.3% |
+| 3e6 | 0.79 | +72.2% | -20.8% |
+
+The control holds between +71% and +97% across the whole sweep, so the
+measurement is sound at every point. The arm under test is monotone in delta/h
+and changes sign at **delta/h = 2.0** (`results/reynolds_crossover.png`).
+
+**This corrects an earlier conclusion in this document.** The note above reasoned
+that refining the surrogate grid could not help, because resolving a boundary
+layer needs ~10 cells across it and the AirfRANS point cloud runs out at ~421^2.
+The measurement says warm-starting does not need the layer *resolved*, only
+*represented*, and two cells is enough -- a far weaker requirement. Applying the
+measured criterion:
+
+| Re | delta | h for delta/h = 2 | N required | vs the ~421^2 data limit |
+|----:|------:|------------------:|-----------:|--------------------------|
+| 1e6 | 0.0233 | 0.0117 | **258^2** | feasible |
+| 3e6 | 0.0187 | 0.0094 | **321^2** | feasible |
+| 6e6 | 0.0163 | 0.0082 | **369^2** | feasible |
+
+So a surrogate at ~320^2 should cross into positive territory at AirfRANS
+Reynolds, and that resolution sits *inside* what the dataset can support. The
+null result is therefore a statement about **128^2**, not about the method.
+
+**Caveat, and the next experiment.** The criterion was measured by varying Re at
+fixed `h`. Assuming it transfers to varying `h` at fixed Re is a hypothesis --
+plausible, since delta/h is the natural ratio, but untested, and the two are not
+obviously equivalent (changing Re changes the flow, changing h changes only the
+representation). It is directly checkable with the machinery already built: run
+`scripts/ogrid_resolution_probe.py --re 3e6 --resolution {128, 256, 320, 421}`
+and see whether the sign change lands at delta/h = 2 there too. That is the
+experiment that decides whether Paper 2's original claim is recoverable.
+
 ## Companion: reliability benchmark release
 Package the Paper-1 evaluation as a public harness ("submit AirfRANS predictions,
 receive an audit card": trust AUROC, risk–coverage, conformal coverage). No
