@@ -54,6 +54,8 @@ from neuroforge.core.types import Domain, FlowField
 
 __all__ = [
     "wall_distance",
+    "surface_coords",
+    "clustered_seed",
     "bl_thickness",
     "sample_on_mesh",
     "plain_seed",
@@ -62,6 +64,22 @@ __all__ = [
 
 # Turbulent boundary-layer profile exponent (the classic 1/7 power law).
 PROFILE_EXPONENT = 1.0 / 7.0
+
+
+def surface_coords(centres: np.ndarray, surface: np.ndarray) -> tuple:
+    """Body-fitted coordinates of each cell: (arclength along the wall, distance).
+
+    The mapping a wall-fitted surrogate would predict on. Arclength is taken from
+    the nearest surface point, which is exact on the wall and degrades gracefully
+    away from it -- and away from it the field is smooth enough not to care.
+    """
+    from scipy.spatial import cKDTree
+
+    surf = np.asarray(surface)[:, :2]
+    seg = np.linalg.norm(np.diff(surf, axis=0), axis=1)
+    s_of = np.concatenate([[0.0], np.cumsum(seg)])
+    d, idx = cKDTree(surf).query(np.asarray(centres)[:, :2])
+    return s_of[idx], d, float(s_of[-1])
 
 
 def wall_distance(centres: np.ndarray, surface: np.ndarray) -> np.ndarray:
@@ -211,3 +229,74 @@ def hybrid_seed(
         "blended_fraction": float(((d >= dl) & (d < blend_to * dl)).mean()),
     }
     return (u_out, v_out, p_out, nut_out), report
+
+
+def clustered_seed(
+    values: tuple,
+    centres: np.ndarray,
+    surface: np.ndarray,
+    *,
+    n_s: int = 256,
+    n_n: int = 64,
+    first: float = 2.5e-4,
+    n_max: float = 1.0,
+    u_inf: float,
+    v_inf: float,
+    nut_freestream: float,
+) -> tuple[tuple[np.ndarray, ...], dict]:
+    """Round-trip a mesh solution through a **wall-fitted** surrogate grid.
+
+    The counterpart to :func:`plain_seed`, and the reason it exists: every
+    failure measured so far assumed the surrogate predicts on a *uniform
+    Cartesian* grid. More points on that grid do not help
+    (``scripts/resolution_ladder.py``), because a uniform grid must resolve the
+    smallest scale everywhere and the near-wall scale collapses like
+    ``nu / u_tau``. This spends the **same number of output values** on a grid
+    that is clustered where the gradient is.
+
+    At the default 256 x 64 that is 16,384 values -- exactly a 128^2 grid -- with
+    the first station at ``first`` (2.5e-4 chord) instead of 0.0118, roughly 94x
+    finer at the wall for identical model capacity.
+
+    The projection is deliberately matched to the Cartesian arm so the comparison
+    is like for like: nearest-neighbour from the mesh onto the surrogate grid
+    (what ``to_grid`` does), then linear interpolation back (what
+    :func:`sample_on_mesh` does). Cells beyond ``n_max`` fall back to freestream,
+    just as the Cartesian arm does outside its crop.
+    """
+    from scipy.interpolate import RegularGridInterpolator
+    from scipy.spatial import cKDTree
+
+    u, v, p, nut = (np.asarray(a, dtype=np.float64) for a in values)
+    s, d, s_max = surface_coords(centres, surface)
+
+    s_grid = np.linspace(0.0, s_max, n_s)
+    n_grid = np.geomspace(first, n_max, n_n)
+
+    # Mesh -> surrogate grid, nearest neighbour in normalised (s, n).
+    def norm(ss, dd):
+        return np.stack([ss / max(s_max, 1e-12),
+                         np.log10(np.clip(dd, first, n_max)) / np.log10(n_max / first)], axis=1)
+
+    tree = cKDTree(norm(s, d))
+    SS, NN = np.meshgrid(s_grid, n_grid, indexing="xy")
+    _, idx = tree.query(norm(SS.ravel(), NN.ravel()))
+    shp = (n_n, n_s)
+
+    inside = d <= n_max
+    query = np.stack([np.clip(d, first, n_max), np.clip(s, 0.0, s_max)], axis=1)
+
+    def back(field_vals, fill):
+        grid = field_vals[idx].reshape(shp)
+        interp = RegularGridInterpolator((n_grid, s_grid), grid,
+                                         bounds_error=False, fill_value=None)
+        return np.where(inside, interp(query), fill)
+
+    out = (back(u, u_inf), back(v, v_inf), back(p, 0.0),
+           np.maximum(back(nut, nut_freestream), 0.0))
+    report = {
+        "mode": "clustered", "n_s": n_s, "n_n": n_n, "points": n_s * n_n,
+        "first": first, "n_max": n_max,
+        "covered_fraction": float(inside.mean()),
+    }
+    return out, report
