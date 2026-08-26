@@ -408,6 +408,62 @@ representation). It is directly checkable with the machinery already built: run
 and see whether the sign change lands at delta/h = 2 there too. That is the
 experiment that decides whether Paper 2's original claim is recoverable.
 
+### The criterion does NOT transfer — and that settles it
+
+`scripts/resolution_ladder.py`, Re 3e6 on the C-grid, refining the surrogate grid
+at *fixed* Reynolds while `cold` and `oracle_mesh` stay identical (the C-grid is
+built from the geometry, not the crop, so every rung is compared against the same
+baseline pair):
+
+| N | delta/h | saving @1e-3 (n=2) |
+|----:|-------:|-------------------:|
+| 128 | 0.79 | -20.8% |
+| 192 | 1.19 | -20.8% |
+| 256 | 1.59 | -20.8% |
+| **320** | **1.99** | **-16.7%** |
+| 421 | 2.62 | -16.7% |
+
+**No rung pays.** At delta/h = 2.62 -- where the Reynolds sweep measured +58% --
+refining the grid buys nothing. The prediction that a ~320^2 surrogate would
+cross into positive territory at AirfRANS Reynolds is **wrong**, and the entry
+above that made it is superseded by this one.
+
+**Why delta/h was the wrong parameter.** A turbulent boundary layer is not a
+smooth ramp across `delta`; most of the velocity change happens in the inner few
+percent, on the viscous scale `nu / u_tau`. Those two scales behave completely
+differently over the sweep:
+
+| Re | delta/h | y(y+=30) / h |
+|----:|-------:|-------------:|
+| 1e3 | 3.93 | **18.2** |
+| 1e4 | 2.48 | 2.15 |
+| 1e5 | 1.57 | 0.25 |
+| 1e6 | 0.99 | 0.030 |
+| 3e6 | 0.79 | **0.011** |
+
+`delta/h` moves by a factor of 5 across the sweep; the inner-layer ratio collapses
+by a factor of **1660**. The Reynolds sweep's crossover tracked `delta/h` only
+incidentally -- what actually changed was whether the surrogate's grid could see
+the region where the profile turns. At Re 1e3 that region spans ~18 cells; at Re
+3e6 it spans 0.011 of one, and refining 128 -> 421 only takes it to 0.037, still
+27x too coarse. Reaching one cell across it at Re 3e6 needs **N ~ 11,800**, which
+is 28x beyond what the AirfRANS point cloud supports and ~800x the cells.
+
+**So the null result is final, and now it is explained.** A uniform-Cartesian
+surrogate cannot warm-start RANS at flight Reynolds numbers, for a reason that no
+achievable resolution fixes: the iteration count is set by the near-wall region,
+whose length scale shrinks like `nu / u_tau` -- far faster than the boundary-layer
+thickness -- and a uniform grid must resolve the *smallest* scale everywhere.
+
+That leaves exactly two honest routes, both already stated:
+
+* **Moderate Reynolds** (option 2). The effect is real and large where the grid
+  can see the inner layer: +58% at Re 1e3, +14% at Re 1e4, measured.
+* **Change the representation** (option 3). Predict in wall-normal coordinates or
+  on the solver mesh, so the surrogate's points sit where the gradient is. This
+  is the only route to flight Reynolds, and it breaks the frozen 7-in/4-out spec,
+  so it is Paper-3 scope.
+
 ## Companion: reliability benchmark release
 Package the Paper-1 evaluation as a public harness ("submit AirfRANS predictions,
 receive an audit card": trust AUROC, risk–coverage, conformal coverage). No
