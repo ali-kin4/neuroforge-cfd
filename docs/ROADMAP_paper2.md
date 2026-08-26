@@ -187,8 +187,8 @@ budget. Three arms, identical mesh and schemes:
 | threshold | oracle_mesh (exact) | oracle_128 (same field, via 128^2) |
 |-----------|--------------------:|-----------------------------------:|
 | 1e-2 | **+93.4%** | **-13.2%** |
-| 1e-3 | **+81.9%** | **+3.8%** |
-| 1e-4 | **+76.7%** | **-17.2%** |
+| 1e-3 | **+82.2%** | **+5.3%** |
+| 1e-4 | **+77.1%** | **-60.1%** |
 
 `oracle_mesh` is the control and it passes decisively: warm-starting from the
 case's own converged field at mesh resolution collapses the solve (14 -> 1
@@ -246,6 +246,72 @@ options, in order of cost:
 
 Either way this is a publishable negative result about surrogate-warm-started
 CFD, and it was obtained *before* training anything.
+
+### Body-fitted C-grid (2026-08-26)
+
+`src/neuroforge/solver/cgrid.py`. The O-grid's radial lines fan out behind the
+section, so its wake is resolved no better than the far field. The C-grid wraps
+the front and carries a dense, streamwise-aligned block downstream, and takes a
+**sharp** trailing edge natively (no blunt base). 31,700 cells.
+
+**The wake cut needs no `stitchMesh`.** `blockMesh` identifies a block face by
+its *vertex labels*, so emitting the lower-cut and upper-cut nodes at `j = 0` as
+the **same vertices** makes the coincident faces one face by construction and
+blockMesh joins the blocks into internal faces itself. Only `j = 0` is shared;
+the two sheets separate from the first radial station out, which is exactly the
+slit a C-grid needs. Confirmed empirically: blockMesh emitted **no `defaultFaces`
+patch**, so every cut face became internal (patches are exactly airfoil 199,
+farField 317, outlet 200, frontAndBack 63400).
+
+Mesh quality against the O-grid, on the two measures that drive convergence:
+
+| | O-grid | C-grid |
+|---|---:|---:|
+| cells | 24,000 | 31,700 |
+| non-orthogonality max / avg | 75.7 / 21.5 | **61.6 / 14.9** |
+| max skewness | 2.30 | **1.39** |
+| max aspect ratio | 348 | 218,987 (2188 cells) |
+
+Reynolds ladder, `naca0012` aoa 4, 2000-iteration budget, and the O-grid at the
+same conditions for comparison:
+
+| Re | floor | to 1e-3 | to 1e-4 | max \|U\| | exec |
+|----:|------:|--------:|--------:|---------:|-----:|
+| C-grid 1e4 | 7.3e-5 | 115 | 456 | 1.35 | 168 s |
+| C-grid 1e6 | 1.7e-6 | 33 | 84 | 1.52 | 220 s |
+| **C-grid 3e6** | **1.0e-5** | **36** | **84** | **1.53** | 522 s |
+| O-grid 3e6 | 1.9e-5 | 54 | 108 | 1.53 | 259 s |
+
+At AirfRANS Reynolds the C-grid reaches 1e-3 in **36 iterations against the
+O-grid's 54** (-33%) and 1e-4 in 84 against 108 (-22%), with a lower residual
+floor and the same suction peak. It costs about 2x the wall-clock per iteration,
+which is more than the 1.3x cell count explains and is consistent with the
+high-aspect cells slowing the linear solve.
+
+**Three things learned the hard way**, each recorded at its call site:
+
+1. *Laplacian smoothing must not run over the wake.* It is geometrically
+   stretched to ~a chord per cell, and smoothing there dragged the offset from
+   the requested 0.08 out to 0.46, with twelve non-convex cells.
+2. *Smoothing must nonetheless span the trailing edge*, by ~10 wake nodes each
+   side. The normal turns ~90 degrees across the sharp cusp and folds the offset;
+   smoothing confined to the section cannot relax it. (`k=10, n_smooth=40,
+   offset=0.08` was the fold-free setting; larger spans bleed into the coarse
+   wake and inflate the offset.)
+3. *Wall-normal grading must be uniform along the C.* Per-segment grading was
+   tried to cap the aspect ratio; blockMesh rejects it, because adjacent blocks
+   share a radial face and place its points from their own grading -- "Point
+   merge failure ... inconsistent grading". The high far-wake aspect ratio is
+   therefore inherent to combining y+ ~ 1 wall spacing with a 20-chord wake on a
+   structured C-grid; it sits in uniform flow, not in the boundary layer, and
+   production airfoil C-grids carry the same. `first_wake` / `wake_length` trade
+   it off.
+
+Tests: `tests/test_cgrid.py` (40, no OpenFOAM required).
+
+**This does not change the null result above.** The C-grid is a better solver
+mesh, but the barrier measured there is the *surrogate's* 128^2 resolution, which
+is independent of the mesh the solver uses.
 
 ## Companion: reliability benchmark release
 Package the Paper-1 evaluation as a public harness ("submit AirfRANS predictions,
