@@ -24,7 +24,12 @@ current state. Ordered by horizon. (Full rationale: `docs/RESEARCH_ROADMAP.md`.)
 - [ ] Optional PyVista interactive 3-D viewer.
 
 ## 🧩 Engine / product polish
-- [ ] Implement the **OpenFOAM / SU2 classical fallback** (currently a stub).
+- [x] **OpenFOAM (WSL2) full-case solver** — `solver/openfoam.py`, `simpleFoam` +
+      Spalart–Allmaras, cold/warm start, `scripts/openfoam_warm_start.py`. Needs
+      OpenFOAM installed in WSL to run; see `docs/ROADMAP_paper2.md`.
+- [ ] Implement the **OpenFOAM / SU2 region patch** for `ClassicalFallback`
+      (still a stub — and see the Paper-2 roadmap for why the patch framing is
+      the wrong one; the full-case warm start replaced it).
 - [ ] STL / STEP geometry import (mesh-free CAD → SDF).
 - [ ] Streamlit app: wire to the clean `NeuroForge` API.
 
