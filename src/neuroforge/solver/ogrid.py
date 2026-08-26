@@ -629,6 +629,7 @@ def solve_ogrid(
     distro: str | None = None,
     timeout: float = 7200.0,
     check_mesh: bool = True,
+    reuse: bool = True,
 ) -> OGridResult:
     """Mesh, (optionally) warm-start, and solve ``case`` on a body-fitted O-grid."""
     import re as _re
@@ -641,6 +642,14 @@ def solve_ogrid(
         safe = _re.sub(r"[^A-Za-z0-9._-]+", "_", case.name or "case")
         case_dir = os.path.join("runs", "openfoam", f"{safe}_ogrid_{start}")
     case_dir = os.path.abspath(case_dir)
+
+    # Resume: a solve writes its log and fields to disk as it goes, so a run cut
+    # short by a power failure leaves every finished case recoverable. Re-reading
+    # one costs milliseconds against minutes to re-solve.
+    if reuse:
+        done = of.completed_run(case_dir, n_iter=n_iter)
+        if done is not None:
+            return _read_result(case_dir, done, start, spec, distro, reused=True)
 
     write_ogrid_case(case, case_dir, spec=spec, n_iter=n_iter)
     of.run_openfoam("blockMesh", case_dir, distro=distro, timeout=timeout,
@@ -672,8 +681,24 @@ def solve_ogrid(
     proc = of.run_openfoam("simpleFoam", case_dir, distro=distro, timeout=timeout,
                            log_name="log.simpleFoam")
     info = of.parse_simple_foam_log(proc.stdout or "")
-    wall = _time.perf_counter() - t0
+    info["wall_time"] = _time.perf_counter() - t0
 
+    return _read_result(case_dir, info, start, spec, distro,
+                        mesh_report=mesh_report, seed=seed)
+
+
+def _read_result(
+    case_dir: str,
+    info: dict,
+    start: str,
+    spec: OGridSpec,
+    distro: str | None,
+    *,
+    mesh_report: dict | None = None,
+    seed: dict | None = None,
+    reused: bool = False,
+) -> OGridResult:
+    """Assemble an :class:`OGridResult` from a case directory on disk."""
     latest = of._latest_time(case_dir)
     if latest is None:
         raise RuntimeError(f"simpleFoam wrote no time directory > 0 in {case_dir}")
@@ -689,8 +714,9 @@ def solve_ogrid(
     return OGridResult(
         u=U[:, 0], v=U[:, 1], p=p, nut=nut, centres=C,
         iterations=int(info["iterations"]), converged=bool(info["converged"]),
-        wall_time=wall, execution_time=float(info["execution_time"]),
+        wall_time=float(info.get("wall_time", float("nan"))),
+        execution_time=float(info["execution_time"]),
         start=start, case_dir=case_dir, residuals=info["residuals"],
-        meta={"time_dir": latest, "mesh": mesh_report, "warm_start": seed,
-              "n_cells": int(len(p)), "spec": spec.__dict__},
+        meta={"time_dir": latest, "mesh": mesh_report or {}, "warm_start": seed or {},
+              "n_cells": int(len(p)), "spec": spec.__dict__, "reused": reused},
     )

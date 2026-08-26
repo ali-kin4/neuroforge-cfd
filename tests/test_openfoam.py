@@ -525,3 +525,59 @@ def test_solve_case_end_to_end(tmp_path, small_case):
     # Solid cells are outside the mesh and stay at the scatter fill value.
     assert np.all(np.isfinite(res.field.u))
     assert res.meta["fluid_cells"] < small_case.domain.nx * small_case.domain.ny
+
+
+# --------------------------------------------------------------------------- #
+# Crash recovery
+# --------------------------------------------------------------------------- #
+
+
+def _fake_case(root, *, log_tail="End\n", time_dir="100"):
+    os.makedirs(os.path.join(root, time_dir), exist_ok=True)
+    open(os.path.join(root, time_dir, "U"), "w").close()
+    with open(os.path.join(root, "log.simpleFoam"), "w", encoding="utf-8") as fh:
+        fh.write(_LOG.replace("End\n", "") + log_tail)
+    return root
+
+
+def test_completed_run_reads_a_finished_solve(tmp_path):
+    info = of.completed_run(_fake_case(str(tmp_path / "a")))
+    assert info is not None
+    assert info["reused"] is True
+    assert info["iterations"] == 2
+
+
+def test_completed_run_rejects_a_truncated_log(tmp_path):
+    """A machine that lost power mid-solve leaves a log with no End marker."""
+    assert of.completed_run(_fake_case(str(tmp_path / "b"), log_tail="Time = 3\n")) is None
+
+
+def test_completed_run_rejects_a_case_with_no_written_step(tmp_path):
+    root = str(tmp_path / "c")
+    os.makedirs(os.path.join(root, "0"), exist_ok=True)
+    open(os.path.join(root, "0", "U"), "w").close()
+    with open(os.path.join(root, "log.simpleFoam"), "w", encoding="utf-8") as fh:
+        fh.write(_LOG)
+    assert of.completed_run(root) is None
+
+
+def test_completed_run_rejects_an_unconverged_run_that_stopped_short(tmp_path):
+    """Never mix budgets when resuming: 2 iterations cannot stand in for 500."""
+    root = str(tmp_path / "d")
+    os.makedirs(os.path.join(root, "100"), exist_ok=True)
+    open(os.path.join(root, "100", "U"), "w").close()
+    short = _LOG.replace("SIMPLE solution converged in 2 iterations", "")
+    with open(os.path.join(root, "log.simpleFoam"), "w", encoding="utf-8") as fh:
+        fh.write(short)
+    assert of.completed_run(root, n_iter=2) is not None
+    assert of.completed_run(root, n_iter=500) is None
+
+
+def test_completed_run_keeps_a_converged_short_run(tmp_path):
+    """Converged before the cap is complete, however short."""
+    root = _fake_case(str(tmp_path / "e"))
+    assert of.completed_run(root, n_iter=10_000) is not None
+
+
+def test_completed_run_on_a_missing_case(tmp_path):
+    assert of.completed_run(str(tmp_path / "nope")) is None

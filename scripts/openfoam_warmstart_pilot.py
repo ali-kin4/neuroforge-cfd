@@ -77,6 +77,24 @@ def main(argv: list[str] | None = None) -> int:
         for aoa in AOAS
     ]
 
+    out_path = os.path.abspath(args.out)
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+
+    def checkpoint(rows, summary=None):
+        """Write results after every case, atomically.
+
+        The machine this runs on loses power without warning. Writing only at the
+        end would discard every finished case; the temp-file rename means a cut
+        mid-write cannot corrupt the file either. The solves themselves resume
+        from ``runs/`` via :func:`openfoam.completed_run`, so a restart re-reads
+        finished cases rather than re-solving them.
+        """
+        tmp = out_path + ".tmp"
+        with open(tmp, "w", encoding="utf-8", newline="\n") as fh:
+            json.dump({"summary": summary or {"status": "in-progress"},
+                       "rows": rows}, fh, indent=2)
+        os.replace(tmp, out_path)
+
     def solve(case, initial, tag):
         return of.solve_case(
             case, initial=initial, n_iter=args.n_iter, timeout=args.timeout,
@@ -136,6 +154,7 @@ def main(argv: list[str] | None = None) -> int:
             row[f"oracle_it@{key}"] = oracle.iterations_to(t)
             row[f"neighbour_it@{key}"] = neigh.iterations_to(t)
         rows.append(row)
+        checkpoint(rows)
 
         t0 = ladder[-1]
         k0 = f"{t0:.0e}"
@@ -165,9 +184,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\nthreshold {key}: oracle saves {100 * o_mean:5.1f}% (n={o_n}), "
               f"neighbour saves {100 * n_mean:5.1f}% (n={n_n})")
 
-    os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
-    with open(args.out, "w", encoding="utf-8", newline="\n") as fh:
-        json.dump({"summary": summary, "rows": rows}, fh, indent=2)
+    checkpoint(rows, summary)
     print(f"\nwrote {args.out}")
 
     worst = summary["per_threshold"][f"{ladder[-1]:.0e}"]["oracle_mean_saving"]

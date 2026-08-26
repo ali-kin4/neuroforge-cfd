@@ -68,6 +68,7 @@ __all__ = [
     "iterations_to_threshold",
     "residual_floor",
     "read_volfield",
+    "completed_run",
     "check_solid_region",
     "solve_case",
 ]
@@ -998,6 +999,7 @@ def solve_case(
     tol_u: float = 1e-6,
     distro: str | None = None,
     timeout: float = 7200.0,
+    reuse: bool = True,
 ) -> OpenFOAMResult:
     """Solve ``case`` with ``simpleFoam``, optionally warm-started.
 
@@ -1017,9 +1019,13 @@ def solve_case(
         case_dir = os.path.join("runs", "openfoam", f"{safe}_{start}")
     case_dir = os.path.abspath(case_dir)
 
-    write_case(case, case_dir, initial=initial, n_iter=n_iter, tol_p=tol_p, tol_u=tol_u)
-    mesh_case(case_dir, distro=distro, timeout=timeout)
-    info = run_simple_foam(case_dir, distro=distro, timeout=timeout)
+    # Resume: a solve writes its log and fields to disk as it goes, so a run cut
+    # short by a power failure leaves every finished case recoverable.
+    info = completed_run(case_dir, n_iter=n_iter) if reuse else None
+    if info is None:
+        write_case(case, case_dir, initial=initial, n_iter=n_iter, tol_p=tol_p, tol_u=tol_u)
+        mesh_case(case_dir, distro=distro, timeout=timeout)
+        info = run_simple_foam(case_dir, distro=distro, timeout=timeout)
 
     # Map the result back onto the NeuroForge grid using the marker field.
     cell_ids = read_volfield(os.path.join(case_dir, "0", "cellId")).astype(np.int64)
@@ -1056,7 +1062,7 @@ def solve_case(
         field=field,
         iterations=int(info["iterations"]),
         converged=bool(info["converged"]),
-        wall_time=float(info["wall_time"]),
+        wall_time=float(info.get("wall_time", float("nan"))),
         execution_time=float(info["execution_time"]),
         start=start,
         case_dir=case_dir,
@@ -1066,5 +1072,6 @@ def solve_case(
             "final_residual": info["final_residual"],
             "time_dir": latest,
             "fluid_cells": int(cell_ids.size),
+            "reused": bool(info.get("reused", False)),
         },
     )

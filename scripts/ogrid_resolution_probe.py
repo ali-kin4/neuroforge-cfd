@@ -68,6 +68,24 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     warnings.simplefilter("ignore")
 
+    out_path = os.path.abspath(args.out)
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+
+    def checkpoint(rows, summary=None):
+        """Write results after every case, atomically.
+
+        The machine this runs on loses power without warning, and a Re-3e6 case
+        is minutes. Writing only at the end would throw away everything finished
+        so far; the temp-file rename means a cut mid-write cannot corrupt the
+        file either. Solves themselves resume from `runs/` via
+        `openfoam.completed_run`, so a restart re-reads rather than re-solves.
+        """
+        tmp = out_path + ".tmp"
+        with open(tmp, "w", encoding="utf-8", newline="\n") as fh:
+            json.dump({"summary": summary or {"status": "in-progress"},
+                       "rows": rows}, fh, indent=2)
+        os.replace(tmp, out_path)
+
     rows = []
     for code, aoa in CASES:
         case = FlowCase.from_airfoil(airfoil=code, aoa=aoa, reynolds=args.re,
@@ -117,6 +135,7 @@ def main(argv: list[str] | None = None) -> int:
         row["oracle_mesh_exec_s"] = oracle.execution_time
         row["oracle_128_exec_s"] = coarse.execution_time
         rows.append(row)
+        checkpoint(rows)
 
         for t in (1e-2, 1e-3, 1e-4):
             k = f"{t:.0e}"
@@ -142,9 +161,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\nthreshold {k}: oracle_mesh saves {100 * m:5.1f}% (n={mn}), "
               f"oracle_128 saves {100 * c:5.1f}% (n={cn})")
 
-    os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
-    with open(args.out, "w", encoding="utf-8", newline="\n") as fh:
-        json.dump({"summary": summary, "rows": rows}, fh, indent=2)
+    checkpoint(rows, summary)
     print(f"\nwrote {args.out}")
 
     ctrl = summary["per_threshold"]["1e-03"]["oracle_mesh_saving"]
