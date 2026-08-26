@@ -313,6 +313,52 @@ Tests: `tests/test_cgrid.py` (40, no OpenFOAM required).
 mesh, but the barrier measured there is the *surrogate's* 128^2 resolution, which
 is independent of the mesh the solver uses.
 
+### The hybrid seed does not rescue it either (2026-08-26)
+
+`scripts/hybrid_seed_probe.py`, 3 cases at Re 3e6 on the C-grid, 800-iteration
+budget, four arms on one mesh. Option 1 above -- keep the prediction outside the
+boundary layer, rebuild it inside -- was the cheapest route to a positive result.
+It fails.
+
+| threshold | oracle_mesh (control) | 128 plain | **128 + rebuilt layer** |
+|-----------|----------------------:|----------:|------------------------:|
+| 1e-2 | **+90.2%** | -17.2% | **-11.1%** |
+| 1e-3 | **+73.1%** | -18.5% | **-31.5%** |
+| 1e-4 | **+68.5%** | -306.4% | **-149.9%** (n=2) |
+
+The control passes decisively again (36 -> 9 iterations at 1e-3), so the
+measurement stands. The rebuild moves the number around -- it is *better* than
+plain deep in convergence (-150% vs -306% at 1e-4) and *worse* at 1e-3 -- but at
+no threshold does it beat a cold start. `solver.warmstart.hybrid_seed` rebuilt
+31.5% of the cells, using delta = 0.0187 chord.
+
+**What this adds to the null result.** It was already known that the prediction's
+near-wall state is 3-4x wrong. What is new is that *fixing* it does not help: the
+reconstruction takes the first-cell velocity from ~7x too fast to ~2.6x too fast
+and buys nothing. So the iteration count at this Reynolds number is not set by
+the outer field at all -- a perfect outer field is not a head start, because the
+work SIMPLE does is establishing the near-wall momentum and turbulence state
+together, and a partially-right layer that is inconsistent with the eddy-viscosity
+field is no easier to fix than a uniform one.
+
+**Honest limit of this evidence.** The reconstruction is a flat-plate 1/7-power
+profile with a linear `nut` ramp, not the true one; it is deliberately blunt
+inside the viscous sublayer (0.34 of freestream at 1e-5 chord where the solution
+measures 0.13). A more careful reconstruction -- Spalding's law with a proper SA
+`nut` profile -- might do better. This rules out the cheap version and gives
+strong evidence, not proof, that the outer field alone is insufficient.
+
+**Consequence: option 1 is closed.** What remains is option 2 (reframe to a
+Reynolds number whose layer the surrogate's grid resolves -- the Re 1e4 pilot
+measured 69.7%) or option 3 (change the output representation so the surrogate
+carries near-wall structure, which is Paper-3 scope against the frozen spec).
+
+Taken together the three experiments make a coherent negative result worth
+publishing: surrogate warm-starting of RANS fails at flight Reynolds numbers,
+it is not a training problem (the exact answer fails identically), not a
+projection artifact (mask-aware round-trip is identical), and not fixable by
+post-hoc boundary-layer reconstruction.
+
 ## Companion: reliability benchmark release
 Package the Paper-1 evaluation as a public harness ("submit AirfRANS predictions,
 receive an audit card": trust AUROC, risk–coverage, conformal coverage). No
