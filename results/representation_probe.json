@@ -1,0 +1,96 @@
+{
+  "summary": {
+    "re": 3000000.0,
+    "n_iter": 800,
+    "budget": 16384,
+    "mesh": "cgrid",
+    "per_threshold": {
+      "1e-02": {
+        "oracle_mesh_saving": 0.9023569023569024,
+        "oracle_mesh_n": 3,
+        "cartesian_128_saving": -0.17171717171717163,
+        "cartesian_128_n": 3,
+        "fitted_256x64_saving": -0.6363636363636364,
+        "fitted_256x64_n": 3
+      },
+      "1e-03": {
+        "oracle_mesh_saving": 0.7314814814814815,
+        "oracle_mesh_n": 3,
+        "cartesian_128_saving": -0.1851851851851852,
+        "cartesian_128_n": 3,
+        "fitted_256x64_saving": -0.4444444444444444,
+        "fitted_256x64_n": 3
+      },
+      "1e-04": {
+        "oracle_mesh_saving": 0.6846665878923943,
+        "oracle_mesh_n": 3,
+        "cartesian_128_saving": -3.0635019102761043,
+        "cartesian_128_n": 3,
+        "fitted_256x64_saving": -0.49503722084367247,
+        "fitted_256x64_n": 3
+      }
+    }
+  },
+  "rows": [
+    {
+      "case": "naca0012_aoa4",
+      "re": 3000000.0,
+      "budget": 16384,
+      "cartesian_covered": 0.6946372239747634,
+      "fitted_covered": 0.6765930599369085,
+      "cold_floor": 1.2766356135e-05,
+      "cold@1e-02": 11,
+      "oracle_mesh@1e-02": 1,
+      "cartesian_128@1e-02": 12,
+      "fitted_256x64@1e-02": 15,
+      "cold@1e-03": 36,
+      "oracle_mesh@1e-03": 9,
+      "cartesian_128@1e-03": 42,
+      "fitted_256x64@1e-03": 51,
+      "cold@1e-04": 84,
+      "oracle_mesh@1e-04": 26,
+      "cartesian_128@1e-04": 179,
+      "fitted_256x64@1e-04": 126
+    },
+    {
+      "case": "naca2412_aoa2",
+      "re": 3000000.0,
+      "budget": 16384,
+      "cartesian_covered": 0.6946372239747634,
+      "fitted_covered": 0.6765930599369085,
+      "cold_floor": 2.347450116e-05,
+      "cold@1e-02": 9,
+      "oracle_mesh@1e-02": 1,
+      "cartesian_128@1e-02": 12,
+      "fitted_256x64@1e-02": 18,
+      "cold@1e-03": 36,
+      "oracle_mesh@1e-03": 11,
+      "cartesian_128@1e-03": 45,
+      "fitted_256x64@1e-03": 57,
+      "cold@1e-04": 93,
+      "oracle_mesh@1e-04": 27,
+      "cartesian_128@1e-04": 771,
+      "fitted_256x64@1e-04": 156
+    },
+    {
+      "case": "naca0015_aoa6",
+      "re": 3000000.0,
+      "budget": 16384,
+      "cartesian_covered": 0.6944479495268139,
+      "fitted_covered": 0.6767192429022082,
+      "cold_floor": 1.1643281725e-05,
+      "cold@1e-02": 11,
+      "oracle_mesh@1e-02": 1,
+      "cartesian_128@1e-02": 12,
+      "fitted_256x64@1e-02": 17,
+      "cold@1e-03": 36,
+      "oracle_mesh@1e-03": 9,
+      "cartesian_128@1e-03": 41,
+      "fitted_256x64@1e-03": 48,
+      "cold@1e-04": 78,
+      "oracle_mesh@1e-04": 27,
+      "cartesian_128@1e-04": 138,
+      "fitted_256x64@1e-04": 102
+    }
+  ]
+}

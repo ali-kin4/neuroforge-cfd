@@ -464,6 +464,52 @@ That leaves exactly two honest routes, both already stated:
   is the only route to flight Reynolds, and it breaks the frozen 7-in/4-out spec,
   so it is Paper-3 scope.
 
+### Representation does not rescue it either — and that reveals the real shape
+
+`scripts/representation_probe.py`, Re 3e6, 3 cases, four arms on one C-grid. The
+two surrogate arms carry **exactly the same number of output values** (16,384):
+a 128x128 uniform Cartesian grid, first station 0.0118 chord from the wall, and a
+256x64 wall-fitted (arclength, wall-distance) grid, first station 2.5e-4 chord --
+94x finer at the wall for identical capacity. Projections matched (nearest
+neighbour onto the grid, linear back), and coverage matched too: 69.5% vs 67.7%
+of mesh cells, so the comparison is like for like.
+
+| threshold | oracle_mesh (control) | uniform 128² | **wall-fitted 256×64** |
+|-----------|----------------------:|-------------:|-----------------------:|
+| 1e-2 | +90.2% | -17.2% | **-63.6%** |
+| 1e-3 | +73.1% | -18.5% | **-44.4%** |
+| 1e-4 | +68.5% | -306.4% | **-49.5%** |
+
+The wall-fitted representation does **not** rescue it. It is worse early and
+better late -- at 1e-4 it is -49.5% against the uniform grid's -306.4%, so it
+plainly carries more usable near-wall information -- but at no threshold does it
+beat a cold start. Capacity and point placement are now ruled out alongside
+resolution.
+
+**What the five experiments together actually show.** The exact field at mesh
+resolution warm-starts superbly (+68% to +90%, control, every case). *Every*
+degradation of that same field fails at Re 3e6 -- uniform grid, finer uniform
+grid, boundary-layer reconstruction, wall-fitted grid. There is no gradual
+falloff with approximation quality: it is a **cliff**. And the cliff is
+Reynolds-dependent -- at Re 1e3 the *same* 128² degradation gives +58%.
+
+That points somewhere more specific than "resolution": what SIMPLE can exploit is
+not an accurate field but a **self-consistent** one -- momentum, pressure and
+eddy viscosity in mutual balance. An approximate field is an inconsistent state,
+and at high Reynolds the cost of repairing the inconsistency exceeds the head
+start it offers. At low Reynolds the repair is cheap, so approximation is
+tolerated. That reading also explains the hybrid-seed result, where making the
+velocity profile *more* correct while leaving `nut` unchanged made things worse.
+
+**The one untested route, and it is in-house.** If inconsistency is the barrier
+rather than inaccuracy, the fix is to make the seed self-consistent before
+handing it over -- which is exactly what Paper 1's Neural Residual Iteration does,
+with its monotone-residual acceptance test. Running the correction loop on the
+prediction and *then* seeding OpenFOAM has never been tried, and it is the only
+remaining idea that attacks the mechanism the data actually points at rather than
+the one that seemed obvious. It is a hypothesis, not a result; the four before it
+each looked equally plausible and failed.
+
 ## Companion: reliability benchmark release
 Package the Paper-1 evaluation as a public harness ("submit AirfRANS predictions,
 receive an audit card": trust AUROC, risk–coverage, conformal coverage). No
