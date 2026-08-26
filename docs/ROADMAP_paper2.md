@@ -179,6 +179,66 @@ cell -- needs no `edges` entries at all, and is verified directly in numpy by
 
 Tests: `tests/test_ogrid.py` (41, no OpenFOAM required).
 
+### NULL RESULT: a 128^2 surrogate cannot warm-start a Re-3e6 solve (2026-08-26)
+
+`scripts/ogrid_resolution_probe.py`, 3 cases at Re 3e6 on the O-grid, 800-iteration
+budget. Three arms, identical mesh and schemes:
+
+| threshold | oracle_mesh (exact) | oracle_128 (same field, via 128^2) |
+|-----------|--------------------:|-----------------------------------:|
+| 1e-2 | **+93.4%** | **-13.2%** |
+| 1e-3 | **+81.9%** | **+3.8%** |
+| 1e-4 | **+76.7%** | **-17.2%** |
+
+`oracle_mesh` is the control and it passes decisively: warm-starting from the
+case's own converged field at mesh resolution collapses the solve (14 -> 1
+iterations at 1e-2). So the measurement is sound.
+
+`oracle_128` is the *same field*, projected onto the 128^2 Cartesian grid and
+interpolated back. Nothing changed but the resolution -- and the saving vanishes,
+sometimes going negative. **This is not a training problem.** It was the exact
+answer; no surrogate trained on that grid can do better.
+
+**Mechanism** (`results/ogrid_resolution_bands.json`): velocity error of the
+round-tripped field, binned by distance from the wall (naca0012, aoa 4):
+
+| wall distance | cells | mean \|U\| | rel. error |
+|---------------|------:|-----------:|-----------:|
+| 0 - 1e-4      | 18    | 0.131 | **440%** |
+| 1e-4 - 1e-3   | 417   | 0.162 | **352%** |
+| 1e-3 - 1e-2   | 9365  | 0.657 | **44%** |
+| 1e-2 - 0.019  | 1536  | 0.993 | 15% |
+| 0.019 - 0.1   | 3991  | 1.018 | 1% |
+| > 0.1         | 8673  | 0.999 | ~0% |
+
+The outer field survives the round-trip essentially intact. The boundary layer
+does not: at Re 3e6 it is ~0.019 chord thick while the 128^2 grid on the 3-chord
+crop spans 0.0236 chord per cell, so **the entire boundary layer is 0.80
+surrogate cells thick** -- sub-cell -- and the O-grid resolves it with a first
+cell at 1e-5 chord. The surrogate therefore hands SIMPLE a near-wall state that
+is 3-4x wrong precisely where the iterations are spent, while being perfect where
+they are not. Being *wrong* near the wall is worse than being uniform: the solver
+must first undo it, which is why two of the three thresholds go negative.
+
+**Consequences for the Paper-2 plan.** Item 5's claim ("warm-starting from the
+surrogate saves Z% iterations") does not hold at AirfRANS Reynolds with a
+Cartesian-grid surrogate, and no amount of training changes that. Three honest
+options, in order of cost:
+
+1. **Hybrid seed** (cheap, untested): use the surrogate outside the boundary
+   layer and a wall-consistent profile inside it. The band table says the outer
+   field is essentially exact, so this is the variant most likely to convert the
+   null into a result.
+2. **Reframe to a regime where it does work.** The Re-1e4 pilot measured 69.7%
+   saving from a neighbouring-case start; the claim survives at moderate
+   Reynolds, where the boundary layer is resolved by the surrogate's grid.
+3. **Change the surrogate's output representation** so it carries near-wall
+   structure (wall-normal coordinates, or predicting on the solver mesh). This is
+   a Paper-3-sized change to the frozen 7-in/4-out spec.
+
+Either way this is a publishable negative result about surrogate-warm-started
+CFD, and it was obtained *before* training anything.
+
 ## Companion: reliability benchmark release
 Package the Paper-1 evaluation as a public harness ("submit AirfRANS predictions,
 receive an audit card": trust AUROC, risk–coverage, conformal coverage). No

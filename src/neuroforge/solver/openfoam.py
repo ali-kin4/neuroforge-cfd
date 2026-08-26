@@ -902,6 +902,38 @@ def residual_floor(
 # --------------------------------------------------------------------------- #
 
 
+def completed_run(case_dir: str, *, n_iter: int | None = None) -> dict | None:
+    """Parsed log of an already-finished solve in ``case_dir``, or ``None``.
+
+    A solve writes ``log.simpleFoam`` and its time directories to disk as it
+    goes, so a run interrupted by a power cut leaves everything except the
+    in-flight case recoverable. This reads that back so an experiment can resume
+    instead of re-solving, and so results can be reconstructed from a
+    ``runs/`` tree alone.
+
+    A run counts as complete only if the log ends with OpenFOAM's ``End`` marker
+    *and* a time directory greater than zero holds a ``U`` field -- a truncated
+    log from a machine that lost power does not qualify. When ``n_iter`` is
+    given, a run that stopped short of it is rejected too, so a resumed
+    experiment never mixes budgets.
+    """
+    log = os.path.join(case_dir, "log.simpleFoam")
+    if not os.path.isfile(log):
+        return None
+    with open(log, encoding="utf-8", errors="replace") as fh:
+        text = fh.read()
+    if not text.rstrip().endswith("End"):
+        return None
+    if _latest_time(case_dir) is None:
+        return None
+    info = parse_simple_foam_log(text)
+    if n_iter is not None and not info["converged"] and info["iterations"] < n_iter:
+        return None
+    info["wall_time"] = float("nan")  # not recoverable from the log
+    info["reused"] = True
+    return info
+
+
 def mesh_case(case_dir: str, *, distro: str | None = None, timeout: float = 1800.0) -> None:
     """Build the mesh: ``blockMesh`` -> ``topoSet`` -> ``subsetMesh``.
 
