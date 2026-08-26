@@ -581,3 +581,20 @@ def test_completed_run_keeps_a_converged_short_run(tmp_path):
 
 def test_completed_run_on_a_missing_case(tmp_path):
     assert of.completed_run(str(tmp_path / "nope")) is None
+
+
+def test_completed_run_rejects_the_other_arm(tmp_path):
+    """One directory reused across arms must not hand back the wrong result."""
+    import json as _json
+
+    root = _fake_case(str(tmp_path / "f"))
+    with open(os.path.join(root, "neuroforge.json"), "w", encoding="utf-8") as fh:
+        _json.dump({"start": "cold"}, fh)
+    assert of.completed_run(root, start="cold") is not None
+    assert of.completed_run(root, start="warm") is None
+
+
+def test_completed_run_without_metadata_is_rejected_when_an_arm_is_required(tmp_path):
+    root = _fake_case(str(tmp_path / "g"))
+    assert of.completed_run(root) is not None          # no arm requested: fine
+    assert of.completed_run(root, start="cold") is None  # cannot prove the arm

@@ -184,5 +184,44 @@
         }
       ]
     }
-  ]
+  ],
+  "masking_control": {
+    "question": "Is the near-wall error a resolution limit, or an artifact of interpolating across the wall (to_grid returns no mask)?",
+    "method": "Same exact->128^2->mesh round trip, but solid grid points refilled from the nearest FLUID grid point so the interpolation never blends across the body boundary. naca0012 aoa4, Re 3e6.",
+    "grid_points_inside_body": 144,
+    "grid_points_total": 16384,
+    "bands": [
+      {
+        "lo": 0.0,
+        "hi": 0.0001,
+        "naive_rel": 4.4,
+        "masked_rel": 4.4
+      },
+      {
+        "lo": 0.0001,
+        "hi": 0.001,
+        "naive_rel": 3.52,
+        "masked_rel": 3.52
+      },
+      {
+        "lo": 0.001,
+        "hi": 0.01,
+        "naive_rel": 0.44,
+        "masked_rel": 0.48
+      },
+      {
+        "lo": 0.01,
+        "hi": 0.019,
+        "naive_rel": 0.15,
+        "masked_rel": 0.07
+      },
+      {
+        "lo": 0.019,
+        "hi": 0.1,
+        "naive_rel": 0.01,
+        "masked_rel": 0.01
+      }
+    ],
+    "verdict": "Identical in the two near-wall bands. The null result is a resolution limit, not a projection artifact."
+  }
 }

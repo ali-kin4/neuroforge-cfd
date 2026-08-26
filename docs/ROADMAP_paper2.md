@@ -213,12 +213,20 @@ round-tripped field, binned by distance from the wall (naca0012, aoa 4):
 
 The outer field survives the round-trip essentially intact. The boundary layer
 does not: at Re 3e6 it is ~0.019 chord thick while the 128^2 grid on the 3-chord
-crop spans 0.0236 chord per cell, so **the entire boundary layer is 0.80
-surrogate cells thick** -- sub-cell -- and the O-grid resolves it with a first
-cell at 1e-5 chord. The surrogate therefore hands SIMPLE a near-wall state that
+crop spans 0.0236 chord per cell, so **the entire boundary layer is thinner
+than a single surrogate cell** -- and a single cell cannot represent a 0-to-1
+profile at all, so this is not marginal. The O-grid resolves the same layer with
+a first cell at 1e-5 chord. The surrogate therefore hands SIMPLE a near-wall state that
 is 3-4x wrong precisely where the iterations are spent, while being perfect where
 they are not. Being *wrong* near the wall is worse than being uniform: the solver
 must first undo it, which is why two of the three thresholds go negative.
+
+**Control: this is resolution, not a projection artifact.** `to_grid` returns no
+mask, so the interpolation back onto the mesh can blend across the body boundary.
+Re-running the round trip with solid grid points refilled from the nearest
+*fluid* point -- so the wall is never crossed -- leaves the two near-wall bands
+**identical** (440% and 352%); only 144 of 16384 grid points fall inside the
+body, so masking is a wash. Recorded in `results/ogrid_resolution_bands.json`.
 
 **Consequences for the Paper-2 plan.** Item 5's claim ("warm-starting from the
 surrogate saves Z% iterations") does not hold at AirfRANS Reynolds with a

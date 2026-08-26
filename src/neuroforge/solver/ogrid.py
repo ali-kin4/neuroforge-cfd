@@ -647,7 +647,7 @@ def solve_ogrid(
     # short by a power failure leaves every finished case recoverable. Re-reading
     # one costs milliseconds against minutes to re-solve.
     if reuse:
-        done = of.completed_run(case_dir, n_iter=n_iter)
+        done = of.completed_run(case_dir, n_iter=n_iter, start=start)
         if done is not None:
             return _read_result(case_dir, done, start, spec, distro, reused=True)
 
@@ -676,6 +676,17 @@ def solve_ogrid(
             nut_freestream=of.NUTILDA_FREESTREAM_RATIO * float(case.fluid.kinematic_viscosity),
             u_inf=u_inf, v_inf=v_inf, distro=distro,
         )
+
+    # Stamp the arm into the case metadata so `completed_run(start=...)` can
+    # refuse to hand a cold result back to a warm arm on resume.
+    _meta_path = os.path.join(case_dir, "neuroforge.json")
+    import json as _json
+
+    with open(_meta_path, encoding="utf-8") as _fh:
+        _meta = _json.load(_fh)
+    _meta["start"] = start
+    _meta["warm_start"] = seed
+    of._write(_meta_path, _json.dumps(_meta, indent=2, default=str) + "\n")
 
     t0 = _time.perf_counter()
     proc = of.run_openfoam("simpleFoam", case_dir, distro=distro, timeout=timeout,

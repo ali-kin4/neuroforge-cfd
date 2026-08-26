@@ -903,7 +903,9 @@ def residual_floor(
 # --------------------------------------------------------------------------- #
 
 
-def completed_run(case_dir: str, *, n_iter: int | None = None) -> dict | None:
+def completed_run(
+    case_dir: str, *, n_iter: int | None = None, start: str | None = None
+) -> dict | None:
     """Parsed log of an already-finished solve in ``case_dir``, or ``None``.
 
     A solve writes ``log.simpleFoam`` and its time directories to disk as it
@@ -916,11 +918,22 @@ def completed_run(case_dir: str, *, n_iter: int | None = None) -> dict | None:
     *and* a time directory greater than zero holds a ``U`` field -- a truncated
     log from a machine that lost power does not qualify. When ``n_iter`` is
     given, a run that stopped short of it is rejected too, so a resumed
-    experiment never mixes budgets.
+    experiment never mixes budgets; when ``start`` is given ('cold' / 'warm'),
+    a directory holding the *other* arm is rejected, so reusing one directory
+    across arms cannot silently return the wrong result.
     """
     log = os.path.join(case_dir, "log.simpleFoam")
     if not os.path.isfile(log):
         return None
+    if start is not None:
+        meta = os.path.join(case_dir, "neuroforge.json")
+        if not os.path.isfile(meta):
+            return None
+        import json as _json
+
+        with open(meta, encoding="utf-8") as fh:
+            if _json.load(fh).get("start") != start:
+                return None
     with open(log, encoding="utf-8", errors="replace") as fh:
         text = fh.read()
     if not text.rstrip().endswith("End"):
@@ -1021,7 +1034,7 @@ def solve_case(
 
     # Resume: a solve writes its log and fields to disk as it goes, so a run cut
     # short by a power failure leaves every finished case recoverable.
-    info = completed_run(case_dir, n_iter=n_iter) if reuse else None
+    info = completed_run(case_dir, n_iter=n_iter, start=start) if reuse else None
     if info is None:
         write_case(case, case_dir, initial=initial, n_iter=n_iter, tol_p=tol_p, tol_u=tol_u)
         mesh_case(case_dir, distro=distro, timeout=timeout)

@@ -111,26 +111,13 @@ def main(argv: list[str] | None = None) -> int:
         coarse = run("oracle_128", initial=degraded)
         cover = coarse.meta["warm_start"].get("covered_fraction", float("nan"))
 
-        # How much the round-trip actually destroyed, measured on the mesh.
-        back = og.OGridResult(
-            u=cold.u, v=cold.v, p=cold.p, nut=cold.nut, centres=cold.centres,
-            iterations=0, converged=False, wall_time=0, execution_time=0,
-            start="x", case_dir="x",
-        ).to_grid(case.domain)
-        roundtrip_err = float(
-            np.abs(np.asarray(back.u) - np.asarray(degraded.u)).max()
-        )
-
         row = {"case": tag, "re": args.re, "covered_fraction": cover,
-               "roundtrip_linf": roundtrip_err,
                "cold_floor": cold.residual_floor}
         for t in (1e-2, 1e-3, 1e-4):
             k = f"{t:.0e}"
             row[f"cold@{k}"] = cold.iterations_to(t)
             row[f"oracle_mesh@{k}"] = oracle.iterations_to(t)
             row[f"oracle_128@{k}"] = coarse.iterations_to(t)
-        for k in ("cold", "oracle_mesh", "oracle_128"):
-            pass
         row["cold_exec_s"] = cold.execution_time
         row["oracle_mesh_exec_s"] = oracle.execution_time
         row["oracle_128_exec_s"] = coarse.execution_time
