@@ -277,18 +277,31 @@ def run_openfoam(
     """Run ``command`` with the OpenFOAM environment sourced, inside ``case_dir``.
 
     ``case_dir`` is a host path and is translated to WSL form. When ``log_name``
-    is given the combined output is also written to ``<case_dir>/<log_name>``.
+    is given, output is redirected to ``<case_dir>/<log_name>`` **inside WSL** so
+    the file grows while the solver runs, rather than being written in one go at
+    the end. That is what lets a progress monitor read residuals from a solve in
+    flight, and it means a run cut short by a power failure leaves a partial log
+    instead of none. The text is read back afterwards so callers still receive it
+    on ``.stdout``.
     """
     env = require_openfoam(distro)
     wsl_case = to_wsl_path(os.path.abspath(case_dir))
-    script = _shell_prefix(env) + f'cd "{wsl_case}" || exit 3; ' + command
+    redirect = f' > "{log_name}" 2>&1' if log_name else ""
+    script = _shell_prefix(env) + f'cd "{wsl_case}" || exit 3; ' + command + redirect
     proc = _run_bash(env, script, timeout=timeout)
+
     if log_name:
-        with open(os.path.join(case_dir, log_name), "w", encoding="utf-8", newline="\n") as fh:
-            fh.write(proc.stdout or "")
-            if proc.stderr:
-                fh.write("\n--- stderr ---\n")
-                fh.write(proc.stderr)
+        path = os.path.join(case_dir, log_name)
+        text = ""
+        if os.path.isfile(path):
+            with open(path, encoding="utf-8", errors="replace") as fh:
+                text = fh.read()
+        if proc.stderr:  # anything the redirect did not catch (e.g. the shell itself)
+            with open(path, "a", encoding="utf-8", newline="\n") as fh:
+                fh.write("\n--- stderr ---\n" + proc.stderr)
+            text += "\n--- stderr ---\n" + proc.stderr
+        proc = subprocess.CompletedProcess(proc.args, proc.returncode, text, proc.stderr)
+
     if check and proc.returncode != 0:
         tail = "\n".join((proc.stdout or "").splitlines()[-25:])
         raise RuntimeError(

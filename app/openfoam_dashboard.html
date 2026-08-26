@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuroForge · OpenFOAM live</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-0: #f4f3f0;
+    --surface-1: #fcfcfb;
+    --surface-2: #efeeea;
+    --line:      #e2e0da;
+    --line-2:    #cfcdc5;
+    --ink:       #0b0b0b;
+    --ink-2:     #52514e;
+    --ink-3:     #85837c;
+    --s1: #2a78d6;  --s2: #eb6834;  --s3: #1baf7a;  --s4: #eda100;
+    --good: #1baf7a; --warn: #eda100; --bad: #d92c2c; --idle: #9c9a92;
+    --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.05);
+    --radius: 14px;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --surface-0: #121211; --surface-1: #1a1a19; --surface-2: #232322;
+      --line: #2e2e2c; --line-2: #3d3d3a;
+      --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8b8a82;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+      --good: #199e70; --warn: #c98500; --bad: #e0504f; --idle: #6b6a64;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-0: #121211; --surface-1: #1a1a19; --surface-2: #232322;
+    --line: #2e2e2c; --line-2: #3d3d3a;
+    --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8b8a82;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --good: #199e70; --warn: #c98500; --bad: #e0504f; --idle: #6b6a64;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--surface-0); color: var(--ink);
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 14px 22px; background: color-mix(in srgb, var(--surface-1) 88%, transparent);
+    backdrop-filter: blur(12px); border-bottom: 1px solid var(--line);
+  }
+  h1 { font-size: 15px; margin: 0; letter-spacing: -.01em; font-weight: 650; }
+  h1 span { color: var(--ink-3); font-weight: 450; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 4px 11px 4px 9px; border-radius: 999px; font-size: 12px; font-weight: 600;
+    background: var(--surface-2); border: 1px solid var(--line-2); color: var(--ink-2);
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--idle); }
+  .pill.live { color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, var(--line-2)); }
+  .pill.live .dot { background: var(--good); animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; transform:scale(1);} 50% { opacity:.35; transform:scale(.75);} }
+  @media (prefers-reduced-motion: reduce) { .pill.live .dot { animation: none; } }
+  .spacer { flex: 1; }
+  button {
+    font: inherit; font-size: 12px; font-weight: 600; color: var(--ink-2);
+    background: var(--surface-2); border: 1px solid var(--line-2);
+    border-radius: 9px; padding: 6px 12px; cursor: pointer;
+  }
+  button:hover { color: var(--ink); border-color: var(--ink-3); }
+
+  main { padding: 20px 22px 40px; display: grid; gap: 16px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .card {
+    background: var(--surface-1); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  .kpi { padding: 14px 16px; }
+  .kpi .label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-weight: 650; }
+  .kpi .value { font-size: 26px; font-weight: 680; letter-spacing: -.02em; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .kpi .value small { font-size: 13px; color: var(--ink-3); font-weight: 500; }
+
+  .grid { display: grid; grid-template-columns: minmax(280px, 340px) minmax(0, 1fr) minmax(260px, 330px); gap: 16px; align-items: start; }
+  @media (max-width: 1250px) { .grid { grid-template-columns: 1fr; } }
+  /* Grid items default to min-width:auto, so a wide child (the chart's SVG, a
+     long run name) pushes the whole row past the viewport instead of shrinking. */
+  .grid > *, .kpis > *, main { min-width: 0; }
+  .card { min-width: 0; overflow: hidden; }
+  .panel-head { padding: 14px 16px 10px; border-bottom: 1px solid var(--line); }
+  .panel-head h2 { margin: 0; font-size: 13px; font-weight: 650; letter-spacing: -.005em; }
+  .panel-head p { margin: 3px 0 0; font-size: 11.5px; color: var(--ink-3); }
+
+  .runs { max-height: 620px; overflow-y: auto; }
+  .run {
+    display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--line);
+    background: transparent; padding: 11px 16px; cursor: pointer; border-radius: 0;
+  }
+  .run:hover { background: var(--surface-2); }
+  .run[aria-selected="true"] { background: color-mix(in srgb, var(--s1) 10%, transparent); box-shadow: inset 3px 0 0 var(--s1); }
+  .run .top { display: flex; align-items: center; gap: 8px; }
+  .run .nm { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .run .meta { margin-top: 3px; font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .chip { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+          padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+  .chip.solving { color: var(--s1); background: color-mix(in srgb, var(--s1) 14%, transparent); }
+  .chip.converged { color: var(--good); background: color-mix(in srgb, var(--good) 15%, transparent); }
+  .chip.done { color: var(--ink-2); background: var(--surface-2); }
+  .chip.failed { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); }
+  .chip.stale { color: var(--ink-3); background: var(--surface-2); }
+  .bar { height: 3px; border-radius: 2px; background: var(--line); margin-top: 7px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--s1); border-radius: 2px; transition: width .4s ease; }
+
+  .chartwrap { padding: 8px 12px 14px; position: relative; }
+  svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; padding: 2px 16px 14px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-2); font-weight: 600; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; }
+
+  #tip {
+    position: absolute; pointer-events: none; opacity: 0; transition: opacity .12s;
+    background: var(--surface-1); border: 1px solid var(--line-2); border-radius: 10px;
+    box-shadow: var(--shadow); padding: 9px 11px; font-size: 11.5px; min-width: 132px; z-index: 8;
+  }
+  #tip b { display: block; font-size: 11px; color: var(--ink-3); margin-bottom: 5px; font-weight: 650; }
+  #tip .row { display: flex; align-items: center; gap: 7px; justify-content: space-between; }
+  #tip .row em { font-style: normal; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; }
+  #tip .row code { font-family: var(--mono); font-size: 11px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em;
+       color: var(--ink-3); font-weight: 650; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: 0; }
+  td.pos { color: var(--good); font-weight: 650; }
+  td.neg { color: var(--bad); font-weight: 650; }
+  .facts { padding: 12px 16px 16px; display: grid; gap: 7px; }
+  .fact { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  .fact span:first-child { color: var(--ink-3); }
+  .fact span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .empty { padding: 30px 16px; text-align: center; color: var(--ink-3); font-size: 12.5px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>NeuroForge <span>· OpenFOAM live</span></h1>
+  <span class="pill" id="status"><i class="dot"></i><span id="statusText">connecting…</span></span>
+  <span class="pill" id="clock">—</span>
+  <div class="spacer"></div>
+  <button id="theme">theme</button>
+</header>
+
+<main>
+  <section class="kpis" id="kpis"></section>
+
+  <section class="grid">
+    <div class="card">
+      <div class="panel-head">
+        <h2>Runs</h2>
+        <p id="runsSub">—</p>
+      </div>
+      <div class="runs" id="runs"></div>
+    </div>
+
+    <div class="card">
+      <div class="panel-head">
+        <h2 id="chartTitle">Residuals</h2>
+        <p id="chartSub">pick a run</p>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div class="chartwrap">
+        <svg id="chart" viewBox="0 0 800 380" preserveAspectRatio="none" role="img"
+             aria-label="Residual history"></svg>
+        <div id="tip"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="panel-head"><h2>Mesh &amp; geometry</h2><p id="geomSub">C-grid near the section &mdash; full mesh in results/mesh_structure.png</p></div>
+      <div class="chartwrap"><svg id="geom" viewBox="0 0 400 300" role="img"
+           aria-label="Mesh wireframe around the section"></svg></div>
+      <div class="facts" id="facts"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="panel-head"><h2>Experiments</h2><p>iteration saving vs a cold start, by arm</p></div>
+    <div id="experiments"></div>
+  </section>
+</main>
+
+<script>
+const SERIES = [
+  { key: "Ux",      color: "var(--s1)" },
+  { key: "Uy",      color: "var(--s2)" },
+  { key: "p",       color: "var(--s3)" },
+  { key: "nuTilda", color: "var(--s4)" },
+];
+const NS = "http://www.w3.org/2000/svg";
+let DATA = null, selected = null, hoverX = null;
+
+const el = (id) => document.getElementById(id);
+const fmt = (n) => n == null ? "—" : n.toLocaleString();
+const sci = (v) => v == null ? "—" : Number(v).toExponential(1);
+
+document.getElementById("theme").onclick = () => {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const next = cur === "dark" ? "light" : cur === "light" ? null : "dark";
+  if (next) document.documentElement.setAttribute("data-theme", next);
+  else document.documentElement.removeAttribute("data-theme");
+  render();
+};
+
+function svgEl(tag, attrs) {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+}
+
+/* ── residual chart ───────────────────────────────────────────────────────── */
+function drawChart(run) {
+  const svg = el("chart");
+  svg.textContent = "";
+  const W = 800, H = 380, L = 62, R = 78, T = 14, B = 34;
+  const series = run ? SERIES.filter(s => (run.residuals[s.key] || []).length > 1) : [];
+  if (!series.length) {
+    el("chartSub").textContent = run ? "no residuals yet — the solver has not written a step"
+                                     : "pick a run";
+    el("legend").textContent = "";
+    return;
+  }
+  const n = Math.max(...series.map(s => run.residuals[s.key].length));
+  const its = run.iterations || n;
+  let lo = Infinity, hi = -Infinity;
+  for (const s of series) for (const v of run.residuals[s.key]) {
+    if (v > 0) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  }
+  lo = Math.max(lo, 1e-12); hi = Math.max(hi, lo * 10);
+  const y0 = Math.floor(Math.log10(lo)), y1 = Math.ceil(Math.log10(hi));
+  const X = (i) => L + (i / Math.max(n - 1, 1)) * (W - L - R);
+  const Y = (v) => {
+    const t = (Math.log10(Math.max(v, 1e-12)) - y0) / Math.max(y1 - y0, 1);
+    return H - B - t * (H - T - B);
+  };
+
+  for (let e = y0; e <= y1; e++) {
+    const y = Y(Math.pow(10, e));
+    svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: y, y2: y,
+      stroke: "var(--line)", "stroke-width": 1 }));
+    const t = svgEl("text", { x: L - 9, y: y + 3.5, "text-anchor": "end",
+      fill: "var(--ink-3)", "font-size": 10.5 });
+    t.textContent = "1e" + e;
+    svg.appendChild(t);
+  }
+  for (let k = 0; k <= 4; k++) {
+    const i = Math.round((n - 1) * k / 4), x = X(i);
+    const t = svgEl("text", { x, y: H - B + 18, "text-anchor": "middle",
+      fill: "var(--ink-3)", "font-size": 10.5 });
+    t.textContent = Math.round(its * k / 4);
+    svg.appendChild(t);
+  }
+
+  for (const s of series) {
+    const vals = run.residuals[s.key];
+    let d = "";
+    vals.forEach((v, i) => { d += (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1); });
+    svg.appendChild(svgEl("path", { d, fill: "none", stroke: s.color, "stroke-width": 2,
+      "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    const last = vals[vals.length - 1];
+    const lab = svgEl("text", { x: W - R + 8, y: Y(last) + 3.5, fill: s.color,
+      "font-size": 11, "font-weight": 700 });
+    lab.textContent = s.key;
+    svg.appendChild(lab);
+  }
+
+  if (hoverX != null) {
+    const i = Math.max(0, Math.min(n - 1, Math.round(hoverX * (n - 1))));
+    svg.appendChild(svgEl("line", { x1: X(i), x2: X(i), y1: T, y2: H - B,
+      stroke: "var(--ink-3)", "stroke-width": 1, "stroke-dasharray": "3 3" }));
+    for (const s of series) {
+      const v = run.residuals[s.key][Math.min(i, run.residuals[s.key].length - 1)];
+      svg.appendChild(svgEl("circle", { cx: X(i), cy: Y(v), r: 4, fill: s.color,
+        stroke: "var(--surface-1)", "stroke-width": 2 }));
+    }
+    const tip = el("tip");
+    tip.innerHTML = "<b>iteration " + Math.round(its * i / Math.max(n - 1, 1)) + "</b>" +
+      series.map(s => {
+        const v = run.residuals[s.key][Math.min(i, run.residuals[s.key].length - 1)];
+        return '<div class="row"><em><i class="swatch" style="background:' + s.color +
+               '"></i>' + s.key + "</em><code>" + sci(v) + "</code></div>";
+      }).join("");
+    tip.style.opacity = 1;
+    tip.style.left = Math.min(88, hoverX * 100) + "%";
+    tip.style.top = "14px";
+  } else {
+    el("tip").style.opacity = 0;
+  }
+
+  el("legend").innerHTML = series.map(s =>
+    '<span><i class="swatch" style="background:' + s.color + '"></i>' + s.key + "</span>").join("");
+  el("chartSub").textContent =
+    `${run.iterations.toLocaleString()} of ${run.n_iter.toLocaleString()} iterations · ` +
+    `floor ${sci(run.floor)}` + (run.to_1e3 ? ` · reached 1e-3 at ${run.to_1e3}` : "");
+}
+
+el("chart").addEventListener("pointermove", (e) => {
+  const r = e.currentTarget.getBoundingClientRect();
+  const L = 62 / 800, R = 78 / 800;
+  hoverX = Math.max(0, Math.min(1, ((e.clientX - r.left) / r.width - L) / (1 - L - R)));
+  if (selected) drawChart(selected);
+});
+el("chart").addEventListener("pointerleave", () => {
+  hoverX = null; if (selected) drawChart(selected);
+});
+
+/* ── geometry ─────────────────────────────────────────────────────────────── */
+function drawGeom(geo) {
+  const svg = el("geom");
+  svg.textContent = "";
+  if (!geo || !geo.section || !geo.section.length) return;
+  const W = 400, H = 300, x0 = -0.45, x1 = 1.95, pad = 8;
+  const sc = (W - 2 * pad) / (x1 - x0);
+  const cy = H / 2;
+  const P = ([x, y]) => [pad + (x - x0) * sc, cy - y * sc];
+  for (const line of (geo.wire || [])) {
+    let d = "";
+    line.forEach((p, i) => { const q = P(p); d += (i ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1); });
+    svg.appendChild(svgEl("path", { d, fill: "none", stroke: "var(--line-2)", "stroke-width": .5 }));
+  }
+  let d = "";
+  geo.section.forEach((p, i) => { const q = P(p); d += (i ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1); });
+  svg.appendChild(svgEl("path", { d: d + "Z", fill: "var(--ink)", stroke: "none" }));
+  const cut = geo.cut || [];
+  if (cut.length) {
+    let c = "";
+    cut.forEach((p, i) => { const q = P(p); c += (i ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1); });
+    svg.appendChild(svgEl("path", { d: c, fill: "none", stroke: "var(--s2)", "stroke-width": 1.6 }));
+  }
+}
+
+/* ── render ───────────────────────────────────────────────────────────────── */
+function render() {
+  if (!DATA) return;
+  const t = DATA.totals;
+  el("kpis").innerHTML = [
+    ["Solving now", t.solving, t.solving ? "" : "idle"],
+    ["Runs on disk", t.runs, ""],
+    ["Converged", t.converged, ""],
+    ["Failed", t.failed, ""],
+    ["Cells meshed", (t.cells / 1000).toFixed(0), "k"],
+    ["Iterations run", (t.iterations / 1000).toFixed(1), "k"],
+  ].map(([label, v, suf]) =>
+    `<div class="card kpi"><div class="label">${label}</div>
+     <div class="value">${fmt(v)}${suf ? ` <small>${suf}</small>` : ""}</div></div>`).join("");
+
+  const live = t.solving > 0;
+  el("status").className = "pill" + (live ? " live" : "");
+  el("statusText").textContent = live ? `${t.solving} solving` : "idle";
+  el("clock").textContent = new Date(DATA.generated * 1000).toLocaleTimeString();
+
+  const runs = DATA.runs;
+  el("runsSub").textContent = `${runs.length} case directories · newest activity first`;
+  el("runs").innerHTML = runs.map((r, i) => `
+    <button class="run" data-i="${i}" aria-selected="${selected && selected.name === r.name}">
+      <div class="top">
+        <span class="nm">${r.name}</span>
+        <span class="spacer"></span>
+        <span class="chip ${r.status}">${r.status}</span>
+      </div>
+      <div class="meta">${r.mesh} · ${r.start} · ${fmt(r.n_cells)} cells ·
+        ${fmt(r.iterations)}/${fmt(r.n_iter)} it</div>
+      <div class="bar"><i style="width:${(r.progress * 100).toFixed(1)}%"></i></div>
+    </button>`).join("") || '<div class="empty">no runs found yet</div>';
+
+  for (const b of el("runs").querySelectorAll(".run")) {
+    b.onclick = () => { selected = runs[+b.dataset.i]; render(); };
+  }
+
+  if (selected) {
+    const fresh = runs.find(r => r.name === selected.name);
+    if (fresh) selected = fresh;
+  } else if (runs.length) {
+    // Prefer something with a residual history to show: a solve that has only
+    // just started has written no step yet, and picking it leaves a blank chart.
+    const hasData = (r) => Object.values(r.residuals || {}).some(v => v.length > 1);
+    selected = runs.find(r => r.status === "solving" && hasData(r))
+            || runs.find(hasData) || runs[0];
+  }
+  if (selected) {
+    el("chartTitle").textContent = selected.name;
+    drawChart(selected);
+    el("facts").innerHTML = [
+      ["mesh", selected.mesh], ["start", selected.start],
+      ["cells", fmt(selected.n_cells)],
+      ["u∞", selected.u_inf != null ? selected.u_inf.toFixed(2) : "—"],
+      ["ν", selected.nu != null ? Number(selected.nu).toExponential(2) : "—"],
+      ["residual floor", sci(selected.floor)],
+      ["to 1e-3", selected.to_1e3 ?? "—"], ["to 1e-4", selected.to_1e4 ?? "—"],
+      ["solver time", selected.exec_time != null ? selected.exec_time + " s" : "—"],
+    ].map(([k, v]) => `<div class="fact"><span>${k}</span><span>${v}</span></div>`).join("");
+  }
+  drawGeom(DATA.geometry);
+
+  el("experiments").innerHTML = (DATA.experiments || []).filter(e => e.summary &&
+      e.summary.per_threshold).map(e => {
+    const th = e.summary.per_threshold;
+    const arms = [...new Set(Object.values(th).flatMap(v =>
+      Object.keys(v).filter(k => k.endsWith("_saving")).map(k => k.slice(0, -7))))];
+    return `<table><thead><tr><th>${e.name}</th>` +
+      arms.map(a => `<th>${a.replace(/_/g, " ")}</th>`).join("") + "</tr></thead><tbody>" +
+      Object.entries(th).map(([k, v]) => "<tr><td>threshold " + k + "</td>" +
+        arms.map(a => {
+          const s = v[a + "_saving"];
+          if (s == null || Number.isNaN(s)) return "<td>—</td>";
+          return `<td class="${s > 0.02 ? "pos" : s < -0.02 ? "neg" : ""}">` +
+                 (s * 100).toFixed(1) + "%</td>";
+        }).join("") + "</tr>").join("") + "</tbody></table>";
+  }).join("") || '<div class="empty">no finished experiments yet</div>';
+}
+
+async function poll() {
+  try {
+    const r = await fetch("/data.json", { cache: "no-store" });
+    DATA = await r.json();
+    render();
+  } catch (err) {
+    el("statusText").textContent = "server offline";
+    el("status").className = "pill";
+  }
+}
+poll();
+setInterval(poll, 2000);
+</script>
+</body>
+</html>
