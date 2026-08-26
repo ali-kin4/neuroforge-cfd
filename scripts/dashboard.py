@@ -52,7 +52,7 @@ def _mtime(path):
     return newest
 
 
-def collect_run(path: str) -> dict | None:
+def collect_run(path: str, root: str = "") -> dict | None:
     meta_path = os.path.join(path, "neuroforge.json")
     if not os.path.isfile(meta_path):
         return None
@@ -79,10 +79,16 @@ def collect_run(path: str) -> dict | None:
     age = time.time() - (_mtime(path) or time.time())
     finished = text.rstrip().endswith("End") or info["converged"]
 
-    if finished:
-        status = "converged" if info["converged"] else "done"
-    elif "FATAL" in text or "Floating point" in text:
+    # Match the *handler*, not the banner. Every OpenFOAM log opens with
+    # "trapFpe: Floating point exception trapping enabled", so a substring test
+    # for "Floating point" marks every run in flight as failed -- finished runs
+    # escape only because `finished` is tested first.
+    broken = ("FOAM FATAL" in text or "sigFpe::sigHandler" in text
+              or "sigSegv::sigHandler" in text)
+    if broken:
         status = "failed"
+    elif finished:
+        status = "converged" if info["converged"] else "done"
     elif age > STALE_AFTER:
         status = "stale"
     else:
@@ -90,8 +96,27 @@ def collect_run(path: str) -> dict | None:
 
     res = {k: _thin(v) for k, v in info["residuals"].items()}
     floor = of.residual_floor(info["residuals"]) if info["residuals"] else float("nan")
+    # Group by the folder under the watch root, so 85 case directories read as a
+    # handful of experiments rather than one flat list.
+    rel = os.path.relpath(path, root) if root else os.path.basename(path)
+    parts = rel.replace("\\", "/").split("/")
+    group = parts[0] if len(parts) > 1 else "misc"
+
+    # A coarse ETA from the solver's own clock, only once there is enough to
+    # extrapolate from; a fresh run's rate is meaningless.
+    eta = None
+    ex = info["execution_time"]
+    if (status == "solving" and n_iter and info["iterations"] > 20
+            and ex == ex and ex > 0):
+        eta = round((n_iter - info["iterations"]) * ex / info["iterations"], 0)
+
+    spark = _thin(info["residuals"].get("Ux") or [], 44)
+
     return {
         "name": os.path.basename(path),
+        "group": group,
+        "eta": eta,
+        "spark": spark,
         "case": meta.get("case"),
         "airfoil": meta.get("airfoil"),
         "mesh": meta.get("mesh", "cartesian"),
@@ -182,7 +207,7 @@ def collect(root: str, results_dir: str) -> dict:
     if os.path.isdir(root):
         for dirpath, dirnames, filenames in os.walk(root):
             if "neuroforge.json" in filenames:
-                r = collect_run(dirpath)
+                r = collect_run(dirpath, root)
                 if r:
                     runs.append(r)
                 dirnames[:] = []          # a case directory has no case children
