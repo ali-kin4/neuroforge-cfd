@@ -89,7 +89,7 @@
   @media (prefers-reduced-motion: reduce) { .st.solving { animation: none; } }
 
   /* ── main ────────────────────────────────────────────────────────────── */
-  main { overflow-y: auto; padding: 0 0 34px; }
+  main { overflow-y: auto; overflow-x: hidden; padding: 0 0 34px; }
   .bar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 12px;
          padding: 13px 26px; background: color-mix(in srgb, var(--bg) 82%, transparent);
          backdrop-filter: saturate(1.6) blur(14px); border-bottom: 1px solid var(--line); }
@@ -119,7 +119,9 @@
   .stat .v small { font-size: 12px; color: var(--ink-3); font-weight: 550; letter-spacing: 0; }
 
   .split { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 16px; }
-  @media (max-width: 1320px) { .split { grid-template-columns: 1fr; } }
+  /* The sidebar takes 296px, so the two-column split only fits comfortably
+     past ~1500px; below that the case panel stacks under the chart. */
+  @media (max-width: 1500px) { .split { grid-template-columns: 1fr; } }
 
   .chartwrap { position: relative; padding: 4px 14px 12px; }
   svg { display: block; width: 100%; height: auto; }
@@ -216,7 +218,10 @@ let DATA = null, sel = null, hx = null, filter = "";
 const $ = (id) => document.getElementById(id);
 const sci = (v) => (v == null || Number.isNaN(v)) ? "—" : Number(v).toExponential(1);
 const num = (v) => v == null ? "—" : Number(v).toLocaleString();
-const dur = (s) => s == null ? "—" : s > 90 ? `${Math.round(s / 60)} min` : `${Math.round(s)} s`;
+const dur = (s) => s == null ? "—"
+  : s >= 3600 ? `${(s / 3600).toFixed(1)} h`
+  : s > 90 ? `${Math.round(s / 60)} min` : `${Math.round(s)} s`;
+const hrs = (s) => !s ? "0" : s >= 3600 ? `${(s / 3600).toFixed(1)}h` : `${Math.round(s / 60)}m`;
 const mk = (t, a) => { const n = document.createElementNS(NS, t); for (const k in a) n.setAttribute(k, a[k]); return n; };
 
 $("theme").onclick = () => {
@@ -353,16 +358,22 @@ function geom(g) {
 function paint() {
   if (!DATA) return;
   const t = DATA.totals;
+  const pct = t.planned ? Math.round(100 * t.iterations / t.planned) : 0;
   $("stats").innerHTML = [
-    ["Solving", t.solving], ["Runs", t.runs], ["Converged", t.converged],
-    ["Failed", t.failed], ["Cells", (t.cells / 1000).toFixed(0), "k"],
-    ["Iterations", (t.iterations / 1000).toFixed(1), "k"],
+    ["Solving now", num(t.solving), t.eta ? "· " + dur(t.eta) + " left" : ""],
+    ["Runs", num(t.runs), `· ${t.converged} converged`],
+    ["Iterations", (t.iterations / 1000).toFixed(1) + "k", `· of ${(t.planned / 1000).toFixed(0)}k · ${pct}%`],
+    ["Solver runtime", hrs(t.solver_seconds), ""],
+    ["Cells meshed", (t.cells / 1000).toFixed(0) + "k", ""],
+    ["Failed", num(t.failed), ""],
   ].map(([k, v, s]) => `<div class="stat"><div class="k">${k}</div>
-      <div class="v num">${num(v)}${s ? ` <small>${s}</small>` : ""}</div></div>`).join("");
+      <div class="v num">${v}${s ? ` <small>${s}</small>` : ""}</div></div>`).join("");
 
   $("live").className = "tag" + (t.solving ? " live" : "");
   $("live").querySelector(".st").className = "st" + (t.solving ? " solving" : "");
-  $("liveText").textContent = t.solving ? `${t.solving} solving` : "idle";
+  $("liveText").textContent = t.solving
+    ? `${t.solving} solving` + (t.eta ? ` · ${dur(t.eta)} left` : "")
+    : "idle";
   $("clock").textContent = new Date(DATA.generated * 1000).toLocaleTimeString();
 
   const shown = DATA.runs.filter(r => !filter || r.name.toLowerCase().includes(filter)
@@ -377,8 +388,8 @@ function paint() {
     html += rs.map(r => `<button class="run" data-n="${r.name}"
         aria-selected="${sel && sel.name === r.name}">
         <span class="nm"><i class="st ${r.status}"></i>${r.name}</span>
-        <span class="sub num">${r.mesh} · ${r.start} · ${num(r.iterations)}/${num(r.n_iter)}${
-          r.eta ? " · ~" + dur(r.eta) : ""}</span>
+        <span class="sub num">${r.start} · ${num(r.iterations)}/${num(r.n_iter)} · ${
+          dur(r.elapsed)}${r.eta ? " · " + dur(r.eta) + " left" : ""}</span>
         ${spark(r.spark, r.status)}</button>`).join("");
   }
   $("runs").innerHTML = html || '<div class="empty">nothing matches</div>';
@@ -394,10 +405,16 @@ function paint() {
     $("chartTitle").textContent = sel.name;
     chart(sel);
     $("facts").innerHTML = [
-      ["mesh", sel.mesh], ["start", sel.start], ["cells", num(sel.n_cells)],
+      ["status", sel.status],
+      ["iterations", `${num(sel.iterations)} / ${num(sel.n_iter)}`],
+      ["runtime", dur(sel.elapsed)],
+      ["eta", sel.eta ? dur(sel.eta) : (sel.status === "solving" ? "…" : "—")],
+      ["solver clock", sel.exec_time != null ? dur(sel.exec_time) : "—"],
+      ["mesh", `${sel.mesh} · ${num(sel.n_cells)} cells`],
+      ["start", sel.start],
       ["ν", sel.nu != null ? Number(sel.nu).toExponential(2) : "—"],
-      ["floor", sci(sel.floor)], ["→ 1e-3", sel.to_1e3 ?? "—"], ["→ 1e-4", sel.to_1e4 ?? "—"],
-      ["solver time", sel.exec_time != null ? dur(sel.exec_time) : "—"],
+      ["floor", sci(sel.floor)],
+      ["→ 1e-3", sel.to_1e3 ?? "—"], ["→ 1e-4", sel.to_1e4 ?? "—"],
     ].map(([k, v]) => `<div class="fact"><span>${k}</span><span>${v}</span></div>`).join("");
   }
   geom(DATA.geometry);

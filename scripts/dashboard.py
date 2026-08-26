@@ -76,7 +76,12 @@ def collect_run(path: str, root: str = "") -> dict | None:
         "execution_time": float("nan"), "final_residual": {},
     }
     n_iter = int(meta.get("n_iter") or 0)
-    age = time.time() - (_mtime(path) or time.time())
+    now = time.time()
+    age = now - (_mtime(path) or now)
+    # neuroforge.json is rewritten immediately before simpleFoam starts, so its
+    # mtime is the closest thing to a start stamp without instrumenting the run.
+    started = os.path.getmtime(meta_path)
+    log_m = os.path.getmtime(log) if os.path.isfile(log) else started
     finished = text.rstrip().endswith("End") or info["converged"]
 
     # Match the *handler*, not the banner. Every OpenFOAM log opens with
@@ -111,11 +116,14 @@ def collect_run(path: str, root: str = "") -> dict | None:
         eta = round((n_iter - info["iterations"]) * ex / info["iterations"], 0)
 
     spark = _thin(info["residuals"].get("Ux") or [], 44)
+    elapsed = max(0.0, (now if status == "solving" else log_m) - started)
 
     return {
         "name": os.path.basename(path),
         "group": group,
         "eta": eta,
+        "started": started,
+        "elapsed": round(elapsed, 1),
         "spark": spark,
         "case": meta.get("case"),
         "airfoil": meta.get("airfoil"),
@@ -232,6 +240,8 @@ def collect(root: str, results_dir: str) -> dict:
                 })
 
     active = [r for r in runs if r["status"] == "solving"]
+    solver_s = sum(float(r["exec_time"] or 0) for r in runs)
+    etas = [r["eta"] for r in active if r.get("eta")]
     return {
         "generated": time.time(),
         "runs": runs,
@@ -243,6 +253,10 @@ def collect(root: str, results_dir: str) -> dict:
             "failed": sum(1 for r in runs if r["status"] == "failed"),
             "cells": sum(int(r["n_cells"] or 0) for r in runs),
             "iterations": sum(int(r["iterations"] or 0) for r in runs),
+            "planned": sum(int(r["n_iter"] or 0) for r in runs),
+            "solver_seconds": round(solver_s, 1),
+            "eta": (max(etas) if etas else None),
+            "elapsed": round(sum(float(r["elapsed"] or 0) for r in active), 1),
         },
     }
 
