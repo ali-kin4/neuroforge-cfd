@@ -11,15 +11,15 @@
         "oracle_128_n": 3
       },
       "1e-03": {
-        "oracle_mesh_saving": 0.8192239858906526,
+        "oracle_mesh_saving": 0.821823076209041,
         "oracle_mesh_n": 3,
-        "oracle_128_saving": 0.037918871252204576,
+        "oracle_128_saving": 0.052538754293140255,
         "oracle_128_n": 3
       },
       "1e-04": {
-        "oracle_mesh_saving": 0.7667316439246264,
+        "oracle_mesh_saving": 0.7711754817017975,
         "oracle_mesh_n": 3,
-        "oracle_128_saving": -0.17233187134502925,
+        "oracle_128_saving": -0.600962206225364,
         "oracle_128_n": 3
       }
     }
@@ -29,27 +29,25 @@
       "case": "naca0012_aoa4",
       "re": 3000000.0,
       "covered_fraction": 0.8165833333333333,
-      "roundtrip_linf": 0.0,
-      "cold_floor": 1.848441415e-05,
+      "cold_floor": 1.848478454e-05,
       "cold@1e-02": 14,
       "oracle_mesh@1e-02": 1,
       "oracle_128@1e-02": 17,
-      "cold@1e-03": 54,
+      "cold@1e-03": 57,
       "oracle_mesh@1e-03": 8,
       "oracle_128@1e-03": 45,
-      "cold@1e-04": 108,
+      "cold@1e-04": 111,
       "oracle_mesh@1e-04": 23,
       "oracle_128@1e-04": 153,
-      "cold_exec_s": 97.04,
-      "oracle_mesh_exec_s": 71.66,
-      "oracle_128_exec_s": 110.46
+      "cold_exec_s": 144.62,
+      "oracle_mesh_exec_s": 151.79,
+      "oracle_128_exec_s": 177.75
     },
     {
       "case": "naca2412_aoa2",
       "re": 3000000.0,
       "covered_fraction": 0.8164166666666667,
-      "roundtrip_linf": 0.0,
-      "cold_floor": 2.6268304235e-05,
+      "cold_floor": 2.626913489e-05,
       "cold@1e-02": 18,
       "oracle_mesh@1e-02": 1,
       "oracle_128@1e-02": 20,
@@ -59,28 +57,27 @@
       "cold@1e-04": 114,
       "oracle_mesh@1e-04": 27,
       "oracle_128@1e-04": 129,
-      "cold_exec_s": 112.13,
-      "oracle_mesh_exec_s": 59.96,
-      "oracle_128_exec_s": 115.22
+      "cold_exec_s": 163.39,
+      "oracle_mesh_exec_s": 157.1,
+      "oracle_128_exec_s": 185.13
     },
     {
       "case": "naca0015_aoa6",
       "re": 3000000.0,
       "covered_fraction": 0.8165,
-      "roundtrip_linf": 0.0,
-      "cold_floor": 1.98528892e-05,
+      "cold_floor": 1.983342798e-05,
       "cold@1e-02": 14,
       "oracle_mesh@1e-02": 1,
       "oracle_128@1e-02": 15,
       "cold@1e-03": 42,
       "oracle_mesh@1e-03": 8,
       "oracle_128@1e-03": 45,
-      "cold@1e-04": 96,
+      "cold@1e-04": 99,
       "oracle_mesh@1e-04": 24,
-      "oracle_128@1e-04": 93,
-      "cold_exec_s": 100.77,
-      "oracle_mesh_exec_s": 58.03,
-      "oracle_128_exec_s": 117.1
+      "oracle_128@1e-04": 227,
+      "cold_exec_s": 142.37,
+      "oracle_mesh_exec_s": 153.62,
+      "oracle_128_exec_s": 168.42
     }
   ]
 }
