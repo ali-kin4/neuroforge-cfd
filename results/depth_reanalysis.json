@@ -1,0 +1,75 @@
+{
+  "root": "runs/openfoam/repr",
+  "cases": [
+    "naca0012_aoa4",
+    "naca0015_aoa6",
+    "naca2412_aoa2"
+  ],
+  "arms": [
+    "oracle_mesh",
+    "cartesian_128",
+    "fitted_256x64"
+  ],
+  "by_depth": {
+    "1e-02": {
+      "cold_mean": 10.333333333333334,
+      "cold_n": 3,
+      "oracle_mesh": 0.9023569023569022,
+      "oracle_mesh_n": 3,
+      "cartesian_128": -0.17171717171717163,
+      "cartesian_128_n": 3,
+      "fitted_256x64": -0.6363636363636364,
+      "fitted_256x64_n": 3
+    },
+    "1e-03": {
+      "cold_mean": 36.0,
+      "cold_n": 3,
+      "oracle_mesh": 0.7314814814814815,
+      "oracle_mesh_n": 3,
+      "cartesian_128": -0.1851851851851852,
+      "cartesian_128_n": 3,
+      "fitted_256x64": -0.4444444444444444,
+      "fitted_256x64_n": 3
+    },
+    "1e-04": {
+      "cold_mean": 85.0,
+      "cold_n": 3,
+      "oracle_mesh": 0.6846665878923943,
+      "oracle_mesh_n": 3,
+      "cartesian_128": -3.063501910276104,
+      "cartesian_128_n": 3,
+      "fitted_256x64": -0.49503722084367247,
+      "fitted_256x64_n": 3
+    },
+    "5e-05": {
+      "cold_mean": 105.0,
+      "cold_n": 3,
+      "oracle_mesh": 0.6814901837928153,
+      "oracle_mesh_n": 3,
+      "cartesian_128": -1.1697916666666668,
+      "cartesian_128_n": 2,
+      "fitted_256x64": -0.8094663742690059,
+      "fitted_256x64_n": 3
+    },
+    "3e-05": {
+      "cold_mean": 274.0,
+      "cold_n": 3,
+      "oracle_mesh": 0.8428765123070505,
+      "oracle_mesh_n": 3,
+      "cartesian_128": -0.33193277310924374,
+      "cartesian_128_n": 2,
+      "fitted_256x64": 0.1299330015694221,
+      "fitted_256x64_n": 3
+    },
+    "2e-05": {
+      "cold_mean": 347.0,
+      "cold_n": 2,
+      "oracle_mesh": 0.8592894772851669,
+      "oracle_mesh_n": 2,
+      "cartesian_128": -0.2169112616310892,
+      "cartesian_128_n": 2,
+      "fitted_256x64": 0.304058908045977,
+      "fitted_256x64_n": 2
+    }
+  }
+}
