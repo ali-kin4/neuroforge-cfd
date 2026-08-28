@@ -68,6 +68,7 @@ __all__ = [
     "iterations_to_threshold",
     "residual_floor",
     "read_patches",
+    "running_solvers",
     "potential_flow_seed",
     "read_force_coeffs",
     "read_force_components",
@@ -1549,3 +1550,31 @@ def potential_flow_seed(
     velocity = read_volfield(os.path.join(case_dir, "0", "U"))
     pressure = read_volfield(os.path.join(case_dir, "0", "p"))
     return velocity[:, 0], velocity[:, 1], pressure
+
+
+def running_solvers(path_fragment: str = "", *, distro: str | None = None) -> list[str]:
+    """Case directories with a live ``simpleFoam`` in them, newest process last.
+
+    Two processes writing one case directory is silent corruption, not a crash:
+    :func:`~neuroforge.solver.cgrid.write_cgrid_case` removes the directory
+    before rewriting it, so a second run started while a first is still solving
+    deletes the first's working directory out from under it. The solve then dies
+    with ``bash: log.simpleFoam: No such file or directory``, which names neither
+    the cause nor the case, and the arm is quietly missing from the results.
+
+    Check before launching a sweep into a tree something else may still be using.
+    ``path_fragment`` narrows it to one tree; an empty string matches every case.
+    """
+    env = detect_openfoam(distro)
+    if env is None:
+        return []
+    try:
+        proc = _run_bash(env, "ps -eo args | grep '[s]impleFoam' || true", 60)
+    except (OSError, subprocess.SubprocessError):
+        return []
+    found = []
+    for line in (proc.stdout or "").splitlines():
+        m = re.search(r'cd "([^"]+)"', line)
+        if m and path_fragment in m.group(1):
+            found.append(m.group(1))
+    return found

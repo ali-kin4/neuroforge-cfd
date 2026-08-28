@@ -111,11 +111,15 @@ def main(argv: list[str] | None = None) -> int:
                          "oracle_mesh are reused rather than re-solved")
     ap.add_argument("--out", default=os.path.join("results", "selective_seed.json"))
     ap.add_argument("--timeout", type=float, default=43200.0)
+    ap.add_argument("--force", action="store_true",
+                    help="start even though another process is solving one of "
+                         "these cases. Almost never what you want.")
     args = ap.parse_args(argv)
 
     if of.detect_openfoam() is None:
         print("OpenFOAM not found -- run scripts/openfoam_warm_start.py --check")
         return 1
+
     warnings.simplefilter("ignore")
 
     out_path = os.path.abspath(args.out)
@@ -143,6 +147,22 @@ def main(argv: list[str] | None = None) -> int:
         with open(tmp, "w", encoding="utf-8", newline="\n") as fh:
             json.dump({"re": args.re, "n_iter": args.n_iter, "rows": rows}, fh, indent=2)
         os.replace(tmp, out_path)
+
+    # Writing a case directory begins by removing it, so starting a second run on
+    # a case a first is still solving deletes that solve's working directory out
+    # from under it. It dies with "log.simpleFoam: No such file or directory",
+    # which names neither the cause nor the case, and the arm goes quietly
+    # missing from the results. Checked per case, not per tree, so one process
+    # per case can still share a --work-dir.
+    tags = {f"{code}_aoa{aoa:g}" for code, aoa in cases}
+    busy = [p for p in of.running_solvers(os.path.basename(os.path.normpath(args.work_dir)))
+            if any(os.path.basename(p).startswith(t + "_") for t in tags)]
+    if busy and not args.force:
+        print("already being solved by another process:")
+        for path in busy[:8]:
+            print("   " + os.path.basename(path))
+        print("Wait for it to finish, or pass --force if you are sure.")
+        return 1
 
     spec = cg.CGridSpec()
     delta = ws.bl_thickness(args.re)

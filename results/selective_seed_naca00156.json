@@ -12,31 +12,37 @@
         "p"
       ],
       "composite_blended": 0.4037854889589905,
+      "bl_blended": 0.4037854889589905,
       "cold@1e-03": 77,
       "fitted_p@1e-03": 77,
       "fitted_outer@1e-03": 132,
       "potential@1e-03": 94,
       "composite@1e-03": 95,
+      "fitted_bl@1e-03": 71,
       "cold@1e-04": 198,
       "fitted_p@1e-04": 198,
       "fitted_outer@1e-04": 248,
       "potential@1e-04": 236,
       "composite@1e-04": 242,
+      "fitted_bl@1e-04": 198,
       "cold@1e-05": 966,
       "fitted_p@1e-05": 965,
       "fitted_outer@1e-05": 1095,
       "potential@1e-05": 480,
       "composite@1e-05": 682,
+      "fitted_bl@1e-05": 376,
       "cold@5e-06": 1143,
       "fitted_p@5e-06": 1141,
       "fitted_outer@5e-06": 1266,
       "potential@5e-06": 524,
       "composite@5e-06": 728,
+      "fitted_bl@5e-06": 479,
       "cold@1e-06": 1549,
       "fitted_p@1e-06": 1548,
       "fitted_outer@1e-06": 1658,
       "potential@1e-06": 1442,
-      "composite@1e-06": 1084
+      "composite@1e-06": 1084,
+      "fitted_bl@1e-06": 970
     }
   ]
 }
