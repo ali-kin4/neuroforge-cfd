@@ -57,6 +57,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--n-iter", type=int, default=800)
     ap.add_argument("--resolution", type=int, default=128)
     ap.add_argument("--reynolds", type=float, nargs="*", default=list(REYNOLDS))
+    ap.add_argument("--only", action="append", metavar="AIRFOIL",
+                    help="restrict to this airfoil (repeatable). Combined with a "
+                         "single --reynolds this gives one process per (airfoil, "
+                         "Re) cell, each owning its own case directories, so the "
+                         "sweep can be spread across processes without two of "
+                         "them writing the same run.")
     ap.add_argument("--work-dir", default=os.path.join("runs", "openfoam", "crossover"))
     ap.add_argument("--out", default=os.path.join("results", "reynolds_crossover.json"))
     ap.add_argument("--timeout", type=float, default=7200.0)
@@ -77,16 +83,34 @@ def main(argv: list[str] | None = None) -> int:
                        "rows": rows}, fh, indent=2)
         os.replace(tmp, out_path)
 
+    cases = CASES
+    if args.only:
+        wanted = {a.strip() for a in args.only}
+        cases = [c for c in CASES if c[0] in wanted]
+        if not cases:
+            print("not in CASES: " + ", ".join(sorted(wanted)))
+            return 1
+        # Give each process its own checkpoint; several sharing one --out would
+        # write the same ".tmp" and os.replace the same destination, leaving the
+        # file that is meant to survive a power cut holding one process's rows.
+        if out_path == os.path.abspath(ap.get_default("out")):
+            stem, ext = os.path.splitext(out_path)
+            slug = "_".join([c for c, _ in cases]
+                            + [f"re{r:.0e}" for r in args.reynolds])
+            out_path = f"{stem}_{slug}{ext}"
+        print(f"running only: {', '.join(c for c, _ in cases)}\n"
+              f"checkpointing to {out_path}\n")
+
     spec = cg.CGridSpec()
     h = 3.0 / (args.resolution - 1)
     rows = []
-    total = len(args.reynolds) * len(CASES)
+    total = len(args.reynolds) * len(cases)
     done = 0
 
     for re in args.reynolds:
         delta = ws.bl_thickness(re)
-        print(f"\n== Re {re:.0e} · delta {delta:.4f} · delta/h {delta / h:.2f} ==", flush=True)
-        for code, aoa in CASES:
+        print(f"\n== Re {re:.0e} | delta {delta:.4f} | delta/h {delta / h:.2f} ==", flush=True)
+        for code, aoa in cases:
             case = FlowCase.from_airfoil(airfoil=code, aoa=aoa, reynolds=re,
                                          u_inf=1.0, resolution=args.resolution)
             tag = f"{code}_aoa{aoa:g}_re{re:.0e}"
@@ -153,7 +177,7 @@ def main(argv: list[str] | None = None) -> int:
              else f"{'--':>12}") for a in ARMS))
 
     checkpoint(rows, summary)
-    print(f"\nwrote {args.out}")
+    print(f"\nwrote {os.path.relpath(out_path)}")
 
     # Where does the coarse arm stop paying?
     k = "1e-03"

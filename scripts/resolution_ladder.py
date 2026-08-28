@@ -50,6 +50,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--re", type=float, default=3e6)
     ap.add_argument("--n-iter", type=int, default=800)
     ap.add_argument("--resolutions", type=int, nargs="*", default=list(RESOLUTIONS))
+    ap.add_argument("--only", action="append", metavar="AIRFOIL",
+                    help="restrict to this airfoil (repeatable). Split the "
+                         "sweep by case, not by resolution: every rung of a "
+                         "case shares its cold and oracle_mesh runs, so two "
+                         "processes splitting resolutions would write the "
+                         "same directories at the same time.")
     ap.add_argument("--work-dir", default=os.path.join("runs", "openfoam", "resladder"))
     ap.add_argument("--out", default=os.path.join("results", "resolution_ladder.json"))
     ap.add_argument("--timeout", type=float, default=7200.0)
@@ -72,11 +78,24 @@ def main(argv: list[str] | None = None) -> int:
 
     spec = cg.CGridSpec()
     delta = ws.bl_thickness(args.re)
-    print(f"Re {args.re:.0e} · delta {delta:.4f} chord · criterion predicts the sign "
+    print(f"Re {args.re:.0e} | delta {delta:.4f} chord | criterion predicts the sign "
           f"change at N ~ {int(round(3.0 / (delta / 2))) + 1}\n")
 
+    cases = CASES
+    if args.only:
+        wanted = {a.strip() for a in args.only}
+        cases = [c for c in CASES if c[0] in wanted]
+        if not cases:
+            print("not in CASES: " + ", ".join(sorted(wanted)))
+            return 1
+        if out_path == os.path.abspath(ap.get_default("out")):
+            stem, ext = os.path.splitext(out_path)
+            out_path = stem + "_" + "_".join(c for c, _ in cases) + ext
+        print(f"running only: {', '.join(c for c, _ in cases)}\n"
+              f"checkpointing to {out_path}\n")
+
     rows = []
-    for code, aoa in CASES:
+    for code, aoa in cases:
         base = FlowCase.from_airfoil(airfoil=code, aoa=aoa, reynolds=args.re,
                                      u_inf=1.0, resolution=128)
         tag = f"{code}_aoa{aoa:g}"
@@ -92,7 +111,7 @@ def main(argv: list[str] | None = None) -> int:
         oracle = run("oracle_mesh", mesh_initial=(cold.u, cold.v, cold.p, cold.nut))
         u_inf, v_inf = of._freestream(base)
         nut_fs = of.NUTILDA_FREESTREAM_RATIO * float(base.fluid.kinematic_viscosity)
-        print(f"   cold {cold.iterations_to(1e-3)} it to 1e-3 · "
+        print(f"   cold {cold.iterations_to(1e-3)} it to 1e-3 | "
               f"oracle_mesh {oracle.iterations_to(1e-3)}", flush=True)
 
         for n in args.resolutions:
@@ -149,7 +168,7 @@ def main(argv: list[str] | None = None) -> int:
               f"{entry['arm@1e-03_n']:>3}")
 
     checkpoint(rows, summary)
-    print(f"\nwrote {args.out}")
+    print(f"\nwrote {os.path.relpath(out_path)}")
 
     pts = sorted((v["delta_over_h"], v["arm@1e-03"])
                  for v in summary["by_resolution"].values() if v.get("arm@1e-03") is not None)

@@ -95,6 +95,15 @@ Those low-Re runs also carry high residual floors (1.1e-4 to 3.5e-4), so 1e-3 is
 only 3–9× above the floor there: they need re-measuring on the relaxed settings
 before the figure goes in a paper.
 
+> **This table clears fault A only.** Re-scoring fixes the parser; it cannot fix
+> the solver. Every number above — the negatives included — was still *solved* at
+> relaxation 0.9, on the limit cycle. A good seed dropped into a limit cycle
+> shows nothing, so **`cartesian_128` may also turn positive at proper
+> convergence.** If it does, "it is the representation, not the resolution" is
+> dead and the contribution is the methodology instead (§3.2 plus the measurement
+> protocol) — a different paper, and not obviously a worse one. Do not write an
+> abstract until `repr2` lands.
+
 **Fault B — the positive readings sit on the floor.** Corrected ladder on
 `runs/openfoam/repr`, with each depth expressed as a multiple of the cold
 residual floor (~1.3e-5):
@@ -183,7 +192,28 @@ positive result to publish.** Report both metrics; if they disagree, the force
 metric wins and the disagreement is itself worth a paragraph.
 
 Re-measure the **crossover** on the relaxed settings at the same time — its low-Re
-arms are the other claim standing on a high floor (§3.1).
+arms are the other claim standing on a high floor (§3.1). Running in
+`runs/openfoam/crossover2`, one process per (airfoil, Re) so no two write the
+same case directory.
+
+Three things to check when reading any of it:
+
+- **The oracle control is only a control on the residual metric.** On the force
+  metric it reads +93% (Cd) and +99.9% (Cl) because an arm seeded with the answer
+  starts *inside* the band — that tests the plumbing, not the measurement. The
+  residual-based control (+84% to +93%, non-trivial) stays the gate that must
+  pass before any other arm is read.
+- **Confirm the four arms agree on final Cd** to well inside the tightest band,
+  before trusting a force score. The shared reference is the oracle arm's final
+  value; if another arm settles further than `tol` from it, that arm returns
+  `None` and the case drops silently — the same `n` collapse the residual metric
+  had.
+- **Iteration counts are contention-proof; wall-clock is not.** These sweeps run
+  ten-plus solves at once and the mesh is memory-bandwidth bound. A wall-clock
+  claim needs one dedicated serial re-run. Worth doing: a warm arm is ~4× cheaper
+  *per iteration* than a cold one (0.115 s vs 0.44 s at Re 3e6 under the same
+  load), because a good initial guess also shortens the inner linear solves. That
+  compounds with the iteration saving and is not in any of the numbers above.
 
 ### (2) Region-decomposed seeding — literature says 26×
 [arXiv 2501.14699](https://arxiv.org/abs/2501.14699) reports **26.3× fewer
