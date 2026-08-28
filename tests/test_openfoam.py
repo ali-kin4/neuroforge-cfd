@@ -747,3 +747,24 @@ def test_iterations_to_force_band_takes_a_shared_reference():
 
 def test_iterations_to_force_band_on_empty_input():
     assert of.iterations_to_force_band(np.array([]), np.array([])) is None
+
+
+# --------------------------------------------------------------------------- #
+# Under-relaxation
+# --------------------------------------------------------------------------- #
+
+
+def test_written_cases_use_the_relaxation_that_does_not_stall(tmp_path, small_case):
+    """0.9 is SIMPLEC's usual pairing and it limit-cycles here; see RELAX_U."""
+    assert of.RELAX_U == 0.7
+    d = of.write_case(small_case, str(tmp_path / "relax"), n_iter=10)
+    text = open(os.path.join(d, "system", "fvSolution"), encoding="utf-8").read()
+    assert "U               0.7;" in text
+    assert "nuTilda         0.7;" in text
+    assert "consistent      yes;" in text
+
+
+def test_fv_solution_relaxation_is_overridable():
+    text = of._fv_solution(1e-6, 1e-7, n_non_orth=2, relax=0.5, relax_nut=0.3)
+    assert "U               0.5;" in text
+    assert "nuTilda         0.3;" in text

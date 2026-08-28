@@ -79,6 +79,22 @@ __all__ = [
 ENV_DISTRO = "NEUROFORGE_WSL_DISTRO"
 ENV_BASHRC = "NEUROFORGE_OPENFOAM_BASHRC"
 
+# Steady SIMPLEC under-relaxation. `consistent yes` is usually paired with 0.9,
+# and 0.9 is what this module shipped -- but on the C-grid at Re 3e6 it puts the
+# solve into a limit cycle that stalls at a residual of 1.1e-5 and never gets
+# lower, however long it runs (measured: 4000 iterations end at 1.13e-5, and the
+# arm seeded with the converged field itself sits on the same level from
+# iteration 100 to 800). At 0.7 the same case reaches 1e-5 by iteration 327 and
+# carries on to 1.9e-6, still falling. See `scripts/convergence_diagnostic.py`,
+# which also rules out the inner linear tolerances, the convection scheme and the
+# mesh's 218,987 aspect-ratio cells as the cause.
+#
+# This matters for more than tidiness: an iteration-to-threshold metric only
+# measures a convergence rate while the residual is still moving, so a false
+# floor silently turns warm-start savings into noise.
+RELAX_U = 0.7
+RELAX_NUT = 0.7
+
 # Spalart-Allmaras freestream ratio nuTilda_inf / nu -- the standard "3 to 5"
 # range; 3 is the usual low-turbulence external-aero choice.
 NUTILDA_FREESTREAM_RATIO = 3.0
@@ -667,7 +683,19 @@ _FV_SCHEMES = (
 )
 
 
-def _fv_solution(tol_p: float, tol_u: float, n_non_orth: int = 0) -> str:
+def _fv_solution(
+    tol_p: float,
+    tol_u: float,
+    n_non_orth: int = 0,
+    relax: float = RELAX_U,
+    relax_nut: float | None = None,
+) -> str:
+    """``system/fvSolution`` for steady SIMPLEC.
+
+    ``relax`` defaults to :data:`RELAX_U`; see the note there on why it is not
+    the 0.9 that SIMPLEC's usual advice suggests.
+    """
+    relax_nut = RELAX_NUT if relax_nut is None else relax_nut
     return (
         _header("dictionary", "fvSolution", "system")
         + "solvers\n{\n"
@@ -685,7 +713,9 @@ def _fv_solution(tol_p: float, tol_u: float, n_non_orth: int = 0) -> str:
         + f"        U               {_num(tol_u)};\n"
         + f"        nuTilda         {_num(tol_u)};\n    }}\n}}\n\n"
         + "relaxationFactors\n{\n    equations\n    {\n"
-        + "        U               0.9;\n        nuTilda         0.9;\n    }\n}\n"
+        + f"        U               {_num(relax)};\n"
+        + f"        nuTilda         {_num(relax_nut)};\n"
+        + "    }\n}\n"
     )
 
 
