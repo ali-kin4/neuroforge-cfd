@@ -1,0 +1,27 @@
+{
+  "summary": {
+    "status": "in-progress"
+  },
+  "rows": [
+    {
+      "case": "naca2412_aoa2",
+      "airfoil": "naca2412",
+      "aoa": 2.0,
+      "re": 3000000.0,
+      "resolution": 128,
+      "h": 0.023622047244094488,
+      "delta": 0.018740340312148367,
+      "delta_over_h": 0.7933410732142809,
+      "covered_fraction": 0.6946372239747634,
+      "cold@1e-02": 9,
+      "oracle_mesh@1e-02": 1,
+      "arm@1e-02": 11,
+      "cold@1e-03": 66,
+      "oracle_mesh@1e-03": 6,
+      "arm@1e-03": 65,
+      "cold@1e-04": 179,
+      "oracle_mesh@1e-04": 16,
+      "arm@1e-04": 166
+    }
+  ]
+}

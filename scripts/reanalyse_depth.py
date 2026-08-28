@@ -49,7 +49,7 @@ from neuroforge.solver import openfoam as of, scoring as sc
 
 DEPTHS = (1e-2, 1e-3, 1e-4, 1e-5, 5e-6, 1e-6, 5e-7)
 KNOWN_ARMS = ("oracle_mesh", "cartesian_128", "fitted_256x64", "fitted_outer",
-              "fitted_p", "potential", "oracle_128_hybrid", "oracle_128", "neighbour",
+              "fitted_p", "composite", "potential", "oracle_128_hybrid", "oracle_128", "neighbour",
               "oracle",
               "cold")
 
@@ -102,6 +102,13 @@ def main(argv=None):
     ap.add_argument("--out", default=os.path.join("results", "depth_reanalysis.json"))
     ap.add_argument("--per-case", action="store_true",
                     help="also print each case separately, so the spread is visible")
+    ap.add_argument("--exclude", action="append", metavar="SUBSTRING", default=[],
+                    help="drop cases whose name contains this (repeatable). For a "
+                         "case whose steady solve has no unique fixed point -- its "
+                         "arms converge to different force coefficients -- which "
+                         "is a property of the case, not of the seeds, and which "
+                         "poisons every aggregate it appears in. Always report "
+                         "the exclusion and the reason.")
     ap.add_argument("--filter", metavar="SUBSTRING",
                     help="score only the cases whose name contains this. A "
                          "Reynolds sweep must be scored one Reynolds number at a "
@@ -123,7 +130,12 @@ def main(argv=None):
                 arms.add(arm)
                 break
     arms = [a for a in KNOWN_ARMS if a in arms and a != args.cold]
-    cases = sorted(c for c in cases if not args.filter or args.filter in c)
+    dropped = sorted(c for c in cases if any(x in c for x in args.exclude))
+    cases = sorted(c for c in cases
+                   if (not args.filter or args.filter in c)
+                   and not any(x in c for x in args.exclude))
+    if dropped:
+        print("excluded: " + ", ".join(dropped))
     if not cases:
         print(f"no recognisable case directories under {args.root}")
         return 1

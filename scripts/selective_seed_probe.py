@@ -1,48 +1,58 @@
-"""Seed the field the solver is slow at, not the field it is fast at.
+"""A warm start is not one thing: it wins on some quantities and loses on others.
 
-Every warm start measured in this repo hands the solver *everything* the
-surrogate predicts. On the C-grid at Re 3e6 that is the wrong granularity,
-because the quantities in a cold solve do not converge at the same rate.
-Iterations to settle within 1% of the converged value, four cases, 6000-iteration
-runs:
+Every warm start measured in this repo hands the solver *everything* the surrogate
+predicts, and reports one number. Decomposing that number is what this experiment
+is built on. From `repr3` -- five cases at Re 3e6, 6000 iterations, oracle control
+passing at +88% to +99.9%, `naca4412@3` excluded because its steady solve has no
+unique fixed point (its arms land 7% apart in Cd):
 
-    quantity                    cold      seeded with the exact field
-    viscous drag  Cd_v           ~700                  ~53
-    lift          Cl             ~950                    1
-    pressure drag Cd_p          ~1850                  1-2
+    quantity                  cold it    wall-fitted seed
+    viscous drag  Cd_v            696             **+37%**
+    lift          Cl              945             **+87%**
+    pressure drag Cd_p           2391               -150%
+    total drag    Cd              810               -141%
 
-So the **pressure field is what a cold start is slow at**, and the near-wall
-velocity gradient is what it is fast at -- and that gradient is also what a
-surrogate reconstructs worst and what dominates total drag (Cd_v is 60-84% of Cd
-here). Seeding everything therefore buys a large gain on the pressure-dominated
-quantities and pays for it on the one the solver was going to get right anyway,
-which is exactly the split measured: lift +86%, drag -71%.
+The wall-fitted seed **wins on everything it resolves and loses on pressure**,
+and pressure drag is by a wide margin the slowest thing in a cold solve. That one
+loss is what drags total Cd negative and it is why a single headline number for
+"does warm starting work" has no stable answer.
 
-If that reading is correct, the fix is not a better surrogate. It is to stop
-handing over the near-wall velocity. Five arms per case, same mesh, same budget,
-all seeded from the same wall-fitted 256x64 projection so the information content
-is identical and only its *use* differs:
+The mechanism is the surrogate's *reach*. A wall-fitted grid clustered on the
+boundary layer covers about a chord from the surface; beyond that the seed falls
+back to freestream. Boundary layer and surface pressure are therefore right --
+hence Cd_v and Cl -- while the global pressure field, which is elliptic and set by
+the whole domain including the wake, is replaced by a uniform one. Pressure drag
+pays for that.
 
-* ``cold``           -- uniform freestream. Baseline.
-* ``oracle_mesh``    -- the converged field at mesh resolution. Control.
-* ``fitted``         -- the whole wall-fitted seed. The measured trade.
-* ``fitted_p``       -- pressure only; velocity and nuTilda start cold.
-* ``fitted_outer``   -- everything, but velocity reverts to freestream inside
-  the boundary layer and ramps back to the prediction by 3 delta.
-* ``potential``      -- ``potentialFoam``. **The baseline that decides whether
-  any of this is practical.** It ships with OpenFOAM, needs no model, no training
-  data and no GPU, runs in seconds, and is what industry already does; NVIDIA's
-  hybrid initialisation blends its surrogate *with* potential flow rather than
-  replacing it (arXiv:2503.15766). A surrogate seed that does not beat it has no
-  practical claim to make, however good it looks against a cold start.
+Which names the fix, and it is not a better surrogate. **Potential flow is free,
+untrained, ships with OpenFOAM, and is good at exactly the global pressure field
+the surrogate ruins -- while having no boundary layer at all, which is exactly
+what the surrogate supplies.** They are complementary in the precise sense the
+measurement requires.
 
-Potential flow also happens to be the clean test of the diagnosis above: it has
-the outer field and the leading-edge pressure roughly right and **no boundary
-layer at all** -- which is precisely the division of labour ``fitted_outer``
-imposes by hand.
+Arms per case, same mesh, same budget, all from the same wall-fitted 256x64
+projection so they differ in what they hand over and never in what they know:
 
-``cold`` and ``oracle_mesh`` are reused from the representation probe's tree when
-one is pointed at, so this costs three solves per case rather than five.
+* ``cold``          -- uniform freestream. Baseline. (reused)
+* ``oracle_mesh``   -- the converged field at mesh resolution. Control. (reused)
+* ``fitted_256x64`` -- the whole wall-fitted seed. The measured trade. (reused)
+* ``fitted_p``      -- pressure only; velocity and nuTilda start cold. Isolates
+  how much of the trade is the pressure channel alone.
+* ``fitted_outer``  -- everything, but velocity reverts to freestream inside the
+  boundary layer. The ablation that removes what the surrogate is *good* at, and
+  so should be *worse* if the reading above is right.
+* ``potential``     -- ``potentialFoam`` alone. **The baseline that decides
+  whether any of this is practical**: no model, no training data, no GPU, seconds
+  to run, and what industry already does. NVIDIA's hybrid initialisation blends
+  its surrogate *with* potential flow rather than replacing it
+  (arXiv:2503.15766). A surrogate seed that cannot beat it has no practical claim
+  however good it looks against a cold start.
+* ``composite``     -- potential flow for global pressure and outer velocity, the
+  wall-fitted surrogate for the boundary layer. **The recipe.**
+
+`cold`, `oracle_mesh` and `fitted_256x64` are reused from the representation
+probe's tree when one is pointed at, so this costs four solves per case, not
+seven.
 
 A positive result here is worth more than the representation result on its own:
 it is a recipe rather than an observation, it needs no new model, and it applies
@@ -73,7 +83,7 @@ CASES = [("naca0012", 4.0), ("naca2412", 2.0), ("naca0015", 6.0),
          ("naca0012", 0.0), ("naca4412", 3.0), ("naca2415", 5.0)]
 THRESHOLDS = (1e-3, 1e-4, 1e-5, 5e-6, 1e-6)
 FORCE_TOLS = (0.01, 0.005)
-NEW_ARMS = ("fitted_p", "fitted_outer", "potential")
+NEW_ARMS = ("fitted_p", "fitted_outer", "potential", "composite")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -169,14 +179,24 @@ def main(argv: list[str] | None = None) -> int:
         cg.write_cgrid_case(case, src, spec=spec, n_iter=1)
         of.run_openfoam("blockMesh", src, timeout=args.timeout, log_name="log.blockMesh")
         pu, pv, pp = of.potential_flow_seed(src, timeout=args.timeout)
-        results["potential"] = run(
-            "potential",
-            mesh_initial=(pu, pv, pp, np.full_like(pu, nut_fs)))
+        potential = (pu, pv, pp, np.full_like(pu, nut_fs))
+        results["potential"] = run("potential", mesh_initial=potential)
+
+        # The composition the measurement points at: potential flow supplies the
+        # global pressure and outer velocity -- free, untrained, and exactly what
+        # the surrogate ruins -- and the wall-fitted surrogate supplies the
+        # boundary layer, which potential flow does not have at all.
+        both, rep_c = ws.masked_seed(potential, cold.centres, surface,
+                                     fields=("u", "v", "p"), background=fitted,
+                                     free_within=delta, ramp=args.ramp,
+                                     u_inf=u_inf, v_inf=v_inf, nut_freestream=nut_fs)
+        results["composite"] = run("composite", mesh_initial=both)
 
         row = {"case": tag, "re": args.re, "delta": delta,
                "covered_fraction": rep["covered_fraction"],
                "blended_fraction": rep_o["blended_fraction"],
-               "seeded_fields": rep_p["fields"]}
+               "seeded_fields": rep_p["fields"],
+               "composite_blended": rep_c["blended_fraction"]}
         for t in THRESHOLDS:
             k = f"{t:.0e}"
             row[f"cold@{k}"] = cold.iterations_to(t)

@@ -98,3 +98,42 @@ def test_the_seed_is_not_modified_in_place(geometry, seed):
     ws.masked_seed(seed, centres, surface, fields=("p",), free_within=0.01, **FREE)
     for got, want in zip(seed, before):
         np.testing.assert_allclose(got, want)
+
+
+# --------------------------------------------------------------------------- #
+# Composing two seeds: classical outside, learned inside
+# --------------------------------------------------------------------------- #
+
+
+def test_a_background_seed_replaces_freestream_as_the_fallback(geometry, seed):
+    centres, surface, _ = geometry
+    n = len(seed[0])
+    background = (np.full(n, 0.2), np.full(n, 0.3), np.full(n, 0.4), np.full(n, 9e-9))
+    (u, v, p, nut), report = ws.masked_seed(
+        seed, centres, surface, fields=("p",), background=background, **FREE)
+    np.testing.assert_allclose(p, seed[2])          # kept from the primary seed
+    np.testing.assert_allclose(u, 0.2)              # and the rest from the background
+    np.testing.assert_allclose(v, 0.3)
+    np.testing.assert_allclose(nut, 9e-9)
+    assert report["background"] == "seed"
+
+
+def test_classical_outside_learned_inside(geometry):
+    """The composition the measurement points at.
+
+    Potential flow is free and good at the global pressure field the surrogate
+    ruins; the wall-fitted surrogate is good at the boundary layer potential flow
+    does not have. Pass the first as the seed and the second as the background.
+    """
+    centres, surface, d = geometry
+    n = d.size
+    potential = (np.full(n, 1.4), np.zeros(n), np.full(n, -0.2), np.full(n, 1e-5))
+    surrogate = (np.full(n, 0.3), np.zeros(n), np.full(n, 99.0), np.full(n, 7e-4))
+    (u, _v, p, nut), _ = ws.masked_seed(
+        potential, centres, surface, fields=("u", "v", "p"),
+        background=surrogate, free_within=0.005, ramp=3.0, **FREE)
+    near, far = d <= 0.005, d >= 0.015
+    np.testing.assert_allclose(u[near], 0.3)        # boundary layer: the surrogate
+    np.testing.assert_allclose(u[far], 1.4)         # outer flow: potential flow
+    np.testing.assert_allclose(p, -0.2)             # pressure: potential flow, everywhere
+    np.testing.assert_allclose(nut[near], 7e-4)     # nuTilda came from the background

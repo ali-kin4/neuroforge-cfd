@@ -315,6 +315,7 @@ def masked_seed(
     fields: tuple[str, ...] = FIELDS,
     free_within: float = 0.0,
     ramp: float = 3.0,
+    background: tuple | None = None,
     u_inf: float,
     v_inf: float,
     nut_freestream: float,
@@ -352,6 +353,17 @@ def masked_seed(
         jump in it. Pressure is never masked -- it is the field with no wall
         boundary layer to get wrong, and the slow one.
 
+    ``background``
+        What the masked-out parts fall back to. Defaults to uniform freestream --
+        a cold start. Pass another seed and the two are composed instead, which
+        is how the measured split turns into a recipe: at Re 3e6 the wall-fitted
+        surrogate wins on friction drag (+37%) and lift (+87%) and *loses* on
+        pressure drag (-150%), while potential flow is free, untrained, and good
+        at exactly the global pressure field the surrogate ruins. Passing
+        potential flow as ``values`` and the surrogate as ``background`` with
+        ``free_within = delta`` gives classical pressure and outer flow with a
+        learned boundary layer inside it.
+
     ``free_within=0`` and all four fields is the identity, which is what makes
     this usable as the control arm of its own ablation.
     """
@@ -360,11 +372,15 @@ def masked_seed(
     if unknown:
         raise ValueError(f"unknown seed fields: {sorted(unknown)}; expected {FIELDS}")
 
-    free = {"u": u_inf, "v": v_inf, "p": 0.0, "nut": nut_freestream}
+    if background is None:
+        free = {"u": np.float64(u_inf), "v": np.float64(v_inf),
+                "p": np.float64(0.0), "nut": np.float64(nut_freestream)}
+    else:
+        free = dict(zip(FIELDS, (np.asarray(a, dtype=np.float64) for a in background)))
     out = {"u": u, "v": v, "p": p, "nut": nut}
     for name in FIELDS:
         if name not in fields:
-            out[name] = np.full_like(out[name], free[name])
+            out[name] = np.broadcast_to(free[name], out[name].shape).astype(np.float64).copy()
 
     blended = 0.0
     if free_within > 0:
@@ -384,5 +400,6 @@ def masked_seed(
         "free_within": free_within,
         "ramp": ramp,
         "blended_fraction": blended,
+        "background": "freestream" if background is None else "seed",
     }
     return tuple(out[name] for name in FIELDS), report

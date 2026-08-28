@@ -1,0 +1,47 @@
+{
+  "summary": {
+    "status": "in-progress"
+  },
+  "rows": [
+    {
+      "case": "naca0015_aoa6",
+      "airfoil": "naca0015",
+      "aoa": 6.0,
+      "re": 3000000.0,
+      "resolution": 128,
+      "h": 0.023622047244094488,
+      "delta": 0.018740340312148367,
+      "delta_over_h": 0.7933410732142809,
+      "covered_fraction": 0.6944479495268139,
+      "cold@1e-02": 9,
+      "oracle_mesh@1e-02": 1,
+      "arm@1e-02": 8,
+      "cold@1e-03": 77,
+      "oracle_mesh@1e-03": 5,
+      "arm@1e-03": 66,
+      "cold@1e-04": 198,
+      "oracle_mesh@1e-04": 14,
+      "arm@1e-04": 161
+    },
+    {
+      "case": "naca0015_aoa6",
+      "airfoil": "naca0015",
+      "aoa": 6.0,
+      "re": 3000000.0,
+      "resolution": 192,
+      "h": 0.015706806282722512,
+      "delta": 0.018740340312148367,
+      "delta_over_h": 1.1931349998734462,
+      "covered_fraction": 0.6944479495268139,
+      "cold@1e-02": 9,
+      "oracle_mesh@1e-02": 1,
+      "arm@1e-02": 8,
+      "cold@1e-03": 77,
+      "oracle_mesh@1e-03": 5,
+      "arm@1e-03": 67,
+      "cold@1e-04": 198,
+      "oracle_mesh@1e-04": 14,
+      "arm@1e-04": 162
+    }
+  ]
+}

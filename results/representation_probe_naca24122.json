@@ -1,7 +1,7 @@
 {
   "summary": {
     "re": 3000000.0,
-    "n_iter": 3000,
+    "n_iter": 6000,
     "budget": 16384,
     "mesh": "cgrid",
     "per_threshold": {
@@ -30,106 +30,112 @@
         "fitted_256x64_n": 1
       },
       "1e-05": {
-        "oracle_mesh_saving": 0.8577586206896551,
+        "oracle_mesh_saving": 0.8556034482758621,
         "oracle_mesh_n": 1,
-        "cartesian_128_saving": NaN,
-        "cartesian_128_n": 0,
-        "fitted_256x64_saving": -0.21551724137931028,
+        "cartesian_128_saving": -6.336206896551724,
+        "cartesian_128_n": 1,
+        "fitted_256x64_saving": -0.21982758620689657,
         "fitted_256x64_n": 1
       },
       "5e-06": {
-        "oracle_mesh_saving": 0.9210266535044422,
+        "oracle_mesh_saving": 0.9190523198420533,
         "oracle_mesh_n": 1,
-        "cartesian_128_saving": NaN,
-        "cartesian_128_n": 0,
-        "fitted_256x64_saving": 0.27640671273445216,
+        "cartesian_128_saving": -3.6041461006910165,
+        "cartesian_128_n": 1,
+        "fitted_256x64_saving": 0.27739387956564654,
         "fitted_256x64_n": 1
       },
       "1e-06": {
-        "oracle_mesh_saving": 0.9353501864898467,
+        "oracle_mesh_saving": 0.8259428097803564,
         "oracle_mesh_n": 1,
         "cartesian_128_saving": NaN,
         "cartesian_128_n": 0,
-        "fitted_256x64_saving": NaN,
-        "fitted_256x64_n": 0
+        "fitted_256x64_saving": -0.8139245752175714,
+        "fitted_256x64_n": 1
       }
     },
     "per_force": {
       "Cd@0.01": {
-        "oracle_mesh_saving": 0.897489539748954,
+        "oracle_mesh_saving": 0.8940269749518305,
         "oracle_mesh_n": 1,
         "oracle_mesh_spread": [
-          0.897489539748954,
-          0.897489539748954
+          0.8940269749518305,
+          0.8940269749518305
         ],
-        "cartesian_128_saving": NaN,
-        "cartesian_128_n": 0,
-        "cartesian_128_spread": null,
-        "fitted_256x64_saving": -4.868200836820083,
+        "cartesian_128_saving": -8.196531791907514,
+        "cartesian_128_n": 1,
+        "cartesian_128_spread": [
+          -8.196531791907514,
+          -8.196531791907514
+        ],
+        "fitted_256x64_saving": -2.66859344894027,
         "fitted_256x64_n": 1,
         "fitted_256x64_spread": [
-          -4.868200836820083,
-          -4.868200836820083
+          -2.66859344894027,
+          -2.66859344894027
         ]
       },
       "Cl@0.01": {
-        "oracle_mesh_saving": 0.9988726042841037,
+        "oracle_mesh_saving": 0.9988776655443322,
         "oracle_mesh_n": 1,
         "oracle_mesh_spread": [
-          0.9988726042841037,
-          0.9988726042841037
+          0.9988776655443322,
+          0.9988776655443322
         ],
-        "cartesian_128_saving": -1.661781285231116,
+        "cartesian_128_saving": -1.368125701459035,
         "cartesian_128_n": 1,
         "cartesian_128_spread": [
-          -1.661781285231116,
-          -1.661781285231116
+          -1.368125701459035,
+          -1.368125701459035
         ],
-        "fitted_256x64_saving": 0.8410372040586246,
+        "fitted_256x64_saving": 0.8417508417508417,
         "fitted_256x64_n": 1,
         "fitted_256x64_spread": [
-          0.8410372040586246,
-          0.8410372040586246
+          0.8417508417508417,
+          0.8417508417508417
         ]
       },
       "Cd@0.005": {
-        "oracle_mesh_saving": 0.8803738317757009,
+        "oracle_mesh_saving": 0.9294456443484521,
         "oracle_mesh_n": 1,
         "oracle_mesh_spread": [
-          0.8803738317757009,
-          0.8803738317757009
+          0.9294456443484521,
+          0.9294456443484521
         ],
         "cartesian_128_saving": NaN,
         "cartesian_128_n": 0,
         "cartesian_128_spread": null,
-        "fitted_256x64_saving": NaN,
-        "fitted_256x64_n": 0,
-        "fitted_256x64_spread": null
-      },
-      "Cl@0.005": {
-        "oracle_mesh_saving": 0.9990783410138249,
-        "oracle_mesh_n": 1,
-        "oracle_mesh_spread": [
-          0.9990783410138249,
-          0.9990783410138249
-        ],
-        "cartesian_128_saving": NaN,
-        "cartesian_128_n": 0,
-        "cartesian_128_spread": null,
-        "fitted_256x64_saving": 0.2737327188940092,
+        "fitted_256x64_saving": -1.287257019438445,
         "fitted_256x64_n": 1,
         "fitted_256x64_spread": [
-          0.2737327188940092,
-          0.2737327188940092
+          -1.287257019438445,
+          -1.287257019438445
+        ]
+      },
+      "Cl@0.005": {
+        "oracle_mesh_saving": 0.9990875912408759,
+        "oracle_mesh_n": 1,
+        "oracle_mesh_spread": [
+          0.9990875912408759,
+          0.9990875912408759
+        ],
+        "cartesian_128_saving": -2.204379562043796,
+        "cartesian_128_n": 1,
+        "cartesian_128_spread": [
+          -2.204379562043796,
+          -2.204379562043796
+        ],
+        "fitted_256x64_saving": 0.28649635036496346,
+        "fitted_256x64_n": 1,
+        "fitted_256x64_spread": [
+          0.28649635036496346,
+          0.28649635036496346
         ]
       },
       "Cd@0.002": {
-        "oracle_mesh_saving": -3.8699324324324325,
-        "oracle_mesh_n": 1,
-        "oracle_mesh_spread": [
-          -3.8699324324324325,
-          -3.8699324324324325
-        ],
+        "oracle_mesh_saving": NaN,
+        "oracle_mesh_n": 0,
+        "oracle_mesh_spread": null,
         "cartesian_128_saving": NaN,
         "cartesian_128_n": 0,
         "cartesian_128_spread": null,
@@ -138,20 +144,23 @@
         "fitted_256x64_spread": null
       },
       "Cl@0.002": {
-        "oracle_mesh_saving": 0.9993256911665542,
+        "oracle_mesh_saving": 0.9993502274204029,
         "oracle_mesh_n": 1,
         "oracle_mesh_spread": [
-          0.9993256911665542,
-          0.9993256911665542
+          0.9993502274204029,
+          0.9993502274204029
         ],
-        "cartesian_128_saving": NaN,
-        "cartesian_128_n": 0,
-        "cartesian_128_spread": null,
-        "fitted_256x64_saving": -0.75118004045853,
+        "cartesian_128_saving": -2.5601039636127356,
+        "cartesian_128_n": 1,
+        "cartesian_128_spread": [
+          -2.5601039636127356,
+          -2.5601039636127356
+        ],
+        "fitted_256x64_saving": -0.6055880441845354,
         "fitted_256x64_n": 1,
         "fitted_256x64_spread": [
-          -0.75118004045853,
-          -0.75118004045853
+          -0.6055880441845354,
+          -0.6055880441845354
         ]
       }
     }
@@ -163,7 +172,7 @@
       "budget": 16384,
       "cartesian_covered": 0.6946372239747634,
       "fitted_covered": 0.6765930599369085,
-      "cold_floor": 8.789202615e-07,
+      "cold_floor": 1.5292888785e-06,
       "cold@1e-02": 9,
       "oracle_mesh@1e-02": 1,
       "cartesian_128@1e-02": 11,
@@ -177,69 +186,69 @@
       "cartesian_128@1e-04": 166,
       "fitted_256x64@1e-04": 165,
       "cold@1e-05": 464,
-      "oracle_mesh@1e-05": 66,
-      "cartesian_128@1e-05": null,
-      "fitted_256x64@1e-05": 564,
+      "oracle_mesh@1e-05": 67,
+      "cartesian_128@1e-05": 3404,
+      "fitted_256x64@1e-05": 566,
       "cold@5e-06": 1013,
-      "oracle_mesh@5e-06": 80,
-      "cartesian_128@5e-06": null,
-      "fitted_256x64@5e-06": 733,
+      "oracle_mesh@5e-06": 82,
+      "cartesian_128@5e-06": 4664,
+      "fitted_256x64@5e-06": 732,
       "cold@1e-06": 2413,
-      "oracle_mesh@1e-06": 156,
+      "oracle_mesh@1e-06": 420,
       "cartesian_128@1e-06": null,
-      "fitted_256x64@1e-06": null,
+      "fitted_256x64@1e-06": 4377,
       "force_reference": {
-        "Cd": 0.010181859504,
-        "Cl": 0.42911510856
+        "Cd": 0.010221855289,
+        "Cl": 0.429187265025
       },
-      "cold.Cd@0.01": 478,
-      "cold.Cd_final@0.01": 0.010184726075,
-      "cold.Cl@0.01": 887,
-      "cold.Cl_final@0.01": 0.42887592073,
-      "oracle_mesh.Cd@0.01": 49,
-      "oracle_mesh.Cd_final@0.01": 0.010181859504,
+      "cold.Cd@0.01": 519,
+      "cold.Cd_final@0.01": 0.010195667307,
+      "cold.Cl@0.01": 891,
+      "cold.Cl_final@0.01": 0.42906176175,
+      "oracle_mesh.Cd@0.01": 55,
+      "oracle_mesh.Cd_final@0.01": 0.010213081023,
       "oracle_mesh.Cl@0.01": 1,
-      "oracle_mesh.Cl_final@0.01": 0.42911510856,
-      "cartesian_128.Cd@0.01": null,
-      "cartesian_128.Cd_final@0.01": 0.010391848559,
-      "cartesian_128.Cl@0.01": 2361,
-      "cartesian_128.Cl_final@0.01": 0.43188609078,
-      "fitted_256x64.Cd@0.01": 2805,
-      "fitted_256x64.Cd_final@0.01": 0.01027746989,
+      "oracle_mesh.Cl_final@0.01": 0.42903450916,
+      "cartesian_128.Cd@0.01": 4773,
+      "cartesian_128.Cd_final@0.01": 0.010289769646,
+      "cartesian_128.Cl@0.01": 2110,
+      "cartesian_128.Cl_final@0.01": 0.42987264492,
+      "fitted_256x64.Cd@0.01": 1904,
+      "fitted_256x64.Cd_final@0.01": 0.010230629555,
       "fitted_256x64.Cl@0.01": 141,
-      "fitted_256x64.Cl_final@0.01": 0.42980422611,
-      "cold.Cd@0.005": 535,
-      "cold.Cd_final@0.005": 0.010184726075,
-      "cold.Cl@0.005": 1085,
-      "cold.Cl_final@0.005": 0.42887592073,
-      "oracle_mesh.Cd@0.005": 64,
-      "oracle_mesh.Cd_final@0.005": 0.010181859504,
+      "fitted_256x64.Cl_final@0.01": 0.4293127683,
+      "cold.Cd@0.005": 1389,
+      "cold.Cd_final@0.005": 0.010195667307,
+      "cold.Cl@0.005": 1096,
+      "cold.Cl_final@0.005": 0.42906176175,
+      "oracle_mesh.Cd@0.005": 98,
+      "oracle_mesh.Cd_final@0.005": 0.010213081023,
       "oracle_mesh.Cl@0.005": 1,
-      "oracle_mesh.Cl_final@0.005": 0.42911510856,
+      "oracle_mesh.Cl_final@0.005": 0.42903450916,
       "cartesian_128.Cd@0.005": null,
-      "cartesian_128.Cd_final@0.005": 0.010391848559,
-      "cartesian_128.Cl@0.005": null,
-      "cartesian_128.Cl_final@0.005": 0.43188609078,
-      "fitted_256x64.Cd@0.005": null,
-      "fitted_256x64.Cd_final@0.005": 0.01027746989,
-      "fitted_256x64.Cl@0.005": 788,
-      "fitted_256x64.Cl_final@0.005": 0.42980422611,
-      "cold.Cd@0.002": 592,
-      "cold.Cd_final@0.002": 0.010184726075,
-      "cold.Cl@0.002": 1483,
-      "cold.Cl_final@0.002": 0.42887592073,
-      "oracle_mesh.Cd@0.002": 2883,
-      "oracle_mesh.Cd_final@0.002": 0.010181859504,
+      "cartesian_128.Cd_final@0.005": 0.010289769646,
+      "cartesian_128.Cl@0.005": 3512,
+      "cartesian_128.Cl_final@0.005": 0.42987264492,
+      "fitted_256x64.Cd@0.005": 3177,
+      "fitted_256x64.Cd_final@0.005": 0.010230629555,
+      "fitted_256x64.Cl@0.005": 782,
+      "fitted_256x64.Cl_final@0.005": 0.4293127683,
+      "cold.Cd@0.002": null,
+      "cold.Cd_final@0.002": 0.010195667307,
+      "cold.Cl@0.002": 1539,
+      "cold.Cl_final@0.002": 0.42906176175,
+      "oracle_mesh.Cd@0.002": 5881,
+      "oracle_mesh.Cd_final@0.002": 0.010213081023,
       "oracle_mesh.Cl@0.002": 1,
-      "oracle_mesh.Cl_final@0.002": 0.42911510856,
+      "oracle_mesh.Cl_final@0.002": 0.42903450916,
       "cartesian_128.Cd@0.002": null,
-      "cartesian_128.Cd_final@0.002": 0.010391848559,
-      "cartesian_128.Cl@0.002": null,
-      "cartesian_128.Cl_final@0.002": 0.43188609078,
-      "fitted_256x64.Cd@0.002": null,
-      "fitted_256x64.Cd_final@0.002": 0.01027746989,
-      "fitted_256x64.Cl@0.002": 2597,
-      "fitted_256x64.Cl_final@0.002": 0.42980422611
+      "cartesian_128.Cd_final@0.002": 0.010289769646,
+      "cartesian_128.Cl@0.002": 5479,
+      "cartesian_128.Cl_final@0.002": 0.42987264492,
+      "fitted_256x64.Cd@0.002": 4813,
+      "fitted_256x64.Cd_final@0.002": 0.010230629555,
+      "fitted_256x64.Cl@0.002": 2471,
+      "fitted_256x64.Cl_final@0.002": 0.4293127683
     }
   ]
 }
