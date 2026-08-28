@@ -757,6 +757,55 @@ def test_iterations_to_force_band_on_empty_input():
 
 
 # --------------------------------------------------------------------------- #
+# Pressure / viscous split
+# --------------------------------------------------------------------------- #
+
+# v2606 writes Time, then *total*, then pressure, then viscous. Counting columns
+# from the left lands on the total vector and silently reports it as pressure,
+# so the reader takes its column names from this header.
+_FORCE_FILE = """\
+# Force
+# CofR            : (2.5e-01 0 0)
+#
+# Time \ttotal_x total_y total_z\tpressure_x pressure_y pressure_z\tviscous_x viscous_y viscous_z
+1 0.0009 0.02 0 0.0004 0.02 0 0.0005 0.0 0
+2 0.0011 0.04 0 0.0005 0.04 0 0.0006 0.0 0
+"""
+
+
+def _write_forces(root):
+    _write_coeffs(root, "# dragDir : (1 0 0)\n# liftDir : (0 1 0)\n"
+                        "# magUInf : 1\n# Aref : 0.1\n"
+                        "# Time Cd Cl\n1 0.018 0.4\n2 0.022 0.8\n")
+    d = os.path.join(root, "postProcessing", "forces", "0")
+    os.makedirs(d, exist_ok=True)
+    with open(os.path.join(d, "force.dat"), "w", encoding="utf-8") as fh:
+        fh.write(_FORCE_FILE)
+    return root
+
+
+def test_force_components_split_pressure_from_viscous(tmp_path):
+    parts = of.read_force_components(_write_forces(str(tmp_path / "f")))
+    # q = 0.5 * 1^2 * 0.1 = 0.05, drag along x, lift along y.
+    assert parts["Cd_p"] == pytest.approx([0.008, 0.010])
+    assert parts["Cd_v"] == pytest.approx([0.010, 0.012])
+    assert parts["Cl_p"] == pytest.approx([0.4, 0.8])
+    assert parts["Cl_v"] == pytest.approx([0.0, 0.0])
+
+
+def test_force_components_sum_to_the_reported_total(tmp_path):
+    root = _write_forces(str(tmp_path / "s"))
+    parts = of.read_force_components(root)
+    total = of.read_force_coeffs(root)["Cd"]
+    np.testing.assert_allclose(parts["Cd_p"] + parts["Cd_v"], total, rtol=1e-9)
+
+
+def test_force_components_without_the_function_object(tmp_path):
+    # forceCoeffs present, `forces` absent: no split, and no crash.
+    assert of.read_force_components(_write_coeffs(str(tmp_path / "c"))) == {}
+
+
+# --------------------------------------------------------------------------- #
 # Under-relaxation
 # --------------------------------------------------------------------------- #
 

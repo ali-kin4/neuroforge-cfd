@@ -92,10 +92,23 @@ def force_scores(case_dir: str, reference: dict | None, tol: float) -> dict:
     return out
 
 
-def converged_coefficients(case_dir: str) -> dict:
-    """Final Cd/Cl of a run, for use as the shared reference of its case."""
-    data = of.read_force_coeffs(case_dir)
-    return {n: float(data[n][-1]) for n in ("Cd", "Cl") if n in data and len(data[n])}
+def converged_coefficients(case_dirs) -> dict:
+    """Shared reference for a case: the **median** final value across its arms.
+
+    Every arm solves the same steady problem on the same mesh and must land on
+    the same coefficient, so the median is the best estimate of it and shrugs off
+    one straggler. Using the oracle arm's own final instead would make the
+    oracle's score an artifact -- an arm graded against where it itself stopped
+    measures how it approached its own asymptote, not how fast it converged --
+    and that reads as a failed control when nothing is wrong with the data.
+    """
+    finals: dict[str, list[float]] = {}
+    for d in case_dirs:
+        data = of.read_force_coeffs(d)
+        for n in ("Cd", "Cl"):
+            if n in data and len(data[n]):
+                finals.setdefault(n, []).append(float(data[n][-1]))
+    return {n: float(np.median(v)) for n, v in finals.items()}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -204,14 +217,12 @@ def main(argv: list[str] | None = None) -> int:
                 row[f"{a}@{k}"] = r.iterations_to(t)
 
         # Force convergence, the metric that does not sit on the residual floor.
-        # The reference is the oracle arm's converged coefficient -- the arm that
-        # started from the answer and is therefore the most settled -- and every
-        # arm of this case is scored against that same number.
+        # Every arm of a case is scored against one shared reference so that a
+        # warm start is not graded on wherever it happened to stop.
         def dir_of(name):
             return os.path.join(args.work_dir, f"{tag}_{name}")
 
-        ref = converged_coefficients(dir_of("oracle_mesh")) or \
-            converged_coefficients(dir_of("cold"))
+        ref = converged_coefficients(dir_of(n) for n in ["cold"] + list(ARMS))
         row["force_reference"] = ref
         for tol in FORCE_TOLS:
             for name in ["cold"] + list(ARMS):

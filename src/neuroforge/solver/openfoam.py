@@ -68,6 +68,7 @@ __all__ = [
     "iterations_to_threshold",
     "residual_floor",
     "read_force_coeffs",
+    "read_force_components",
     "iterations_to_force_band",
     "read_volfield",
     "completed_run",
@@ -576,8 +577,136 @@ def _force_coeffs(
         f"        dragDir         ({_num(dx)} {_num(dy)} 0);\n"
         f"        liftDir         ({_num(-dy)} {_num(dx)} 0);\n"
         "        CofR            (0.25 0 0);\n        pitchAxis       (0 0 1);\n"
+        "    }\n\n    forces\n    {\n"
+        "        type            forces;\n"
+        '        libs            ("libforces.so");\n'
+        "        writeControl    timeStep;\n        writeInterval   1;\n"
+        "        log             no;\n"
+        f"        patches         ({patch});\n"
+        "        rho             rhoInf;\n        rhoInf          1;\n"
+        "        CofR            (0.25 0 0);\n"
         "    }\n}\n"
     )
+
+
+def _coeff_header(case_dir: str) -> dict:
+    """Reference data OpenFOAM stamps at the top of ``coefficient.dat``.
+
+    Reading it back beats recomputing it: the file records the exact directions
+    and reference area the solver used, so a coefficient derived here cannot
+    silently disagree with the one the solver reported.
+    """
+    base = os.path.join(case_dir, "postProcessing", "forceCoeffs")
+    if not os.path.isdir(base):
+        return {}
+    for entry in sorted(os.listdir(base)):
+        d = os.path.join(base, entry)
+        if not os.path.isdir(d):
+            continue
+        for name in sorted(os.listdir(d)):
+            if not (name.startswith("coefficient") and name.endswith(".dat")):
+                continue
+            out: dict = {}
+            with open(os.path.join(d, name), encoding="utf-8", errors="replace") as fh:
+                for line in fh:
+                    if not line.startswith("#"):
+                        break
+                    key, _, value = line.lstrip("#").strip().partition(":")
+                    key, value = key.strip(), value.strip()
+                    if not value:
+                        continue
+                    nums = [float(v) for v in
+                            value.replace("(", " ").replace(")", " ").split()]
+                    out[key] = nums if len(nums) > 1 else nums[0]
+            if out:
+                return out
+    return {}
+
+
+def read_force_components(case_dir: str) -> dict[str, np.ndarray]:
+    """Split drag and lift into their pressure and viscous parts.
+
+    ``forceCoeffs`` reports ``Cd(f)`` / ``Cd(r)``, which are the *front* and
+    *rear* contributions about ``CofR`` -- not what is wanted here. The separate
+    ``forces`` function object writes the pressure and viscous force vectors, and
+    projecting those onto the drag and lift directions from the ``coefficient``
+    header gives ``Cd_p, Cd_v, Cl_p, Cl_v``.
+
+    The split matters because the two coefficients are dominated by different
+    physics: at these Reynolds numbers drag is mostly wall shear and lift is
+    mostly pressure. A seed that is accurate in the pressure field but corrupts
+    the near-wall velocity gradient would then converge lift quickly and drag
+    slowly -- a prediction this makes testable.
+
+    Returns ``{}`` when the run predates the function object.
+    """
+    head = _coeff_header(case_dir)
+    base = os.path.join(case_dir, "postProcessing", "forces")
+    if not head or not os.path.isdir(base):
+        return {}
+    # Column names come from the file's own header. The layout is not stable
+    # across releases -- v2606 writes Time, then *total*, then pressure, then
+    # viscous, so counting from the left lands on the wrong vector.
+    names: list[str] = []
+    rows: list[list[float]] = []
+    for entry in sorted(os.listdir(base), key=lambda e: (_as_float(e), e)):
+        d = os.path.join(base, entry)
+        if not os.path.isdir(d):
+            continue
+        for name in sorted(os.listdir(d)):
+            if not (name.startswith("force") and name.endswith(".dat")):
+                continue
+            with open(os.path.join(d, name), encoding="utf-8", errors="replace") as fh:
+                for line in fh:
+                    if not line.strip():
+                        continue
+                    if line.startswith("#"):
+                        parts = line.lstrip("#").replace("\t", " ").split()
+                        if parts and parts[0] == "Time":
+                            names = parts
+                        continue
+                    flat = line.replace("(", " ").replace(")", " ").split()
+                    try:
+                        rows.append([float(v) for v in flat])
+                    except ValueError:
+                        continue
+    if not rows or not names:
+        return {}
+    width = min(len(names), min(len(r) for r in rows))
+    index = {names[i]: i for i in range(width)}
+    if not {"pressure_x", "viscous_x"} <= set(index):
+        return {}
+    data = np.array([r[:width] for r in rows], dtype=float)
+    data = data[np.argsort(data[:, 0], kind="stable")]
+    keep = np.ones(len(data), dtype=bool)
+    keep[:-1] = data[1:, 0] != data[:-1, 0]
+    data = data[keep]
+
+    drag = np.asarray(head.get("dragDir", [1.0, 0.0, 0.0]), dtype=float)
+    lift = np.asarray(head.get("liftDir", [0.0, 1.0, 0.0]), dtype=float)
+    q = 0.5 * float(head.get("magUInf", 1.0)) ** 2 * float(head.get("Aref", 1.0))
+    if q <= 0:
+        return {}
+
+    def vector(prefix):
+        cols = [index[f"{prefix}_{axis}"] for axis in "xyz"]
+        return data[:, cols]
+
+    pressure, viscous = vector("pressure"), vector("viscous")
+    return {
+        "Time": data[:, 0],
+        "Cd_p": pressure @ drag / q,
+        "Cd_v": viscous @ drag / q,
+        "Cl_p": pressure @ lift / q,
+        "Cl_v": viscous @ lift / q,
+    }
+
+
+def _as_float(text: str) -> float:
+    try:
+        return float(text)
+    except ValueError:
+        return float("inf")
 
 
 def read_force_coeffs(case_dir: str) -> dict[str, np.ndarray]:

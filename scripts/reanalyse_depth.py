@@ -57,6 +57,13 @@ KNOWN_ARMS = ("oracle_mesh", "cartesian_128", "fitted_256x64",
 FORCE_TOLS = (0.01, 0.005, 0.002)
 FORCE_REF_FLOOR = 1e-3   # a relative band around zero lift is numerical noise
 
+# Total drag and lift, then their pressure and viscous parts. The split is
+# what separates the two: at these Reynolds numbers drag is mostly wall shear
+# and lift is mostly pressure, so a seed that gets the pressure field right
+# while corrupting the near-wall velocity gradient converges one fast and the
+# other slowly -- a prediction these columns test directly.
+COEFFS = ("Cd", "Cl", "Cd_p", "Cd_v", "Cl_p")
+
 
 def summarise(savings, censored, n_cases):
     """Mean saving over the arms that reached the target, plus the censored ones.
@@ -163,8 +170,19 @@ def main(argv=None):
     print(header)
     print("-" * len(header))
 
-    budgets = {(c, a): len(hist[(c, a)].get("Ux", ())) if hist[(c, a)] else 0
+    # An arm that stopped short of the tree's budget is *unfinished*, not
+    # censored: scoring it against its own truncated length would read a run the
+    # power cut interrupted as a catastrophic failure. Only arms that used the
+    # full budget can bound a target they never reached.
+    lengths = {(c, a): len(hist[(c, a)].get("Ux", ())) if hist[(c, a)] else 0
                for c in cases for a in [args.cold] + arms}
+    full = max(lengths.values(), default=0)
+    budgets = {k: (v if v >= 0.9 * full else 0) for k, v in lengths.items()}
+    unfinished = sorted(f"{c}_{a} ({lengths[(c, a)]})"
+                        for (c, a), v in budgets.items() if v == 0 and lengths[(c, a)])
+    if unfinished:
+        print(f"\nstill short of the {full}-iteration budget, left unscored: "
+              + ", ".join(unfinished))
 
     mean_floor = float(np.mean(list(floors.values()))) if floors else float("nan")
     for t in DEPTHS:
@@ -203,28 +221,66 @@ def main(argv=None):
               + "  ".join(cell(entry[a]) for a in arms))
 
     # --- the same comparison on the forces ------------------------------------
-    forces = {(c, a): of.read_force_coeffs(os.path.join(args.root, f"{c}_{a}"))
-              for c in cases for a in [args.cold] + arms}
+    forces = {}
+    for c in cases:
+        for a in [args.cold] + arms:
+            d = os.path.join(args.root, f"{c}_{a}")
+            merged = dict(of.read_force_coeffs(d))
+            # Cd(f)/Cd(r) in coefficient.dat are the front and rear halves about
+            # CofR, not the viscous and pressure parts. The separate `forces`
+            # object gives those, and they are what separates the two
+            # coefficients: drag here is mostly wall shear, lift mostly pressure.
+            parts = of.read_force_components(d)
+            for name in ("Cd_p", "Cd_v", "Cl_p", "Cl_v"):
+                if name in parts:
+                    merged[name] = parts[name]
+            forces[(c, a)] = merged
     scored = any(forces.values())
     out["by_force"] = {}
     if scored:
-        # One reference per case, shared by its arms: the oracle arm's converged
-        # coefficient where there is one, else the cold arm's. Scoring each arm
-        # against its own final would grade a warm start on wherever it stopped.
-        refs = {}
+        # One reference per case, shared by its arms: the **median** of the arms'
+        # final values. Every arm solves the same steady problem on the same mesh
+        # and must land on the same coefficient, so the median is the best
+        # estimate of it and is robust to one straggler.
+        #
+        # Taking the oracle arm's own final instead -- the obvious choice -- makes
+        # the oracle's score an artifact: an arm graded against where it itself
+        # stopped is measuring how it approached its own asymptote, not how fast
+        # it converged. That reads as a failed control when nothing is wrong with
+        # the data, which is worse than no control at all.
+        refs, spread = {}, {}
         for c in cases:
-            for a in ("oracle_mesh", "oracle", args.cold):
+            finals = {}
+            for a in [args.cold] + arms:
                 d = forces.get((c, a))
-                if d and "Cd" in d and len(d["Cd"]):
-                    refs[c] = {n: float(d[n][-1]) for n in ("Cd", "Cl") if n in d}
-                    break
+                if not d:
+                    continue
+                for n in COEFFS:
+                    if n in d and len(d[n]):
+                        finals.setdefault(n, {})[a] = float(d[n][-1])
+            refs[c] = {n: float(np.median(list(v.values()))) for n, v in finals.items()}
+            spread[c] = {
+                n: max(abs(x - refs[c][n]) / abs(refs[c][n]) for x in v.values())
+                for n, v in finals.items() if refs[c].get(n)
+            }
         out["force_reference"] = refs
+        out["force_reference_spread"] = spread
+
+        # The check that decides whether a band is measurable at all: if the arms
+        # disagree about the answer by more than the band, an arm can sit outside
+        # it forever and the metric reports a convergence failure that is really a
+        # budget failure.
+        worst = max((v.get("Cd", 0.0) for v in spread.values()), default=0.0)
+        print(f"\narms' final Cd spread about the reference: {100 * worst:.3f}% "
+              f"(tightest band {100 * min(FORCE_TOLS):g}%)"
+              + ("  <-- too wide to score: raise the budget"
+                 if worst > 0.5 * min(FORCE_TOLS) else "  ok"))
 
         print()
         header = f"{'force':>12} {'cold it':>8} " + "  ".join(f"{a:>20}" for a in arms)
         print(header)
         print("-" * len(header))
-        for coeff in ("Cd", "Cl"):
+        for coeff in COEFFS:
             for tol in FORCE_TOLS:
                 colds = []
                 savings = {a: [] for a in arms}
