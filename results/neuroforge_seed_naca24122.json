@@ -1,0 +1,38 @@
+{
+  "re": 3000000.0,
+  "n_iter": 6000,
+  "checkpoints": [
+    "checkpoints\\v2_transolver\\seed0.pt"
+  ],
+  "rows": [
+    {
+      "case": "naca2412_aoa2",
+      "re": 3000000.0,
+      "covered_fraction": 0.8010410094637224,
+      "speed_m_s": 46.8,
+      "speed_sigma": -0.8338254690170288,
+      "field_error_pct": {
+        "u": 8.289626046464164,
+        "v": 22.767120667469214,
+        "p": 31.332983904327868,
+        "nut": 51.682405932607004,
+        "u_in_bl": 14.547048449424462
+      },
+      "cold@1e-03": 66,
+      "nf_mesh@1e-03": 93,
+      "nf_bl@1e-03": 72,
+      "cold@1e-04": 179,
+      "nf_mesh@1e-04": null,
+      "nf_bl@1e-04": 202,
+      "cold@1e-05": 464,
+      "nf_mesh@1e-05": null,
+      "nf_bl@1e-05": 572,
+      "cold@5e-06": 1013,
+      "nf_mesh@5e-06": null,
+      "nf_bl@5e-06": 608,
+      "cold@1e-06": 2413,
+      "nf_mesh@1e-06": null,
+      "nf_bl@1e-06": null
+    }
+  ]
+}
