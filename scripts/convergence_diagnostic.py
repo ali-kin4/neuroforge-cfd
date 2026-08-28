@@ -21,6 +21,17 @@ Variants (all on the same mesh unless noted)::
     tight_relax   both
     upwind        first-order div(phi,U): tests limiter cycling in linearUpwind
     long          base, but 4000 iterations -- decaying slowly, or truly floored?
+    wake          shorter, less stretched wake -- the mesh hypothesis
+
+``wake`` is the only variant that changes the mesh, and so the only one whose
+converged answer differs from the others. checkMesh reports 2188 cells at an
+aspect ratio of 218,987: the wall-normal spacing is uniform along the whole C
+(adjacent blocks share a radial face, so it has to be), which leaves a 1e-5 wall
+cell attached to a streamwise cell of order ten chords at the downstream end of
+the cut. Extreme aspect ratio degrades both GAMG and the Gauss-Seidel smoother,
+and OpenFOAM's initial residual is a normalised sum over all cells, so 3.5% of
+the mesh is enough to hold it up. Shortening the wake and starting it coarser
+drops the worst ratio by an order of magnitude without touching the airfoil.
 
 Read the printed tail slope. A variant that reaches 1e-6 *with the slope still
 negative* has removed the floor; one that lands on 1e-5 again has not.
@@ -56,12 +67,31 @@ VARIANTS = {
     "tight_relax": {"p_reltol": 1e-3, "u_reltol": 1e-2, "relax": 0.7},
     "upwind": {"upwind": True},
     "long": {},
+    "wake": {"spec": {"wake_length": 8.0, "first_wake": 5.0e-3}},
+    # Follow-ups, once `relax` showed under-relaxation and not the mesh sets the
+    # floor: how far down does relaxation take it, is nuTilda the remaining
+    # laggard, and does the wake mesh buy anything on top?
+    "relax05": {"relax": 0.5},
+    "relax_nut": {"relax": 0.7, "relax_nut": 0.4},
+    "relax_wake": {"relax": 0.7,
+                   "spec": {"wake_length": 8.0, "first_wake": 5.0e-3}},
 }
+
+# Variants that change the mesh, and so converge to a different discrete answer
+# than the rest. Kept explicit so a summary never compares across them silently.
+MESH_VARIANTS = ("wake", "relax_wake")
 
 
 def fv_solution(*, p_reltol: float = 0.01, u_reltol: float = 0.1,
-                relax: float = 0.9, n_non_orth: int = 2) -> str:
-    """``system/fvSolution`` with the knobs this diagnostic varies exposed."""
+                relax: float = 0.9, relax_nut: float | None = None,
+                n_non_orth: int = 2) -> str:
+    """``system/fvSolution`` with the knobs this diagnostic varies exposed.
+
+    ``relax_nut`` defaults to ``relax`` and is separate because nuTilda becomes
+    the laggard once momentum is relaxed: with U at 0.7 it sits ten times above
+    Ux and falls more slowly.
+    """
+    relax_nut = relax if relax_nut is None else relax_nut
     return (
         of._header("dictionary", "fvSolution", "system")
         + "solvers\n{\n"
@@ -79,7 +109,7 @@ def fv_solution(*, p_reltol: float = 0.01, u_reltol: float = 0.1,
         + "        nuTilda         1e-09;\n    }\n}\n\n"
         + "relaxationFactors\n{\n    equations\n    {\n"
         + f"        U               {of._num(relax)};\n"
-        + f"        nuTilda         {of._num(relax)};\n    }}\n}}\n"
+        + f"        nuTilda         {of._num(relax_nut)};\n    }}\n}}\n"
     )
 
 
@@ -133,6 +163,7 @@ def report(name: str, case_dir: str) -> dict:
 def run(name: str, args) -> dict:
     opts = dict(VARIANTS[name])
     upwind = opts.pop("upwind", False)
+    spec = cg.CGridSpec(**opts.pop("spec", {}))
     n_iter = args.n_iter if name != "long" else max(args.n_iter, 4000)
     case = FlowCase.from_airfoil(airfoil=args.airfoil, aoa=args.aoa,
                                  reynolds=args.re, u_inf=1.0, resolution=128)
@@ -143,7 +174,7 @@ def run(name: str, args) -> dict:
         print(f"[{name}] reusing finished run ({done['iterations']} iterations)")
         return report(name, case_dir)
 
-    cg.write_cgrid_case(case, case_dir, spec=cg.CGridSpec(), n_iter=n_iter)
+    cg.write_cgrid_case(case, case_dir, spec=spec, n_iter=n_iter)
     of._write(os.path.join(case_dir, "system", "fvSolution"), fv_solution(**opts))
     if upwind:
         schemes = of._header("dictionary", "fvSchemes", "system") + of._FV_SCHEMES.replace(
@@ -153,6 +184,11 @@ def run(name: str, args) -> dict:
 
     print(f"[{name}] blockMesh", flush=True)
     of.run_openfoam("blockMesh", case_dir, timeout=args.timeout, log_name="log.blockMesh")
+    proc = of.run_openfoam("checkMesh -constant", case_dir, timeout=args.timeout,
+                           log_name="log.checkMesh", check=False)
+    for line in (proc.stdout or "").splitlines():
+        if "aspect ratio" in line.lower() or "non-orthogonality" in line.lower():
+            print(f"[{name}] {line.strip()}", flush=True)
     print(f"[{name}] simpleFoam, {n_iter} iterations", flush=True)
     t0 = time.perf_counter()
     of.run_openfoam("simpleFoam", case_dir, timeout=args.timeout, log_name="log.simpleFoam")
