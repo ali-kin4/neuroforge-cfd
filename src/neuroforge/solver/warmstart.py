@@ -60,7 +60,12 @@ __all__ = [
     "sample_on_mesh",
     "plain_seed",
     "hybrid_seed",
+    "masked_seed",
+    "FIELDS",
 ]
+
+# Order of the four-tuple every seed in this module produces and consumes.
+FIELDS = ("u", "v", "p", "nut")
 
 # Turbulent boundary-layer profile exponent (the classic 1/7 power law).
 PROFILE_EXPONENT = 1.0 / 7.0
@@ -300,3 +305,84 @@ def clustered_seed(
         "covered_fraction": float(inside.mean()),
     }
     return out, report
+
+
+def masked_seed(
+    values: tuple,
+    centres: np.ndarray,
+    surface: np.ndarray,
+    *,
+    fields: tuple[str, ...] = FIELDS,
+    free_within: float = 0.0,
+    ramp: float = 3.0,
+    u_inf: float,
+    v_inf: float,
+    nut_freestream: float,
+) -> tuple[tuple[np.ndarray, ...], dict]:
+    """Keep part of a seed and hand the rest back to the solver.
+
+    A warm start is usually all-or-nothing: every field, everywhere. Measured on
+    the C-grid at Re 3e6, that is the wrong granularity, because the quantities
+    in a cold solve do not converge at the same rate. Iterations for each to
+    settle within 1% of its converged value, averaged over four cases:
+
+    ======================  =========
+    quantity                cold
+    ======================  =========
+    viscous drag ``Cd_v``     ~700
+    lift ``Cl``               ~950
+    pressure drag ``Cd_p``   ~1850
+    ======================  =========
+
+    So the slow part of a cold start is the **pressure** field, and the fast part
+    is the near-wall velocity gradient -- which is also the part a surrogate
+    reconstructs worst, and the part that dominates total drag (``Cd_v`` is 60%
+    to 84% of ``Cd`` here). Seeding everything therefore trades a large gain on
+    the pressure-dominated quantities against a loss on the one the solver was
+    going to get right by itself.
+
+    This splits the seed two ways so that trade can be measured and then chosen:
+
+    ``fields``
+        Which of ``u, v, p, nut`` to take from the prediction. The rest start at
+        freestream, exactly as a cold start does.
+    ``free_within``
+        Wall distance inside which the *velocity* reverts to freestream, ramped
+        smoothly to the prediction by ``ramp * free_within`` so the seed has no
+        jump in it. Pressure is never masked -- it is the field with no wall
+        boundary layer to get wrong, and the slow one.
+
+    ``free_within=0`` and all four fields is the identity, which is what makes
+    this usable as the control arm of its own ablation.
+    """
+    u, v, p, nut = (np.asarray(a, dtype=np.float64).copy() for a in values)
+    unknown = set(fields) - set(FIELDS)
+    if unknown:
+        raise ValueError(f"unknown seed fields: {sorted(unknown)}; expected {FIELDS}")
+
+    free = {"u": u_inf, "v": v_inf, "p": 0.0, "nut": nut_freestream}
+    out = {"u": u, "v": v, "p": p, "nut": nut}
+    for name in FIELDS:
+        if name not in fields:
+            out[name] = np.full_like(out[name], free[name])
+
+    blended = 0.0
+    if free_within > 0:
+        d = wall_distance(centres, surface)
+        # 0 at the wall, 1 beyond ramp * free_within, smooth in between.
+        span = max(ramp * free_within - free_within, 1e-30)
+        w = np.clip((d - free_within) / span, 0.0, 1.0)
+        w = w * w * (3.0 - 2.0 * w)          # smoothstep: zero slope at both ends
+        for name in ("u", "v", "nut"):
+            out[name] = w * out[name] + (1.0 - w) * free[name]
+        blended = float((w < 1.0).mean())
+
+    out["nut"] = np.maximum(out["nut"], 0.0)
+    report = {
+        "mode": "masked",
+        "fields": list(fields),
+        "free_within": free_within,
+        "ramp": ramp,
+        "blended_fraction": blended,
+    }
+    return tuple(out[name] for name in FIELDS), report
