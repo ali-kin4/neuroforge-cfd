@@ -87,11 +87,40 @@ def surface_coords(centres: np.ndarray, surface: np.ndarray) -> tuple:
     return s_of[idx], d, float(s_of[-1])
 
 
-def wall_distance(centres: np.ndarray, surface: np.ndarray) -> np.ndarray:
-    """Distance from each cell centre to the body surface polyline."""
-    from scipy.spatial import cKDTree
+def wall_distance(centres: np.ndarray, surface: np.ndarray, *,
+                  chunk: int = 4096) -> np.ndarray:
+    """Distance from each cell centre to the body surface polyline.
 
-    return cKDTree(np.asarray(surface)[:, :2]).query(np.asarray(centres)[:, :2])[0]
+    To the nearest **segment**, not the nearest vertex. The difference is not
+    cosmetic on a body-fitted mesh: the surface polyline here carries 200 points,
+    so its vertices are ~0.01 chord apart, while the first cell ring sits 4e-6
+    chord off the wall. Nearest-vertex then reports 1.4e-3 for a cell whose true
+    distance is 3.8e-6 -- a **368x** overestimate, and worst exactly in the
+    boundary layer that every seed in this module is about.
+
+    Costs one pass over ``n_surface`` segments per chunk of query points, which
+    is nothing against a solve: a couple of hundred segments against tens of
+    thousands of cells.
+    """
+    surf = np.asarray(surface, dtype=np.float64)[:, :2]
+    pts = np.asarray(centres, dtype=np.float64)[:, :2]
+    if len(surf) < 2:
+        from scipy.spatial import cKDTree
+
+        return cKDTree(surf).query(pts)[0]
+
+    a, b = surf[:-1], surf[1:]
+    ab = b - a
+    length2 = np.maximum(np.einsum("ij,ij->i", ab, ab), 1e-30)
+
+    out = np.empty(len(pts), dtype=np.float64)
+    for lo in range(0, len(pts), chunk):
+        block = pts[lo: lo + chunk]
+        rel = block[:, None, :] - a[None]                       # (k, M, 2)
+        t = np.clip(np.einsum("kmj,mj->km", rel, ab) / length2, 0.0, 1.0)
+        closest = rel - t[..., None] * ab[None]
+        out[lo: lo + chunk] = np.sqrt(np.einsum("kmj,kmj->km", closest, closest)).min(axis=1)
+    return out
 
 
 def bl_thickness(reynolds: float, chord: float = 1.0) -> float:
