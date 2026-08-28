@@ -41,7 +41,7 @@ from neuroforge.solver import cgrid as cg, openfoam as of, warmstart as ws
 
 DEPTHS = (1e-4, 1e-5, 5e-6, 1e-6)
 FORCE_TOLS = (0.01, 0.005)
-ARMS = ("cold", "oracle_mesh", "cartesian_128", "fitted_256x64")
+ARMS = ("cold", "oracle_mesh", "cartesian_128", "fitted_256x64", "fitted_bl")
 
 
 def other_solvers_running() -> int:
@@ -133,6 +133,18 @@ def main(argv: list[str] | None = None) -> int:
                                     first=args.first, u_inf=u_inf, v_inf=v_inf,
                                     nut_freestream=nut_fs)
     run("fitted_256x64", mesh_initial=fit_vals)
+
+    # The recommended seed: the wall-fitted projection inside the boundary layer,
+    # freestream outside it. Best of the surrogate arms on iterations (+34.3% at
+    # residual 5e-6) and on friction drag (+41.7%), so it is the one whose
+    # per-iteration cost decides whether those savings are real in seconds.
+    bl_vals, _ = ws.masked_seed(
+        (np.full_like(fit_vals[0], u_inf), np.full_like(fit_vals[0], v_inf),
+         np.zeros_like(fit_vals[0]), np.full_like(fit_vals[0], nut_fs)),
+        cold.centres, surface, background=fit_vals,
+        free_within=ws.bl_thickness(args.re), ramp=3.0,
+        u_inf=u_inf, v_inf=v_inf, nut_freestream=nut_fs)
+    run("fitted_bl", mesh_initial=bl_vals)
 
     # ---- read cost at the iteration each arm met each target ---------------- #
     info, forces = {}, {}
