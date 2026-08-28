@@ -89,11 +89,19 @@ ENV_BASHRC = "NEUROFORGE_OPENFOAM_BASHRC"
 # which also rules out the inner linear tolerances, the convection scheme and the
 # mesh's 218,987 aspect-ratio cells as the cause.
 #
+# Once momentum is relaxed, nuTilda becomes the laggard -- at 0.7 it sits ten
+# times above Ux and holds the solve up in turn. Relaxing it further to 0.4 is
+# what gets the case past 1e-6: it is the only variant tried that reaches that
+# level at all (iteration 1305), and it ends at Ux 3.5e-7, thirty times below
+# the original floor. Its force coefficients settle correspondingly early --
+# Cd within 0.01% of its converged value by iteration 2000, against 0.3% for
+# uniform 0.7 relaxation.
+#
 # This matters for more than tidiness: an iteration-to-threshold metric only
 # measures a convergence rate while the residual is still moving, so a false
 # floor silently turns warm-start savings into noise.
 RELAX_U = 0.7
-RELAX_NUT = 0.7
+RELAX_NUT = 0.4
 
 # Spalart-Allmaras freestream ratio nuTilda_inf / nu -- the standard "3 to 5"
 # range; 3 is the usual low-turbulence external-aero choice.

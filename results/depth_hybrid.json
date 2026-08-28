@@ -1,5 +1,5 @@
 {
-  "root": "runs/openfoam/repr",
+  "root": "runs/openfoam/hybrid",
   "cases": [
     "naca0012_aoa4",
     "naca0015_aoa6",
@@ -7,8 +7,8 @@
   ],
   "arms": [
     "oracle_mesh",
-    "cartesian_128",
-    "fitted_256x64"
+    "oracle_128",
+    "oracle_128_hybrid"
   ],
   "cold_floor": {
     "naca0012_aoa4": 1.2766356135e-05,
@@ -23,20 +23,20 @@
         "naca0012_aoa4": {
           "cold": 12,
           "oracle_mesh": 1,
-          "cartesian_128": 15,
-          "fitted_256x64": 25
+          "oracle_128": 15,
+          "oracle_128_hybrid": 13
         },
         "naca0015_aoa6": {
           "cold": 12,
           "oracle_mesh": 1,
-          "cartesian_128": 13,
-          "fitted_256x64": 22
+          "oracle_128": 13,
+          "oracle_128_hybrid": 12
         },
         "naca2412_aoa2": {
           "cold": 14,
           "oracle_mesh": 1,
-          "cartesian_128": 18,
-          "fitted_256x64": 31
+          "oracle_128": 18,
+          "oracle_128_hybrid": 16
         }
       },
       "threshold_over_floor": 626.5122567510248,
@@ -46,17 +46,17 @@
         0.9166666666666666,
         0.9285714285714286
       ],
-      "cartesian_128": -0.20634920634920637,
-      "cartesian_128_n": 3,
-      "cartesian_128_spread": [
+      "oracle_128": -0.20634920634920637,
+      "oracle_128_n": 3,
+      "oracle_128_spread": [
         -0.2857142857142858,
         -0.08333333333333326
       ],
-      "fitted_256x64": -1.0436507936507937,
-      "fitted_256x64_n": 3,
-      "fitted_256x64_spread": [
-        -1.2142857142857144,
-        -0.8333333333333333
+      "oracle_128_hybrid": -0.07539682539682535,
+      "oracle_128_hybrid_n": 3,
+      "oracle_128_hybrid_spread": [
+        -0.1428571428571428,
+        0.0
       ]
     },
     "1.0e-03": {
@@ -66,20 +66,20 @@
         "naca0012_aoa4": {
           "cold": 34,
           "oracle_mesh": 9,
-          "cartesian_128": 45,
-          "fitted_256x64": 59
+          "oracle_128": 45,
+          "oracle_128_hybrid": 45
         },
         "naca0015_aoa6": {
           "cold": 36,
           "oracle_mesh": 9,
-          "cartesian_128": 43,
-          "fitted_256x64": 53
+          "oracle_128": 43,
+          "oracle_128_hybrid": 44
         },
         "naca2412_aoa2": {
           "cold": 36,
           "oracle_mesh": 10,
-          "cartesian_128": 50,
-          "fitted_256x64": 69
+          "oracle_128": 50,
+          "oracle_128_hybrid": 53
         }
       },
       "threshold_over_floor": 62.651225675102474,
@@ -89,17 +89,17 @@
         0.7222222222222222,
         0.75
       ],
-      "cartesian_128": -0.3022875816993464,
-      "cartesian_128_n": 3,
-      "cartesian_128_spread": [
+      "oracle_128": -0.3022875816993464,
+      "oracle_128_n": 3,
+      "oracle_128_spread": [
         -0.38888888888888884,
         -0.19444444444444442
       ],
-      "fitted_256x64": -0.7080610021786494,
-      "fitted_256x64_n": 3,
-      "fitted_256x64_spread": [
-        -0.9166666666666667,
-        -0.4722222222222223
+      "oracle_128_hybrid": -0.3393246187363835,
+      "oracle_128_hybrid_n": 3,
+      "oracle_128_hybrid_spread": [
+        -0.4722222222222223,
+        -0.22222222222222232
       ]
     },
     "1.0e-04": {
@@ -109,20 +109,20 @@
         "naca0012_aoa4": {
           "cold": 70,
           "oracle_mesh": 26,
-          "cartesian_128": 179,
-          "fitted_256x64": 99
+          "oracle_128": 179,
+          "oracle_128_hybrid": 185
         },
         "naca0015_aoa6": {
           "cold": 72,
           "oracle_mesh": 27,
-          "cartesian_128": 138,
-          "fitted_256x64": 101
+          "oracle_128": 138,
+          "oracle_128_hybrid": 217
         },
         "naca2412_aoa2": {
           "cold": 81,
           "oracle_mesh": 27,
-          "cartesian_128": 771,
-          "fitted_256x64": 119
+          "oracle_128": 771,
+          "oracle_128_hybrid": null
         }
       },
       "threshold_over_floor": 6.2651225675102475,
@@ -132,17 +132,17 @@
         0.625,
         0.6666666666666667
       ],
-      "cartesian_128": -3.664109347442681,
-      "cartesian_128_n": 3,
-      "cartesian_128_spread": [
+      "oracle_128": -3.664109347442681,
+      "oracle_128_n": 3,
+      "oracle_128_spread": [
         -8.518518518518519,
         -0.9166666666666667
       ],
-      "fitted_256x64": -0.4287330981775426,
-      "fitted_256x64_n": 3,
-      "fitted_256x64_spread": [
-        -0.4691358024691359,
-        -0.4027777777777777
+      "oracle_128_hybrid": -1.8283730158730158,
+      "oracle_128_hybrid_n": 2,
+      "oracle_128_hybrid_spread": [
+        -2.013888888888889,
+        -1.6428571428571428
       ]
     },
     "5.0e-05": {
@@ -152,20 +152,20 @@
         "naca0012_aoa4": {
           "cold": 88,
           "oracle_mesh": 32,
-          "cartesian_128": 203,
-          "fitted_256x64": 135
+          "oracle_128": 203,
+          "oracle_128_hybrid": 310
         },
         "naca0015_aoa6": {
           "cold": 92,
           "oracle_mesh": 33,
-          "cartesian_128": 231,
-          "fitted_256x64": 121
+          "oracle_128": 231,
+          "oracle_128_hybrid": 379
         },
         "naca2412_aoa2": {
           "cold": 106,
           "oracle_mesh": 34,
-          "cartesian_128": null,
-          "fitted_256x64": 269
+          "oracle_128": null,
+          "oracle_128_hybrid": null
         }
       },
       "threshold_over_floor": 3.1325612837551238,
@@ -175,17 +175,17 @@
         0.6363636363636364,
         0.679245283018868
       ],
-      "cartesian_128": -1.4088438735177864,
-      "cartesian_128_n": 2,
-      "cartesian_128_spread": [
+      "oracle_128": -1.4088438735177864,
+      "oracle_128_n": 2,
+      "oracle_128_spread": [
         -1.5108695652173911,
         -1.3068181818181817
       ],
-      "fitted_256x64": -0.7956813831506203,
-      "fitted_256x64_n": 3,
-      "fitted_256x64_spread": [
-        -1.5377358490566038,
-        -0.3152173913043479
+      "oracle_128_hybrid": -2.821146245059289,
+      "oracle_128_hybrid_n": 2,
+      "oracle_128_hybrid_spread": [
+        -3.1195652173913047,
+        -2.522727272727273
       ]
     },
     "3.0e-05": {
@@ -195,20 +195,20 @@
         "naca0012_aoa4": {
           "cold": 202,
           "oracle_mesh": 41,
-          "cartesian_128": 319,
-          "fitted_256x64": 181
+          "oracle_128": 319,
+          "oracle_128_hybrid": 422
         },
         "naca0015_aoa6": {
           "cold": 336,
           "oracle_mesh": 42,
-          "cartesian_128": 367,
-          "fitted_256x64": 171
+          "oracle_128": 367,
+          "oracle_128_hybrid": 465
         },
         "naca2412_aoa2": {
           "cold": 282,
           "oracle_mesh": 40,
-          "cartesian_128": null,
-          "fitted_256x64": 323
+          "oracle_128": null,
+          "oracle_128_hybrid": null
         }
       },
       "threshold_over_floor": 1.8795367702530743,
@@ -218,17 +218,17 @@
         0.7970297029702971,
         0.875
       ],
-      "cartesian_128": -0.33573491277699197,
-      "cartesian_128_n": 2,
-      "cartesian_128_spread": [
+      "oracle_128": -0.33573491277699197,
+      "oracle_128_n": 2,
+      "oracle_128_spread": [
         -0.5792079207920793,
         -0.09226190476190466
       ],
-      "fitted_256x64": 0.1498805845630156,
-      "fitted_256x64_n": 3,
-      "fitted_256x64_spread": [
-        -0.14539007092198575,
-        0.4910714285714286
+      "oracle_128_hybrid": -0.7365187411598303,
+      "oracle_128_hybrid_n": 2,
+      "oracle_128_hybrid_spread": [
+        -1.0891089108910892,
+        -0.3839285714285714
       ]
     },
     "2.0e-05": {
@@ -238,14 +238,14 @@
         "naca0012_aoa4": {
           "cold": 288,
           "oracle_mesh": 46,
-          "cartesian_128": 425,
-          "fitted_256x64": 235
+          "oracle_128": 425,
+          "oracle_128_hybrid": 488
         },
         "naca0015_aoa6": {
           "cold": 406,
           "oracle_mesh": 48,
-          "cartesian_128": 389,
-          "fitted_256x64": 227
+          "oracle_128": 389,
+          "oracle_128_hybrid": 501
         }
       },
       "threshold_over_floor": 1.2530245135020495,
@@ -255,17 +255,17 @@
         0.8402777777777778,
         0.8817733990147784
       ],
-      "cartesian_128": -0.2169112616310892,
-      "cartesian_128_n": 2,
-      "cartesian_128_spread": [
+      "oracle_128": -0.2169112616310892,
+      "oracle_128_n": 2,
+      "oracle_128_spread": [
         -0.4756944444444444,
         0.041871921182266014
       ],
-      "fitted_256x64": 0.31245723864258346,
-      "fitted_256x64_n": 2,
-      "fitted_256x64_spread": [
-        0.1840277777777778,
-        0.4408866995073891
+      "oracle_128_hybrid": -0.4642172961138479,
+      "oracle_128_hybrid_n": 2,
+      "oracle_128_hybrid_spread": [
+        -0.6944444444444444,
+        -0.23399014778325133
       ]
     },
     "1.5e-05": {
@@ -275,14 +275,14 @@
         "naca0012_aoa4": {
           "cold": 450,
           "oracle_mesh": 52,
-          "cartesian_128": 507,
-          "fitted_256x64": 453
+          "oracle_128": 507,
+          "oracle_128_hybrid": 622
         },
         "naca0015_aoa6": {
           "cold": 466,
           "oracle_mesh": 58,
-          "cartesian_128": 491,
-          "fitted_256x64": 337
+          "oracle_128": 491,
+          "oracle_128_hybrid": 533
         }
       },
       "threshold_over_floor": 0.9397683851265372,
@@ -292,17 +292,17 @@
         0.8755364806866953,
         0.8844444444444445
       ],
-      "cartesian_128": -0.09015736766809734,
-      "cartesian_128_n": 2,
-      "cartesian_128_spread": [
+      "oracle_128": -0.09015736766809734,
+      "oracle_128_n": 2,
+      "oracle_128_spread": [
         -0.1266666666666667,
         -0.05364806866952798
       ],
-      "fitted_256x64": 0.1350786838340487,
-      "fitted_256x64_n": 2,
-      "fitted_256x64_spread": [
-        -0.006666666666666599,
-        0.276824034334764
+      "oracle_128_hybrid": -0.26299952312827846,
+      "oracle_128_hybrid_n": 2,
+      "oracle_128_hybrid_spread": [
+        -0.38222222222222224,
+        -0.14377682403433467
       ]
     }
   }

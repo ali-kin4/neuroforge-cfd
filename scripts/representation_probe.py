@@ -51,10 +51,21 @@ CASES = [("naca0012", 4.0), ("naca2412", 2.0), ("naca0015", 6.0),
 # Deep enough to be worth reading only because the solve no longer stalls at
 # 1.1e-5 (see openfoam.RELAX_U). The floor is now below 2e-6, so 1e-5 sits about
 # six times above it; 1e-2 and 1e-3 describe the opening transient, not the run.
-THRESHOLDS = (1e-2, 1e-3, 1e-4, 1e-5, 5e-6)
+THRESHOLDS = (1e-2, 1e-3, 1e-4, 1e-5, 5e-6, 1e-6)
 ARMS = ("oracle_mesh", "cartesian_128", "fitted_256x64")
+
 # Fraction of the converged coefficient the arm has to reach *and stay inside*.
-FORCE_TOLS = (0.01, 0.002)
+# Measured on the diagnostic runs at Re 3e6: Cd is within 1% of its converged
+# value by iteration ~1000, 0.5% by ~1300 and 0.2% by ~1500-1800. A tolerance
+# the budget cannot reach returns None for most arms and collapses n, which is
+# the failure the residual metric already had, so the verdict reads the middle
+# rung and the others are reported alongside it.
+FORCE_TOLS = (0.01, 0.005, 0.002)
+VERDICT_FORCE = "Cd@0.005"
+
+# Below this, a coefficient's relative band is meaningless: a symmetric section
+# at zero incidence has Cl ~ 1e-8 and `tol * abs(ref)` is then numerical noise.
+FORCE_REF_FLOOR = 1e-3
 
 
 def force_scores(case_dir: str, reference: dict | None, tol: float) -> dict:
@@ -73,6 +84,8 @@ def force_scores(case_dir: str, reference: dict | None, tol: float) -> dict:
         if name not in data:
             continue
         ref = (reference or {}).get(name)
+        if ref is not None and abs(ref) < FORCE_REF_FLOOR:
+            continue  # e.g. Cl on a symmetric section at zero incidence
         out[name] = of.iterations_to_force_band(data["Time"], data[name],
                                                 reference=ref, tol=tol)
         out[name + "_final"] = float(data[name][-1])
@@ -119,7 +132,7 @@ def main(argv: list[str] | None = None) -> int:
 
     spec = cg.CGridSpec()
     budget = args.n_s * args.n_n
-    print(f"Re {args.re:.0e} · equal budget: 128² = {128 * 128:,} values vs "
+    print(f"Re {args.re:.0e} | equal budget: 128x128 = {128 * 128:,} values vs "
           f"{args.n_s}x{args.n_n} = {budget:,} values")
     print(f"first station: {3.0 / 127 / 2:.5f} chord (uniform) vs "
           f"{args.first / 2:.6f} chord (fitted)\n")
@@ -136,6 +149,17 @@ def main(argv: list[str] | None = None) -> int:
             print("not in CASES: " + ", ".join(f"{c}@{a:g}" for c, a in sorted(missing)))
             return 1
         print("running only: " + ", ".join(f"{c}@{a:g}" for c, a in cases) + "\n")
+        # Several --only processes are meant to share one --work-dir; the case
+        # directories are uniquely named, but the checkpoint is not. Without a
+        # distinct path they write the same "<out>.tmp" and os.replace the same
+        # destination, and the survivor holds one process's rows -- exactly the
+        # file that is supposed to survive a power cut. Derive one per process
+        # unless the caller already gave a distinct --out.
+        if out_path == os.path.abspath(ap.get_default("out")):
+            stem, ext = os.path.splitext(out_path)
+            slug = "_".join(f"{c}{a:g}" for c, a in cases)
+            out_path = f"{stem}_{slug}{ext}"
+            print(f"checkpointing to {out_path}\n")
 
     rows = []
     for code, aoa in cases:
@@ -252,11 +276,11 @@ def main(argv: list[str] | None = None) -> int:
                 for a in ARMS))
 
     checkpoint(rows, summary)
-    print(f"\nwrote {args.out}")
+    print(f"\nwrote {os.path.relpath(out_path)}")
 
     # The verdict reads the force metric when it is available, because a residual
     # threshold only measures a convergence rate while the residual is falling.
-    e = summary["per_force"].get("Cd@0.002") or summary["per_threshold"]["1e-03"]
+    e = summary["per_force"].get(VERDICT_FORCE) or summary["per_threshold"]["1e-03"]
     ctrl, cart_s, fit_s = (e["oracle_mesh_saving"], e["cartesian_128_saving"],
                            e["fitted_256x64_saving"])
     if not (ctrl > 0.5):

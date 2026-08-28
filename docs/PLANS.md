@@ -71,8 +71,29 @@ iteration and the log parser appended all three to one list. Index `i` meant
 outer iteration `i` for velocity but `i/3` for pressure, and
 `iterations_to_threshold` compares fields at a common index. Fixed
 (`parse_simple_foam_log` now groups per `Time` block and keeps the first solve of
-each field). The deep numbers barely moved — `Ux`/`Uy` bind there — but the
-shallow ones did.
+each field).
+
+Every tree on disk has been re-scored with the corrected parser — no re-solving,
+`scripts/reanalyse_depth.py`, results in `results/depth_*.json`. **The negative
+results all hold or harden; the positive low-Reynolds ones shrink**, and one of
+them mostly disappears:
+
+| claim | first reported | corrected | verdict |
+|---|---:|---:|---|
+| Pilot Re 1e4, neighbour seed @1e-3 | +69.7% | **+47.3%** | holds, smaller (n=5 of 10 — the others never reach 1e-3) |
+| Pilot oracle control | +95.4% | +55.6% | control still passes |
+| Crossover Re 1e3 | +58% | **+8.1%** | mostly gone (−3.8% and +20.0%) |
+| Crossover Re 1e4 | +14% | +14.4% | holds |
+| Re 3e6 uniform 128² @1e-3 | −18.5% | −30.2% | hardens |
+| Wall-fitted 256×64 @1e-3 | −44.4% | −70.8% | hardens |
+| Hybrid BL reconstruction @1e-3 | −31.5% | −33.9% | hardens |
+
+So the **crossover** narrative — a clean sign change on the Reynolds axis — is
+weaker than claimed. The sign change is still there, but it sits between Re 1e4
+(+14%) and Re 1e5 (−17%), and Re 1e3 is +8% with one of its two cases negative.
+Those low-Re runs also carry high residual floors (1.1e-4 to 3.5e-4), so 1e-3 is
+only 3–9× above the floor there: they need re-measuring on the relaxed settings
+before the figure goes in a paper.
 
 **Fault B — the positive readings sit on the floor.** Corrected ladder on
 `runs/openfoam/repr`, with each depth expressed as a multiple of the cold
@@ -106,17 +127,24 @@ rate; it is where a flat curve happens to cross a line.**
 | `tight` | inner relTol p 1e-3, U 1e-2 | 1.16e-5, unchanged |
 | `upwind` | first-order convection | 8.8e-6, marginal |
 | `wake` | AR 218,987 → 57,389 | not what breaks the stall |
-| **`relax`** | **U, nuTilda 0.9 → 0.7** | **1e-5 at iteration 327, on to 1.9e-6, still falling** |
-| `tight_relax` | both | 2.3e-6, steepest tail slope (−0.061 dec/100) |
+| `relax` | U, nuTilda 0.9 → 0.7 | 1e-5 at iteration 327, on to 1.9e-6, still falling |
+| `relax05` | 0.5 | 1.2e-6 — further is not better |
+| `relax_wake` | 0.7 + the wake mesh | 1.7e-6 — the mesh adds nothing |
+| **`relax_nut`** | **U 0.7, nuTilda 0.4** | **the only variant to reach 1e-6 (iteration 1305); ends at Ux 3.5e-7** |
 
 The oracle arm had already said the budget was not the constraint: seeded with
 the converged field, `Ux` reaches 1.2e-5 by iteration 100 and sits there for the
 next 700. No budget digs below a level the exact answer rests on.
 
-So the shipped relaxation of 0.9 (with SIMPLEC) was a limit cycle. Dropping it to
-0.7 moves the floor down by at least 6×, which puts the interesting thresholds
-back where an iteration count means something. `nuTilda` becomes the laggard at
-~10× `Ux`.
+So the shipped relaxation of 0.9 (with SIMPLEC) was a limit cycle. Dropping U to
+0.7 moves the floor down 6×; `nuTilda` then becomes the laggard at ~10× `Ux`, and
+relaxing *it* to 0.4 buys another decade — 3.5e-7, thirty times below where this
+started. `RELAX_U = 0.7` / `RELAX_NUT = 0.4` are now the defaults, and the forces
+settle to match: Cd within 0.01% of converged by iteration 2000, against 0.3% for
+uniform 0.7 relaxation.
+
+Also useful to know what did **not** matter: the mesh. The `wake` variant cuts
+the worst aspect ratio from 218,987 to 57,389 and changes nothing.
 
 ---
 
@@ -134,15 +162,28 @@ be in place before the claim is worth anything:
   against a shared reference for both arms. This is what the warm-start
   literature reports and it does not care where the residual floor is.
 
+**Running now** (`runs/openfoam/repr2`, six cases, 3000 iterations). Cases are
+independent, so one process each — ~70 min wall-clock on this box rather than
+~7 h serial. Each writes its own checkpoint; the aggregating run reuses every
+finished case off disk in seconds:
+
 ```bash
-python scripts/representation_probe.py --re 3e6 --n-iter 2500 \
-       --work-dir runs/openfoam/repr2
+for c in naca0012@4 naca2412@2 naca0015@6 naca0012@0 naca4412@3 naca2415@5; do
+  python scripts/representation_probe.py --re 3e6 --n-iter 3000 --only "$c" \
+         --work-dir runs/openfoam/repr2 --timeout 21600 &
+done; wait
+python scripts/representation_probe.py --re 3e6 --n-iter 3000 \
+       --work-dir runs/openfoam/repr2          # aggregate, all reused
 python scripts/reanalyse_depth.py --root runs/openfoam/repr2 --per-case
 ```
-Then widen `CASES` beyond three and add Reynolds numbers, so the claim is not a
-single operating point. Budget ~4–6 h. **This decides whether there is a
+
+Then add a couple of Reynolds numbers (another `--work-dir`, another `--re`) so
+the claim is not a single operating point. **This decides whether there is a
 positive result to publish.** Report both metrics; if they disagree, the force
 metric wins and the disagreement is itself worth a paragraph.
+
+Re-measure the **crossover** on the relaxed settings at the same time — its low-Re
+arms are the other claim standing on a high floor (§3.1).
 
 ### (2) Region-decomposed seeding — literature says 26×
 [arXiv 2501.14699](https://arxiv.org/abs/2501.14699) reports **26.3× fewer

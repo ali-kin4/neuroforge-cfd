@@ -65,9 +65,16 @@ Written as claims, with the evidence that backs each. **Report the convergence
 depth alongside any iteration saving** — the sign changes with it.
 
 ### 1. Warm-starting RANS from a surrogate works, and there is a criterion for when
-Measured, controlled, reproducible: **+58% at Re 1e3, +14% at Re 1e4** (at
-residual 1e-3); **69.7%** in the Re-1e4 pilot from a neighbouring-case start.
-The oracle control passes in every case.
+Measured, controlled, reproducible: **+14% at Re 1e4** and **+8% at Re 1e3** (at
+residual 1e-3); **+47%** in the Re-1e4 pilot from a neighbouring-case start. The
+oracle control passes in every case (+50% to +93%).
+
+Those numbers are the *corrected* ones — the first pass read +58%, +14% and
++69.7% through a parser that took pressure from a third of the way back through
+the run (see `PLANS.md` §3.1). The Re-1e3 claim mostly did not survive it, and
+the low-Re runs also carry residual floors of 1.1e-4 to 3.5e-4, which puts the
+1e-3 threshold only 3–9× above the floor. **Re-measure on the relaxed settings
+before this goes in a paper.** The Re-1e4 result is the solid one.
 
 ### 2. It is the **representation**, not the resolution — ⚠️ UNDER RE-MEASUREMENT
 The intended headline. At **equal output budget** (16,384 values — exactly a 128²

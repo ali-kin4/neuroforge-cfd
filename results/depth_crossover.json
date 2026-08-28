@@ -1,0 +1,416 @@
+{
+  "root": "runs/openfoam/crossover",
+  "cases": [
+    "naca0012_aoa4_re1e+03",
+    "naca0012_aoa4_re1e+04",
+    "naca0012_aoa4_re1e+05",
+    "naca0012_aoa4_re1e+06",
+    "naca0012_aoa4_re3e+06",
+    "naca2412_aoa2_re1e+03",
+    "naca2412_aoa2_re1e+04",
+    "naca2412_aoa2_re1e+05",
+    "naca2412_aoa2_re1e+06",
+    "naca2412_aoa2_re3e+06"
+  ],
+  "arms": [
+    "oracle_mesh",
+    "oracle_128"
+  ],
+  "cold_floor": {
+    "naca0012_aoa4_re1e+03": 0.00011154172565,
+    "naca0012_aoa4_re1e+04": 4.9648121595e-05,
+    "naca0012_aoa4_re1e+05": 4.9291276719999995e-06,
+    "naca0012_aoa4_re1e+06": 4.5819707445e-06,
+    "naca0012_aoa4_re3e+06": 1.2766356135e-05,
+    "naca2412_aoa2_re1e+03": 0.000350928912,
+    "naca2412_aoa2_re1e+04": 0.0003383605308,
+    "naca2412_aoa2_re1e+05": 1.2618215085e-05,
+    "naca2412_aoa2_re1e+06": 1.4803913985e-05,
+    "naca2412_aoa2_re3e+06": 2.347450116e-05
+  },
+  "by_depth": {
+    "1.0e-02": {
+      "cold_mean": 10.0,
+      "cold_n": 10,
+      "per_case": {
+        "naca0012_aoa4_re1e+03": {
+          "cold": 6,
+          "oracle_mesh": 1,
+          "oracle_128": 2
+        },
+        "naca0012_aoa4_re1e+04": {
+          "cold": 7,
+          "oracle_mesh": 1,
+          "oracle_128": 5
+        },
+        "naca0012_aoa4_re1e+05": {
+          "cold": 10,
+          "oracle_mesh": 1,
+          "oracle_128": 11
+        },
+        "naca0012_aoa4_re1e+06": {
+          "cold": 12,
+          "oracle_mesh": 1,
+          "oracle_128": 14
+        },
+        "naca0012_aoa4_re3e+06": {
+          "cold": 12,
+          "oracle_mesh": 1,
+          "oracle_128": 15
+        },
+        "naca2412_aoa2_re1e+03": {
+          "cold": 6,
+          "oracle_mesh": 1,
+          "oracle_128": 4
+        },
+        "naca2412_aoa2_re1e+04": {
+          "cold": 9,
+          "oracle_mesh": 1,
+          "oracle_128": 6
+        },
+        "naca2412_aoa2_re1e+05": {
+          "cold": 11,
+          "oracle_mesh": 1,
+          "oracle_128": 14
+        },
+        "naca2412_aoa2_re1e+06": {
+          "cold": 13,
+          "oracle_mesh": 1,
+          "oracle_128": 17
+        },
+        "naca2412_aoa2_re3e+06": {
+          "cold": 14,
+          "oracle_mesh": 1,
+          "oracle_128": 18
+        }
+      },
+      "threshold_over_floor": 108.26572253772592,
+      "oracle_mesh": 0.8906771006771008,
+      "oracle_mesh_n": 10,
+      "oracle_mesh_spread": [
+        0.8333333333333334,
+        0.9285714285714286
+      ],
+      "oracle_128": 0.023624708624708612,
+      "oracle_128_n": 10,
+      "oracle_128_spread": [
+        -0.3076923076923077,
+        0.6666666666666667
+      ]
+    },
+    "1.0e-03": {
+      "cold_mean": 78.8,
+      "cold_n": 10,
+      "per_case": {
+        "naca0012_aoa4_re1e+03": {
+          "cold": 26,
+          "oracle_mesh": 3,
+          "oracle_128": 27
+        },
+        "naca0012_aoa4_re1e+04": {
+          "cold": 115,
+          "oracle_mesh": 5,
+          "oracle_128": 86
+        },
+        "naca0012_aoa4_re1e+05": {
+          "cold": 44,
+          "oracle_mesh": 7,
+          "oracle_128": 56
+        },
+        "naca0012_aoa4_re1e+06": {
+          "cold": 33,
+          "oracle_mesh": 8,
+          "oracle_128": 44
+        },
+        "naca0012_aoa4_re3e+06": {
+          "cold": 34,
+          "oracle_mesh": 9,
+          "oracle_128": 45
+        },
+        "naca2412_aoa2_re1e+03": {
+          "cold": 35,
+          "oracle_mesh": 3,
+          "oracle_128": 28
+        },
+        "naca2412_aoa2_re1e+04": {
+          "cold": 373,
+          "oracle_mesh": 9,
+          "oracle_128": 360
+        },
+        "naca2412_aoa2_re1e+05": {
+          "cold": 57,
+          "oracle_mesh": 9,
+          "oracle_128": 61
+        },
+        "naca2412_aoa2_re1e+06": {
+          "cold": 35,
+          "oracle_mesh": 10,
+          "oracle_128": 49
+        },
+        "naca2412_aoa2_re3e+06": {
+          "cold": 36,
+          "oracle_mesh": 10,
+          "oracle_128": 50
+        }
+      },
+      "threshold_over_floor": 10.826572253772593,
+      "oracle_mesh": 0.8343686317502195,
+      "oracle_mesh_n": 10,
+      "oracle_mesh_spread": [
+        0.7142857142857143,
+        0.9758713136729222
+      ],
+      "oracle_128": -0.13400894238118619,
+      "oracle_128_n": 10,
+      "oracle_128_spread": [
+        -0.3999999999999999,
+        0.25217391304347825
+      ]
+    },
+    "1.0e-04": {
+      "cold_mean": 155.14285714285714,
+      "cold_n": 7,
+      "per_case": {
+        "naca0012_aoa4_re1e+04": {
+          "cold": 456,
+          "oracle_mesh": null,
+          "oracle_128": null
+        },
+        "naca0012_aoa4_re1e+05": {
+          "cold": 133,
+          "oracle_mesh": 28,
+          "oracle_128": 170
+        },
+        "naca0012_aoa4_re1e+06": {
+          "cold": 74,
+          "oracle_mesh": 25,
+          "oracle_128": 144
+        },
+        "naca0012_aoa4_re3e+06": {
+          "cold": 70,
+          "oracle_mesh": 26,
+          "oracle_128": 179
+        },
+        "naca2412_aoa2_re1e+05": {
+          "cold": 155,
+          "oracle_mesh": 38,
+          "oracle_128": null
+        },
+        "naca2412_aoa2_re1e+06": {
+          "cold": 117,
+          "oracle_mesh": 26,
+          "oracle_128": null
+        },
+        "naca2412_aoa2_re3e+06": {
+          "cold": 81,
+          "oracle_mesh": 27,
+          "oracle_128": 771
+        }
+      },
+      "threshold_over_floor": 1.0826572253772593,
+      "oracle_mesh": 0.7132484048443302,
+      "oracle_mesh_n": 6,
+      "oracle_mesh_spread": [
+        0.6285714285714286,
+        0.7894736842105263
+      ],
+      "oracle_128": -2.8249507025822815,
+      "oracle_128_n": 4,
+      "oracle_128_spread": [
+        -8.518518518518519,
+        -0.27819548872180455
+      ]
+    },
+    "5.0e-05": {
+      "cold_mean": 222.0,
+      "cold_n": 7,
+      "per_case": {
+        "naca0012_aoa4_re1e+04": {
+          "cold": 751,
+          "oracle_mesh": null,
+          "oracle_128": null
+        },
+        "naca0012_aoa4_re1e+05": {
+          "cold": 150,
+          "oracle_mesh": 57,
+          "oracle_128": 613
+        },
+        "naca0012_aoa4_re1e+06": {
+          "cold": 86,
+          "oracle_mesh": 30,
+          "oracle_128": 227
+        },
+        "naca0012_aoa4_re3e+06": {
+          "cold": 88,
+          "oracle_mesh": 32,
+          "oracle_128": 203
+        },
+        "naca2412_aoa2_re1e+05": {
+          "cold": 202,
+          "oracle_mesh": 139,
+          "oracle_128": null
+        },
+        "naca2412_aoa2_re1e+06": {
+          "cold": 171,
+          "oracle_mesh": 32,
+          "oracle_128": null
+        },
+        "naca2412_aoa2_re3e+06": {
+          "cold": 106,
+          "oracle_mesh": 34,
+          "oracle_128": null
+        }
+      },
+      "threshold_over_floor": 0.5413286126886296,
+      "oracle_mesh": 0.6185863992125022,
+      "oracle_mesh_n": 6,
+      "oracle_mesh_spread": [
+        0.31188118811881194,
+        0.8128654970760234
+      ],
+      "oracle_128": -2.011006577401926,
+      "oracle_128_n": 3,
+      "oracle_128_spread": [
+        -3.086666666666667,
+        -1.3068181818181817
+      ]
+    },
+    "3.0e-05": {
+      "cold_mean": 202.5,
+      "cold_n": 6,
+      "per_case": {
+        "naca0012_aoa4_re1e+05": {
+          "cold": 178,
+          "oracle_mesh": 141,
+          "oracle_128": 731
+        },
+        "naca0012_aoa4_re1e+06": {
+          "cold": 106,
+          "oracle_mesh": 38,
+          "oracle_128": 352
+        },
+        "naca0012_aoa4_re3e+06": {
+          "cold": 202,
+          "oracle_mesh": 41,
+          "oracle_128": 319
+        },
+        "naca2412_aoa2_re1e+05": {
+          "cold": 232,
+          "oracle_mesh": 306,
+          "oracle_128": null
+        },
+        "naca2412_aoa2_re1e+06": {
+          "cold": 215,
+          "oracle_mesh": 37,
+          "oracle_128": null
+        },
+        "naca2412_aoa2_re3e+06": {
+          "cold": 282,
+          "oracle_mesh": 40,
+          "oracle_128": null
+        }
+      },
+      "threshold_over_floor": 0.3247971676131778,
+      "oracle_mesh": 0.5022502988905814,
+      "oracle_mesh_n": 6,
+      "oracle_mesh_spread": [
+        -0.3189655172413792,
+        0.8581560283687943
+      ],
+      "oracle_128": -2.0022347369356397,
+      "oracle_128_n": 3,
+      "oracle_128_spread": [
+        -3.106741573033708,
+        -0.5792079207920793
+      ]
+    },
+    "2.0e-05": {
+      "cold_mean": 236.6,
+      "cold_n": 5,
+      "per_case": {
+        "naca0012_aoa4_re1e+05": {
+          "cold": 217,
+          "oracle_mesh": 197,
+          "oracle_128": null
+        },
+        "naca0012_aoa4_re1e+06": {
+          "cold": 116,
+          "oracle_mesh": 42,
+          "oracle_128": 427
+        },
+        "naca0012_aoa4_re3e+06": {
+          "cold": 288,
+          "oracle_mesh": 46,
+          "oracle_128": 425
+        },
+        "naca2412_aoa2_re1e+05": {
+          "cold": 256,
+          "oracle_mesh": 491,
+          "oracle_128": null
+        },
+        "naca2412_aoa2_re1e+06": {
+          "cold": 306,
+          "oracle_mesh": 40,
+          "oracle_128": null
+        }
+      },
+      "threshold_over_floor": 0.21653144507545186,
+      "oracle_mesh": 0.30433740132593645,
+      "oracle_mesh_n": 5,
+      "oracle_mesh_spread": [
+        -0.91796875,
+        0.869281045751634
+      ],
+      "oracle_128": -1.5783644636015324,
+      "oracle_128_n": 2,
+      "oracle_128_spread": [
+        -2.6810344827586206,
+        -0.4756944444444444
+      ]
+    },
+    "1.5e-05": {
+      "cold_mean": 405.0,
+      "cold_n": 5,
+      "per_case": {
+        "naca0012_aoa4_re1e+05": {
+          "cold": 233,
+          "oracle_mesh": 211,
+          "oracle_128": null
+        },
+        "naca0012_aoa4_re1e+06": {
+          "cold": 125,
+          "oracle_mesh": 44,
+          "oracle_128": 439
+        },
+        "naca0012_aoa4_re3e+06": {
+          "cold": 450,
+          "oracle_mesh": 52,
+          "oracle_128": 507
+        },
+        "naca2412_aoa2_re1e+05": {
+          "cold": 468,
+          "oracle_mesh": 775,
+          "oracle_128": null
+        },
+        "naca2412_aoa2_re1e+06": {
+          "cold": 749,
+          "oracle_mesh": 55,
+          "oracle_128": null
+        }
+      },
+      "threshold_over_floor": 0.1623985838065889,
+      "oracle_mesh": 0.3794901795328734,
+      "oracle_mesh_n": 5,
+      "oracle_mesh_spread": [
+        -0.6559829059829059,
+        0.9265687583444593
+      ],
+      "oracle_128": -1.3193333333333332,
+      "oracle_128_n": 2,
+      "oracle_128_spread": [
+        -2.512,
+        -0.1266666666666667
+      ]
+    }
+  }
+}

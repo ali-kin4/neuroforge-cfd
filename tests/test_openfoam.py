@@ -756,11 +756,12 @@ def test_iterations_to_force_band_on_empty_input():
 
 def test_written_cases_use_the_relaxation_that_does_not_stall(tmp_path, small_case):
     """0.9 is SIMPLEC's usual pairing and it limit-cycles here; see RELAX_U."""
-    assert of.RELAX_U == 0.7
+    assert (of.RELAX_U, of.RELAX_NUT) == (0.7, 0.4)
     d = of.write_case(small_case, str(tmp_path / "relax"), n_iter=10)
     text = open(os.path.join(d, "system", "fvSolution"), encoding="utf-8").read()
     assert "U               0.7;" in text
-    assert "nuTilda         0.7;" in text
+    # nuTilda is relaxed harder: it is the laggard once momentum is relaxed.
+    assert "nuTilda         0.4;" in text
     assert "consistent      yes;" in text
 
 
