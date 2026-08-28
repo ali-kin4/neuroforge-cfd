@@ -448,7 +448,14 @@ def write_cgrid_case(
         shutil.rmtree(case_dir)
     os.makedirs(case_dir, exist_ok=True)
 
-    of._write(os.path.join(case_dir, "system", "controlDict"), of._control_dict(n_iter, n_iter))
+    # Cd/Cl every iteration: the residual stagnates near 1e-5 on this mesh, so a
+    # threshold crossing deep in the tail measures noise, while the force
+    # coefficients settle and stay settled. See `iterations_to_force_band`.
+    of._write(
+        os.path.join(case_dir, "system", "controlDict"),
+        of._control_dict(n_iter, n_iter,
+                         functions=of._force_coeffs(u_inf, v_inf, span=spec.thickness)),
+    )
     of._write(os.path.join(case_dir, "system", "fvSchemes"),
               of._header("dictionary", "fvSchemes", "system") + of._FV_SCHEMES)
     of._write(os.path.join(case_dir, "system", "fvSolution"),

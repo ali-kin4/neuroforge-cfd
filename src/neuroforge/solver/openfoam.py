@@ -67,6 +67,8 @@ __all__ = [
     "parse_simple_foam_log",
     "iterations_to_threshold",
     "residual_floor",
+    "read_force_coeffs",
+    "iterations_to_force_band",
     "read_volfield",
     "completed_run",
     "check_solid_region",
@@ -500,7 +502,7 @@ def _topo_set_dict(fluid_ids: np.ndarray) -> str:
     )
 
 
-def _control_dict(n_iter: int, write_interval: int) -> str:
+def _control_dict(n_iter: int, write_interval: int, functions: str = "") -> str:
     return (
         _header("dictionary", "controlDict", "system")
         + "application     simpleFoam;\n"
@@ -512,7 +514,143 @@ def _control_dict(n_iter: int, write_interval: int) -> str:
         + "purgeWrite      0;\nwriteFormat     ascii;\nwritePrecision  10;\n"
         + "writeCompression off;\ntimeFormat      general;\ntimePrecision   6;\n"
         + "runTimeModifiable false;\n"
+        + functions
     )
+
+
+def _force_coeffs(
+    u_inf: float, v_inf: float, *, span: float, patch: str = "airfoil", chord: float = 1.0
+) -> str:
+    """A ``forceCoeffs`` function object writing Cd and Cl every iteration.
+
+    Iteration counts taken off the residual history are only meaningful while
+    the residual is still falling; on this mesh it stagnates near 1e-5 and the
+    deepest thresholds end up reading where a flat curve crosses a line. The
+    force coefficients do not have that problem -- they settle onto a value and
+    stay there -- so ``iterations_to_force_band`` measures convergence of the
+    quantity an aerodynamicist actually wants, which is also how the warm-start
+    literature reports it.
+
+    Lift and drag directions come from the freestream, so the coefficients are
+    resolved about the true flow direction rather than the chord line. ``rhoInf``
+    is 1 because the solver's pressure is kinematic (p/rho), and ``Aref`` is
+    ``chord * span`` for the one-cell-thick 2-D mesh.
+    """
+    speed = float(np.hypot(u_inf, v_inf))
+    dx, dy = (u_inf / speed, v_inf / speed) if speed > 0 else (1.0, 0.0)
+    return (
+        "\nfunctions\n{\n    forceCoeffs\n    {\n"
+        "        type            forceCoeffs;\n"
+        '        libs            ("libforces.so");\n'
+        "        writeControl    timeStep;\n        writeInterval   1;\n"
+        "        log             no;\n"
+        f"        patches         ({patch});\n"
+        "        rho             rhoInf;\n        rhoInf          1;\n"
+        f"        magUInf         {_num(speed)};\n"
+        f"        lRef            {_num(chord)};\n"
+        f"        Aref            {_num(chord * span)};\n"
+        f"        dragDir         ({_num(dx)} {_num(dy)} 0);\n"
+        f"        liftDir         ({_num(-dy)} {_num(dx)} 0);\n"
+        "        CofR            (0.25 0 0);\n        pitchAxis       (0 0 1);\n"
+        "    }\n}\n"
+    )
+
+
+def read_force_coeffs(case_dir: str) -> dict[str, np.ndarray]:
+    """Read ``postProcessing/forceCoeffs/*/coefficient*.dat`` into arrays.
+
+    Returns ``{"Time": ..., "Cd": ..., "Cl": ...}`` (plus whatever other columns
+    the file carries), or ``{}`` if the run predates the function object. Column
+    names come from the file's own last ``#`` header line, because they differ
+    across OpenFOAM releases. A restarted run leaves several time directories;
+    they are concatenated in time order and duplicate times are dropped, keeping
+    the later value.
+    """
+    base = os.path.join(case_dir, "postProcessing", "forceCoeffs")
+    if not os.path.isdir(base):
+        return {}
+    files = []
+    for entry in sorted(os.listdir(base)):
+        try:
+            start = float(entry)
+        except ValueError:
+            continue
+        for name in sorted(os.listdir(os.path.join(base, entry))):
+            if name.startswith("coefficient") and name.endswith(".dat"):
+                files.append((start, os.path.join(base, entry, name)))
+    if not files:
+        return {}
+
+    names: list[str] = []
+    rows: list[list[float]] = []
+    for _start, path in sorted(files):
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                if line.startswith("#"):
+                    parts = line.lstrip("#").split()
+                    if parts and parts[0] == "Time":
+                        names = parts
+                    continue
+                try:
+                    rows.append([float(v) for v in line.split()])
+                except ValueError:
+                    continue
+    if not rows or not names:
+        return {}
+
+    width = min(len(names), min(len(r) for r in rows))
+    data = np.array([r[:width] for r in rows], dtype=float)
+    # A stable sort by time keeps file order within a repeated time, so dropping
+    # all but the last of each equal-time group lets a restart overwrite the
+    # samples the interrupted run had already written.
+    data = data[np.argsort(data[:, 0], kind="stable")]
+    keep = np.ones(len(data), dtype=bool)
+    keep[:-1] = data[1:, 0] != data[:-1, 0]
+    data = data[keep]
+    return {names[i]: data[:, i] for i in range(width)}
+
+
+def iterations_to_force_band(
+    time: np.ndarray,
+    values: np.ndarray,
+    *,
+    reference: float | None = None,
+    tol: float = 0.005,
+) -> int | None:
+    """First iteration after which a force coefficient stays inside a band.
+
+    Returns the earliest ``time[i]`` such that every later sample satisfies
+    ``|values[j] - reference| <= tol * |reference|``, or ``None`` if the run
+    never settles. The *stays* matters: a coefficient sweeping through its final
+    value on the way past would otherwise score as converged at the crossing.
+
+    ``reference`` defaults to the run's own final value, which is right for
+    describing a single run. When comparing a cold start against a warm one,
+    pass the **same** reference to both -- the converged coefficient for that
+    case -- so the arms are measured against one target rather than each against
+    wherever it happened to stop.
+    """
+    time = np.asarray(time, dtype=float)
+    values = np.asarray(values, dtype=float)
+    if time.size == 0 or values.size == 0:
+        return None
+    n = min(time.size, values.size)
+    time, values = time[:n], values[:n]
+    ref = float(values[-1]) if reference is None else float(reference)
+    if not np.isfinite(ref) or ref == 0.0:
+        return None
+    inside = np.abs(values - ref) <= tol * abs(ref)
+    if not inside.all() and not inside.any():
+        return None
+    # Walk back from the end over the maximal run of in-band samples.
+    outside = np.flatnonzero(~inside)
+    first = 0 if outside.size == 0 else int(outside[-1]) + 1
+    if first >= n:
+        return None
+    return int(round(float(time[first])))
 
 
 _FV_SCHEMES = (

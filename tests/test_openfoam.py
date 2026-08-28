@@ -652,3 +652,98 @@ def test_completed_run_without_metadata_is_rejected_when_an_arm_is_required(tmp_
     root = _fake_case(str(tmp_path / "g"))
     assert of.completed_run(root) is not None          # no arm requested: fine
     assert of.completed_run(root, start="cold") is None  # cannot prove the arm
+
+
+# --------------------------------------------------------------------------- #
+# Force coefficients: a convergence metric that does not live on the floor
+# --------------------------------------------------------------------------- #
+
+
+def test_force_coeffs_directions_follow_the_freestream():
+    text = of._force_coeffs(np.cos(np.pi / 6), np.sin(np.pi / 6), span=0.1)
+    # 30 degrees: drag along the flow, lift perpendicular and to its left.
+    assert "dragDir         (0.866025404 0.5 0)" in text
+    assert "liftDir         (-0.5 0.866025404 0)" in text
+    assert "magUInf         1" in text
+    assert "Aref            0.1" in text        # chord 1 x span 0.1
+    assert "rhoInf          1" in text          # pressure is kinematic
+
+
+def test_control_dict_carries_the_function_object():
+    text = of._control_dict(100, 100, functions=of._force_coeffs(1.0, 0.0, span=0.1))
+    assert "endTime         100" in text
+    assert "type            forceCoeffs;" in text
+    # The functions block must come after the run controls, not inside them.
+    assert text.index("endTime") < text.index("functions")
+
+
+_COEFF_FILE = """\
+# Force coefficients
+# dragDir : (1 0 0)
+# Time Cd Cd(f) Cd(r) Cl Cl(f) Cl(r) CmPitch
+1 0.5 0.25 0.25 0.9 0.45 0.45 0.01
+2 0.2 0.1 0.1 1.05 0.5 0.55 0.01
+3 0.11 0.05 0.06 1.002 0.5 0.502 0.01
+4 0.1005 0.05 0.0505 1.0 0.5 0.5 0.01
+5 0.1 0.05 0.05 1.0 0.5 0.5 0.01
+"""
+
+
+def _write_coeffs(root, text=_COEFF_FILE, start="0"):
+    d = os.path.join(root, "postProcessing", "forceCoeffs", start)
+    os.makedirs(d, exist_ok=True)
+    with open(os.path.join(d, "coefficient.dat"), "w", encoding="utf-8") as fh:
+        fh.write(text)
+    return root
+
+
+def test_read_force_coeffs_uses_the_files_own_header(tmp_path):
+    data = of.read_force_coeffs(_write_coeffs(str(tmp_path / "c")))
+    assert data["Time"].tolist() == [1, 2, 3, 4, 5]
+    assert data["Cd"][-1] == pytest.approx(0.1)
+    assert data["Cl"][0] == pytest.approx(0.9)
+
+
+def test_read_force_coeffs_on_a_run_without_the_function_object(tmp_path):
+    (tmp_path / "bare").mkdir()
+    assert of.read_force_coeffs(str(tmp_path / "bare")) == {}
+
+
+def test_read_force_coeffs_concatenates_a_restart_keeping_the_later_value(tmp_path):
+    root = _write_coeffs(str(tmp_path / "r"))
+    _write_coeffs(root, "# Time Cd Cl\n5 0.9 9\n6 0.1 1\n", start="5")
+    data = of.read_force_coeffs(root)
+    assert data["Time"].tolist() == [1, 2, 3, 4, 5, 6]
+    assert data["Cd"][4] == pytest.approx(0.9)   # the restart's value at t=5 wins
+
+
+def test_iterations_to_force_band_finds_where_it_settles(tmp_path):
+    data = of.read_force_coeffs(_write_coeffs(str(tmp_path / "b")))
+    # Cd reaches 0.1005 at t=4, which is within 1% of the final 0.1.
+    assert of.iterations_to_force_band(data["Time"], data["Cd"], tol=0.01) == 4
+    assert of.iterations_to_force_band(data["Time"], data["Cd"], tol=0.2) == 3
+
+
+def test_iterations_to_force_band_requires_it_to_stay():
+    time = np.arange(1, 8)
+    # Sweeps through the final value at t=2 on its way past, then comes back.
+    values = np.array([2.0, 1.0, 0.4, 0.7, 0.95, 1.0, 1.0])
+    assert of.iterations_to_force_band(time, values, tol=0.01) == 6
+
+
+def test_iterations_to_force_band_on_a_run_that_never_settles():
+    time = np.arange(1, 6)
+    assert of.iterations_to_force_band(time, np.array([1.0, 2.0, 1.0, 2.0, 1.0]),
+                                       tol=0.01, reference=10.0) is None
+
+
+def test_iterations_to_force_band_takes_a_shared_reference():
+    time = np.arange(1, 6)
+    values = np.array([5.0, 2.0, 1.02, 1.01, 1.0])
+    # Against its own final it settles at t=3; against a target of 2.0 it never does.
+    assert of.iterations_to_force_band(time, values, tol=0.05) == 3
+    assert of.iterations_to_force_band(time, values, tol=0.05, reference=2.0) is None
+
+
+def test_iterations_to_force_band_on_empty_input():
+    assert of.iterations_to_force_band(np.array([]), np.array([])) is None
