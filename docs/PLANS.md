@@ -194,6 +194,29 @@ saving. Needs a serial run to quantify honestly.
 
 ---
 
+## 3.9 In flight right now
+
+| tree | what | budget | why |
+|---|---|---:|---|
+| `runs/openfoam/repr3` | 6 cases × 4 arms, Re 3e6 | 6000 | the decisive experiment; 3000 left the arms disagreeing on final Cd by 1.6%, wider than the band |
+| `runs/openfoam/crossover2` | 2 airfoils × 5 Reynolds | 3000 / 6000 | where warm-starting stops paying, on the relaxed settings |
+| `runs/openfoam/resladder2` | 3 cases × 5 resolutions | 6000 | "refining the surrogate grid does not help", re-measured |
+| — | `scripts/wallclock_control.py` | 6000 | **run last, alone.** Refuses to start while another solve is running |
+
+Restart commands are in each script's docstring; every case checkpoints
+atomically and `completed_run` reuses finished ones, so an interrupted sweep
+resumes by re-running the same command.
+
+The wall-clock control is not optional and not a footnote. On the shared box the
+arms ran at 0.134 / 0.251 / 0.281 / 0.407 s per iteration (oracle / cold /
+uniform / fitted). Taken at face value, the fitted arm's **+35.8% iteration
+saving at 5e-6 becomes a 4% loss in seconds**, while the oracle arm's +92.4%
+stays a 96% win. Whether those ratios are real or an artifact of a dozen solves
+competing for memory bandwidth decides which of those two sentences goes in the
+paper.
+
+---
+
 ## 4. Next moves, ranked
 
 ### ▶ NEXT: (1) Re-measure the representation claim on a solve that converges
@@ -279,9 +302,26 @@ on Paper 1's contribution. Cheap with what is built.
 
 ## 5. Gotchas that cost time — do not rediscover these
 
+- **The four scoring rules are in `solver/scoring.py`, with a test naming each
+  mistake they prevent.** Read that module before writing a new analysis script;
+  every one of these was made here, and each changed a sign, not a decimal:
+  a threshold only measures a rate while the residual is falling; an arm that
+  never reaches the target is bounded rather than dropped; all arms are scored
+  against one *external* reference; and that reference is only usable if the arms
+  agree to well inside the band.
 - **A residual threshold is only a measurement while the residual is falling.**
   Print the threshold as a multiple of the floor and refuse to read anything
   under ~5×. Better: score on the forces.
+- **Score a Reynolds sweep one Reynolds number at a time.** The floor moves three
+  orders of magnitude across it, so an aggregate "× floor" describes no point in
+  the sweep. `reanalyse_depth.py --filter re1e+05`.
+- **`forceCoeffs`' `Cd(f)` / `Cd(r)` are front and rear about `CofR`**, not
+  viscous and pressure. For that, add the separate `forces` object and read its
+  column names from its own header — v2606 writes Time, *total*, pressure,
+  viscous, so counting columns from the left lands on the total vector.
+- **Split the sweeps by case, never by resolution.** Every rung of a case shares
+  its `cold` and `oracle_mesh` runs; two processes splitting resolutions write
+  the same directory at once.
 - **`nNonOrthogonalCorrectors` multiplies the pressure history.** Group residuals
   per `Time` block; never scan a whole log for `Initial residual` and zip fields
   by index.
