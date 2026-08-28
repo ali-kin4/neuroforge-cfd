@@ -21,14 +21,27 @@ The mechanism is the surrogate's *reach*. A wall-fitted grid clustered on the
 boundary layer covers about a chord from the surface; beyond that the seed falls
 back to freestream. Boundary layer and surface pressure are therefore right --
 hence Cd_v and Cl -- while the global pressure field, which is elliptic and set by
-the whole domain including the wake, is replaced by a uniform one. Pressure drag
-pays for that.
+the whole domain including the wake, is replaced by a uniform one.
 
-Which names the fix, and it is not a better surrogate. **Potential flow is free,
-untrained, ships with OpenFOAM, and is good at exactly the global pressure field
-the surrogate ruins -- while having no boundary layer at all, which is exactly
-what the surrogate supplies.** They are complementary in the precise sense the
-measurement requires.
+**What the ablations then measured**, five cases, all 5/5, control passing:
+
+    arm                        Cd_v@1%   Cl@1%   Cd_p@1%
+    fitted_256x64  (all of it)   +37.2%  +86.5%   -166.2%
+    fitted_outer   (no BL)        -0.5%   +1.7%   -127.2%
+    fitted_p       (p only)       +0.1%   +0.1%     +0.2%
+    potential      (baseline)     -0.5%   +3.3%    -41.6%
+
+Three things fall out. **All of the surrogate's value is in the boundary layer** --
+take it away and every gain goes with it. **None of it is in the pressure
+channel** -- handing over the projected pressure alone does exactly nothing. And
+**potential flow does not help either**, on any coefficient, so it cannot supply
+the global pressure field the surrogate is missing and the composite arm inherits
+the full seed's behaviour rather than improving on it.
+
+So the seed is a boundary layer that helps plus an outer band -- from delta out to
+the projection's one-chord reach -- that hurts. Keep the first, drop the second.
+That is ``fitted_bl``, and it is what the ablations point at rather than what was
+guessed in advance.
 
 Arms per case, same mesh, same budget, all from the same wall-fitted 256x64
 projection so they differ in what they hand over and never in what they know:
@@ -36,23 +49,19 @@ projection so they differ in what they hand over and never in what they know:
 * ``cold``          -- uniform freestream. Baseline. (reused)
 * ``oracle_mesh``   -- the converged field at mesh resolution. Control. (reused)
 * ``fitted_256x64`` -- the whole wall-fitted seed. The measured trade. (reused)
-* ``fitted_p``      -- pressure only; velocity and nuTilda start cold. Isolates
-  how much of the trade is the pressure channel alone.
-* ``fitted_outer``  -- everything, but velocity reverts to freestream inside the
-  boundary layer. The ablation that removes what the surrogate is *good* at, and
-  so should be *worse* if the reading above is right.
-* ``potential``     -- ``potentialFoam`` alone. **The baseline that decides
-  whether any of this is practical**: no model, no training data, no GPU, seconds
-  to run, and what industry already does. NVIDIA's hybrid initialisation blends
-  its surrogate *with* potential flow rather than replacing it
-  (arXiv:2503.15766). A surrogate seed that cannot beat it has no practical claim
-  however good it looks against a cold start.
-* ``composite``     -- potential flow for global pressure and outer velocity, the
-  wall-fitted surrogate for the boundary layer. **The recipe.**
+* ``fitted_p``      -- pressure only; velocity and nuTilda start cold.
+* ``fitted_outer``  -- everything *except* the boundary layer.
+* ``potential``     -- ``potentialFoam`` alone. The baseline that decides whether
+  any of this is practical: no model, no training data, no GPU, seconds to run,
+  and what industry already does. NVIDIA's hybrid initialisation blends its
+  surrogate *with* potential flow rather than replacing it (arXiv:2503.15766).
+* ``composite``     -- potential flow outside, surrogate boundary layer inside.
+* ``fitted_bl``     -- **the boundary layer and nothing else.** The arm the
+  ablations point at.
 
 `cold`, `oracle_mesh` and `fitted_256x64` are reused from the representation
-probe's tree when one is pointed at, so this costs four solves per case, not
-seven.
+probe's tree when one is pointed at, so this costs five solves per case, not
+eight.
 
 A positive result here is worth more than the representation result on its own:
 it is a recipe rather than an observation, it needs no new model, and it applies
@@ -83,7 +92,7 @@ CASES = [("naca0012", 4.0), ("naca2412", 2.0), ("naca0015", 6.0),
          ("naca0012", 0.0), ("naca4412", 3.0), ("naca2415", 5.0)]
 THRESHOLDS = (1e-3, 1e-4, 1e-5, 5e-6, 1e-6)
 FORCE_TOLS = (0.01, 0.005)
-NEW_ARMS = ("fitted_p", "fitted_outer", "potential", "composite")
+NEW_ARMS = ("fitted_p", "fitted_outer", "potential", "composite", "fitted_bl")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -192,11 +201,29 @@ def main(argv: list[str] | None = None) -> int:
                                      u_inf=u_inf, v_inf=v_inf, nut_freestream=nut_fs)
         results["composite"] = run("composite", mesh_initial=both)
 
+        # The arm the two ablations point at. `fitted_outer` -- the surrogate
+        # everywhere *except* the boundary layer -- keeps none of the gain
+        # (Cd_v +37% -> -0.5%, Cl +87% -> +1.7%) and all of the harm (Cd_p
+        # -127%). `fitted_p` -- the surrogate's pressure alone -- does nothing at
+        # all (+0.1% on everything). So the whole seed is a boundary layer that
+        # helps plus an outer band, from delta out to the projection's one-chord
+        # reach, that hurts. Keep the first and drop the second: freestream is
+        # the primary field, and the surrogate is the background it falls back to
+        # inside delta.
+        only_bl, rep_b = ws.masked_seed(
+            (np.full_like(pu, u_inf), np.full_like(pu, v_inf),
+             np.zeros_like(pu), np.full_like(pu, nut_fs)),
+            cold.centres, surface, background=fitted,
+            free_within=delta, ramp=args.ramp,
+            u_inf=u_inf, v_inf=v_inf, nut_freestream=nut_fs)
+        results["fitted_bl"] = run("fitted_bl", mesh_initial=only_bl)
+
         row = {"case": tag, "re": args.re, "delta": delta,
                "covered_fraction": rep["covered_fraction"],
                "blended_fraction": rep_o["blended_fraction"],
                "seeded_fields": rep_p["fields"],
-               "composite_blended": rep_c["blended_fraction"]}
+               "composite_blended": rep_c["blended_fraction"],
+               "bl_blended": rep_b["blended_fraction"]}
         for t in THRESHOLDS:
             k = f"{t:.0e}"
             row[f"cold@{k}"] = cold.iterations_to(t)

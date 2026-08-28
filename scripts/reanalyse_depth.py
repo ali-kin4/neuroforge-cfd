@@ -49,7 +49,7 @@ from neuroforge.solver import openfoam as of, scoring as sc
 
 DEPTHS = (1e-2, 1e-3, 1e-4, 1e-5, 5e-6, 1e-6, 5e-7)
 KNOWN_ARMS = ("oracle_mesh", "cartesian_128", "fitted_256x64", "fitted_outer",
-              "fitted_p", "composite", "potential", "oracle_128_hybrid", "oracle_128", "neighbour",
+              "fitted_p", "fitted_bl", "composite", "potential", "oracle_128_hybrid", "oracle_128", "neighbour",
               "oracle",
               "cold")
 
