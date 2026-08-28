@@ -127,6 +127,12 @@ def main(argv=None):
     ap.add_argument("--out", default=os.path.join("results", "depth_reanalysis.json"))
     ap.add_argument("--per-case", action="store_true",
                     help="also print each case separately, so the spread is visible")
+    ap.add_argument("--filter", metavar="SUBSTRING",
+                    help="score only the cases whose name contains this. A "
+                         "Reynolds sweep must be scored one Reynolds number at a "
+                         "time: the residual floor moves three orders of "
+                         "magnitude across it, so a mean 'x floor' over the whole "
+                         "tree describes none of the points in it.")
     args = ap.parse_args(argv)
 
     if not os.path.isdir(args.root):
@@ -142,7 +148,7 @@ def main(argv=None):
                 arms.add(arm)
                 break
     arms = [a for a in KNOWN_ARMS if a in arms and a != args.cold]
-    cases = sorted(cases)
+    cases = sorted(c for c in cases if not args.filter or args.filter in c)
     if not cases:
         print(f"no recognisable case directories under {args.root}")
         return 1

@@ -1,0 +1,611 @@
+{
+  "root": "runs/openfoam/crossover2",
+  "cases": [
+    "naca0012_aoa4_re1e+03",
+    "naca2412_aoa2_re1e+03"
+  ],
+  "arms": [
+    "oracle_mesh",
+    "oracle_128"
+  ],
+  "cold_floor": {
+    "naca0012_aoa4_re1e+03": 3.015305699e-05,
+    "naca2412_aoa2_re1e+03": 9.9542059165e-05
+  },
+  "by_depth": {
+    "1.0e-02": {
+      "cold_mean": 7.0,
+      "cold_n": 2,
+      "per_case": {
+        "naca0012_aoa4_re1e+03": {
+          "cold": 7,
+          "oracle_mesh": 1,
+          "oracle_128": 2
+        },
+        "naca2412_aoa2_re1e+03": {
+          "cold": 7,
+          "oracle_mesh": 1,
+          "oracle_128": 5
+        }
+      },
+      "threshold_over_floor": 154.20781131108893,
+      "oracle_mesh": {
+        "saving": 0.8571428571428572,
+        "saving_reached_only": 0.8571428571428572,
+        "n": 2,
+        "n_cases": 2,
+        "n_reached": 2,
+        "n_censored": 0,
+        "spread": [
+          0.8571428571428572,
+          0.8571428571428572
+        ]
+      },
+      "oracle_128": {
+        "saving": 0.5,
+        "saving_reached_only": 0.5,
+        "n": 2,
+        "n_cases": 2,
+        "n_reached": 2,
+        "n_censored": 0,
+        "spread": [
+          0.2857142857142857,
+          0.7142857142857143
+        ]
+      }
+    },
+    "1.0e-03": {
+      "cold_mean": 40.5,
+      "cold_n": 2,
+      "per_case": {
+        "naca0012_aoa4_re1e+03": {
+          "cold": 41,
+          "oracle_mesh": 3,
+          "oracle_128": 14
+        },
+        "naca2412_aoa2_re1e+03": {
+          "cold": 40,
+          "oracle_mesh": 3,
+          "oracle_128": 15
+        }
+      },
+      "threshold_over_floor": 15.420781131108892,
+      "oracle_mesh": {
+        "saving": 0.9259146341463416,
+        "saving_reached_only": 0.9259146341463416,
+        "n": 2,
+        "n_cases": 2,
+        "n_reached": 2,
+        "n_censored": 0,
+        "spread": [
+          0.925,
+          0.926829268292683
+        ]
+      },
+      "oracle_128": {
+        "saving": 0.6417682926829268,
+        "saving_reached_only": 0.6417682926829268,
+        "n": 2,
+        "n_cases": 2,
+        "n_reached": 2,
+        "n_censored": 0,
+        "spread": [
+          0.625,
+          0.6585365853658536
+        ]
+      }
+    },
+    "1.0e-04": {
+      "cold_mean": 268.0,
+      "cold_n": 2,
+      "per_case": {
+        "naca0012_aoa4_re1e+03": {
+          "cold": 211,
+          "oracle_mesh": 9,
+          "oracle_128": 65
+        },
+        "naca2412_aoa2_re1e+03": {
+          "cold": 325,
+          "oracle_mesh": 151,
+          "oracle_128": 146
+        }
+      },
+      "threshold_over_floor": 1.5420781131108894,
+      "oracle_mesh": {
+        "saving": 0.7463652934742981,
+        "saving_reached_only": 0.7463652934742981,
+        "n": 2,
+        "n_cases": 2,
+        "n_reached": 2,
+        "n_censored": 0,
+        "spread": [
+          0.5353846153846153,
+          0.957345971563981
+        ]
+      },
+      "oracle_128": {
+        "saving": 0.6213561793656581,
+        "saving_reached_only": 0.6213561793656581,
+        "n": 2,
+        "n_cases": 2,
+        "n_reached": 2,
+        "n_censored": 0,
+        "spread": [
+          0.5507692307692308,
+          0.6919431279620853
+        ]
+      }
+    },
+    "1.0e-05": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "threshold_over_floor": 0.15420781131108893,
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "5.0e-06": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "threshold_over_floor": 0.07710390565554447,
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "1.0e-06": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "threshold_over_floor": 0.015420781131108893,
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "5.0e-07": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "threshold_over_floor": 0.007710390565554446,
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    }
+  },
+  "by_force": {
+    "Cd@0.01": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cd@0.005": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cd@0.002": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cl@0.01": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cl@0.005": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cl@0.002": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cd_p@0.01": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cd_p@0.005": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cd_p@0.002": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cd_v@0.01": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cd_v@0.005": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cd_v@0.002": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cl_p@0.01": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cl_p@0.005": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    },
+    "Cl_p@0.002": {
+      "cold_mean": null,
+      "cold_n": 0,
+      "per_case": {},
+      "oracle_mesh": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "oracle_128": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n": 0,
+        "n_cases": 0,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      }
+    }
+  },
+  "force_reference": {
+    "naca0012_aoa4_re1e+03": {
+      "Cd": 0.13627282404,
+      "Cl": 0.21917712819
+    },
+    "naca2412_aoa2_re1e+03": {
+      "Cd": 0.13432880068,
+      "Cl": 0.13371180299
+    }
+  },
+  "force_reference_spread": {
+    "naca0012_aoa4_re1e+03": {
+      "Cd": 0.030916741761830322,
+      "Cl": 0.1652053055399603
+    },
+    "naca2412_aoa2_re1e+03": {
+      "Cd": 0.03393531786872191,
+      "Cl": 0.6265137152197787
+    }
+  },
+  "seconds_per_iteration": {
+    "naca0012_aoa4_re1e+03_cold": 0.2562433333333333,
+    "naca0012_aoa4_re1e+03_oracle_mesh": 0.21527333333333334,
+    "naca0012_aoa4_re1e+03_oracle_128": 0.14802666666666667,
+    "naca2412_aoa2_re1e+03_cold": 0.25088333333333335,
+    "naca2412_aoa2_re1e+03_oracle_mesh": 0.22851999999999997,
+    "naca2412_aoa2_re1e+03_oracle_128": 0.15270999999999998
+  }
+}
