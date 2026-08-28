@@ -825,3 +825,67 @@ def test_fv_solution_relaxation_is_overridable():
     text = of._fv_solution(1e-6, 1e-7, n_non_orth=2, relax=0.5, relax_nut=0.3)
     assert "U               0.5;" in text
     assert "nuTilda         0.3;" in text
+
+
+# --------------------------------------------------------------------------- #
+# Potential flow: the baseline a warm-start claim has to beat
+# --------------------------------------------------------------------------- #
+
+_BOUNDARY = """\
+FoamFile { version 2.0; format ascii; class polyBoundaryMesh; object boundary; }
+
+4
+(
+    airfoil
+    {
+        type            wall;
+        inGroups        1(wall);
+        nFaces          199;
+        startFace       63042;
+    }
+    farField
+    {
+        type            patch;
+        nFaces          317;
+        startFace       63241;
+    }
+    outlet
+    {
+        type            patch;
+        nFaces          200;
+        startFace       63558;
+    }
+    frontAndBack
+    {
+        type            empty;
+        nFaces          63400;
+        startFace       63758;
+    }
+)
+"""
+
+
+def _write_boundary(root, text=_BOUNDARY):
+    d = os.path.join(root, "constant", "polyMesh")
+    os.makedirs(d, exist_ok=True)
+    with open(os.path.join(d, "boundary"), "w", encoding="utf-8") as fh:
+        fh.write(text)
+    return root
+
+
+def test_read_patches_names_and_types(tmp_path):
+    patches = of.read_patches(_write_boundary(str(tmp_path / "m")))
+    assert patches == {"airfoil": "wall", "farField": "patch",
+                       "outlet": "patch", "frontAndBack": "empty"}
+
+
+def test_read_patches_without_a_mesh(tmp_path):
+    (tmp_path / "bare").mkdir()
+    assert of.read_patches(str(tmp_path / "bare")) == {}
+
+
+def test_potential_flow_seed_needs_a_mesh(tmp_path, monkeypatch):
+    monkeypatch.setattr(of, "require_openfoam", lambda distro=None: None)
+    (tmp_path / "nomesh").mkdir()
+    with pytest.raises(of.OpenFOAMUnavailable, match="run blockMesh"):
+        of.potential_flow_seed(str(tmp_path / "nomesh"))

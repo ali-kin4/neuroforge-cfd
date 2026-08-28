@@ -182,10 +182,33 @@ iterations that is not converged — cold and oracle disagree by up to 0.75% on
 `naca4412`, wider than the band being measured. `repr3` re-runs at 6000.
 
 **What is genuinely open.** Wall-fitted *versus a cold start* is mixed: positive
-on residuals at depth (+6% to +36%) and on lift (+86%), negative on drag. If that
-survives at 6000 it is a finding in its own right — a warm start can accelerate
-residual convergence while *delaying* force convergence, because the seed injects
-its error exactly where the wall integral is most sensitive.
+on residuals at depth (+6% to +36%) and on lift (+86%), negative on drag.
+
+### 3.4 Why drag and lift disagree — and what it says to do
+
+Decomposing the coefficients (`forces` function object; `Cd(f)`/`Cd(r)` are front
+and rear, **not** viscous and pressure) settles it. Iterations to settle within 1%
+of the converged value, `repr3`, 6000-iteration runs:
+
+| quantity | cold start | seeded with the exact field | share of Cd |
+|---|---:|---:|---:|
+| viscous drag `Cd_v` | ~700 | ~53 | 60–84% |
+| lift `Cl` | ~950 | **1** | — |
+| pressure drag `Cd_p` | ~1850 | **1–2** | 16–40% |
+
+**A cold solver is slow at pressure and fast at the near-wall velocity
+gradient.** A surrogate is the exact reverse: pressure is the one channel that
+survives projection intact, and the wall gradient is what it destroys. And the
+wall gradient dominates total drag.
+
+So handing over the whole field buys a large gain on the pressure-dominated
+quantities and pays for it on the one the solver was going to get right by
+itself. That is the +86% / −71% split, and it predicts a fix that needs no better
+model: **hand over less.** `warmstart.masked_seed` +
+`scripts/selective_seed_probe.py` are built and tested for exactly this.
+
+If this is right it is the paper's headline, because it is a *recipe* rather than
+an observation: it applies to any surrogate anyone already has.
 
 **Bonus, and not in any iteration count**: the oracle arm runs at **0.134 s per
 iteration against the cold arm's 0.251 s** on the same box. A good initial guess
@@ -217,88 +240,119 @@ paper.
 
 ---
 
-## 4. Next moves, ranked
+## 4. The road to the paper
 
-### ▶ NEXT: (1) Re-measure the representation claim on a solve that converges
-Three things changed since the numbers in §3.1 were taken, and all three have to
-be in place before the claim is worth anything:
+The target is a paper that is **novel, practical, and positive** — a recipe a CFD
+engineer can apply on Monday to a surrogate they already have, with a guarantee
+attached. Everything below serves that. Phases 1–3 are compute; 4–6 are what turn
+measurements into a defensible paper.
 
-- relaxation 0.7, so the residual keeps falling past 1e-6;
-- the per-outer-iteration parser, so thresholds mean what they say;
-- `forceCoeffs` on every case, so convergence can be scored on **Cd and Cl**
-  rather than on a residual — `iterations_to_force_band` returns the first
-  iteration after which the coefficient *stays* inside a relative band, measured
-  against a shared reference for both arms. This is what the warm-start
-  literature reports and it does not care where the residual floor is.
+### The paper, in one arc
 
-**Running now** (`runs/openfoam/repr2`, six cases, 3000 iterations). Cases are
-independent, so one process each — ~70 min wall-clock on this box rather than
-~7 h serial. Each writes its own checkpoint; the aggregating run reuses every
-finished case off disk in seconds:
+> **Problem.** ML surrogates are sold as accelerators for classical CFD via warm
+> starting. In practice a warm start can make a steady RANS solve *slower*, and
+> you only find out after paying for the solve. Whether it helped even depends on
+> which quantity you measure.
+>
+> **Protocol.** A measurement discipline that does not fool itself (§3.1, §3.2,
+> `solver/scoring.py`). Without it, three of our own conclusions had the wrong
+> sign.
+>
+> **Diagnosis.** Cold RANS is slow at pressure and fast at near-wall shear;
+> a surrogate is exactly the reverse (§3.4). That is *why* the literature's
+> warm-start results are mixed.
+>
+> **Recipe.** Hand over the pressure and outer field; keep the near-wall velocity.
+> And put the surrogate's points in the solver's wall-normal coordinates, not on
+> a Cartesian grid — same output budget, opposite sign.
+>
+> **Guarantee.** A cheap acceptance test that bounds the worst case, so the recipe
+> can never cost more than a fixed fraction over a cold start.
+
+### Phase 1 — the controlled corpus (running, ~2–3 h)
+
+`repr3`, `resladder2`, `crossover2`. Gives the representation criterion, the
+resolution negative, and the Reynolds dependence, all on a converging solve and
+all with an oracle control. See §3.9.
+
+### Phase 2 — the recipe (built, runs next, ~2 h)
 
 ```bash
-for c in naca0012@4 naca2412@2 naca0015@6 naca0012@0 naca4412@3 naca2415@5; do
-  python scripts/representation_probe.py --re 3e6 --n-iter 3000 --only "$c" \
-         --work-dir runs/openfoam/repr2 --timeout 21600 &
-done; wait
-python scripts/representation_probe.py --re 3e6 --n-iter 3000 \
-       --work-dir runs/openfoam/repr2          # aggregate, all reused
-python scripts/reanalyse_depth.py --root runs/openfoam/repr2 --per-case
+python scripts/selective_seed_probe.py --only naca0012@4 --work-dir runs/openfoam/repr3
 ```
+`fitted_p` (pressure only) and `fitted_outer` (velocity handed back inside the
+boundary layer) against the same wall-fitted projection. Reuses `cold` and
+`oracle_mesh` from `repr3`, so three solves per case, not five.
 
-Then add a couple of Reynolds numbers (another `--work-dir`, another `--re`) so
-the claim is not a single operating point. **This decides whether there is a
-positive result to publish.** Report both metrics; if they disagree, the force
-metric wins and the disagreement is itself worth a paragraph.
+**Also Phase 2, and a gap in the plan until now: the classical baseline.**
+`potentialFoam` ships with OpenFOAM and produces a potential-flow initial field
+in seconds, for free, with no model and no training data. It is what industry
+actually does, and it is the baseline
+[NVIDIA's hybrid initialisation](https://arxiv.org/html/2503.15766v1) blends
+*with*. **If a NeuroForge seed does not beat potential flow, the paper has no
+practical claim** — and no reviewer will let that pass unasked. Add it as an arm.
 
-Re-measure the **crossover** on the relaxed settings at the same time — its low-Re
-arms are the other claim standing on a high floor (§3.1). Running in
-`runs/openfoam/crossover2`, one process per (airfoil, Re) so no two write the
-same case directory.
+### Phase 3 — wall-clock, serially (~1 h, alone)
 
-Three things to check when reading any of it:
+`scripts/wallclock_control.py`. Iterations are contention-proof; seconds are not.
+This decides whether "+35.8% iterations" is also a speed-up (§3.9).
 
-- **The oracle control is only a control on the residual metric.** On the force
-  metric it reads +93% (Cd) and +99.9% (Cl) because an arm seeded with the answer
-  starts *inside* the band — that tests the plumbing, not the measurement. The
-  residual-based control (+84% to +93%, non-trivial) stays the gate that must
-  pass before any other arm is read.
-- **Confirm the four arms agree on final Cd** to well inside the tightest band,
-  before trusting a force score. The shared reference is the oracle arm's final
-  value; if another arm settles further than `tol` from it, that arm returns
-  `None` and the case drops silently — the same `n` collapse the residual metric
-  had.
-- **Iteration counts are contention-proof; wall-clock is not.** These sweeps run
-  ten-plus solves at once and the mesh is memory-bandwidth bound. A wall-clock
-  claim needs one dedicated serial re-run. Worth doing: a warm arm is ~4× cheaper
-  *per iteration* than a cold one (0.115 s vs 0.44 s at Re 3e6 under the same
-  load), because a good initial guess also shortens the inner linear solves. That
-  compounds with the iteration saving and is not in any of the numbers above.
+### Phase 4 — a real model, not just the oracle (~2 h)
 
-### (2) Region-decomposed seeding — literature says 26×
-[arXiv 2501.14699](https://arxiv.org/abs/2501.14699) reports **26.3× fewer
-iterations, 16.4× wall-clock** on RANS by splitting near-body / wake / off-body,
-taking an *accurate* near-body and letting a CNN predict the **wake**. Our
-measurements agree that the outer field survives projection intact. Re-evaluate
-`hybrid_seed` on the converging setup, and try the *inverse* of what we tried:
-surrogate wake + cheap precursor near-body.
+Every arm so far is the **exact answer** degraded only in representation, which
+makes it an upper bound on any surrogate. That is the right way to isolate the
+mechanism and the wrong way to end a paper: a reviewer will ask whether a
+*trained* model gets anywhere near the bound. Seed from an actual NeuroForge
+prediction on the same cases and report the fraction of the oracle's saving that
+survives. Include inference cost in the accounting (milliseconds, but state it).
 
-### (3) NOWS-style inner warm start — the real prize, Paper-3 sized
-[NOWS](https://arxiv.org/abs/2511.02481) (CMAME 2026) warm-starts the **inner
-Krylov solves** every outer iteration rather than the outer field: up to **90%**
-time reduction with the solver's convergence guarantees intact. This dissolves
-the self-consistency problem — a Krylov method does not care whether the guess is
-physically consistent, only that it is close in the right norm. Needs OpenFOAM
-C++ to inject a per-solve initial guess. Surveys note learned preconditioners are
-*"typically restricted to Cartesian grids"* — which is exactly the gap
-NeuroForge's geometry-native design fills.
+### Phase 5 — the no-harm certificate (mostly analysis)
 
-### (4) Still untried: self-consistency via Neural Residual Iteration
-Run Paper 1's NRI (monotone-residual acceptance) on the prediction, then seed
-OpenFOAM. Attacks the mechanism the data points at, and would make Paper 2 depend
-on Paper 1's contribution. Cheap with what is built.
+Run `K` probe iterations from the seed; if the residual has not fallen below the
+cold trajectory's envelope by `K`, discard the seed and continue cold. Worst case
+is then `(1 + K/N)` times a cold solve — a *guarantee*, not a hope. Two things to
+measure from the corpus Phases 1–4 produce: the smallest `K` that separates the
+winners from the losers, and the fraction of the available saving the rule
+captures. Paper 1's trust map is the natural pre-flight predictor to test
+alongside it.
 
----
+This is the contribution that matches where the field has moved: both
+[NOWS](https://arxiv.org/abs/2511.02481) and
+[PCGBandit](https://arxiv.org/html/2509.08765) sell *inherited correctness* over
+raw speed, and PCGBandit's headline property is "always at least as fast as the
+default".
+
+### Phase 6 — write it
+
+Figures: the representation comparison, the per-quantity convergence
+decomposition (§3.4), the selective-seeding ablation, the certificate's
+capture-versus-cost curve. Tables from `results/*.json` — every number in the
+paper traceable to a committed file.
+
+### Positioning against the 2026 literature
+
+| work | what it warm-starts | reported | how ours differs |
+|---|---|---|---|
+| [NOWS](https://arxiv.org/abs/2511.02481) (CMAME 2026) | inner Krylov solves | up to 90% time | we warm-start the outer field; complementary, and they note learned preconditioners are "typically restricted to Cartesian grids" |
+| [Spectrally Safe](https://arxiv.org/abs/2606.21828) (2026) | Newton solvers | 5.4× at 6.4M DOF | same core insight from a different angle — **L² accuracy is not the property that makes a seed good**; theirs is Jacobian definiteness, ours is *which field* is handed over |
+| [PCGBandit](https://arxiv.org/html/2509.08765) | preconditioner choice, online | 1.5× total, 4× linear | orthogonal, and composable with ours |
+| [Hybrid init](https://arxiv.org/html/2503.15766v1) (NVIDIA) | transient URANS, DoMINO + potential flow | ~2× | uses the same drag-band convergence metric we do; ours is steady RANS, and asks *what to hand over* rather than *what to blend* |
+| [Wake extension](https://arxiv.org/abs/2501.14699) | near-body/wake decomposition | 26.3× iterations | decomposition by region; ours is by **field and wall distance**, and derived from a measured convergence-rate decomposition |
+
+The niche nobody occupies: **no published warm-start study reports which
+*quantity* converges and which does not, and none can tell you before paying
+whether a given seed will help.** That is the gap Phases 2 and 5 fill.
+
+### Still queued, beyond this paper
+
+- **NOWS-style inner warm start** — Paper-3 sized, needs OpenFOAM C++ to inject a
+  per-solve initial guess. The real prize: 90% with the solver's guarantees intact.
+- **Self-consistency via Neural Residual Iteration** — run Paper 1's monotone
+  acceptance loop on the prediction before seeding. Cheap with what is built, and
+  would make Paper 2 depend on Paper 1's contribution.
+- **Region-decomposed seeding** — the inverse of what we tried: surrogate wake,
+  cheap precursor near-body.
+
 
 ## 5. Gotchas that cost time — do not rediscover these
 

@@ -105,7 +105,23 @@ Cartesian spec from a limitation into the finding: *a surrogate intended to
 accelerate a solver should predict on a wall-fitted grid.* If it does not, the
 comparative claim plus outcome 5 is still a methodology paper worth publishing.
 
-### 3. A falsified criterion, and the right one
+### 3. Seed what the solver is slow at — the recipe, and the one to aim for
+A cold RANS solve is **slow at pressure and fast at the near-wall velocity
+gradient**: iterations to settle within 1% are ~1850 for pressure drag, ~950 for
+lift, ~700 for viscous drag, against 1–2, 1 and ~53 when seeded with the exact
+field. A surrogate is the exact reverse — pressure survives projection, the wall
+gradient does not — and the wall gradient is 60–84% of total drag.
+
+Every warm start in the literature hands over both. That predicts, and explains,
+the split we measure: **lift +86%, drag −71%**. It also says the fix needs no
+better model, only a smaller handover.
+
+If `selective_seed_probe.py` confirms it, this is the headline, because it is a
+*recipe* rather than an observation: it applies to any surrogate anyone already
+has, on any solver. The bar it must clear is `potentialFoam` — free, untrained,
+already in OpenFOAM, and what industry does today.
+
+### 4. A falsified criterion, and the right one
 The intuitive parameter — boundary-layer thickness over cell size, `delta/h` —
 looks convincing on a Reynolds sweep (clean sign change at `delta/h = 2.0`) and
 is **wrong**: refining the grid at fixed Reynolds does not reproduce it. Across
@@ -113,14 +129,14 @@ the sweep `delta/h` moves 5× while the viscous ratio `y(y+=30)/h` collapses
 **1660×**. Testing a criterion on two independent axes, and having it fail on
 one, is a stronger methodological result than asserting it on one axis.
 
-### 4. Negative results that save the field time
+### 5. Negative results that save the field time
 At Re 3e6 with a **uniform Cartesian** surrogate, warm-starting fails and cannot
 be fixed by: training (the exact answer fails identically), better projection
 (mask-aware round-trip is identical), post-hoc boundary-layer reconstruction, or
 resolution (128→421² flat; one cell across the inner layer would need N ≈ 11,800,
 28× beyond what AirfRANS contains).
 
-### 5. A methodological result about measuring warm starts
+### 6. A methodological result about measuring warm starts
 Iteration savings are the currency of this literature, and they are reported
 against a residual threshold. Two faults in that practice showed up here, both
 of which flip signs rather than shift magnitudes:
@@ -136,7 +152,7 @@ of which flip signs rather than shift magnitudes:
 
 Both are cheap to check and neither appears in the papers we surveyed.
 
-### 6. Engineering contributions, reusable
+### 7. Engineering contributions, reusable
 - A **stitch-free C-grid wake cut**: emit the two cut sheets with the *same
   vertex ids* at `j = 0` and blockMesh joins them itself — no `stitchMesh`, no
   degenerate trailing-edge vertex pair.

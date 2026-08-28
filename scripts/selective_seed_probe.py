@@ -29,6 +29,17 @@ is identical and only its *use* differs:
 * ``fitted_p``       -- pressure only; velocity and nuTilda start cold.
 * ``fitted_outer``   -- everything, but velocity reverts to freestream inside
   the boundary layer and ramps back to the prediction by 3 delta.
+* ``potential``      -- ``potentialFoam``. **The baseline that decides whether
+  any of this is practical.** It ships with OpenFOAM, needs no model, no training
+  data and no GPU, runs in seconds, and is what industry already does; NVIDIA's
+  hybrid initialisation blends its surrogate *with* potential flow rather than
+  replacing it (arXiv:2503.15766). A surrogate seed that does not beat it has no
+  practical claim to make, however good it looks against a cold start.
+
+Potential flow also happens to be the clean test of the diagnosis above: it has
+the outer field and the leading-edge pressure roughly right and **no boundary
+layer at all** -- which is precisely the division of labour ``fitted_outer``
+imposes by hand.
 
 ``cold`` and ``oracle_mesh`` are reused from the representation probe's tree when
 one is pointed at, so this costs three solves per case rather than five.
@@ -62,7 +73,7 @@ CASES = [("naca0012", 4.0), ("naca2412", 2.0), ("naca0015", 6.0),
          ("naca0012", 0.0), ("naca4412", 3.0), ("naca2415", 5.0)]
 THRESHOLDS = (1e-3, 1e-4, 1e-5, 5e-6, 1e-6)
 FORCE_TOLS = (0.01, 0.005)
-NEW_ARMS = ("fitted_p", "fitted_outer")
+NEW_ARMS = ("fitted_p", "fitted_outer", "potential")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -151,6 +162,16 @@ def main(argv: list[str] | None = None) -> int:
                                       u_inf=u_inf, v_inf=v_inf, nut_freestream=nut_fs)
         results = {"fitted_p": run("fitted_p", mesh_initial=p_only),
                    "fitted_outer": run("fitted_outer", mesh_initial=outer)}
+
+        # potentialFoam overwrites the 0/ fields it is run on, so it gets a
+        # scratch case of its own and only its result is carried across.
+        src = os.path.join(args.work_dir, f"{tag}_potential_src")
+        cg.write_cgrid_case(case, src, spec=spec, n_iter=1)
+        of.run_openfoam("blockMesh", src, timeout=args.timeout, log_name="log.blockMesh")
+        pu, pv, pp = of.potential_flow_seed(src, timeout=args.timeout)
+        results["potential"] = run(
+            "potential",
+            mesh_initial=(pu, pv, pp, np.full_like(pu, nut_fs)))
 
         row = {"case": tag, "re": args.re, "delta": delta,
                "covered_fraction": rep["covered_fraction"],

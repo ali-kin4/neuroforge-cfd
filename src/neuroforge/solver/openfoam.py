@@ -67,6 +67,8 @@ __all__ = [
     "parse_simple_foam_log",
     "iterations_to_threshold",
     "residual_floor",
+    "read_patches",
+    "potential_flow_seed",
     "read_force_coeffs",
     "read_force_components",
     "iterations_to_force_band",
@@ -1447,3 +1449,103 @@ def solve_case(
             "reused": bool(info.get("reused", False)),
         },
     )
+
+
+_BOUNDARY_RE = re.compile(r"^\s{4}(\w+)\s*$\s*^\s*\{([^{}]*)\}", re.MULTILINE)
+
+
+def read_patches(case_dir: str) -> dict[str, str]:
+    """``{patch name: type}`` from ``constant/polyMesh/boundary``.
+
+    Read rather than assumed, because the uniform-Cartesian mesh and the two
+    body-fitted ones do not name their patches the same way.
+    """
+    path = os.path.join(case_dir, "constant", "polyMesh", "boundary")
+    if not os.path.isfile(path):
+        return {}
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        text = fh.read()
+    out = {}
+    for name, body in _BOUNDARY_RE.findall(text):
+        m = re.search(r"type\s+(\w+)\s*;", body)
+        if m:
+            out[name] = m.group(1)
+    return out
+
+
+def potential_flow_seed(
+    case_dir: str, *, distro: str | None = None, timeout: float = 1800.0
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Solve potential flow on an already-meshed case and return ``(u, v, p)``.
+
+    This is the baseline a warm-start claim has to beat. ``potentialFoam`` ships
+    with OpenFOAM, needs no model, no training data and no GPU, runs in seconds,
+    and is what industry actually reaches for -- it is also the field NVIDIA's
+    hybrid initialisation *blends* its surrogate with rather than replaces
+    (arXiv:2503.15766). A surrogate seed that does not beat it has no practical
+    claim to make, however good its iteration count looks against a cold start.
+
+    Potential flow gets the outer field and the leading-edge pressure close and
+    has no boundary layer at all, which is exactly the division of labour
+    :func:`~neuroforge.solver.warmstart.masked_seed` exploits.
+
+    **Mutates ``case_dir``'s time-zero fields** -- ``potentialFoam`` overwrites
+    ``0/U`` and ``0/p``. Point it at a scratch copy, not at a case whose cold
+    start you still need.
+    """
+    require_openfoam(distro)
+    patches = read_patches(case_dir)
+    if not patches:
+        raise OpenFOAMUnavailable(f"no mesh found in {case_dir}; run blockMesh first")
+
+    # Phi needs one Dirichlet anchor or the Poisson problem is singular. The
+    # outlet is the natural place; failing that, the far field.
+    anchor = next((p for p in patches if "out" in p.lower()),
+                  next((p for p in patches if p not in ("airfoil",)
+                        and patches[p] != "empty"), None))
+    entries = {}
+    for name, kind in patches.items():
+        if kind == "empty":
+            entries[name] = "        type            empty;\n"
+        elif name == anchor:
+            entries[name] = ("        type            fixedValue;\n"
+                             "        value           uniform 0;\n")
+        else:
+            entries[name] = "        type            zeroGradient;\n"
+    _write(
+        os.path.join(case_dir, "0", "Phi"),
+        _header("volScalarField", "Phi", "0")
+        + "dimensions      [0 2 -1 0 0 0 0];\n\ninternalField   uniform 0;\n\n"
+        + _boundary_field(entries),
+    )
+
+    path = os.path.join(case_dir, "system", "fvSolution")
+    with open(path, encoding="utf-8") as fh:
+        text = fh.read()
+    text = text.replace(
+        "solvers\n{\n",
+        "solvers\n{\n    Phi\n    {\n        solver          GAMG;\n"
+        "        smoother        GaussSeidel;\n"
+        "        nPreSweeps      0;\n        nPostSweeps     2;\n"
+        "        cacheAgglomeration on;\n        agglomerator    faceAreaPair;\n"
+        "        nCellsInCoarsestLevel 100;\n        mergeLevels     1;\n"
+        "        tolerance       1e-07;\n        relTol          0;\n    }\n\n",
+        1,
+    )
+    text += "\npotentialFlow\n{\n    nNonOrthogonalCorrectors 10;\n}\n"
+    _write(path, text)
+
+    # `-writep` needs the Euler-pressure divergence scheme, which a simpleFoam
+    # fvSchemes has no reason to carry.
+    schemes = os.path.join(case_dir, "system", "fvSchemes")
+    with open(schemes, encoding="utf-8") as fh:
+        text = fh.read()
+    if "div(div(phi,U))" not in text:
+        _write(schemes, text.replace("divSchemes\n{\n",
+                                     "divSchemes\n{\n    div(div(phi,U)) Gauss linear;\n", 1))
+
+    run_openfoam("potentialFoam -writep", case_dir, distro=distro, timeout=timeout,
+                 log_name="log.potentialFoam")
+    velocity = read_volfield(os.path.join(case_dir, "0", "U"))
+    pressure = read_volfield(os.path.join(case_dir, "0", "p"))
+    return velocity[:, 0], velocity[:, 1], pressure
