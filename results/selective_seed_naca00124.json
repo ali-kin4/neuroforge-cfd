@@ -1,0 +1,42 @@
+{
+  "re": 3000000.0,
+  "n_iter": 6000,
+  "rows": [
+    {
+      "case": "naca0012_aoa4",
+      "re": 3000000.0,
+      "delta": 0.018740340312148367,
+      "covered_fraction": 0.6765930599369085,
+      "blended_fraction": 0.4037854889589905,
+      "seeded_fields": [
+        "p"
+      ],
+      "composite_blended": 0.4037854889589905,
+      "cold@1e-03": 71,
+      "fitted_p@1e-03": 70,
+      "fitted_outer@1e-03": 97,
+      "potential@1e-03": 90,
+      "composite@1e-03": 90,
+      "cold@1e-04": 185,
+      "fitted_p@1e-04": 185,
+      "fitted_outer@1e-04": 193,
+      "potential@1e-04": 214,
+      "composite@1e-04": 224,
+      "cold@1e-05": 379,
+      "fitted_p@1e-05": 379,
+      "fitted_outer@1e-05": 295,
+      "potential@1e-05": 447,
+      "composite@1e-05": 590,
+      "cold@5e-06": 960,
+      "fitted_p@5e-06": 959,
+      "fitted_outer@5e-06": 955,
+      "potential@5e-06": 498,
+      "composite@5e-06": 719,
+      "cold@1e-06": 1305,
+      "fitted_p@1e-06": 1304,
+      "fitted_outer@1e-06": 1353,
+      "potential@1e-06": 1270,
+      "composite@1e-06": 1716
+    }
+  ]
+}
