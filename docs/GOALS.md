@@ -83,19 +83,27 @@ grid), a wall-fitted (arclength, wall-distance) grid appeared to save **+13% to
 costs 22–33%. Projections and coverage were matched (69.5% vs 67.7% of cells), so
 the only variable is **where the points sit**.
 
-**Do not claim this yet.** Those savings were read at residual thresholds sitting
-1.9×, 1.3× and 0.9× above the residual floor, where the curve had already
-flattened; the same arm reads +15%, +31% and +13% at three adjacent thresholds,
-and +10%, +49%, −15% across the three cases. The floor has since been traced to
-over-aggressive under-relaxation (0.9 with SIMPLEC) rather than the mesh, and
-dropping it to 0.7 takes the residual to 1.9e-6 and still falling. The re-run on
-a solve that actually converges — scored on **Cd/Cl convergence**, not on a
-residual threshold — is `PLANS.md` §4 move (1).
+**Status after the first re-measurement on a converging solve** (`repr2`, six
+cases, relaxation 0.7/0.4, `PLANS.md` §3.3):
 
-If it survives, it is the positive, actionable result, and it converts the frozen
-7-in/4-out Cartesian spec from a limitation into the finding: *a surrogate
-intended to accelerate a solver should predict on a wall-fitted grid.* If it does
-not, outcome 4 hardens and the paper is a criterion paper.
+- **Wall-fitted beats uniform Cartesian at every depth and on both force
+  coefficients** — +6.0% vs −199.4% at residual 1e-5, +35.8% vs −62.5% at 5e-6,
+  +86.0% vs −134.2% on lift convergence. *This half of the claim is solid.*
+- **Wall-fitted versus a cold start is mixed** — positive on residuals at depth
+  and on lift, negative on drag. The drag column is not readable yet because the
+  oracle control fails there at 3000 iterations; `repr3` re-runs at 6000.
+
+So the honest claim today is comparative: *given a fixed output budget, where the
+points sit decides whether a surrogate helps or hurts.* Whether a wall-fitted
+seed beats **no seed at all** at Re 3e6 is open. The original "+13% to +30%" is
+withdrawn: it was read at 1.9×, 1.3× and 0.9× the residual floor, where the curve
+had already flattened, and the same arm read +15%, +31% and +13% at three
+adjacent thresholds.
+
+If the cold comparison comes out positive, this converts the frozen 7-in/4-out
+Cartesian spec from a limitation into the finding: *a surrogate intended to
+accelerate a solver should predict on a wall-fitted grid.* If it does not, the
+comparative claim plus outcome 5 is still a methodology paper worth publishing.
 
 ### 3. A falsified criterion, and the right one
 The intuitive parameter — boundary-layer thickness over cell size, `delta/h` —

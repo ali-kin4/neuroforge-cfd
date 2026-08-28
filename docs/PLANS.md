@@ -155,6 +155,43 @@ uniform 0.7 relaxation.
 Also useful to know what did **not** matter: the mesh. The `wake` variant cuts
 the worst aspect ratio from 218,987 to 57,389 and changes nothing.
 
+### 3.3 First result on a solve that converges (`repr2`, six cases, 3000 iterations)
+
+Relaxation 0.7/0.4, per-outer-iteration parser, forces instrumented, arms that
+never reach a target counted rather than dropped. Cells are
+`saving (reached/total)`; `<` marks a bound.
+
+| depth | × floor | cold it | oracle (control) | uniform 128² | wall-fitted 256×64 |
+|---|---:|---:|---:|---:|---:|
+| 1e-3 | 995× | 74 | +93.1% (6/6) | +11.8% (6/6) | −9.7% (6/6) |
+| 1e-4 | 100× | 201 | +93.0% (6/6) | +17.8% (6/6) | +2.9% (6/6) |
+| **1e-5** | **10×** | 595 | +87.6% (6/6) | < −199.4% (4/6) | **+6.0% (6/6)** |
+| **5e-6** | **5×** | 1054 | +92.4% (6/6) | < −62.5% (4/6) | **+35.8% (6/6)** |
+| 1e-6 | 1.0× | 1823 | +92.3% (4/4) | < −62.1% (1/4) | < +21.8% (3/4) |
+| Cl @1% | — | 940 | +99.9% (5/5) | −134.2% (5/5) | **+86.0% (5/5)** |
+| Cd @1% | — | 750 | **+1.0%** ⚠ | < −386.8% (3/6) | −204.5% (6/6) |
+
+**What is solid.** The wall-fitted representation beats the uniform Cartesian one
+at *every* depth and on *both* force coefficients, often by hundreds of percent.
+That comparison is the experiment's whole point and it is unambiguous.
+
+**What is not readable yet.** The oracle control **fails on Cd** (+1.0%), so by
+the rule this repo has followed throughout, the Cd column must not be read. The
+cause is known: the shared reference is the oracle arm's final drag, and at 3000
+iterations that is not converged — cold and oracle disagree by up to 0.75% on
+`naca4412`, wider than the band being measured. `repr3` re-runs at 6000.
+
+**What is genuinely open.** Wall-fitted *versus a cold start* is mixed: positive
+on residuals at depth (+6% to +36%) and on lift (+86%), negative on drag. If that
+survives at 6000 it is a finding in its own right — a warm start can accelerate
+residual convergence while *delaying* force convergence, because the seed injects
+its error exactly where the wall integral is most sensitive.
+
+**Bonus, and not in any iteration count**: the oracle arm runs at **0.134 s per
+iteration against the cold arm's 0.251 s** on the same box. A good initial guess
+shortens the inner linear solves too, so the cost saving exceeds the iteration
+saving. Needs a serial run to quantify honestly.
+
 ---
 
 ## 4. Next moves, ranked
