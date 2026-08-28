@@ -100,12 +100,17 @@ def key(threshold: float) -> str:
     return f"{threshold:.1e}"
 
 
-def residuals(case_dir: str):
+def parsed(case_dir: str):
     log = os.path.join(case_dir, "log.simpleFoam")
     if not os.path.isfile(log):
         return None
     with open(log, encoding="utf-8", errors="replace") as fh:
-        return of.parse_simple_foam_log(fh.read())["residuals"]
+        return of.parse_simple_foam_log(fh.read())
+
+
+def residuals(case_dir: str):
+    info = parsed(case_dir)
+    return info["residuals"] if info else None
 
 
 def main(argv=None):
@@ -135,10 +140,14 @@ def main(argv=None):
         print(f"no recognisable case directories under {args.root}")
         return 1
 
-    hist = {}
-    for c in cases:
-        for a in [args.cold] + arms:
-            hist[(c, a)] = residuals(os.path.join(args.root, f"{c}_{a}"))
+    info = {(c, a): parsed(os.path.join(args.root, f"{c}_{a}"))
+            for c in cases for a in [args.cold] + arms}
+    hist = {k: (v["residuals"] if v else None) for k, v in info.items()}
+    # Cumulative solver seconds per iteration. A warm start shortens the inner
+    # linear solves too, so an iteration saving understates the cost saving --
+    # but only a run with the machine to itself gives a clean wall-clock number,
+    # and these sweeps run many solves at once. Reported, flagged, not claimed.
+    elapsed = {k: (v["elapsed"] if v else None) for k, v in info.items()}
 
     floors = {c: of.residual_floor(hist[(c, args.cold)])
               for c in cases if hist[(c, args.cold)]}
@@ -255,6 +264,25 @@ def main(argv=None):
 
                 print(f"{coeff + '@' + f'{100 * tol:g}%':>12} {entry['cold_mean']:>8.0f} "
                       + "  ".join(cell(entry[a]) for a in arms))
+
+    # --- cost per iteration, the part an iteration count cannot show ----------
+    rates = {}
+    for c in cases:
+        for a in [args.cold] + arms:
+            e = elapsed.get((c, a))
+            if e and len(e) > 1 and np.isfinite(e[-1]):
+                rates[(c, a)] = e[-1] / len(e)
+    if rates:
+        print("\nsolver seconds per iteration (machine was shared -- indicative only)")
+        base = [rates[(c, args.cold)] for c in cases if (c, args.cold) in rates]
+        line = f"{'':>12} {np.mean(base):>8.3f} " if base else f"{'':>12} {'--':>8} "
+        for a in arms:
+            v = [rates[(c, a)] for c in cases if (c, a) in rates]
+            line += f"{(f'{np.mean(v):.3f} s' if v else '--'):>20}  "
+        print(f"{'per iter':>12} {'cold':>8}" + "".join(f"{a:>22}" for a in arms))
+        print(line)
+        out["seconds_per_iteration"] = {
+            f"{c}_{a}": float(v) for (c, a), v in rates.items()}
 
     if args.per_case:
         print("\niterations per case (spread is the point)")

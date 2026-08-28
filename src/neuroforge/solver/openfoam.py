@@ -1014,8 +1014,10 @@ def parse_simple_foam_log(text: str) -> dict:
     Returns a dict with ``iterations`` (last ``Time`` reached), ``converged``
     (whether ``residualControl`` was satisfied), ``converged_at`` (the iteration
     OpenFOAM reported, or ``None``), ``execution_time`` / ``clock_time`` in
-    seconds, and ``residuals``: ``{field: [initial residual per outer
-    iteration]}`` for ``Ux, Uy, p, nuTilda``.
+    seconds, ``residuals``: ``{field: [initial residual per outer iteration]}``
+    for ``Ux, Uy, p, nuTilda``, and ``elapsed``: cumulative solver seconds per
+    iteration, so cost can be read at the point a run met a target rather than
+    only at the end.
 
     The histories are grouped **per outer iteration**, not flattened. This
     matters: with ``nNonOrthogonalCorrectors 2`` the pressure equation is solved
@@ -1034,11 +1036,18 @@ def parse_simple_foam_log(text: str) -> dict:
     # split() with a capturing group -> [preamble, time, body, time, body, ...]
     blocks = _TIME_RE.split(text)
     per_iteration: list[dict[str, float]] = []
+    elapsed: list[float] = []
     for i in range(1, len(blocks), 2):
         seen: dict[str, float] = {}
         for name, initial, _final, _n in _RES_RE.findall(blocks[i + 1]):
             seen.setdefault(name, float(initial))
         per_iteration.append(seen)
+        # Cumulative solver time at the end of this iteration. A warm start
+        # shortens the inner linear solves as well as the outer loop, so cost per
+        # iteration is not a constant across arms and an iteration saving is not
+        # the whole speed-up.
+        stamp = _CLOCK_RE.findall(blocks[i + 1])
+        elapsed.append(float(stamp[-1][0]) if stamp else float("nan"))
 
     names: list[str] = []
     for block in per_iteration:
@@ -1062,6 +1071,7 @@ def parse_simple_foam_log(text: str) -> dict:
         "execution_time": exec_t,
         "clock_time": clock_t,
         "residuals": residuals,
+        "elapsed": elapsed,   # cumulative solver seconds, one entry per iteration
         # Last *solved* value: a run cut off mid-block leaves inf padding behind.
         "final_residual": {
             k: [x for x in v if x != inf][-1]

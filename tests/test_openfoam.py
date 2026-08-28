@@ -432,6 +432,13 @@ def test_parse_log_timings():
     assert info["clock_time"] == pytest.approx(2.0)
 
 
+def test_parse_log_elapsed_is_per_iteration():
+    """Cost per iteration is not constant across arms, so it is read per step."""
+    info = of.parse_simple_foam_log(_LOG)
+    assert info["elapsed"] == pytest.approx([0.31, 0.62])
+    assert len(info["elapsed"]) == len(info["residuals"]["Ux"])
+
+
 def test_parse_log_unconverged_run():
     truncated = _LOG.replace("SIMPLE solution converged in 2 iterations", "")
     info = of.parse_simple_foam_log(truncated)
