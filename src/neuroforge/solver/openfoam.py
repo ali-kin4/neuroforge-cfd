@@ -840,13 +840,39 @@ def parse_simple_foam_log(text: str) -> dict:
     OpenFOAM reported, or ``None``), ``execution_time`` / ``clock_time`` in
     seconds, and ``residuals``: ``{field: [initial residual per outer
     iteration]}`` for ``Ux, Uy, p, nuTilda``.
+
+    The histories are grouped **per outer iteration**, not flattened. This
+    matters: with ``nNonOrthogonalCorrectors 2`` the pressure equation is solved
+    three times per SIMPLE iteration, so a flat scan yields a ``p`` history three
+    times longer than ``Ux``'s and index ``i`` then means outer iteration ``i``
+    for velocity but ``i/3`` for pressure. Any metric that compares fields at a
+    common index -- :func:`iterations_to_threshold` does -- silently reads
+    pressure from a third of the way back. Only the *first* solve of a field
+    inside a ``Time`` block is the outer iteration's initial residual; the rest
+    are corrector sub-solves. A field absent from a block records ``inf``, so
+    every history has one entry per outer iteration and indices line up.
     """
     times = _TIME_RE.findall(text)
     iterations = int(times[-1]) if times else 0
 
-    residuals: dict[str, list[float]] = {}
-    for name, initial, _final, _n in _RES_RE.findall(text):
-        residuals.setdefault(name, []).append(float(initial))
+    # split() with a capturing group -> [preamble, time, body, time, body, ...]
+    blocks = _TIME_RE.split(text)
+    per_iteration: list[dict[str, float]] = []
+    for i in range(1, len(blocks), 2):
+        seen: dict[str, float] = {}
+        for name, initial, _final, _n in _RES_RE.findall(blocks[i + 1]):
+            seen.setdefault(name, float(initial))
+        per_iteration.append(seen)
+
+    names: list[str] = []
+    for block in per_iteration:
+        for name in block:
+            if name not in names:
+                names.append(name)
+    inf = float("inf")
+    residuals: dict[str, list[float]] = {
+        name: [block.get(name, inf) for block in per_iteration] for name in names
+    }
 
     conv = _CONVERGED_RE.search(text)
     clocks = _CLOCK_RE.findall(text)
@@ -860,7 +886,12 @@ def parse_simple_foam_log(text: str) -> dict:
         "execution_time": exec_t,
         "clock_time": clock_t,
         "residuals": residuals,
-        "final_residual": {k: v[-1] for k, v in residuals.items() if v},
+        # Last *solved* value: a run cut off mid-block leaves inf padding behind.
+        "final_residual": {
+            k: [x for x in v if x != inf][-1]
+            for k, v in residuals.items()
+            if any(x != inf for x in v)
+        },
     }
 
 

@@ -447,6 +447,60 @@ def test_parse_empty_log_is_not_a_crash():
     assert info["residuals"] == {}
 
 
+# A real case runs `nNonOrthogonalCorrectors 2`, so pressure is solved three
+# times per outer iteration. Flattening those into one list made the `p` history
+# three times longer than `Ux`'s, and any metric that compares fields at a common
+# index then read pressure from a third of the way back through the run.
+_LOG_NON_ORTHOGONAL = """\
+Time = 1
+
+smoothSolver:  Solving for Ux, Initial residual = 1, Final residual = 0.05, No Iterations 3
+smoothSolver:  Solving for Uy, Initial residual = 1, Final residual = 0.04, No Iterations 3
+GAMG:  Solving for p, Initial residual = 1, Final residual = 0.01, No Iterations 8
+GAMG:  Solving for p, Initial residual = 0.01, Final residual = 0.0001, No Iterations 5
+GAMG:  Solving for p, Initial residual = 0.0001, Final residual = 1e-06, No Iterations 4
+ExecutionTime = 0.31 s  ClockTime = 1 s
+
+Time = 2
+
+smoothSolver:  Solving for Ux, Initial residual = 0.002, Final residual = 1e-05, No Iterations 3
+smoothSolver:  Solving for Uy, Initial residual = 0.003, Final residual = 2e-05, No Iterations 3
+GAMG:  Solving for p, Initial residual = 0.004, Final residual = 4e-05, No Iterations 6
+GAMG:  Solving for p, Initial residual = 4e-05, Final residual = 5e-07, No Iterations 4
+GAMG:  Solving for p, Initial residual = 5e-07, Final residual = 8e-09, No Iterations 3
+ExecutionTime = 0.62 s  ClockTime = 2 s
+
+End
+"""
+
+
+def test_parse_log_keeps_one_entry_per_outer_iteration():
+    info = of.parse_simple_foam_log(_LOG_NON_ORTHOGONAL)
+    res = info["residuals"]
+    assert len(res["p"]) == len(res["Ux"]) == 2
+    # The corrector sub-solves (0.01, 1e-4, ...) are not outer-iteration values.
+    assert res["p"] == [1.0, 0.004]
+    assert info["final_residual"]["p"] == pytest.approx(0.004)
+
+
+def test_iterations_to_threshold_is_not_fooled_by_correctors():
+    res = of.parse_simple_foam_log(_LOG_NON_ORTHOGONAL)["residuals"]
+    # Flattening put p's 1e-4 corrector at index 2, which would have declared
+    # the run below 1e-2 at iteration 2 even though its pressure sits at 4e-3.
+    assert of.iterations_to_threshold(res, 1e-2) == 2
+    assert of.iterations_to_threshold(res, 1e-3) is None
+
+
+def test_parse_log_pads_a_field_missing_from_a_block():
+    # A run killed mid-iteration leaves a block with only the fields it reached.
+    truncated = _LOG_NON_ORTHOGONAL[: _LOG_NON_ORTHOGONAL.index("Solving for Uy, Initial residual = 0.003")]
+    res = of.parse_simple_foam_log(truncated)["residuals"]
+    assert len(res["Ux"]) == len(res["Uy"]) == 2
+    assert res["Uy"][-1] == float("inf")
+    # inf never satisfies a threshold, so a partial iteration cannot be counted.
+    assert of.iterations_to_threshold(res, 1e-1) is None
+
+
 # --------------------------------------------------------------------------- #
 # Threshold-based convergence metric
 # --------------------------------------------------------------------------- #
