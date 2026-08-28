@@ -41,7 +41,7 @@ from neuroforge.core.types import FlowCase
 from neuroforge.solver import cgrid as cg, openfoam as of, warmstart as ws
 
 RESOLUTIONS = (128, 192, 256, 320, 421)
-CASES = [("naca0012", 4.0), ("naca2412", 2.0)]
+CASES = [("naca0012", 4.0), ("naca2412", 2.0), ("naca0015", 6.0)]
 THRESHOLDS = (1e-2, 1e-3, 1e-4)
 
 
