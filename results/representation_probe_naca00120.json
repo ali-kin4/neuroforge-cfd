@@ -1,0 +1,200 @@
+{
+  "summary": {
+    "re": 3000000.0,
+    "n_iter": 3000,
+    "budget": 16384,
+    "mesh": "cgrid",
+    "per_threshold": {
+      "1e-02": {
+        "oracle_mesh_saving": 0.9565217391304348,
+        "oracle_mesh_n": 1,
+        "cartesian_128_saving": 0.5217391304347826,
+        "cartesian_128_n": 1,
+        "fitted_256x64_saving": 0.4347826086956522,
+        "fitted_256x64_n": 1
+      },
+      "1e-03": {
+        "oracle_mesh_saving": 0.9882352941176471,
+        "oracle_mesh_n": 1,
+        "cartesian_128_saving": 0.2705882352941177,
+        "cartesian_128_n": 1,
+        "fitted_256x64_saving": 0.24705882352941178,
+        "fitted_256x64_n": 1
+      },
+      "1e-04": {
+        "oracle_mesh_saving": 0.9759036144578314,
+        "oracle_mesh_n": 1,
+        "cartesian_128_saving": 0.42168674698795183,
+        "cartesian_128_n": 1,
+        "fitted_256x64_saving": -0.20883534136546178,
+        "fitted_256x64_n": 1
+      },
+      "1e-05": {
+        "oracle_mesh_saving": 0.9372862029646523,
+        "oracle_mesh_n": 1,
+        "cartesian_128_saving": 0.30672748004561,
+        "cartesian_128_n": 1,
+        "fitted_256x64_saving": -0.027366020524515422,
+        "fitted_256x64_n": 1
+      },
+      "5e-06": {
+        "oracle_mesh_saving": 0.9226957383548068,
+        "oracle_mesh_n": 1,
+        "cartesian_128_saving": 0.031714568880079286,
+        "cartesian_128_n": 1,
+        "fitted_256x64_saving": -0.18731417244796833,
+        "fitted_256x64_n": 1
+      },
+      "1e-06": {
+        "oracle_mesh_saving": NaN,
+        "oracle_mesh_n": 0,
+        "cartesian_128_saving": NaN,
+        "cartesian_128_n": 0,
+        "fitted_256x64_saving": NaN,
+        "fitted_256x64_n": 0
+      }
+    },
+    "per_force": {
+      "Cd@0.01": {
+        "oracle_mesh_saving": 0.8935281837160751,
+        "oracle_mesh_n": 1,
+        "oracle_mesh_spread": [
+          0.8935281837160751,
+          0.8935281837160751
+        ],
+        "cartesian_128_saving": NaN,
+        "cartesian_128_n": 0,
+        "cartesian_128_spread": null,
+        "fitted_256x64_saving": -4.231732776617954,
+        "fitted_256x64_n": 1,
+        "fitted_256x64_spread": [
+          -4.231732776617954,
+          -4.231732776617954
+        ]
+      },
+      "Cl@0.01": {
+        "oracle_mesh_saving": NaN,
+        "oracle_mesh_n": 0,
+        "oracle_mesh_spread": null,
+        "cartesian_128_saving": NaN,
+        "cartesian_128_n": 0,
+        "cartesian_128_spread": null,
+        "fitted_256x64_saving": NaN,
+        "fitted_256x64_n": 0,
+        "fitted_256x64_spread": null
+      },
+      "Cd@0.005": {
+        "oracle_mesh_saving": 0.8858131487889274,
+        "oracle_mesh_n": 1,
+        "oracle_mesh_spread": [
+          0.8858131487889274,
+          0.8858131487889274
+        ],
+        "cartesian_128_saving": NaN,
+        "cartesian_128_n": 0,
+        "cartesian_128_spread": null,
+        "fitted_256x64_saving": NaN,
+        "fitted_256x64_n": 0,
+        "fitted_256x64_spread": null
+      },
+      "Cl@0.005": {
+        "oracle_mesh_saving": NaN,
+        "oracle_mesh_n": 0,
+        "oracle_mesh_spread": null,
+        "cartesian_128_saving": NaN,
+        "cartesian_128_n": 0,
+        "cartesian_128_spread": null,
+        "fitted_256x64_saving": NaN,
+        "fitted_256x64_n": 0,
+        "fitted_256x64_spread": null
+      },
+      "Cd@0.002": {
+        "oracle_mesh_saving": 0.8669410150891632,
+        "oracle_mesh_n": 1,
+        "oracle_mesh_spread": [
+          0.8669410150891632,
+          0.8669410150891632
+        ],
+        "cartesian_128_saving": NaN,
+        "cartesian_128_n": 0,
+        "cartesian_128_spread": null,
+        "fitted_256x64_saving": NaN,
+        "fitted_256x64_n": 0,
+        "fitted_256x64_spread": null
+      },
+      "Cl@0.002": {
+        "oracle_mesh_saving": NaN,
+        "oracle_mesh_n": 0,
+        "oracle_mesh_spread": null,
+        "cartesian_128_saving": NaN,
+        "cartesian_128_n": 0,
+        "cartesian_128_spread": null,
+        "fitted_256x64_saving": NaN,
+        "fitted_256x64_n": 0,
+        "fitted_256x64_spread": null
+      }
+    }
+  },
+  "rows": [
+    {
+      "case": "naca0012_aoa0",
+      "re": 3000000.0,
+      "budget": 16384,
+      "cartesian_covered": 0.6946372239747634,
+      "fitted_covered": 0.6765930599369085,
+      "cold_floor": 2.380414153e-06,
+      "cold@1e-02": 23,
+      "oracle_mesh@1e-02": 1,
+      "cartesian_128@1e-02": 11,
+      "fitted_256x64@1e-02": 13,
+      "cold@1e-03": 85,
+      "oracle_mesh@1e-03": 1,
+      "cartesian_128@1e-03": 62,
+      "fitted_256x64@1e-03": 64,
+      "cold@1e-04": 249,
+      "oracle_mesh@1e-04": 6,
+      "cartesian_128@1e-04": 144,
+      "fitted_256x64@1e-04": 301,
+      "cold@1e-05": 877,
+      "oracle_mesh@1e-05": 55,
+      "cartesian_128@1e-05": 608,
+      "fitted_256x64@1e-05": 901,
+      "cold@5e-06": 1009,
+      "oracle_mesh@5e-06": 78,
+      "cartesian_128@5e-06": 977,
+      "fitted_256x64@5e-06": 1198,
+      "cold@1e-06": null,
+      "oracle_mesh@1e-06": null,
+      "cartesian_128@1e-06": null,
+      "fitted_256x64@1e-06": null,
+      "force_reference": {
+        "Cd": 0.0091600150808,
+        "Cl": -1.7038727114e-07
+      },
+      "cold.Cd@0.01": 479,
+      "cold.Cd_final@0.01": 0.0091618835105,
+      "oracle_mesh.Cd@0.01": 51,
+      "oracle_mesh.Cd_final@0.01": 0.0091600150808,
+      "cartesian_128.Cd@0.01": null,
+      "cartesian_128.Cd_final@0.01": 0.0093288887527,
+      "fitted_256x64.Cd@0.01": 2506,
+      "fitted_256x64.Cd_final@0.01": 0.009233970419,
+      "cold.Cd@0.005": 578,
+      "cold.Cd_final@0.005": 0.0091618835105,
+      "oracle_mesh.Cd@0.005": 66,
+      "oracle_mesh.Cd_final@0.005": 0.0091600150808,
+      "cartesian_128.Cd@0.005": null,
+      "cartesian_128.Cd_final@0.005": 0.0093288887527,
+      "fitted_256x64.Cd@0.005": null,
+      "fitted_256x64.Cd_final@0.005": 0.009233970419,
+      "cold.Cd@0.002": 729,
+      "cold.Cd_final@0.002": 0.0091618835105,
+      "oracle_mesh.Cd@0.002": 97,
+      "oracle_mesh.Cd_final@0.002": 0.0091600150808,
+      "cartesian_128.Cd@0.002": null,
+      "cartesian_128.Cd_final@0.002": 0.0093288887527,
+      "fitted_256x64.Cd@0.002": null,
+      "fitted_256x64.Cd_final@0.002": 0.009233970419
+    }
+  ]
+}

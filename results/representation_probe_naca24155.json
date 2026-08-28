@@ -1,0 +1,245 @@
+{
+  "summary": {
+    "re": 3000000.0,
+    "n_iter": 3000,
+    "budget": 16384,
+    "mesh": "cgrid",
+    "per_threshold": {
+      "1e-02": {
+        "oracle_mesh_saving": 0.8888888888888888,
+        "oracle_mesh_n": 1,
+        "cartesian_128_saving": 0.0,
+        "cartesian_128_n": 1,
+        "fitted_256x64_saving": -0.33333333333333326,
+        "fitted_256x64_n": 1
+      },
+      "1e-03": {
+        "oracle_mesh_saving": 0.9189189189189189,
+        "oracle_mesh_n": 1,
+        "cartesian_128_saving": 0.08108108108108103,
+        "cartesian_128_n": 1,
+        "fitted_256x64_saving": -0.2432432432432432,
+        "fitted_256x64_n": 1
+      },
+      "1e-04": {
+        "oracle_mesh_saving": 0.9242424242424242,
+        "oracle_mesh_n": 1,
+        "cartesian_128_saving": 0.1262626262626263,
+        "cartesian_128_n": 1,
+        "fitted_256x64_saving": 0.045454545454545414,
+        "fitted_256x64_n": 1
+      },
+      "1e-05": {
+        "oracle_mesh_saving": 0.8366336633663366,
+        "oracle_mesh_n": 1,
+        "cartesian_128_saving": -1.1757425742574257,
+        "cartesian_128_n": 1,
+        "fitted_256x64_saving": -0.10891089108910901,
+        "fitted_256x64_n": 1
+      },
+      "5e-06": {
+        "oracle_mesh_saving": 0.9297629499561019,
+        "oracle_mesh_n": 1,
+        "cartesian_128_saving": -0.14310798946444248,
+        "cartesian_128_n": 1,
+        "fitted_256x64_saving": 0.5566286215978928,
+        "fitted_256x64_n": 1
+      },
+      "1e-06": {
+        "oracle_mesh_saving": 0.9367588932806324,
+        "oracle_mesh_n": 1,
+        "cartesian_128_saving": NaN,
+        "cartesian_128_n": 0,
+        "fitted_256x64_saving": 0.5079051383399209,
+        "fitted_256x64_n": 1
+      }
+    },
+    "per_force": {
+      "Cd@0.01": {
+        "oracle_mesh_saving": 0.9728445349626612,
+        "oracle_mesh_n": 1,
+        "oracle_mesh_spread": [
+          0.9728445349626612,
+          0.9728445349626612
+        ],
+        "cartesian_128_saving": NaN,
+        "cartesian_128_n": 0,
+        "cartesian_128_spread": null,
+        "fitted_256x64_saving": 0.1065852002715546,
+        "fitted_256x64_n": 1,
+        "fitted_256x64_spread": [
+          0.1065852002715546,
+          0.1065852002715546
+        ]
+      },
+      "Cl@0.01": {
+        "oracle_mesh_saving": 0.9989754098360656,
+        "oracle_mesh_n": 1,
+        "oracle_mesh_spread": [
+          0.9989754098360656,
+          0.9989754098360656
+        ],
+        "cartesian_128_saving": -1.6649590163934427,
+        "cartesian_128_n": 1,
+        "cartesian_128_spread": [
+          -1.6649590163934427,
+          -1.6649590163934427
+        ],
+        "fitted_256x64_saving": 0.8637295081967213,
+        "fitted_256x64_n": 1,
+        "fitted_256x64_spread": [
+          0.8637295081967213,
+          0.8637295081967213
+        ]
+      },
+      "Cd@0.005": {
+        "oracle_mesh_saving": 0.9783295711060949,
+        "oracle_mesh_n": 1,
+        "oracle_mesh_spread": [
+          0.9783295711060949,
+          0.9783295711060949
+        ],
+        "cartesian_128_saving": NaN,
+        "cartesian_128_n": 0,
+        "cartesian_128_spread": null,
+        "fitted_256x64_saving": -0.03160270880361171,
+        "fitted_256x64_n": 1,
+        "fitted_256x64_spread": [
+          -0.03160270880361171,
+          -0.03160270880361171
+        ]
+      },
+      "Cl@0.005": {
+        "oracle_mesh_saving": 0.9991063449508489,
+        "oracle_mesh_n": 1,
+        "oracle_mesh_spread": [
+          0.9991063449508489,
+          0.9991063449508489
+        ],
+        "cartesian_128_saving": NaN,
+        "cartesian_128_n": 0,
+        "cartesian_128_spread": null,
+        "fitted_256x64_saving": 0.514745308310992,
+        "fitted_256x64_n": 1,
+        "fitted_256x64_spread": [
+          0.514745308310992,
+          0.514745308310992
+        ]
+      },
+      "Cd@0.002": {
+        "oracle_mesh_saving": NaN,
+        "oracle_mesh_n": 0,
+        "oracle_mesh_spread": null,
+        "cartesian_128_saving": NaN,
+        "cartesian_128_n": 0,
+        "cartesian_128_spread": null,
+        "fitted_256x64_saving": NaN,
+        "fitted_256x64_n": 0,
+        "fitted_256x64_spread": null
+      },
+      "Cl@0.002": {
+        "oracle_mesh_saving": 0.9992211838006231,
+        "oracle_mesh_n": 1,
+        "oracle_mesh_spread": [
+          0.9992211838006231,
+          0.9992211838006231
+        ],
+        "cartesian_128_saving": NaN,
+        "cartesian_128_n": 0,
+        "cartesian_128_spread": null,
+        "fitted_256x64_saving": -0.8387850467289719,
+        "fitted_256x64_n": 1,
+        "fitted_256x64_spread": [
+          -0.8387850467289719,
+          -0.8387850467289719
+        ]
+      }
+    }
+  },
+  "rows": [
+    {
+      "case": "naca2415_aoa5",
+      "re": 3000000.0,
+      "budget": 16384,
+      "cartesian_covered": 0.6944794952681388,
+      "fitted_covered": 0.6766561514195584,
+      "cold_floor": 6.8276522405e-07,
+      "cold@1e-02": 9,
+      "oracle_mesh@1e-02": 1,
+      "cartesian_128@1e-02": 9,
+      "fitted_256x64@1e-02": 12,
+      "cold@1e-03": 74,
+      "oracle_mesh@1e-03": 6,
+      "cartesian_128@1e-03": 68,
+      "fitted_256x64@1e-03": 92,
+      "cold@1e-04": 198,
+      "oracle_mesh@1e-04": 15,
+      "cartesian_128@1e-04": 173,
+      "fitted_256x64@1e-04": 189,
+      "cold@1e-05": 404,
+      "oracle_mesh@1e-05": 66,
+      "cartesian_128@1e-05": 879,
+      "fitted_256x64@1e-05": 448,
+      "cold@5e-06": 1139,
+      "oracle_mesh@5e-06": 80,
+      "cartesian_128@5e-06": 1302,
+      "fitted_256x64@5e-06": 505,
+      "cold@1e-06": 2024,
+      "oracle_mesh@1e-06": 128,
+      "cartesian_128@1e-06": null,
+      "fitted_256x64@1e-06": 996,
+      "force_reference": {
+        "Cd": 0.013198792008,
+        "Cl": 0.73088055168
+      },
+      "cold.Cd@0.01": 1473,
+      "cold.Cd_final@0.01": 0.013235506146,
+      "cold.Cl@0.01": 976,
+      "cold.Cl_final@0.01": 0.7310768729,
+      "oracle_mesh.Cd@0.01": 40,
+      "oracle_mesh.Cd_final@0.01": 0.013198792008,
+      "oracle_mesh.Cl@0.01": 1,
+      "oracle_mesh.Cl_final@0.01": 0.73088055168,
+      "cartesian_128.Cd@0.01": null,
+      "cartesian_128.Cd_final@0.01": 0.013370712855,
+      "cartesian_128.Cl@0.01": 2601,
+      "cartesian_128.Cl_final@0.01": 0.73681554297,
+      "fitted_256x64.Cd@0.01": 1316,
+      "fitted_256x64.Cd_final@0.01": 0.013240659261,
+      "fitted_256x64.Cl@0.01": 133,
+      "fitted_256x64.Cl_final@0.01": 0.73187110185,
+      "cold.Cd@0.005": 2215,
+      "cold.Cd_final@0.005": 0.013235506146,
+      "cold.Cl@0.005": 1119,
+      "cold.Cl_final@0.005": 0.7310768729,
+      "oracle_mesh.Cd@0.005": 48,
+      "oracle_mesh.Cd_final@0.005": 0.013198792008,
+      "oracle_mesh.Cl@0.005": 1,
+      "oracle_mesh.Cl_final@0.005": 0.73088055168,
+      "cartesian_128.Cd@0.005": null,
+      "cartesian_128.Cd_final@0.005": 0.013370712855,
+      "cartesian_128.Cl@0.005": null,
+      "cartesian_128.Cl_final@0.005": 0.73681554297,
+      "fitted_256x64.Cd@0.005": 2285,
+      "fitted_256x64.Cd_final@0.005": 0.013240659261,
+      "fitted_256x64.Cl@0.005": 543,
+      "fitted_256x64.Cl_final@0.005": 0.73187110185,
+      "cold.Cd@0.002": null,
+      "cold.Cd_final@0.002": 0.013235506146,
+      "cold.Cl@0.002": 1284,
+      "cold.Cl_final@0.002": 0.7310768729,
+      "oracle_mesh.Cd@0.002": 361,
+      "oracle_mesh.Cd_final@0.002": 0.013198792008,
+      "oracle_mesh.Cl@0.002": 1,
+      "oracle_mesh.Cl_final@0.002": 0.73088055168,
+      "cartesian_128.Cd@0.002": null,
+      "cartesian_128.Cd_final@0.002": 0.013370712855,
+      "cartesian_128.Cl@0.002": null,
+      "cartesian_128.Cl_final@0.002": 0.73681554297,
+      "fitted_256x64.Cd@0.002": null,
+      "fitted_256x64.Cd_final@0.002": 0.013240659261,
+      "fitted_256x64.Cl@0.002": 2361,
+      "fitted_256x64.Cl_final@0.002": 0.73187110185
+    }
+  ]
+}
