@@ -3,7 +3,7 @@
 **Living document. Update whenever a goal is reached, dropped, or reframed.**
 Companion: `docs/PLANS.md` (what next), this file (why, and what has been won).
 
-Last updated: **2026-08-27**
+Last updated: **2026-08-28**
 
 ---
 
@@ -46,7 +46,7 @@ Everything below is a step toward that, or a measured limit on it.
 
 | Goal | State |
 |---|---|
-| **Paper 2**: warm-started classical fallback with real cost accounting | Six experiments done. Positive at moderate Reynolds; positive at Re 3e6 *only* with a wall-fitted representation, and that needs a longer budget to firm up. See `PLANS.md` §4. |
+| **Paper 2**: warm-started classical fallback with real cost accounting | Six experiments done. Positive at moderate Reynolds. At Re 3e6 the wall-fitted result is **not yet established** — it was read off a stalled residual, and the stall has since been traced to under-relaxation and fixed. Re-measuring on a converging solve, scored on Cd/Cl. See `PLANS.md` §4. |
 
 ### ○ Queued
 
@@ -69,16 +69,26 @@ Measured, controlled, reproducible: **+58% at Re 1e3, +14% at Re 1e4** (at
 residual 1e-3); **69.7%** in the Re-1e4 pilot from a neighbouring-case start.
 The oracle control passes in every case.
 
-### 2. It is the **representation**, not the resolution — and this is the headline
-At **equal output budget** (16,384 values — exactly a 128² grid), a wall-fitted
-(arclength, wall-distance) grid saves **+13% to +30%** of iterations at Re 3e6
-scored at convergence depth, while a uniform Cartesian grid of the *same size*
-costs 22–33%. Projections and coverage matched (69.5% vs 67.7% of cells), so the
-only variable is **where the points sit**.
+### 2. It is the **representation**, not the resolution — ⚠️ UNDER RE-MEASUREMENT
+The intended headline. At **equal output budget** (16,384 values — exactly a 128²
+grid), a wall-fitted (arclength, wall-distance) grid appeared to save **+13% to
++30%** of iterations at Re 3e6 where a uniform Cartesian grid of the *same size*
+costs 22–33%. Projections and coverage were matched (69.5% vs 67.7% of cells), so
+the only variable is **where the points sit**.
 
-This is the positive, actionable result, and it converts the frozen 7-in/4-out
-Cartesian spec from a limitation into the finding: *a surrogate intended to
-accelerate a solver should predict on a wall-fitted grid.*
+**Do not claim this yet.** Those savings were read at residual thresholds sitting
+1.9×, 1.3× and 0.9× above the residual floor, where the curve had already
+flattened; the same arm reads +15%, +31% and +13% at three adjacent thresholds,
+and +10%, +49%, −15% across the three cases. The floor has since been traced to
+over-aggressive under-relaxation (0.9 with SIMPLEC) rather than the mesh, and
+dropping it to 0.7 takes the residual to 1.9e-6 and still falling. The re-run on
+a solve that actually converges — scored on **Cd/Cl convergence**, not on a
+residual threshold — is `PLANS.md` §4 move (1).
+
+If it survives, it is the positive, actionable result, and it converts the frozen
+7-in/4-out Cartesian spec from a limitation into the finding: *a surrogate
+intended to accelerate a solver should predict on a wall-fitted grid.* If it does
+not, outcome 4 hardens and the paper is a criterion paper.
 
 ### 3. A falsified criterion, and the right one
 The intuitive parameter — boundary-layer thickness over cell size, `delta/h` —
@@ -95,13 +105,29 @@ be fixed by: training (the exact answer fails identically), better projection
 resolution (128→421² flat; one cell across the inner layer would need N ≈ 11,800,
 28× beyond what AirfRANS contains).
 
-### 5. Engineering contributions, reusable
+### 5. A methodological result about measuring warm starts
+Iteration savings are the currency of this literature, and they are reported
+against a residual threshold. Two faults in that practice showed up here, both
+of which flip signs rather than shift magnitudes:
+
+- **The threshold has to be far above the residual floor.** Below a few times the
+  floor, an iteration count records where a flat curve crosses a line. Report the
+  threshold as a *multiple of the floor*, or score the forces instead — Cd and Cl
+  settle and stay settled whatever the residual does.
+- **The floor itself is often an artifact.** Here it was under-relaxation at 0.9,
+  not the 218,987-aspect-ratio cells the mesh carries. It was diagnosable in
+  minutes and moved the floor by more than 6×. A negative warm-start result taken
+  against an artificial floor is not a result about warm starts.
+
+Both are cheap to check and neither appears in the papers we surveyed.
+
+### 6. Engineering contributions, reusable
 - A **stitch-free C-grid wake cut**: emit the two cut sheets with the *same
   vertex ids* at `j = 0` and blockMesh joins them itself — no `stitchMesh`, no
   degenerate trailing-edge vertex pair.
 - A convergence metric that works when `residualControl` never fires
-  (`iterations_to_threshold` + `residual_floor`), which on a staircase mesh it
-  does not.
+  (`iterations_to_threshold` + `residual_floor`), and a force-based one
+  (`iterations_to_force_band`) for when even that is on the floor.
 
 ---
 
