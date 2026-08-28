@@ -58,6 +58,38 @@ FORCE_TOLS = (0.01, 0.005, 0.002)
 FORCE_REF_FLOOR = 1e-3   # a relative band around zero lift is numerical noise
 
 
+def summarise(savings, censored, n_cases):
+    """Mean saving over the arms that reached the target, plus the censored ones.
+
+    An arm that never reaches the target inside its budget is *worse* than one
+    that reaches it late, so dropping it silently raises that arm's own mean --
+    the failing arm is rewarded for failing. Every such case is instead scored
+    with the arm's full run length, which is a lower bound on the iterations it
+    would have needed and therefore an **upper bound** on its saving: the arm is
+    at least this bad. `n_reached` and `n_censored` are reported so a bound is
+    never mistaken for a measurement.
+    """
+    values = list(savings) + list(censored)
+    return {
+        "saving": float(np.mean(values)) if values else None,
+        "saving_reached_only": float(np.mean(savings)) if savings else None,
+        "n": len(values),
+        "n_cases": n_cases,
+        "n_reached": len(savings),
+        "n_censored": len(censored),
+        "spread": [float(min(values)), float(max(values))] if values else None,
+    }
+
+
+def cell(entry: dict, width: int = 20) -> str:
+    """One table cell: the bounded mean, with a mark when it rests on a bound."""
+    if entry is None or entry["saving"] is None:
+        return f"{'--':>{width}}"
+    mark = "<" if entry["n_censored"] else " "
+    return (f"{mark}{100 * entry['saving']:+8.1f}% "
+            f"({entry['n_reached']}/{entry['n']})").rjust(width)
+
+
 def key(threshold: float) -> str:
     """JSON key for a depth.
 
@@ -122,9 +154,14 @@ def main(argv=None):
     print(header)
     print("-" * len(header))
 
+    budgets = {(c, a): len(hist[(c, a)].get("Ux", ())) if hist[(c, a)] else 0
+               for c in cases for a in [args.cold] + arms}
+
     mean_floor = float(np.mean(list(floors.values()))) if floors else float("nan")
     for t in DEPTHS:
-        colds, savings = [], {a: [] for a in arms}
+        colds = []
+        savings = {a: [] for a in arms}
+        censored = {a: [] for a in arms}
         per_case = {}
         for c in cases:
             hc = hist[(c, args.cold)]
@@ -141,25 +178,20 @@ def main(argv=None):
                 per_case[c][a] = v
                 if v:
                     savings[a].append(1.0 - v / base)
+                elif budgets[(c, a)]:
+                    # Never got there inside its budget: bound it, do not drop it.
+                    censored[a].append(1.0 - budgets[(c, a)] / base)
         entry = {"cold_mean": float(np.mean(colds)) if colds else None,
                  "cold_n": len(colds), "per_case": per_case,
                  "threshold_over_floor": t / mean_floor if mean_floor else None}
         for a in arms:
-            entry[a] = float(np.mean(savings[a])) if savings[a] else None
-            entry[a + "_n"] = len(savings[a])
-            entry[a + "_spread"] = ([float(min(savings[a])), float(max(savings[a]))]
-                                    if savings[a] else None)
+            entry[a] = summarise(savings[a], censored[a], len(colds))
         out["by_depth"][key(t)] = entry
-
-        def cell(a):
-            if entry[a] is None:
-                return f"{'--':>20}"
-            return f"{100 * entry[a]:+11.1f}% (n={entry[a + '_n']})"
 
         ratio = f"{t / mean_floor:.1f}x" if mean_floor else "--"
         cold_txt = f"{entry['cold_mean']:.0f}" if colds else "--"
         print(f"{key(t):>8} {ratio:>8} {cold_txt:>8} "
-              + "  ".join(f"{cell(a):>20}" for a in arms))
+              + "  ".join(cell(entry[a]) for a in arms))
 
     # --- the same comparison on the forces ------------------------------------
     forces = {(c, a): of.read_force_coeffs(os.path.join(args.root, f"{c}_{a}"))
@@ -185,7 +217,9 @@ def main(argv=None):
         print("-" * len(header))
         for coeff in ("Cd", "Cl"):
             for tol in FORCE_TOLS:
-                colds, savings = [], {a: [] for a in arms}
+                colds = []
+                savings = {a: [] for a in arms}
+                censored = {a: [] for a in arms}
                 per_case = {}
                 for c in cases:
                     ref = (refs.get(c) or {}).get(coeff)
@@ -209,24 +243,18 @@ def main(argv=None):
                         per_case[c][a] = v
                         if v:
                             savings[a].append(1.0 - v / base)
+                        elif budgets[(c, a)]:
+                            censored[a].append(1.0 - budgets[(c, a)] / base)
                 entry = {"cold_mean": float(np.mean(colds)) if colds else None,
                          "cold_n": len(colds), "per_case": per_case}
                 for a in arms:
-                    entry[a] = float(np.mean(savings[a])) if savings[a] else None
-                    entry[a + "_n"] = len(savings[a])
-                    entry[a + "_spread"] = ([float(min(savings[a])), float(max(savings[a]))]
-                                            if savings[a] else None)
+                    entry[a] = summarise(savings[a], censored[a], len(colds))
                 out["by_force"][f"{coeff}@{tol:g}"] = entry
                 if not colds:
                     continue
 
-                def fcell(a):
-                    if entry[a] is None:
-                        return f"{'--':>20}"
-                    return f"{100 * entry[a]:+11.1f}% (n={entry[a + '_n']})"
-
                 print(f"{coeff + '@' + f'{100 * tol:g}%':>12} {entry['cold_mean']:>8.0f} "
-                      + "  ".join(f"{fcell(a):>20}" for a in arms))
+                      + "  ".join(cell(entry[a]) for a in arms))
 
     if args.per_case:
         print("\niterations per case (spread is the point)")
@@ -245,7 +273,10 @@ def main(argv=None):
         json.dump(out, fh, indent=2)
     os.replace(tmp, os.path.abspath(args.out))
     print(f"\nwrote {args.out}")
-    print("\nThe sign changes with depth, so report the depth alongside any saving --\n"
+    print("\nCells read  saving (reached/total).  A leading '<' means at least one\n"
+          "case never reached the target inside its budget and was scored with its\n"
+          "full run length: the arm is at least that bad, so the number is a bound.\n"
+          "\nThe sign changes with depth, so report the depth alongside any saving --\n"
           "and check 'x floor': a threshold within a few times the stagnation level\n"
           "is measuring where a flat curve crosses a line, not a convergence rate.")
     return 0
