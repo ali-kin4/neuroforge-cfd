@@ -67,8 +67,6 @@
       "oracle_mesh": {
         "saving": 0.9020128824476651,
         "saving_reached_only": 0.9020128824476651,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -79,8 +77,6 @@
       "cartesian_128": {
         "saving": 0.051771336553945224,
         "saving_reached_only": 0.051771336553945224,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -91,8 +87,6 @@
       "fitted_256x64": {
         "saving": -0.25161030595813205,
         "saving_reached_only": -0.25161030595813205,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -146,8 +140,6 @@
       "oracle_mesh": {
         "saving": 0.9308328518370398,
         "saving_reached_only": 0.9308328518370398,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -158,8 +150,6 @@
       "cartesian_128": {
         "saving": 0.1175529275590562,
         "saving_reached_only": 0.1175529275590562,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -170,8 +160,6 @@
       "fitted_256x64": {
         "saving": -0.09655918195544348,
         "saving_reached_only": -0.09655918195544348,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -225,8 +213,6 @@
       "oracle_mesh": {
         "saving": 0.9298251136297969,
         "saving_reached_only": 0.9298251136297969,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -237,8 +223,6 @@
       "cartesian_128": {
         "saving": 0.17796689584705183,
         "saving_reached_only": 0.17796689584705183,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -249,8 +233,6 @@
       "fitted_256x64": {
         "saving": 0.028788364694827078,
         "saving_reached_only": 0.028788364694827078,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -304,8 +286,6 @@
       "oracle_mesh": {
         "saving": 0.8763479180879344,
         "saving_reached_only": 0.8763479180879344,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -316,8 +296,6 @@
       "cartesian_128": {
         "saving": -1.9936447261019836,
         "saving_reached_only": -0.31158777880814764,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 4,
         "n_censored": 2,
         "spread": [
@@ -328,8 +306,6 @@
       "fitted_256x64": {
         "saving": 0.05995772399268382,
         "saving_reached_only": 0.05995772399268382,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -383,8 +359,6 @@
       "oracle_mesh": {
         "saving": 0.9244185689640005,
         "saving_reached_only": 0.9244185689640005,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -395,8 +369,6 @@
       "cartesian_128": {
         "saving": -0.6246666896592005,
         "saving_reached_only": 0.01293043422398793,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 4,
         "n_censored": 2,
         "spread": [
@@ -407,8 +379,6 @@
       "fitted_256x64": {
         "saving": 0.3580207765077615,
         "saving_reached_only": 0.3580207765077615,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -450,8 +420,6 @@
       "oracle_mesh": {
         "saving": 0.9225852717680466,
         "saving_reached_only": 0.9225852717680466,
-        "n": 4,
-        "n_cases": 4,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
@@ -462,8 +430,6 @@
       "cartesian_128": {
         "saving": -0.6206724725704631,
         "saving_reached_only": -0.45836023240800516,
-        "n": 4,
-        "n_cases": 4,
         "n_reached": 1,
         "n_censored": 3,
         "spread": [
@@ -474,8 +440,6 @@
       "fitted_256x64": {
         "saving": 0.21826863725883888,
         "saving_reached_only": 0.37211339782046043,
-        "n": 4,
-        "n_cases": 4,
         "n_reached": 3,
         "n_censored": 1,
         "spread": [
@@ -505,8 +469,6 @@
       "oracle_mesh": {
         "saving": 0.8882752350299129,
         "saving_reached_only": 0.8882752350299129,
-        "n": 2,
-        "n_cases": 2,
         "n_reached": 2,
         "n_censored": 0,
         "spread": [
@@ -517,8 +479,6 @@
       "cartesian_128": {
         "saving": -0.810594075609623,
         "saving_reached_only": null,
-        "n": 2,
-        "n_cases": 2,
         "n_reached": 0,
         "n_censored": 2,
         "spread": [
@@ -529,8 +489,6 @@
       "fitted_256x64": {
         "saving": -0.16317022166457545,
         "saving_reached_only": -0.16317022166457545,
-        "n": 2,
-        "n_cases": 2,
         "n_reached": 2,
         "n_censored": 0,
         "spread": [
@@ -585,8 +543,6 @@
       "oracle_mesh": {
         "saving": 0.7353261352739254,
         "saving_reached_only": 0.7353261352739254,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -597,8 +553,6 @@
       "cartesian_128": {
         "saving": -2.700577926992283,
         "saving_reached_only": -1.9290008794365667,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 3,
         "n_censored": 3,
         "spread": [
@@ -609,8 +563,6 @@
       "fitted_256x64": {
         "saving": -0.7098558994917692,
         "saving_reached_only": -0.7098558994917692,
-        "n": 6,
-        "n_cases": 6,
         "n_reached": 6,
         "n_censored": 0,
         "spread": [
@@ -657,8 +609,6 @@
       "oracle_mesh": {
         "saving": 0.9056554806106902,
         "saving_reached_only": 0.9056554806106902,
-        "n": 5,
-        "n_cases": 5,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -669,8 +619,6 @@
       "cartesian_128": {
         "saving": -1.9368252281207627,
         "saving_reached_only": -1.0884831460674156,
-        "n": 5,
-        "n_cases": 5,
         "n_reached": 1,
         "n_censored": 4,
         "spread": [
@@ -681,8 +629,6 @@
       "fitted_256x64": {
         "saving": -0.8626986871121298,
         "saving_reached_only": -0.8626986871121298,
-        "n": 5,
-        "n_cases": 5,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -717,8 +663,6 @@
       "oracle_mesh": {
         "saving": 0.46812727367276236,
         "saving_reached_only": 0.8781710817574535,
-        "n": 3,
-        "n_cases": 3,
         "n_reached": 2,
         "n_censored": 1,
         "spread": [
@@ -729,8 +673,6 @@
       "cartesian_128": {
         "saving": -0.8107597687528335,
         "saving_reached_only": null,
-        "n": 3,
-        "n_cases": 3,
         "n_reached": 0,
         "n_censored": 3,
         "spread": [
@@ -741,8 +683,6 @@
       "fitted_256x64": {
         "saving": -0.34977219013640864,
         "saving_reached_only": -0.34977219013640864,
-        "n": 3,
-        "n_cases": 3,
         "n_reached": 3,
         "n_censored": 0,
         "spread": [
@@ -789,8 +729,6 @@
       "oracle_mesh": {
         "saving": 0.9989544141862623,
         "saving_reached_only": 0.9989544141862623,
-        "n": 5,
-        "n_cases": 5,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -801,8 +739,6 @@
       "cartesian_128": {
         "saving": -1.1292064238615125,
         "saving_reached_only": -1.1292064238615125,
-        "n": 5,
-        "n_cases": 5,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -813,8 +749,6 @@
       "fitted_256x64": {
         "saving": 0.8658269326337139,
         "saving_reached_only": 0.8658269326337139,
-        "n": 5,
-        "n_cases": 5,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -861,8 +795,6 @@
       "oracle_mesh": {
         "saving": 0.9991454601585714,
         "saving_reached_only": 0.9991454601585714,
-        "n": 5,
-        "n_cases": 5,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -873,8 +805,6 @@
       "cartesian_128": {
         "saving": -1.473082938919908,
         "saving_reached_only": -1.4741463414634146,
-        "n": 5,
-        "n_cases": 5,
         "n_reached": 1,
         "n_censored": 4,
         "spread": [
@@ -885,8 +815,6 @@
       "fitted_256x64": {
         "saving": 0.702145394957804,
         "saving_reached_only": 0.702145394957804,
-        "n": 5,
-        "n_cases": 5,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -927,8 +855,6 @@
       "oracle_mesh": {
         "saving": 0.9991781552648102,
         "saving_reached_only": 0.9991781552648102,
-        "n": 4,
-        "n_cases": 4,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
@@ -939,8 +865,6 @@
       "cartesian_128": {
         "saving": -1.0684987370671974,
         "saving_reached_only": null,
-        "n": 4,
-        "n_cases": 4,
         "n_reached": 0,
         "n_censored": 4,
         "spread": [
@@ -951,8 +875,6 @@
       "fitted_256x64": {
         "saving": 0.017937631429272738,
         "saving_reached_only": 0.017937631429272738,
-        "n": 4,
-        "n_cases": 4,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
@@ -968,8 +890,6 @@
       "oracle_mesh": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -977,8 +897,6 @@
       "cartesian_128": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -986,8 +904,6 @@
       "fitted_256x64": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1000,8 +916,6 @@
       "oracle_mesh": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1009,8 +923,6 @@
       "cartesian_128": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1018,8 +930,6 @@
       "fitted_256x64": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1032,8 +942,6 @@
       "oracle_mesh": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1041,8 +949,6 @@
       "cartesian_128": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1050,8 +956,6 @@
       "fitted_256x64": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1064,8 +968,6 @@
       "oracle_mesh": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1073,8 +975,6 @@
       "cartesian_128": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1082,8 +982,6 @@
       "fitted_256x64": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1096,8 +994,6 @@
       "oracle_mesh": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1105,8 +1001,6 @@
       "cartesian_128": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1114,8 +1008,6 @@
       "fitted_256x64": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1128,8 +1020,6 @@
       "oracle_mesh": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1137,8 +1027,6 @@
       "cartesian_128": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1146,8 +1034,6 @@
       "fitted_256x64": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1160,8 +1046,6 @@
       "oracle_mesh": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1169,8 +1053,6 @@
       "cartesian_128": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1178,8 +1060,6 @@
       "fitted_256x64": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1192,8 +1072,6 @@
       "oracle_mesh": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1201,8 +1079,6 @@
       "cartesian_128": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1210,8 +1086,6 @@
       "fitted_256x64": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1224,8 +1098,6 @@
       "oracle_mesh": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1233,8 +1105,6 @@
       "cartesian_128": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null
@@ -1242,8 +1112,6 @@
       "fitted_256x64": {
         "saving": null,
         "saving_reached_only": null,
-        "n": 0,
-        "n_cases": 0,
         "n_reached": 0,
         "n_censored": 0,
         "spread": null

@@ -45,7 +45,7 @@ import os
 import neuroforge  # noqa: F401
 import numpy as np
 
-from neuroforge.solver import openfoam as of
+from neuroforge.solver import openfoam as of, scoring as sc
 
 DEPTHS = (1e-2, 1e-3, 1e-4, 1e-5, 5e-6, 1e-6, 5e-7)
 KNOWN_ARMS = ("oracle_mesh", "cartesian_128", "fitted_256x64",
@@ -65,36 +65,9 @@ FORCE_REF_FLOOR = 1e-3   # a relative band around zero lift is numerical noise
 COEFFS = ("Cd", "Cl", "Cd_p", "Cd_v", "Cl_p")
 
 
-def summarise(savings, censored, n_cases):
-    """Mean saving over the arms that reached the target, plus the censored ones.
-
-    An arm that never reaches the target inside its budget is *worse* than one
-    that reaches it late, so dropping it silently raises that arm's own mean --
-    the failing arm is rewarded for failing. Every such case is instead scored
-    with the arm's full run length, which is a lower bound on the iterations it
-    would have needed and therefore an **upper bound** on its saving: the arm is
-    at least this bad. `n_reached` and `n_censored` are reported so a bound is
-    never mistaken for a measurement.
-    """
-    values = list(savings) + list(censored)
-    return {
-        "saving": float(np.mean(values)) if values else None,
-        "saving_reached_only": float(np.mean(savings)) if savings else None,
-        "n": len(values),
-        "n_cases": n_cases,
-        "n_reached": len(savings),
-        "n_censored": len(censored),
-        "spread": [float(min(values)), float(max(values))] if values else None,
-    }
-
-
-def cell(entry: dict, width: int = 20) -> str:
+def cell(entry, width: int = 20) -> str:
     """One table cell: the bounded mean, with a mark when it rests on a bound."""
-    if entry is None or entry["saving"] is None:
-        return f"{'--':>{width}}"
-    mark = "<" if entry["n_censored"] else " "
-    return (f"{mark}{100 * entry['saving']:+8.1f}% "
-            f"({entry['n_reached']}/{entry['n']})").rjust(width)
+    return (str(entry) if entry is not None else "--").rjust(width)
 
 
 def key(threshold: float) -> str:
@@ -218,8 +191,9 @@ def main(argv=None):
                  "cold_n": len(colds), "per_case": per_case,
                  "threshold_over_floor": t / mean_floor if mean_floor else None}
         for a in arms:
-            entry[a] = summarise(savings[a], censored[a], len(colds))
-        out["by_depth"][key(t)] = entry
+            entry[a] = sc.bounded_saving(savings[a], censored[a])
+        out["by_depth"][key(t)] = {k: (vars(v) if isinstance(v, sc.Saving) else v)
+                                   for k, v in entry.items()}
 
         ratio = f"{t / mean_floor:.1f}x" if mean_floor else "--"
         cold_txt = f"{entry['cold_mean']:.0f}" if colds else "--"
@@ -319,8 +293,10 @@ def main(argv=None):
                 entry = {"cold_mean": float(np.mean(colds)) if colds else None,
                          "cold_n": len(colds), "per_case": per_case}
                 for a in arms:
-                    entry[a] = summarise(savings[a], censored[a], len(colds))
-                out["by_force"][f"{coeff}@{tol:g}"] = entry
+                    entry[a] = sc.bounded_saving(savings[a], censored[a])
+                out["by_force"][f"{coeff}@{tol:g}"] = {
+                    k: (vars(v) if isinstance(v, sc.Saving) else v)
+                    for k, v in entry.items()}
                 if not colds:
                     continue
 
