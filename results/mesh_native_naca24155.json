@@ -1,0 +1,67 @@
+{
+  "re": 3000000.0,
+  "n_iter": 6000,
+  "checkpoints": [
+    "checkpoints\\v2_transolver\\seed0.pt"
+  ],
+  "rows": [
+    {
+      "case": "naca2415_aoa5",
+      "re": 3000000.0,
+      "covered_fraction": 0.8010410094637224,
+      "projection": {
+        "mode": "clustered",
+        "n_s": 256,
+        "n_n": 64,
+        "points": 16384,
+        "first": 0.00025,
+        "n_max": 1.0,
+        "covered_fraction": 0.6766561514195584
+      },
+      "round_trip_change_pct": {
+        "u": 30.9822385706988,
+        "v": 28.374271941712585,
+        "p": 5.331918526832043,
+        "nut": 35.8490806555395
+      },
+      "bl_error_pct_direct_vs_projected": {
+        "u": [
+          19.012808356723763,
+          29.519700728136407
+        ],
+        "v": [
+          16.07166446646043,
+          30.77577489288314
+        ],
+        "p": [
+          20.408881165990636,
+          21.41352246079887
+        ],
+        "nut": [
+          28.606505836258048,
+          37.25606617751835
+        ]
+      },
+      "cold@1e-03": 74,
+      "nf_bl_proj@1e-03": 73,
+      "nf_bl_nut@1e-03": 70,
+      "nf_bl_vel@1e-03": 126,
+      "cold@1e-04": 198,
+      "nf_bl_proj@1e-04": 193,
+      "nf_bl_nut@1e-04": 181,
+      "nf_bl_vel@1e-04": 255,
+      "cold@1e-05": 404,
+      "nf_bl_proj@1e-05": 381,
+      "nf_bl_nut@1e-05": 601,
+      "nf_bl_vel@1e-05": 1119,
+      "cold@5e-06": 1139,
+      "nf_bl_proj@5e-06": 1143,
+      "nf_bl_nut@5e-06": 675,
+      "nf_bl_vel@5e-06": 1286,
+      "cold@1e-06": 2024,
+      "nf_bl_proj@1e-06": 1498,
+      "nf_bl_nut@1e-06": 3394,
+      "nf_bl_vel@1e-06": 2588
+    }
+  ]
+}

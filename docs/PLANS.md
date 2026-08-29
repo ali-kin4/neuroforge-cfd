@@ -105,6 +105,46 @@ This is why every projected arm is negative on drag and the mesh-native one is
 positive. It is currently an *explanation*; `mesh_native_probe.py` (§4, Phase A)
 makes it a controlled result.
 
+### 3.1a The controlled version, and a third necessary condition
+
+`scripts/mesh_native_probe.py`, five cases, one prediction, one variable per arm.
+`nf_bl_vel` is provisional — one case was still solving when this was written.
+
+| arm | what it hands over | residual 5e-6 | **Cd@1%** | Cl@1% | Cd_v@1% |
+|---|---|---:|---:|---:|---:|
+| `nf_bl` | u, v, nut in the BL, mesh-native | <−80.5% | **+33.9%** | +10.1% | +14.6% |
+| `nf_bl_proj` | the same, resampled through 256×64 | +22.1% | **−58.8%** | +25.4% | +7.7% |
+| `nf_bl_nut` | **eddy viscosity only** | +1.2% | **−293.2%** | **+41.1%** | **+42.4%** |
+| `nf_bl_vel` | **velocity only** | −8.2% | −40.3% | −10.3% | −4.9% |
+
+**Resampling is the mechanism** (§3.1): the same prediction through the same
+round-trip swings total drag by 93 points, and its wall-gradient error rises
+from 54% to 1583% — the same place the *oracle's* projection lands (1881%). The
+round-trip destroys the wall gradient regardless of how good the field it started
+from was. The signs that go the other way confirm rather than complicate it:
+resampling *helps* residuals and lift, because a resampled field is smoother and
+lift is pressure-dominated. **A study that scored residuals alone would have
+concluded the projection was the better seed.**
+
+**The channels are non-additive, and that is a third condition.** Eddy viscosity
+alone is the best arm in the study on viscous drag (+42.4%) and lift (+41.1%) —
+matching the oracle projection — and it is the *worst* on total drag (−293.2%).
+Velocity alone is bad at everything. Only the pair is positive on total drag.
+
+The reason is SA's production term, which is driven by the strain rate: an eddy
+viscosity handed over without the velocity field that generated it is
+inconsistent with the strain the solver computes, so the momentum sink is wrong,
+the pressure field has to reorganise, and `Cd_p` — 16–40% of the drag — is
+destroyed. The shear-driven quantities do not care and speed up.
+
+So the recipe has **three** necessary conditions, each with a controlled arm
+showing it is necessary and none of them sufficient alone:
+
+1. **evaluate at the solver's cell centres** (`nf_bl_proj` fails without it),
+2. **hand over the boundary layer only** (`nf_mesh` fails without it),
+3. **hand over velocity and eddy viscosity together** (`nf_bl_nut` and
+   `nf_bl_vel` each fail without it).
+
 ### 3.2 The recipe: a 2×2 in which only one corner works
 
 Cd@1%, the one readable total-drag row (§3.3), five cases, cold = 802 iterations:
