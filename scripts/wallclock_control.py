@@ -1,25 +1,33 @@
-"""What does a warm start actually cost, in seconds?
+"""What does a warm start actually cost, in seconds, all of it included?
 
 Every saving in this track is an iteration count, and an iteration count is not
-the speed-up. A warm start shortens the **inner** linear solves as well as the
-outer loop, so cost per iteration is not a constant across arms: on the shared
-box the oracle arm ran at 0.134 s/iteration against the cold arm's 0.251 s, and
-the wall-fitted arm at 0.407 s. If those ratios are real, the wall-fitted arm's
-+35.8% iteration saving at residual 5e-6 becomes a 4% *loss* in wall-clock, and
-the oracle arm's +92.4% stays a 96% win.
+a speed-up. Two things stand between them.
 
-But those ratios were measured with a dozen solves competing for memory
-bandwidth, and the arms did not all run under the same load. Only a strictly
-sequential run answers the question. **Nothing else may be running on this
-machine**; the script refuses to start if it finds another solver.
+**Cost per iteration is not constant across arms.** A warm start shortens the
+inner linear solves as well as the outer loop, so a good seed is cheaper per
+iteration and a bad one is dearer. On a contended box the arms read 0.134 to
+0.407 s/iteration, which if taken at face value would turn a +35.8% iteration
+saving into a 4% *loss*. Measured serially on one case it is 1.14x, not 1.62x,
+and the saving survives. That is n = 1 and this script exists to make it n = 5.
 
-One case, four arms, one at a time, cost read at the iteration each arm met each
-target rather than at the end. Iteration counts are unaffected by load and are
-reported alongside, so this run also cross-checks the parallel sweeps.
+**The seed is not free.** Querying the backbone at 31,700 points, measuring wall
+distance (O(N.M) and genuinely not free), projecting through a surrogate grid,
+and writing the ``0/`` fields all happen before the solver starts. "Milliseconds"
+is not an answer to a reviewer; every stage is timed here and charged to the arm
+that used it, so the reported saving is end-to-end from a cold machine.
+
+**Nothing else may be running.** Iteration counts are contention-proof and
+seconds are not; the script refuses to start if it finds another solver, and
+that refusal is the measurement working, not a failure.
+
+Arms: ``cold``, ``oracle_mesh`` (the control), ``cartesian_128`` (the
+comparator), ``fitted_bl`` (the oracle recipe) and ``nf_bl`` -- the deployed
+recipe, and the only one whose seed cost includes a neural network.
 
 Usage
 -----
-    python scripts/wallclock_control.py --n-iter 6000
+    python scripts/wallclock_control.py                      # five cases, serial
+    python scripts/wallclock_control.py --only naca0012@4
 """
 
 from __future__ import annotations
@@ -37,11 +45,14 @@ import neuroforge  # noqa: F401
 import numpy as np
 
 from neuroforge.core.types import FlowCase
-from neuroforge.solver import cgrid as cg, openfoam as of, warmstart as ws
+from neuroforge.solver import cgrid as cg, openfoam as of, scoring as sc, warmstart as ws
+from neuroforge.solver import surrogate_seed as ss
 
+CASES = [("naca0012", 4.0), ("naca2412", 2.0), ("naca0015", 6.0),
+         ("naca0012", 0.0), ("naca2415", 5.0)]
 DEPTHS = (1e-4, 1e-5, 5e-6, 1e-6)
-FORCE_TOLS = (0.01, 0.005)
-ARMS = ("cold", "oracle_mesh", "cartesian_128", "fitted_256x64", "fitted_bl")
+FORCE_TOLS = (0.01,)          # the readable band; see PLANS.md 3.3
+ARMS = ("cold", "oracle_mesh", "cartesian_128", "fitted_bl", "nf_bl")
 
 
 def other_solvers_running() -> int:
@@ -71,16 +82,35 @@ def cost_at(info: dict, iteration: int | None) -> float | None:
     return float(value) if np.isfinite(value) else None
 
 
+class Clock:
+    """Charge each preparation stage to the arms that needed it."""
+
+    def __init__(self):
+        self.stages: dict[str, float] = {}
+
+    def time(self, name, fn, *a, **kw):
+        t0 = time.perf_counter()
+        out = fn(*a, **kw)
+        self.stages[name] = self.stages.get(name, 0.0) + time.perf_counter() - t0
+        return out
+
+    def total(self, *names) -> float:
+        return float(sum(self.stages.get(n, 0.0) for n in names))
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--airfoil", default="naca0012")
-    ap.add_argument("--aoa", type=float, default=4.0)
     ap.add_argument("--re", type=float, default=3e6)
     ap.add_argument("--n-iter", type=int, default=6000)
+    ap.add_argument("--only", action="append", metavar="AIRFOIL@AOA")
+    ap.add_argument("--ckpt-dir", default=os.path.join("checkpoints", "v2_transolver"))
+    ap.add_argument("--seeds", type=int, nargs="*", default=[0])
+    ap.add_argument("--max-sdf", type=float, default=3.5)
+    ap.add_argument("--ramp", type=float, default=3.0)
     ap.add_argument("--n-s", type=int, default=256)
     ap.add_argument("--n-n", type=int, default=64)
     ap.add_argument("--first", type=float, default=2.5e-4)
-    ap.add_argument("--work-dir", default=os.path.join("runs", "openfoam", "wallclock"))
+    ap.add_argument("--work-dir", default=os.path.join("runs", "openfoam", "wallclock2"))
     ap.add_argument("--out", default=os.path.join("results", "wallclock_control.json"))
     ap.add_argument("--timeout", type=float, default=43200.0)
     ap.add_argument("--force", action="store_true",
@@ -99,125 +129,164 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     warnings.simplefilter("ignore")
 
+    checkpoints = [os.path.join(args.ckpt_dir, f"seed{k}.pt") for k in args.seeds]
+    if any(not os.path.isfile(p) for p in checkpoints):
+        print("missing checkpoint(s): " + ", ".join(checkpoints))
+        return 1
+
+    cases = CASES
+    if args.only:
+        wanted = set()
+        for text in args.only:
+            code, _, aoa = text.partition("@")
+            wanted.add((code.strip(), float(aoa or 0.0)))
+        cases = [c for c in CASES if c in wanted] or CASES
+
     out_path = os.path.abspath(args.out)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     spec = cg.CGridSpec()
-    case = FlowCase.from_airfoil(airfoil=args.airfoil, aoa=args.aoa, reynolds=args.re,
-                                 u_inf=1.0, resolution=128)
-    tag = f"{args.airfoil}_aoa{args.aoa:g}"
-    print(f"{tag} at Re {args.re:.0e}, {args.n_iter} iterations, one arm at a time\n")
+    delta = ws.bl_thickness(args.re)
+    print(f"{len(cases)} case(s) at Re {args.re:.0e}, {args.n_iter} iterations, "
+          f"one arm at a time, nothing else on the machine\n")
 
-    def dir_of(name):
-        return os.path.abspath(os.path.join(args.work_dir, f"{tag}_{name}"))
+    all_rows, all_prep = [], []
+    for code, aoa in cases:
+        case = FlowCase.from_airfoil(airfoil=code, aoa=aoa, reynolds=args.re,
+                                     u_inf=1.0, resolution=128)
+        tag = f"{code}_aoa{aoa:g}"
+        print(f"== {tag} ==", flush=True)
+        clock = Clock()
 
-    def run(name, **kw):
-        t0 = time.perf_counter()
-        result = cg.solve_cgrid(case, case_dir=dir_of(name), spec=spec,
-                                n_iter=args.n_iter, timeout=args.timeout, **kw)
-        print(f"  {name:>14}: {time.perf_counter() - t0:7.0f} s wall", flush=True)
-        return result
+        def dir_of(name):
+            return os.path.abspath(os.path.join(args.work_dir, f"{tag}_{name}"))
 
-    cold = run("cold")
-    run("oracle_mesh", mesh_initial=(cold.u, cold.v, cold.p, cold.nut))
+        def run(name, **kw):
+            t0 = time.perf_counter()
+            result = cg.solve_cgrid(case, case_dir=dir_of(name), spec=spec,
+                                    n_iter=args.n_iter, timeout=args.timeout, **kw)
+            print(f"  {name:>14}: {time.perf_counter() - t0:7.0f} s wall", flush=True)
+            return result
 
-    u_inf, v_inf = of._freestream(case)
-    nut_fs = of.NUTILDA_FREESTREAM_RATIO * float(case.fluid.kinematic_viscosity)
-    inner, nw, ns = cg.inner_curve(args.airfoil, spec)
-    surface = inner[nw - 1: nw + ns - 1]
+        cold = run("cold")
+        truth = (cold.u, cold.v, cold.p, cold.nut)
+        run("oracle_mesh", mesh_initial=truth)
 
-    cart_vals, _ = ws.plain_seed(cold.to_grid(case.domain), case.domain, cold.centres,
-                                 u_inf=u_inf, v_inf=v_inf, nut_freestream=nut_fs)
-    run("cartesian_128", mesh_initial=cart_vals)
-    fit_vals, _ = ws.clustered_seed((cold.u, cold.v, cold.p, cold.nut), cold.centres,
-                                    surface, n_s=args.n_s, n_n=args.n_n,
-                                    first=args.first, u_inf=u_inf, v_inf=v_inf,
-                                    nut_freestream=nut_fs)
-    run("fitted_256x64", mesh_initial=fit_vals)
+        u_inf, v_inf = of._freestream(case)
+        nut_fs = of.NUTILDA_FREESTREAM_RATIO * float(case.fluid.kinematic_viscosity)
+        inner, nw, ns = cg.inner_curve(code, spec)
+        surface = inner[nw - 1: nw + ns - 1]
 
-    # The recommended seed: the wall-fitted projection inside the boundary layer,
-    # freestream outside it. Best of the surrogate arms on iterations (+34.3% at
-    # residual 5e-6) and on friction drag (+41.7%), so it is the one whose
-    # per-iteration cost decides whether those savings are real in seconds.
-    bl_vals, _ = ws.masked_seed(
-        (np.full_like(fit_vals[0], u_inf), np.full_like(fit_vals[0], v_inf),
-         np.zeros_like(fit_vals[0]), np.full_like(fit_vals[0], nut_fs)),
-        cold.centres, surface, background=fit_vals,
-        free_within=ws.bl_thickness(args.re), ramp=3.0,
-        u_inf=u_inf, v_inf=v_inf, nut_freestream=nut_fs)
-    run("fitted_bl", mesh_initial=bl_vals)
+        cart_vals, _ = clock.time(
+            "rasterise", ws.plain_seed, cold.to_grid(case.domain), case.domain,
+            cold.centres, u_inf=u_inf, v_inf=v_inf, nut_freestream=nut_fs)
+        run("cartesian_128", mesh_initial=cart_vals)
 
-    # ---- read cost at the iteration each arm met each target ---------------- #
-    info, forces = {}, {}
-    for name in ARMS:
-        log = os.path.join(dir_of(name), "log.simpleFoam")
-        with open(log, encoding="utf-8", errors="replace") as fh:
-            info[name] = of.parse_simple_foam_log(fh.read())
-        forces[name] = of.read_force_coeffs(dir_of(name))
+        fit_vals, _ = clock.time(
+            "project", ws.clustered_seed, truth, cold.centres, surface,
+            n_s=args.n_s, n_n=args.n_n, first=args.first, u_inf=u_inf,
+            v_inf=v_inf, nut_freestream=nut_fs)
+        free = (np.full_like(fit_vals[0], u_inf), np.full_like(fit_vals[0], v_inf),
+                np.zeros_like(fit_vals[0]), np.full_like(fit_vals[0], nut_fs))
+        bl_vals, _ = clock.time(
+            "mask", ws.masked_seed, free, cold.centres, surface,
+            background=fit_vals, free_within=delta, ramp=args.ramp,
+            u_inf=u_inf, v_inf=v_inf, nut_freestream=nut_fs)
+        run("fitted_bl", mesh_initial=bl_vals)
 
-    finals = [f[-1] for f in (d.get("Cd") for d in forces.values()) if f is not None]
-    reference = float(np.median(finals)) if finals else None
-    spread = (max(abs(v - reference) / abs(reference) for v in finals)
-              if reference else float("nan"))
+        # The deployed recipe. Its seed is the only one that costs a network.
+        distance = clock.time("wall_distance", ws.wall_distance, cold.centres, surface)
+        pred, _ = clock.time(
+            "inference", ss.predict_on_mesh, checkpoints, cold.centres,
+            surface[:, :2], reynolds=args.re, aoa_deg=aoa, wall_distance=distance,
+            max_sdf=args.max_sdf, u_inf=u_inf, nut_freestream=nut_fs)
+        nf_vals, _ = clock.time(
+            "mask_nf", ws.masked_seed, free, cold.centres, surface,
+            background=pred, free_within=delta, ramp=args.ramp, u_inf=u_inf,
+            v_inf=v_inf, nut_freestream=nut_fs)
+        run("nf_bl", mesh_initial=nf_vals)
 
-    rows = []
-    targets = ([("residual", f"{t:.0e}", t) for t in DEPTHS]
-               + [("Cd", f"{100 * t:g}%", t) for t in FORCE_TOLS])
-    for kind, label, value in targets:
-        row = {"kind": kind, "target": label}
+        # What each arm must pay before the solver starts.
+        prep = {
+            "cold": 0.0,
+            "oracle_mesh": 0.0,
+            "cartesian_128": clock.total("rasterise"),
+            "fitted_bl": clock.total("project", "mask"),
+            "nf_bl": clock.total("wall_distance", "inference", "mask_nf"),
+        }
+        print("  seed construction: "
+              + "  ".join(f"{k}={v:.2f}s" for k, v in clock.stages.items())
+              + f"   -> charged: nf_bl {prep['nf_bl']:.2f}s, "
+                f"fitted_bl {prep['fitted_bl']:.2f}s", flush=True)
+        all_prep.append({"case": tag, "stages": dict(clock.stages), "charged": prep})
+
+        info, forces = {}, {}
         for name in ARMS:
-            if kind == "residual":
-                it = of.iterations_to_threshold(info[name]["residuals"], value)
-            else:
-                d = forces[name]
-                it = (of.iterations_to_force_band(d["Time"], d["Cd"],
-                                                  reference=reference, tol=value)
-                      if d and reference else None)
-            row[f"{name}_iterations"] = it
-            row[f"{name}_seconds"] = cost_at(info[name], it)
-        rows.append(row)
+            with open(os.path.join(dir_of(name), "log.simpleFoam"),
+                      encoding="utf-8", errors="replace") as fh:
+                info[name] = of.parse_simple_foam_log(fh.read())
+            forces[name] = of.read_force_coeffs(dir_of(name))
 
-    print(f"\narms' final Cd spread about the median: {100 * spread:.3f}%")
-    head = f"{'target':>12} " + "  ".join(f"{a:>22}" for a in ARMS)
-    print("\n" + head)
-    print("-" * len(head))
-    for row in rows:
-        cells = []
-        for name in ARMS:
-            it, sec = row[f"{name}_iterations"], row[f"{name}_seconds"]
-            cells.append(f"{it} it / {sec:.0f} s" if it and sec else "--")
-        print(f"{row['target']:>12} " + "  ".join(f"{c:>22}" for c in cells))
+        finals = {n: float(d["Cd"][-1]) for n, d in forces.items()
+                  if d and len(d.get("Cd", []))}
+        settled = [n for n in finals if sc.has_settled(forces[n]["Cd"], min(FORCE_TOLS))]
+        reference, spread, unsettled = sc.settled_reference(finals, settled)
 
-    print(f"\n{'saving vs cold':>12} " + "  ".join(f"{a:>22}" for a in ARMS[1:]))
+        targets = ([("residual", f"{t:.0e}", t) for t in DEPTHS]
+                   + [("Cd", f"{100 * t:g}%", t) for t in FORCE_TOLS])
+        for kind, label, value in targets:
+            row = {"case": tag, "kind": kind, "target": label,
+                   "reference_spread": spread, "unsettled": unsettled}
+            for name in ARMS:
+                if kind == "residual":
+                    it = of.iterations_to_threshold(info[name]["residuals"], value)
+                else:
+                    d = forces[name]
+                    it = (of.iterations_to_force_band(d["Time"], d["Cd"],
+                                                      reference=reference, tol=value)
+                          if d and reference else None)
+                sec = cost_at(info[name], it)
+                row[f"{name}_iterations"] = it
+                row[f"{name}_solver_seconds"] = sec
+                # End to end: the seed has to be built before the solver runs.
+                row[f"{name}_seconds"] = (sec + prep[name]) if sec is not None else None
+            all_rows.append(row)
+
+        print(f"  settled Cd spread {100 * spread:.3f}%"
+              + (f"; unsettled: {', '.join(unsettled)}" if unsettled else ""),
+              flush=True)
+        with open(out_path, "w", encoding="utf-8", newline="\n") as fh:
+            json.dump({"re": args.re, "n_iter": args.n_iter, "exclusive": not busy,
+                       "checkpoints": checkpoints, "arms": list(ARMS),
+                       "preparation": all_prep, "rows": all_rows}, fh, indent=2)
+
+    # ---- the table the paper needs ------------------------------------------
+    print("\nmean saving against cold, over the cases that reached each target")
+    print("seconds are end to end: seed construction + solver\n")
+    head = f"{'target':>10} {'n':>3} " + "  ".join(f"{a:>24}" for a in ARMS[1:])
+    print(head)
     print("-" * len(head))
-    for row in rows:
-        base_it, base_s = row["cold_iterations"], row["cold_seconds"]
-        cells = []
+    by_target = {}
+    for row in all_rows:
+        by_target.setdefault((row["kind"], row["target"]), []).append(row)
+    for (kind, label), rows in by_target.items():
+        cells, n_used = [], 0
         for name in ARMS[1:]:
-            it, sec = row[f"{name}_iterations"], row[f"{name}_seconds"]
-            if it and base_it and sec and base_s:
-                cells.append(f"{100 * (1 - it / base_it):+.0f}% it "
-                             f"{100 * (1 - sec / base_s):+.0f}% s")
-            else:
-                cells.append("--")
-        print(f"{row['target']:>12} " + "  ".join(f"{c:>22}" for c in cells))
+            it_s, sec_s = [], []
+            for r in rows:
+                bi, bs = r["cold_iterations"], r["cold_seconds"]
+                it, sec = r[f"{name}_iterations"], r[f"{name}_seconds"]
+                if bi and bs and it and sec:
+                    it_s.append(1 - it / bi)
+                    sec_s.append(1 - sec / bs)
+            n_used = max(n_used, len(it_s))
+            cells.append(f"{100 * np.mean(it_s):+.0f}% it {100 * np.mean(sec_s):+.0f}% s"
+                         if it_s else "--")
+        print(f"{label:>10} {n_used:>3} " + "  ".join(f"{c:>24}" for c in cells))
 
-    summary = {
-        "case": tag, "re": args.re, "n_iter": args.n_iter,
-        "exclusive": not busy, "force_reference_Cd": reference,
-        "force_reference_spread": spread,
-        "seconds_per_iteration": {
-            name: (info[name]["elapsed"][-1] / len(info[name]["elapsed"]))
-            for name in ARMS if info[name]["elapsed"]},
-        "rows": rows,
-    }
-    tmp = out_path + ".tmp"
-    with open(tmp, "w", encoding="utf-8", newline="\n") as fh:
-        json.dump(summary, fh, indent=2)
-    os.replace(tmp, out_path)
+    print("\nIterations are contention-proof; seconds are only meaningful because "
+          "nothing\nelse ran. Seconds include building the seed -- for `nf_bl` that "
+          "is the wall\ndistance, the backbone inference and the mask.")
     print(f"\nwrote {os.path.relpath(out_path)}")
-    print("\nThe two columns can disagree in sign. Where they do, seconds is the "
-          "one\na practitioner spends -- and iterations is the one that transfers "
-          "to\nanother machine.")
     return 0
 
 
