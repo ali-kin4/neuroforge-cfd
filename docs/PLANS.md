@@ -10,7 +10,7 @@ Last updated: **2026-08-29** · branch `paper2/openfoam-warm-start` · pushed to
 
 ## 0. The goal, stated so it can be failed
 
-> A paper establishing **the two conditions under which a neural surrogate
+> A paper establishing **the three conditions under which a neural surrogate
 > accelerates a production RANS solver**, the mechanism that makes them
 > necessary, and an acceptance test that bounds the worst case — such that a CFD
 > engineer can apply it on Monday to a surrogate they already have and know
@@ -39,9 +39,10 @@ CMAME told us Paper 1 lacked. JCP alternative. Subscription licence, no APC
 A real OpenFOAM v2606 backend drives `simpleFoam` + Spalart–Allmaras from Windows
 through WSL2 on body-fitted C-grids we generate ourselves, at AirfRANS Reynolds.
 Twelve experiments have asked what a surrogate must do to warm-start it. The
-answer that survived every control: **a surrogate helps only if it can be
-evaluated at the solver's own cell centres, and only if you hand over the
-boundary layer alone.** Both conditions are necessary; neither is sufficient. The
+answer that survived every control: **a surrogate helps only if it is evaluated
+at the solver's own cell centres, only if you hand over the boundary layer alone,
+and only if velocity and eddy viscosity go over together.** Each condition has a
+controlled arm showing it is necessary; none is sufficient alone. The
 mechanism is measured, not argued — any 16,384-value grid projection of the
 *exact converged field* still leaves ~1900% error in the first-cell wall
 gradient, which is the quantity viscous drag integrates.
@@ -108,7 +109,8 @@ makes it a controlled result.
 ### 3.1a The controlled version, and a third necessary condition
 
 `scripts/mesh_native_probe.py`, five cases, one prediction, one variable per arm.
-`nf_bl_vel` is provisional — one case was still solving when this was written.
+All twenty solves complete; every row is 5/5 except the lift rows, where one case
+has near-zero lift and a relative band around zero is numerical noise.
 
 | arm | what it hands over | residual 5e-6 | **Cd@1%** | Cl@1% | Cd_v@1% |
 |---|---|---:|---:|---:|---:|
@@ -389,6 +391,27 @@ bar fixes that. Generality is worth more per compute-hour than `n`.
 - **B5 — re-measure the Reynolds crossover on the relaxed settings (~2 h).** The
   low-Re numbers in §3.8 predate the relaxation fix and sit near their floors.
 
+- **B6 — the wake, and the honest answer to the strongest competitor
+  (~3 h).** The best number in this literature is
+  [wake extension](https://arxiv.org/abs/2501.14699): **26.3× iterations, 16.4×
+  wall-clock**. Ours is +34%. On raw speed we lose, and no amount of framing
+  changes that — so say it, and then look at *why* they win. Their gain comes
+  from initialising the **far wake**, which a cold RANS solve takes an enormous
+  number of iterations to develop. We deliberately do not seed it: the backbone's
+  training `sdf` distribution is centred on 0.23 chords, so we cut the seed off
+  at 3.5 and hand the wake back to the solver.
+
+  Those two results are therefore **complementary, not competing** — near-body
+  boundary layer from the surrogate, far wake from a wake model — and the
+  combination is untested by anyone. It is also cheap here: `masked_seed` already
+  composes two seeds, and the wake region is a wall-distance band like any other.
+  If it works, the paper gets a large number *and* keeps the mechanism. If it does
+  not, the negative is worth as much, because it says the two regions do not
+  compose.
+
+  Do this **after** B1–B4. It is the highest-upside item on this list and the
+  easiest to let expand into a second paper; the bar in §0 must be cleared first.
+
 ### Phase C — cost, honestly (~2 h, serial and exclusive)
 
 `scripts/wallclock_control.py` at n=5, nothing else running. Iterations are
@@ -454,7 +477,8 @@ boundary-layer-only warm starts for RANS."** The arc:
 | [Spectrally Safe](https://arxiv.org/abs/2606.21828) (2026) | Newton solvers | 5.4× at 6.4M DOF | **closest prior art**: same core insight — L² accuracy is not what makes a seed good — from a different angle. Theirs is Jacobian definiteness; ours is a named, measured defect (first-cell wall gradient) and a representational cause. Differentiate explicitly in the paper, not in review. |
 | [PCGBandit](https://arxiv.org/html/2509.08765) | preconditioner choice, online | 1.5× total, 4× linear | orthogonal and composable; its "never worse than the default" property is what §3.6 supplies for seeds |
 | [Hybrid init](https://arxiv.org/html/2503.15766v1) (NVIDIA) | transient URANS, DoMINO + potential flow | ~2× | uses the same drag-band metric; ours is steady RANS, and we measure potential flow as an arm and find it inert on drag (+0.7%) |
-| [Wake extension](https://arxiv.org/abs/2501.14699) | near-body/wake decomposition | 26.3× iterations | decomposition by region; ours by **field and wall distance**, derived from a measured convergence decomposition |
+| [Wake extension](https://arxiv.org/abs/2501.14699) | near-body/wake decomposition | **26.3× iterations, 16.4× wall-clock** | **The strongest number in the field, and far beyond ours.** They initialise the far wake, which a cold solve is slowest at; we cut our seed off at 3.5 chords and hand the wake back. Complementary rather than competing — Phase B6 tests the composition. State the gap plainly; do not let a reviewer find it. |
+| [Learning-augmented dual warm starts](https://arxiv.org/html/2605.09382) (2026) | linear assignment, with a fallback | runtime → baseline even at 100% fallback | **Closest prior art for §3.6.** The idea of a fallback preserving the worst case is *theirs*, not ours; cite it. What is new here is the fallback applied to a PDE solver's field seed, a rule that reads only the probe, and a measured capture-versus-`K` curve. |
 | [PCNO](https://arxiv.org/html/2501.14475) and mesh-native surrogates | — | — | the point-cloud literature argues mesh-native is better *for prediction accuracy*. Nobody has shown it is the difference between a warm start that works and one that costs 6× more. **That framing is the novelty.** |
 
 **The niche nobody occupies:** no published warm-start study reports which
