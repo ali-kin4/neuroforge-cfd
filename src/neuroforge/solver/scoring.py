@@ -37,6 +37,8 @@ __all__ = [
     "shared_reference",
     "reference_spread",
     "readable_depth",
+    "has_settled",
+    "settled_reference",
     "MIN_DEPTH_OVER_FLOOR",
     "MAX_SPREAD_FRACTION",
 ]
@@ -145,3 +147,57 @@ def readable_depth(threshold: float, floor: float,
     if not np.isfinite(floor) or floor <= 0:
         return True   # no floor established: nothing to object to
     return threshold / floor >= minimum
+
+
+def has_settled(values, tol: float, *, tail_fraction: float = 0.1,
+                min_tail: int = 20) -> bool:
+    """Has this arm's coefficient stopped moving by the end of its run?
+
+    Rule 4 -- "the reference is only usable if the arms agree" -- was written as
+    a single spread over *every* arm, and that is too blunt. One arm that
+    diverged (here ``nf_mesh``, which never took the residual below 1e-5 on four
+    of five cases) drags the spread to 3.1% and condemns the whole force ladder,
+    including the arms that agree with each other to 0.1%.
+
+    The disagreement rule 4 is really about is *budget*: all arms still moving
+    when the money ran out. So ask each arm, on its own trace, whether it has
+    stopped moving -- the peak-to-peak of its last ``tail_fraction`` of
+    iterations, relative to its final value, against a quarter of the band.
+    Arms that have settled define the reference and the spread; arms that have
+    not are reported unsettled and scored at their full budget by
+    :func:`bounded_saving`, which bounds rather than rewards them.
+    """
+    v = np.asarray([x for x in values if np.isfinite(x)], dtype=float)
+    if v.size < min_tail:
+        return False
+    tail = v[-max(min_tail, int(round(tail_fraction * v.size))):]
+    scale = abs(float(v[-1]))
+    if scale < 1e-30:
+        return False
+    return float(tail.max() - tail.min()) / scale <= 0.25 * float(tol)
+
+
+def settled_reference(finals_by_arm, settled_arms):
+    """Reference and spread from the arms that have settled, plus the outliers.
+
+    ``finals_by_arm`` maps arm name to final coefficient value; ``settled_arms``
+    is the subset :func:`has_settled` accepted. Returns
+    ``(reference, spread, unsettled)`` where ``spread`` is the largest relative
+    disagreement *within the settled cohort* -- the quantity rule 4 actually
+    wants -- and ``unsettled`` lists the arms excluded from it.
+
+    Falls back to every arm when nothing settled, so a caller always gets a
+    reference; the spread it returns is then the old, blunt one and will say so
+    by being wide.
+    """
+    settled = {a: float(v) for a, v in finals_by_arm.items()
+               if a in set(settled_arms) and v is not None and np.isfinite(v)}
+    cohort = settled or {a: float(v) for a, v in finals_by_arm.items()
+                         if v is not None and np.isfinite(v)}
+    if not cohort:
+        return None, float("nan"), sorted(finals_by_arm)
+    reference = float(np.median(list(cohort.values())))
+    spread = (max(abs(v - reference) / abs(reference) for v in cohort.values())
+              if reference else float("nan"))
+    unsettled = sorted(a for a in finals_by_arm if a not in cohort)
+    return reference, spread, unsettled

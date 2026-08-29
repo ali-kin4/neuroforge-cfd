@@ -114,3 +114,41 @@ def test_readable_depth_is_the_ratio_not_the_absolute_level():
 def test_readable_depth_without_an_established_floor_does_not_object():
     assert sc.readable_depth(1e-5, float("nan"))
     assert sc.readable_depth(1e-5, 0.0)
+
+
+# --- rule 4, per arm: a straggler must not condemn the arms that agree -------
+
+def test_a_flat_tail_counts_as_settled():
+    values = list(np.linspace(0.5, 0.01, 200)) + [0.01000, 0.010005, 0.01000] * 20
+    assert sc.has_settled(values, tol=0.01)
+
+
+def test_a_still_moving_trace_is_not_settled():
+    assert not sc.has_settled(list(np.linspace(0.5, 0.01, 300)), tol=0.01)
+
+
+def test_too_short_a_trace_is_not_settled():
+    assert not sc.has_settled([0.01] * 5, tol=0.01)
+
+
+def test_the_reference_ignores_an_arm_that_never_settled():
+    """The measured case: three arms agree to 0.1%, one diverged to +3%."""
+    finals = {"cold": 0.01041, "oracle": 0.01040, "nf_bl": 0.01042, "nf_mesh": 0.0107}
+    ref, spread, unsettled = sc.settled_reference(
+        finals, settled_arms=["cold", "oracle", "nf_bl"])
+    assert ref == pytest.approx(0.01041, rel=1e-6)
+    assert spread < 0.002                     # blunt rule gave 0.031
+    assert unsettled == ["nf_mesh"]
+
+
+def test_the_excluded_arm_is_named_not_silently_dropped():
+    finals = {"a": 1.0, "b": 1.001, "bad": 2.0}
+    _, _, unsettled = sc.settled_reference(finals, settled_arms=["a", "b"])
+    assert "bad" in unsettled
+
+
+def test_nothing_settled_falls_back_to_every_arm():
+    finals = {"a": 1.0, "b": 1.2}
+    ref, spread, unsettled = sc.settled_reference(finals, settled_arms=[])
+    assert ref == pytest.approx(1.1)
+    assert spread > 0.09 and unsettled == []

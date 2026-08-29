@@ -243,9 +243,16 @@ def main(argv=None):
         # stopped is measuring how it approached its own asymptote, not how fast
         # it converged. That reads as a failed control when nothing is wrong with
         # the data, which is worse than no control at all.
-        refs, spread = {}, {}
+        # The cohort that defines the reference is the arms that have *stopped
+        # moving* (`scoring.has_settled`), not every arm. One diverged arm used to
+        # drag the spread to 3.1% and condemn the whole force ladder, including
+        # arms that agree with each other to 0.1%. An unsettled arm is named
+        # below and still scored, at its full budget, which bounds it rather than
+        # excusing it; what it may not do is move the reference.
+        tightest = min(FORCE_TOLS)
+        refs, spread, unsettled = {}, {}, {}
         for c in cases:
-            finals = {}
+            finals, settled = {}, {}
             for a in [args.cold] + arms:
                 d = forces.get((c, a))
                 if not d:
@@ -253,23 +260,36 @@ def main(argv=None):
                 for n in COEFFS:
                     if n in d and len(d[n]):
                         finals.setdefault(n, {})[a] = float(d[n][-1])
-            refs[c] = {n: float(np.median(list(v.values()))) for n, v in finals.items()}
-            spread[c] = {
-                n: max(abs(x - refs[c][n]) / abs(refs[c][n]) for x in v.values())
-                for n, v in finals.items() if refs[c].get(n)
-            }
+                        if sc.has_settled(d[n], tightest):
+                            settled.setdefault(n, []).append(a)
+            refs[c], spread[c], unsettled[c] = {}, {}, {}
+            for n, v in finals.items():
+                r, sp, un = sc.settled_reference(v, settled.get(n, []))
+                refs[c][n], spread[c][n], unsettled[c][n] = r, sp, un
         out["force_reference"] = refs
         out["force_reference_spread"] = spread
+        out["force_unsettled"] = unsettled
 
         # The check that decides whether a band is measurable at all: if the arms
         # disagree about the answer by more than the band, an arm can sit outside
         # it forever and the metric reports a convergence failure that is really a
         # budget failure.
         worst = max((v.get("Cd", 0.0) for v in spread.values()), default=0.0)
-        print(f"\narms' final Cd spread about the reference: {100 * worst:.3f}% "
-              f"(tightest band {100 * min(FORCE_TOLS):g}%)"
+        print(f"\nsettled arms' final Cd spread about the reference: {100 * worst:.3f}% "
+              f"(tightest band {100 * tightest:g}%)"
               + ("  <-- too wide to score: raise the budget"
-                 if worst > 0.5 * min(FORCE_TOLS) else "  ok"))
+                 if worst > 0.5 * tightest else "  ok"))
+        # Name the arms the cohort excluded. They are still scored, at their full
+        # budget; what they are not allowed to do is move the reference.
+        never = {}
+        for c in cases:
+            for a in unsettled[c].get("Cd", []):
+                never.setdefault(a, []).append(c)
+        if never:
+            print("  Cd never settled (bounded at full budget, excluded from the "
+                  "reference): "
+                  + ";  ".join(f"{a} on {len(v)}/{len(cases)}"
+                               for a, v in sorted(never.items())))
 
         print()
         header = f"{'force':>12} {'cold it':>8} " + "  ".join(f"{a:>20}" for a in arms)
@@ -309,6 +329,17 @@ def main(argv=None):
                          "cold_n": len(colds), "per_case": per_case}
                 for a in arms:
                     entry[a] = sc.bounded_saving(savings[a], censored[a])
+                # Readability, per coefficient and per band. The settled arms
+                # have to agree about the answer to well inside the band they are
+                # being timed against; where they do not, the row records how
+                # long arms sat just outside a band placed on a reference that is
+                # not yet pinned down that finely. Measured here, Cd@1% is
+                # readable, Cd@0.5% is not, and the two disagree in sign.
+                worst_c = max((spread[c].get(coeff, 0.0) for c in cases
+                               if c in per_case), default=0.0)
+                readable = worst_c <= sc.MAX_SPREAD_FRACTION * tol
+                entry["settled_spread"] = float(worst_c)
+                entry["readable"] = bool(readable)
                 out["by_force"][f"{coeff}@{tol:g}"] = {
                     k: (vars(v) if isinstance(v, sc.Saving) else v)
                     for k, v in entry.items()}
@@ -316,7 +347,10 @@ def main(argv=None):
                     continue
 
                 print(f"{coeff + '@' + f'{100 * tol:g}%':>12} {entry['cold_mean']:>8.0f} "
-                      + "  ".join(cell(entry[a]) for a in arms))
+                      + "  ".join(cell(entry[a]) for a in arms)
+                      + ("" if readable
+                         else f"   ! unreadable: settled arms disagree by "
+                              f"{100 * worst_c:.2f}% on a {100 * tol:g}% band"))
 
     # --- cost per iteration, the part an iteration count cannot show ----------
     rates = {}
