@@ -152,3 +152,45 @@ def test_nothing_settled_falls_back_to_every_arm():
     ref, spread, unsettled = sc.settled_reference(finals, settled_arms=[])
     assert ref == pytest.approx(1.1)
     assert spread > 0.09 and unsettled == []
+
+
+# --- rule 7: a mean over a dozen cases is not a result on its own -----------
+
+def test_the_interval_brackets_the_mean():
+    v = [0.1, 0.2, 0.3, 0.4, 0.5]
+    lo, hi = sc.bootstrap_ci(v)
+    assert lo < np.mean(v) < hi
+
+
+def test_a_wider_sample_gives_a_wider_interval():
+    tight = sc.bootstrap_ci([0.30, 0.31, 0.32, 0.33, 0.34])
+    wide = sc.bootstrap_ci([-0.5, 0.1, 0.32, 0.6, 1.0])
+    assert (wide[1] - wide[0]) > 5 * (tight[1] - tight[0])
+
+
+def test_one_case_cannot_have_an_interval():
+    assert sc.bootstrap_ci([0.4]) == (0.4, 0.4)
+
+
+def test_the_interval_is_reproducible():
+    v = [0.1, -0.4, 0.9, 0.2, 0.3, 0.05]
+    assert sc.bootstrap_ci(v) == sc.bootstrap_ci(v)
+
+
+def test_the_sign_test_counts_cases_not_magnitudes():
+    """The case it exists for: eleven wins and one disaster."""
+    values = [0.2] * 11 + [-30.0]
+    assert np.mean(values) < 0                  # the mean says it hurts
+    assert sc.sign_test(values) < 0.01          # the count says it helps
+
+
+def test_a_balanced_sample_is_not_significant():
+    assert sc.sign_test([0.1, -0.1, 0.2, -0.2]) == pytest.approx(1.0)
+
+
+def test_ties_are_dropped():
+    assert sc.sign_test([0.0, 0.0, 1.0, 1.0, 1.0]) == pytest.approx(0.25)
+
+
+def test_no_usable_cases_gives_nan():
+    assert np.isnan(sc.sign_test([0.0, 0.0]))

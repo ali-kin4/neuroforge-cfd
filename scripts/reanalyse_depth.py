@@ -103,6 +103,10 @@ def main(argv=None):
     ap.add_argument("--out", default=os.path.join("results", "depth_reanalysis.json"))
     ap.add_argument("--per-case", action="store_true",
                     help="also print each case separately, so the spread is visible")
+    ap.add_argument("--stats", nargs="*", default=[], metavar="ARM",
+                    help="mean, bootstrap 95%% CI, win count and sign-test p for "
+                         "these arms on every readable force row. Anything going "
+                         "in a paper needs this, not the mean alone.")
     ap.add_argument("--exclude", action="append", metavar="SUBSTRING", default=[],
                     help="drop cases whose name contains this (repeatable). For a "
                          "case whose steady solve has no unique fixed point -- its "
@@ -326,7 +330,12 @@ def main(argv=None):
                         elif budgets[(c, a)]:
                             censored[a].append(1.0 - budgets[(c, a)] / base)
                 entry = {"cold_mean": float(np.mean(colds)) if colds else None,
-                         "cold_n": len(colds), "per_case": per_case}
+                         "cold_n": len(colds), "per_case": per_case,
+                         # Kept so the mean can be given an interval and a sign
+                         # test below: on five to twenty cases the per-case
+                         # spread is wider than the gap between arms, and a mean
+                         # quoted bare reads as tighter than it is.
+                         "values": {a: savings[a] + censored[a] for a in arms}}
                 for a in arms:
                     entry[a] = sc.bounded_saving(savings[a], censored[a])
                 # Readability, per coefficient and per band. The settled arms
@@ -351,6 +360,42 @@ def main(argv=None):
                       + ("" if readable
                          else f"   ! unreadable: settled arms disagree by "
                               f"{100 * worst_c:.2f}% on a {100 * tol:g}% band"))
+
+    # --- what the mean is hiding ---------------------------------------------
+    # A headline saving is an average over a handful of cases whose per-case
+    # spread is wider than the difference between arms. Anything going in a
+    # paper needs its interval and its win count next to it.
+    if args.stats and out.get("by_force"):
+        print("\nper-case statistics for the arms named with --stats")
+        print(f"{'row':>14} {'arm':>14} {'mean':>8} {'95% CI':>18} {'wins':>7} "
+              f"{'p':>7}  per case")
+        for row_name, entry in out["by_force"].items():
+            if not entry.get("readable") or not entry.get("values"):
+                continue
+            for a in args.stats:
+                vals = entry["values"].get(a)
+                if not vals:
+                    continue
+                lo, hi = sc.bootstrap_ci(vals)
+                p = sc.sign_test(vals)
+                wins = sum(1 for v in vals if v > 0)
+                print(f"{row_name:>14} {a:>14} {100 * np.mean(vals):+7.1f}% "
+                      f"[{100 * lo:+6.1f}, {100 * hi:+6.1f}] {wins:>3}/{len(vals):<3} "
+                      f"{p:7.3f}  "
+                      + " ".join(f"{100 * v:+.0f}" for v in sorted(vals)))
+        print("  Only readable rows are shown. 'wins' counts cases where the arm "
+              "beat cold;\n  p is a two-sided exact sign test on that count, which "
+              "answers 'does this\n  help at all' without letting one catastrophic "
+              "case decide the mean.")
+        # A p that cannot reach 0.05 is not weak evidence, it is an unanswerable
+        # question, and the two read identically in a table. Say which it is.
+        widest = max((len(v) for e in out["by_force"].values()
+                      for v in (e.get("values") or {}).values()), default=0)
+        if 0 < widest < 6:
+            print(f"  With {widest} cases the smallest attainable two-sided p is "
+                  f"{2 / 2 ** widest:.3f}: no result here\n  can be significant by "
+                  "this test whatever the effect. That is a statement about the\n"
+                  "  corpus, not about the effect -- see PLANS.md Phase B.")
 
     # --- cost per iteration, the part an iteration count cannot show ----------
     rates = {}

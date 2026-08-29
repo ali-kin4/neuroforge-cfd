@@ -39,6 +39,8 @@ __all__ = [
     "readable_depth",
     "has_settled",
     "settled_reference",
+    "bootstrap_ci",
+    "sign_test",
     "MIN_DEPTH_OVER_FLOOR",
     "MAX_SPREAD_FRACTION",
 ]
@@ -201,3 +203,52 @@ def settled_reference(finals_by_arm, settled_arms):
               if reference else float("nan"))
     unsettled = sorted(a for a in finals_by_arm if a not in cohort)
     return reference, spread, unsettled
+
+
+def bootstrap_ci(values, *, level: float = 0.95, n_boot: int = 10_000,
+                 seed: int = 0) -> tuple[float, float]:
+    """Percentile bootstrap interval for the mean of a small sample.
+
+    Rule 7, and the one that stops a mean from being read as a result. Every
+    headline here is an average over five to twenty cases whose per-case spread
+    is wider than the difference between arms: ``nf_bl`` averages +33.9% on
+    Cd@1% and ranges from +12% to +66% across the five. A number quoted without
+    that range invites a reviewer to assume it is tight.
+
+    The bootstrap rather than a t interval because the per-case savings are
+    ``1 - warm/cold`` -- a ratio, bounded above by 1 and unbounded below, so
+    heavily left-skewed once an arm fails on one case.
+    """
+    v = np.asarray([x for x in values if np.isfinite(x)], dtype=float)
+    if v.size == 0:
+        return (float("nan"), float("nan"))
+    if v.size == 1:
+        return (float(v[0]), float(v[0]))
+    rng = np.random.default_rng(seed)
+    means = rng.choice(v, size=(int(n_boot), v.size), replace=True).mean(axis=1)
+    lo = 100 * (1 - level) / 2
+    return (float(np.percentile(means, lo)), float(np.percentile(means, 100 - lo)))
+
+
+def sign_test(values, *, mu: float = 0.0) -> float:
+    """Two-sided exact sign test: how surprising is it that most cases improved?
+
+    With a dozen cases and a skewed per-case distribution, "does this help at
+    all" is better answered by counting cases than by averaging them. One
+    catastrophic case can drag a mean negative while eleven of twelve improved,
+    and the mean is then reporting the tail rather than the effect. Report both.
+
+    Returns the p-value for the null that a case is equally likely to improve as
+    to worsen. Ties are dropped, which is the conservative convention.
+    """
+    v = np.asarray([x for x in values if np.isfinite(x)], dtype=float)
+    wins = int(np.sum(v > mu))
+    losses = int(np.sum(v < mu))
+    n = wins + losses
+    if n == 0:
+        return float("nan")
+    k = max(wins, losses)
+    # Exact binomial tail at p = 0.5, doubled for two sides, clipped at 1.
+    from math import comb
+    tail = sum(comb(n, i) for i in range(k, n + 1)) / 2 ** n
+    return float(min(1.0, 2 * tail))

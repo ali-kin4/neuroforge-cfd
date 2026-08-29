@@ -431,6 +431,12 @@ whether a given seed will help.
   viscous and pressure. Add the separate `forces` object and read its column
   names **from its own header** — v2606 writes Time, *total*, pressure, viscous,
   so counting from the left lands on the total vector.
+- **`nuTilda` is floored at freestream by `write_case`** (`np.maximum(nut_arr,
+  nut_inf)`). On this mesh that is 5871 of 31,700 cells — the inner boundary
+  layer, where a correct prediction goes to zero — so **no seed, the oracle
+  included, can carry eddy-viscosity information into the innermost layer.**
+  State this as a limitation; it is also what makes the `nf_bl_nut` /
+  `nf_bl_vel` split interpretable rather than a formality.
 - **`wall_distance` must be point-to-*segment*.** To the nearest polyline vertex
   it overestimates by 368× at the first cell ring (1.4e-3 against 3.8e-6), which
   halved the model's field error when fixed. It did *not* invalidate the
