@@ -388,15 +388,68 @@ is most of it.
 
 ---
 
-## 3.9 In flight right now
+## 3.9 Where the machine was when it was shut down (2026-08-29)
 
-| tree | what | budget | why |
-|---|---|---:|---|
-| `runs/openfoam/repr3` | `mesh_native_probe.py`, 5 cases × 3 arms, one process per case | 6000 | Phase A: the controlled test of §3.1 and the channel split of §3.5 |
+**Everything is committed and pushed. Nothing is lost.** `runs/` is gitignored,
+so the interrupted solves are the only casualties and they cost compute, not
+evidence.
 
-`logs/mesh_native_*.log`; results land in `results/mesh_native_*.json`. Every case
-checkpoints atomically and `completed_run` reuses finished ones, so an interrupted
-sweep resumes by re-running the same command.
+**Interrupted:** Phase B1, the 13-case generality sweep, ~1 case of 13 complete
+per group. Six `simpleFoam` processes were killed by the shutdown. No
+`results/corpus_g*.json` had been written yet — each group checkpoints only after
+its first *complete* case (all four arms), and every group was still on its
+first.
+
+`completed_run` reuses solves that finished at the requested `n_iter` and
+re-solves anything that stopped short, so **resuming is just re-running the same
+six commands.** Roughly 2-3 hours from cold.
+
+```bash
+cd /d/Codes/Github/neuroforge-cfd
+mkdir -p logs
+.venv/Scripts/python.exe scripts/corpus_probe.py --only naca0012@8  --only naca0012@10 --out results/corpus_g1.json > logs/corpus_g1.log 2>&1 &
+.venv/Scripts/python.exe scripts/corpus_probe.py --only naca0012@12 --only naca2412@8  --out results/corpus_g2.json > logs/corpus_g2.log 2>&1 &
+.venv/Scripts/python.exe scripts/corpus_probe.py --only naca2412@10 --only naca0018@4  --out results/corpus_g3.json > logs/corpus_g3.log 2>&1 &
+.venv/Scripts/python.exe scripts/corpus_probe.py --only naca0018@8  --only naca4415@4  --out results/corpus_g4.json > logs/corpus_g4.log 2>&1 &
+.venv/Scripts/python.exe scripts/corpus_probe.py --only naca2415@8  --only naca0015@2  --out results/corpus_g5.json > logs/corpus_g5.log 2>&1 &
+.venv/Scripts/python.exe scripts/corpus_probe.py --only naca2415@2 --only naca4415@2 --only naca0015@4 --out results/corpus_g6.json > logs/corpus_g6.log 2>&1 &
+```
+
+Then score it, and **check the admission verdicts by hand before trusting them**:
+
+```bash
+.venv/Scripts/python.exe scripts/reanalyse_depth.py --root runs/openfoam/corpus --per-case --stats nf_bl oracle_mesh cartesian_128
+grep -h "admission:" logs/corpus_g*.log
+```
+
+> ⚠ **The one judgement call waiting on the other side.** The pre-registered gate
+> excludes a case if its cold residual floor exceeds 1e-5 *or* its arms disagree
+> on final Cd by more than 2%. At 10-12 degrees those two failure modes are not
+> distinguishable by the gate: a case excluded **on floor** may simply have needed
+> more than 6000 iterations, which is a *budget* verdict wearing a *fixed-point*
+> verdict's clothes. For every excluded case, look at whether its residual was
+> still falling at iteration 6000. If it was, the honest report is "needs a longer
+> budget", not "no unique steady solution", and the case should be re-run at
+> 12,000 rather than dropped. Do not let the gate make that call unsupervised.
+
+**Not running, and next in order after B1:** B4 (two cases at 12,000 iterations,
+fresh work-dir), then Phase C (`wallclock_control.py`, **serial and exclusive** —
+it refuses to start while any solver is up, and that refusal is the measurement
+working).
+
+### Open questions for the next session
+
+1. **Is k-omega SST (B2) worth a day?** It is the largest remaining item and it
+   is purely reviewer-defensive — it shows the recipe is not an artifact of
+   Spalart-Allmaras. Everything else on the list is cheap. If the answer is no,
+   the paper states single-turbulence-model as a limitation and ships sooner.
+2. **Title.** Working: *"A surrogate must speak the solver's mesh: mesh-native,
+   boundary-layer-only warm starts for RANS."* Not chosen.
+3. **Draft before or after B2?** The arc is stable enough to draft now (three
+   conditions, mechanism, certificate); drafting first would surface which
+   numbers actually need tightening.
+4. **CMAME confirmed as the target?** `GOALS.md` says so and the no-APC
+   constraint holds there, but it has not been re-checked since Paper 1.
 
 ---
 
