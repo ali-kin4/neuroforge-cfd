@@ -1,24 +1,50 @@
-# PLANS — next moves (Paper-2 / OpenFOAM track)
+# PLANS — the road to Paper 2
 
 **Living document. Update it at the end of every working session**, before the
 machine can lose power. Companion: `docs/GOALS.md` (why), this file (what next).
 
-Last updated: **2026-08-28** · branch `paper2/openfoam-warm-start` · pushed to
-`origin` (github.com/ali-kin4/neuroforge-cfd) · 25 commits ahead of `main`.
+Last updated: **2026-08-29** · branch `paper2/openfoam-warm-start` · pushed to
+`origin` (github.com/ali-kin4/neuroforge-cfd) · 29 commits ahead of `main`.
+
+---
+
+## 0. The goal, stated so it can be failed
+
+> A paper establishing **the two conditions under which a neural surrogate
+> accelerates a production RANS solver**, the mechanism that makes them
+> necessary, and an acceptance test that bounds the worst case — such that a CFD
+> engineer can apply it on Monday to a surrogate they already have and know
+> before paying whether it will help.
+
+**The bar.** A number is worth publishing here only if all six hold:
+
+1. ≥ +30% on a **force**-convergence metric (not a residual threshold),
+2. at **flight Reynolds** (3e6), on a wall-resolved body-fitted mesh,
+3. from a **trained model**, not an oracle projection,
+4. with the **oracle control passing** on the same metric,
+5. at **n ≥ 12 cases**, spanning attached to incipient separation,
+6. confirmed in **wall-clock seconds**, inference and seed construction included.
+
+Today: 1–4 hold (+33.9% Cd@1%, control +92.1%), 5 is at n=5, 6 is at n=1.
+Phases B and C close those two. Nothing else is missing to clear the bar.
+
+**Venue.** CMAME — this is new computational methodology, which is exactly what
+CMAME told us Paper 1 lacked. JCP alternative. Subscription licence, no APC
+(`no-apc-venues-only`).
 
 ---
 
 ## 1. Where we are in one paragraph
 
-A real OpenFOAM v2606 backend drives `simpleFoam` + Spalart–Allmaras from
-Windows through WSL2, on body-fitted meshes we generate ourselves (O-grid and
-C-grid, both reaching AirfRANS Reynolds). Six experiments asked whether a
-NeuroForge prediction can warm-start a RANS solve. Warm-starting **works at
-moderate Reynolds**. At Re 3e6 a uniform Cartesian surrogate grid never pays, at
-any resolution. Whether a **wall-fitted** surrogate pays at Re 3e6 is **open and
-being re-measured** — the +13%/+30% previously claimed was read off a residual
-curve that had already stopped moving (§3.1), and the reason it had stopped has
-now been found and fixed (§3.2).
+A real OpenFOAM v2606 backend drives `simpleFoam` + Spalart–Allmaras from Windows
+through WSL2 on body-fitted C-grids we generate ourselves, at AirfRANS Reynolds.
+Twelve experiments have asked what a surrogate must do to warm-start it. The
+answer that survived every control: **a surrogate helps only if it can be
+evaluated at the solver's own cell centres, and only if you hand over the
+boundary layer alone.** Both conditions are necessary; neither is sufficient. The
+mechanism is measured, not argued — any 16,384-value grid projection of the
+*exact converged field* still leaves ~1900% error in the first-cell wall
+gradient, which is the quantity viscous drag integrates.
 
 Nothing here touches Paper 1, the frozen contracts, or `ClassicalFallback`
 (still `NotImplementedError` for `'openfoam'`, exactly as the JCP submission
@@ -30,190 +56,216 @@ states).
 
 | Module | What it does |
 |---|---|
-| `src/neuroforge/solver/openfoam.py` | WSL2 plumbing, case writer, runner, log/field parsers, uniform Cartesian mesh, `iterations_to_threshold`, `read_force_coeffs` / `iterations_to_force_band`, `completed_run` (resume) |
-| `src/neuroforge/solver/ogrid.py` | Graded body-fitted **O-grid**, one block per surface segment |
-| `src/neuroforge/solver/cgrid.py` | Body-fitted **C-grid**, stitch-free wake cut via shared vertex ids; instruments every case with `forceCoeffs` |
-| `src/neuroforge/solver/warmstart.py` | Seeding strategies: `plain_seed`, `hybrid_seed`, `clustered_seed` (wall-fitted), `bl_thickness`, `surface_coords` |
-| `scripts/dashboard.py` + `app/openfoam_dashboard.html` | Live run monitor (residuals, runtime, ETA, grouped runs) |
-| `scripts/convergence_diagnostic.py` | **Why the solve stalls.** Ten variants of numerics and mesh on one case |
-| `scripts/reanalyse_depth.py` | Re-scores a finished run tree at a ladder of depths, with each depth as a multiple of the residual floor |
-| `scripts/*_probe.py`, `*_ladder.py`, `*_crossover.py` | The six experiments, all checkpointing and resumable |
-| `scripts/plot_mesh_structure.py`, `plot_crossover.py` | Publication figures |
+| `solver/openfoam.py` | WSL2 plumbing, case writer, runner, per-iteration log parser, `iterations_to_threshold`, `read_force_coeffs` / `read_force_components` / `iterations_to_force_band`, `potential_flow_seed`, `completed_run` (resume), `running_solvers` (collision guard) |
+| `solver/ogrid.py`, `solver/cgrid.py` | Graded body-fitted O-grid and C-grid; stitch-free wake cut via shared vertex ids; every case instrumented with `forceCoeffs` + `forces` |
+| `solver/warmstart.py` | `plain_seed`, `hybrid_seed`, `clustered_seed` (wall-fitted projection), `masked_seed` (selective handover), `wall_distance` (point-to-**segment**), `bl_thickness`, `surface_coords` |
+| `solver/surrogate_seed.py` | Query the trained point Transolver at the C-grid cell centres; dimensional/non-dimensional conversion, outward normals, reach limit |
+| **`solver/scoring.py`** | **The six scoring rules, each with a test naming the mistake it prevents. Read this before writing any analysis.** |
+| `scripts/reanalyse_depth.py` | Re-scores a finished tree at a ladder of depths and force bands, with per-row readability |
+| `scripts/seed_gradient_diagnostic.py` | The mechanism: first-cell wall-gradient error of every seed on disk |
+| `scripts/certificate.py` | The acceptance gate, leave-one-case-out |
+| `scripts/mesh_native_probe.py` | The controlled test of the mechanism, and the channel split |
+| `scripts/*_probe.py`, `*_ladder.py`, `*_crossover.py`, `wallclock_control.py` | The experiments, all checkpointing and resumable |
+| `scripts/dashboard.py` | Live run monitor (`--port 8013`) |
 
-~350 tests, all runnable with **no OpenFOAM installed**; the end-to-end ones are
+~360 tests, all runnable with **no OpenFOAM installed**; the end-to-end ones are
 `slow` and self-skip.
 
 ---
 
-## 3. The findings, in the order they were established
+## 3. The findings
 
-1. **Uniform Cartesian mesh dies above cell Re ≈ 250** (SIGFPE). Body-fitted
-   meshes were not optional.
-2. **`residualControl` never fires** on the staircase mesh — steady SIMPLE
-   stagnates at a nonzero floor. Metric became `iterations_to_threshold`.
-3. **Pilot at Re 1e4**: warm-starting from a neighbouring case saves **69.7%**
-   (oracle control **95.4%**).
-4. **Re 3e6, 128² grid: fails**, and it is *not* a training problem — the arm
-   under test is the **exact answer** degraded only in resolution. Mask-aware
-   round-trip identical, so not a projection artifact.
-5. **Rebuilding the boundary layer does not rescue it. Refining the grid does
-   not either** (128→421², flat). `delta/h` does **not** transfer between the
-   Reynolds axis and the grid axis — the controlling scale is the viscous length
-   `nu/u_tau`, which collapses 1660× across the sweep while `delta/h` moves 5×.
-6. **Wall-fitted representation at equal budget (16,384 values)** looked positive
-   at deep thresholds. **Now under re-measurement** — see below.
+Ordered by what they contribute to the paper, not by when they were found.
+Everything below is at Re 3e6 on the C-grid unless stated, relaxation `U` 0.7 /
+`nuTilda` 0.4, 6000 iterations, five cases (`naca4412@3` excluded with cause,
+§3.8), oracle control passing.
 
-### 3.1 ⚠️ Two metric faults — read this before trusting any earlier number
+### 3.1 The mechanism: a projection does not lose accuracy near the wall, it loses the wall
 
-**Fault A — the pressure history was three times too long.** With
-`nNonOrthogonalCorrectors 2`, `simpleFoam` solves pressure three times per SIMPLE
-iteration and the log parser appended all three to one list. Index `i` meant
-outer iteration `i` for velocity but `i/3` for pressure, and
-`iterations_to_threshold` compares fields at a common index. Fixed
-(`parse_simple_foam_log` now groups per `Time` block and keeps the first solve of
-each field).
+`scripts/seed_gradient_diagnostic.py`, six cases. The first-cell tangential
+velocity gradient `du_t/dy` — what viscous drag integrates — for each seed as the
+solver received it:
 
-Every tree on disk has been re-scored with the corrected parser — no re-solving,
-`scripts/reanalyse_depth.py`, results in `results/depth_*.json`. **The negative
-results all hold or harden; the positive low-Reynolds ones shrink**, and one of
-them mostly disappears:
+| seed | wall-gradient error | BL velocity error |
+|---|---:|---:|
+| cold start (uniform freestream) | 2851% | 90.4% |
+| Cartesian 128² projection of **the exact answer** | 1695% | 56.6% |
+| wall-fitted 256×64 projection of **the exact answer** | 1890% | 51.0% |
+| **trained NeuroForge, queried at the cell centres** | **54%** | **15.2%** |
+| oracle (the exact answer itself) | 0% | 0% |
 
-| claim | first reported | corrected | verdict |
-|---|---:|---:|---|
-| Pilot Re 1e4, neighbour seed @1e-3 | +69.7% | **+47.3%** | holds, smaller (n=5 of 10 — the others never reach 1e-3) |
-| Pilot oracle control | +95.4% | +55.6% | control still passes |
-| Crossover Re 1e3 | +58% | **+8.1%** | mostly gone (−3.8% and +20.0%) |
-| Crossover Re 1e4 | +14% | +14.4% | holds |
-| Re 3e6 uniform 128² @1e-3 | −18.5% | −30.2% | hardens |
-| Wall-fitted 256×64 @1e-3 | −44.4% | −70.8% | hardens |
-| Hybrid BL reconstruction @1e-3 | −31.5% | −33.9% | hardens |
+Both projections **overestimate the wall shear by a factor of ~20**. They place
+near-freestream velocity at a cell centre 4e-6 chords off the wall, because no
+16,384-value grid — Cartesian *or* wall-fitted — has a station there. Against a
+cold start's 2851% they remove between a third and a half of the error in the
+quantity that decides drag. The network, evaluated pointwise at the solver's own
+cell centres with no resampling at all, removes 98% of it.
 
-So the **crossover** narrative — a clean sign change on the Reynolds axis — is
-weaker than claimed. The sign change is still there, but it sits between Re 1e4
-(+14%) and Re 1e5 (−17%), and Re 1e3 is +8% with one of its two cases negative.
-Those low-Re runs also carry high residual floors (1.1e-4 to 3.5e-4), so 1e-3 is
-only 3–9× above the floor there: they need re-measuring on the relaxed settings
-before the figure goes in a paper.
+This is why every projected arm is negative on drag and the mesh-native one is
+positive. It is currently an *explanation*; `mesh_native_probe.py` (§4, Phase A)
+makes it a controlled result.
 
-> **This table clears fault A only.** Re-scoring fixes the parser; it cannot fix
-> the solver. Every number above — the negatives included — was still *solved* at
-> relaxation 0.9, on the limit cycle. A good seed dropped into a limit cycle
-> shows nothing, so **`cartesian_128` may also turn positive at proper
-> convergence.** If it does, "it is the representation, not the resolution" is
-> dead and the contribution is the methodology instead (§3.2 plus the measurement
-> protocol) — a different paper, and not obviously a worse one. Do not write an
-> abstract until `repr2` lands.
+### 3.2 The recipe: a 2×2 in which only one corner works
 
-**Fault B — the positive readings sit on the floor.** Corrected ladder on
-`runs/openfoam/repr`, with each depth expressed as a multiple of the cold
-residual floor (~1.3e-5):
+Cd@1%, the one readable total-drag row (§3.3), five cases, cold = 802 iterations:
 
-| depth | × floor | cold it | oracle (control) | uniform 128² | wall-fitted 256×64 |
-|---|---:|---:|---:|---:|---:|
-| 1e-2 | 627× | 13 | +92.1% | −20.6% | −104.4% |
-| 1e-3 | 63× | 35 | +73.6% | −30.2% | −70.8% |
-| 1e-4 | 6.3× | 74 | +64.0% | −366.4% | −42.9% |
-| 5e-5 | 3.1× | 95 | +65.2% | −140.9% | −79.6% |
-| 3e-5 | **1.9×** | 273 | +84.3% | −33.6% | **+15.0%** |
-| 2e-5 | **1.3×** | 347 | +86.1% | −21.7% | **+31.2%** |
-| 1.5e-5 | **0.9×** | 458 | +88.0% | −9.0% | **+13.5%** |
+|  | whole field | boundary layer only |
+|---|---:|---:|
+| **resampled to a 16k grid** | −184.6% | −217.5% |
+| **mesh-native** | < −573.6% | **+33.9%** |
 
-Every positive number appears only within a factor of two of the floor, and the
-same arm reads +15%, +31%, +13% at three adjacent rungs. Per case at 3e-5 the
-fitted arm is +10%, +49%, −15%. **That is not a measurement of a convergence
-rate; it is where a flat curve happens to cross a line.**
+Both factors necessary, neither sufficient. Mesh-native evaluation preserves the
+wall gradient (§3.1); restricting to the boundary layer avoids handing over an
+outer field the model extrapolates badly (its training `sdf` distribution is
+centred on 0.23 chords, the C-grid reaches 20).
 
-`scripts/reanalyse_depth.py --per-case` prints all of this without re-solving.
+The oracle control reads **+92.1%** on the same row.
 
-### 3.2 The floor was under-relaxation, not the mesh
+### 3.3 What may be quoted, and what may not
 
-`scripts/convergence_diagnostic.py`, one case at Re 3e6, cold, matched budget:
+`scoring.py` rule 4 says a force band is only readable if the arms agree about
+the converged value to well inside it. That rule was implemented as one spread
+over *every* arm, and `nf_mesh` — which never took the residual below 1e-5 on
+four of five cases — dragged it to 3.104% and condemned the entire table.
 
-| variant | change | result |
-|---|---|---|
-| shipped | — | stalls at 1.1e-5, never reaches 1e-5 |
-| `long` | 4000 iterations | **1.13e-5** — a longer budget buys nothing |
-| `tight` | inner relTol p 1e-3, U 1e-2 | 1.16e-5, unchanged |
-| `upwind` | first-order convection | 8.8e-6, marginal |
-| `wake` | AR 218,987 → 57,389 | not what breaks the stall |
-| `relax` | U, nuTilda 0.9 → 0.7 | 1e-5 at iteration 327, on to 1.9e-6, still falling |
-| `relax05` | 0.5 | 1.2e-6 — further is not better |
-| `relax_wake` | 0.7 + the wake mesh | 1.7e-6 — the mesh adds nothing |
-| **`relax_nut`** | **U 0.7, nuTilda 0.4** | **the only variant to reach 1e-6 (iteration 1305); ends at Ux 3.5e-7** |
+`has_settled` / `settled_reference` now build the reference from the arms whose
+coefficient has **stopped moving** (peak-to-peak over the last tenth of the run,
+against a quarter of the band). Unsettled arms are named and still scored, at
+their full budget, so they are bounded rather than excused. Spread 3.104% →
+0.334%, and it changes what may be said:
 
-The oracle arm had already said the budget was not the constraint: seeded with
-the converged field, `Ux` reaches 1.2e-5 by iteration 100 and sits there for the
-next 700. No budget digs below a level the exact answer rests on.
+| row | status | `nf_bl` | `oracle_mesh` |
+|---|---|---:|---:|
+| **Cd@1%** | readable | **+33.9%** | +92.1% |
+| Cd@0.5% | unreadable (settled arms disagree by 0.33%) | −7.4% | +92.6% |
+| Cd@0.2% | unreadable | −90.1% | +92.9% |
+| **Cd_v@1%, @0.5%** | readable | +14.6%, +13.7% | +92.5%, +91.9% |
+| **Cl@1%, @0.5%, @0.2%** | readable | +10.1%, +3.5%, −1.3% | +99.9% |
+| Cd_p@1% | unreadable (arms disagree by 12.4%) | — | — |
 
-So the shipped relaxation of 0.9 (with SIMPLEC) was a limit cycle. Dropping U to
-0.7 moves the floor down 6×; `nuTilda` then becomes the laggard at ~10× `Ux`, and
-relaxing *it* to 0.4 buys another decade — 3.5e-7, thirty times below where this
-started. `RELAX_U = 0.7` / `RELAX_NUT = 0.4` are now the defaults, and the forces
-settle to match: Cd within 0.01% of converged by iteration 2000, against 0.3% for
-uniform 0.7 relaxation.
+> **The +41.8% at Cd@0.5% reported on 2026-08-28 is withdrawn.** It was read
+> against a reference a diverged arm had moved; on the settled reference it is
+> −7.4%. The +34.1% at Cd@1% survives as +33.9%.
 
-Also useful to know what did **not** matter: the mesh. The `wake` variant cuts
-the worst aspect ratio from 218,987 to 57,389 and changes nothing.
+Making Cd@0.5% readable needs a longer budget, not a better metric — see Phase B4.
 
-### 3.3 First result on a solve that converges (`repr2`, six cases, 3000 iterations)
+### 3.4 The stable quantity is viscous drag, and it is 60–84% of the drag
 
-Relaxation 0.7/0.4, per-outer-iteration parser, forces instrumented, arms that
-never reach a target counted rather than dropped. Cells are
-`saving (reached/total)`; `<` marks a bound.
+Three different wall-fitted seed constructions, three bands, 5/5 cases, monotone,
+no sign flip:
 
-| depth | × floor | cold it | oracle (control) | uniform 128² | wall-fitted 256×64 |
-|---|---:|---:|---:|---:|---:|
-| 1e-3 | 995× | 74 | +93.1% (6/6) | +11.8% (6/6) | −9.7% (6/6) |
-| 1e-4 | 100× | 201 | +93.0% (6/6) | +17.8% (6/6) | +2.9% (6/6) |
-| **1e-5** | **10×** | 595 | +87.6% (6/6) | < −199.4% (4/6) | **+6.0% (6/6)** |
-| **5e-6** | **5×** | 1054 | +92.4% (6/6) | < −62.5% (4/6) | **+35.8% (6/6)** |
-| 1e-6 | 1.0× | 1823 | +92.3% (4/4) | < −62.1% (1/4) | < +21.8% (3/4) |
-| Cl @1% | — | 940 | +99.9% (5/5) | −134.2% (5/5) | **+86.0% (5/5)** |
-| Cd @1% | — | 750 | **+1.0%** ⚠ | < −386.8% (3/6) | −204.5% (6/6) |
+| arm | Cd_v@1% | @0.5% | @0.2% |
+|---|---:|---:|---:|
+| `fitted_bl` (oracle, BL only) | +41.7% | +31.7% | +26.4% |
+| `fitted_256x64` (oracle, whole field) | +37.2% | +29.4% | +24.5% |
+| `nf_bl` (trained model, BL only) | +14.6% | +13.7% | +11.0% |
+| `cartesian_128` (oracle on a Cartesian grid) | +10.0% | +12.5% | **−38.8%** |
 
-**What is solid.** The wall-fitted representation beats the uniform Cartesian one
-at *every* depth and on *both* force coefficients, often by hundreds of percent.
-That comparison is the experiment's whole point and it is unambiguous.
+Monotone stability across bands *is* the evidence that this is a rate
+measurement and not a crossing artifact — the property §3.7 says to demand. Cd
+is the more exciting number and the more fragile one; **lead the paper with
+Cd_v**, report Cd@1% next to it, and say plainly that the bands below 1% need a
+longer budget.
 
-**What is not readable yet.** The oracle control **fails on Cd** (+1.0%), so by
-the rule this repo has followed throughout, the Cd column must not be read. The
-cause is known: the shared reference is the oracle arm's final drag, and at 3000
-iterations that is not converged — cold and oracle disagree by up to 0.75% on
-`naca4412`, wider than the band being measured. `repr3` re-runs at 6000.
+### 3.5 Why drag and lift disagree — and the inference it produced, which was wrong
 
-**What is genuinely open.** Wall-fitted *versus a cold start* is mixed: positive
-on residuals at depth (+6% to +36%) and on lift (+86%), negative on drag.
+Iterations to settle within 1% of converged, cold vs seeded with the exact field:
 
-### 3.4 Why drag and lift disagree — and what it says to do
-
-Decomposing the coefficients (`forces` function object; `Cd(f)`/`Cd(r)` are front
-and rear, **not** viscous and pressure) settles it. Iterations to settle within 1%
-of the converged value, `repr3`, 6000-iteration runs:
-
-| quantity | cold start | seeded with the exact field | share of Cd |
+| quantity | cold | oracle seed | share of Cd |
 |---|---:|---:|---:|
 | viscous drag `Cd_v` | ~700 | ~53 | 60–84% |
-| lift `Cl` | ~950 | **1** | — |
-| pressure drag `Cd_p` | ~1850 | **1–2** | 16–40% |
+| lift `Cl` | ~950 | 1 | — |
+| pressure drag `Cd_p` | ~1850 | 1–2 | 16–40% |
 
-**A cold solver is slow at pressure and fast at the near-wall velocity
-gradient.** A surrogate is the exact reverse: pressure is the one channel that
-survives projection intact, and the wall gradient is what it destroys. And the
-wall gradient dominates total drag.
+A cold solver is slow at pressure and fast at the near-wall velocity gradient; a
+surrogate is the reverse. The obvious inference — *hand over the pressure, keep
+the near-wall velocity* — is what this repo pursued for two sessions, and it is
+**false**:
 
-So handing over the whole field buys a large gain on the pressure-dominated
-quantities and pays for it on the one the solver was going to get right by
-itself. That is the +86% / −71% split, and it predicts a fix that needs no better
-model: **hand over less.** `warmstart.masked_seed` +
-`scripts/selective_seed_probe.py` are built and tested for exactly this.
+- `fitted_p` (pressure only) is **inert**: +0.1% on every metric, at every depth.
+- `composite` (potential-flow pressure + surrogate BL) is **negative**: −320.0%.
+- `potential` (potentialFoam alone, the free industrial baseline) is inert on
+  drag (+0.7% Cd@1%) and mildly positive on lift (+3.3%).
+- The winner hands over **velocity and eddy viscosity inside the boundary layer
+  and no pressure at all.**
 
-If this is right it is the paper's headline, because it is a *recipe* rather than
-an observation: it applies to any surrogate anyone already has.
+The reason is SIMPLE's structure: pressure is recomputed from continuity given
+the velocity field, so a pressure seed inconsistent with `U` is overwritten
+within a few iterations. Only fields that enter the momentum and turbulence
+transport carry information forward. **Which of velocity and `nut` does the work
+is unmeasured** — Phase A splits them.
 
-**Bonus, and not in any iteration count**: the oracle arm runs at **0.134 s per
-iteration against the cold arm's 0.251 s** on the same box. A good initial guess
-shortens the inner linear solves too, so the cost saving exceeds the iteration
-saving. Needs a serial run to quantify honestly.
+Keep §3.5 in the paper. A falsified prediction from a measured decomposition is
+stronger than an unfalsified one, and it is the reason the recipe is not obvious.
+
+### 3.6 The guarantee: a 25-iteration probe turns a −1170% tail into a −5.8% floor
+
+`scripts/certificate.py`. Run `K` probe iterations from the seed, read the
+residual, then continue or discard the seed and start cold. Accepting costs
+nothing extra (the probe iterations *are* the first `K` of the warm solve);
+rejecting costs `K + cold`. Worst case `(1 + K/N)` × cold, whatever the seed
+does. The rule never sees a cold run — in production there isn't one — and its
+threshold is chosen on the other cases and applied to the held-out one.
+
+Five cases × eleven strategies, `K = 25`, threshold on the residual level:
+
+| metric | ungated mean | worst seed | **gated mean** | **gated worst** | harmful admitted |
+|---|---:|---:|---:|---:|---:|
+| Cd@1% | −168.9% | −1169.6% | **+3.7%** | **−5.8%** | 0/32 |
+| residual 5e-6 | −170.8% | −1449.3% | +1.8% | −7.6% | 0/36 |
+| Cl@1% | −21.5% | −671.9% | +1.9% | −100.0% | 1/22 |
+| Cd_v@1% | +23.5% | −8.6% | +23.5% | −8.6% | 9/10 |
+
+The gate is not what makes warm starting fast; it is what makes it adoptable. It
+captures only 17–24% of what a gatekeeper with foreknowledge would get on the
+metrics where most seeds are harmful — conservative by construction — and on
+viscous drag, where 40 of 50 seeds already help, it is nearly a no-op at 97%
+capture. Longer probes are monotonically worse: by `K = 400` the probe cost alone
+(−49.6%) exceeds anything the decision can recover.
+
+### 3.7 The protocol, and three of our own sign errors
+
+Every rule below changed a **sign**, not a decimal, on this project's own data.
+All six live in `solver/scoring.py` with a test naming the mistake.
+
+1. **A threshold measures a rate only while the residual is falling.** Print the
+   threshold as a multiple of the floor; refuse to read anything under ~5×. The
+   same arm read +15%, +31% and +13% at 1.9×, 1.3× and 0.9× the floor.
+2. **The floor itself is often an artifact.** Here it was under-relaxation at 0.9
+   with SIMPLEC, not the 218,987-aspect-ratio cells. `U` 0.7 / `nuTilda` 0.4
+   moved it 30×, from 1.1e-5 to 3.5e-7 (`scripts/convergence_diagnostic.py`, ten
+   variants: longer budgets, tighter inner tolerances and a better wake mesh all
+   bought nothing).
+3. **An arm that never reaches the target must be bounded, not dropped.**
+   Dropping turned a true −199.4% into −31.2%: the failing arm was rewarded for
+   failing.
+4. **Score every arm against one *external* reference** — the median across arms,
+   never an arm's own final. Grading the oracle against itself made a +73.5%
+   control read +1.0%.
+5. **That reference is only usable if the arms that have settled agree** to well
+   inside the band, and **only settled arms may define it** (§3.3).
+6. **`nNonOrthogonalCorrectors` multiplies the pressure history.** Parse per
+   `Time` block. Zipping fields by index across a whole log made pressure lag
+   velocity 3:1 and moved every shallow number (Cartesian @1e-3: −18.5% → −30.2%).
+
+### 3.8 The negatives, and they are load-bearing
+
+- **Uniform Cartesian fails at Re 3e6 at any resolution.** 128→421² is flat, and
+  it is not a training problem: the arm under test is the exact answer. One cell
+  across the inner layer would need N ≈ 11,800, 28× beyond what AirfRANS holds.
+- **`δ/h` is not the criterion.** It looks clean on a Reynolds sweep (sign change
+  at δ/h = 2.0) and fails on the grid axis. Across the sweep δ/h moves 5× while
+  the viscous ratio `y(y⁺=30)/h` collapses **1660×**.
+- **Warm-starting works at moderate Reynolds**: +14.4% at Re 1e4, +47.3% in the
+  Re-1e4 pilot from a neighbouring case. The Re 1e3 claim mostly did not survive
+  the parser fix (+58% → +8.1%) and those runs sit 3–9× above their floor —
+  **re-measure on the relaxed settings before quoting** (Phase B5).
+- **`naca4412@3` is excluded, always with the reason**: no unique steady fixed
+  point (arms 7% apart in final Cd; floor 1.6e-5 against 6e-8–1.7e-6 elsewhere).
+  It is a warning about the separated regime, which Phase B1 enters deliberately.
+- **The wall-clock saving is real** but n=1: `+41% iterations → +30% seconds` on
+  one case, serial and exclusive. The per-iteration penalty is 1.14×, not the
+  1.62× a contended box suggested. Phase C makes this n=5.
 
 ---
 
@@ -221,127 +273,142 @@ saving. Needs a serial run to quantify honestly.
 
 | tree | what | budget | why |
 |---|---|---:|---|
-| `runs/openfoam/repr3` | 6 cases × 4 arms, Re 3e6 | 6000 | the decisive experiment; 3000 left the arms disagreeing on final Cd by 1.6%, wider than the band |
-| `runs/openfoam/crossover2` | 2 airfoils × 5 Reynolds | 3000 / 6000 | where warm-starting stops paying, on the relaxed settings |
-| `runs/openfoam/resladder2` | 3 cases × 5 resolutions | 6000 | "refining the surrogate grid does not help", re-measured |
-| — | `scripts/wallclock_control.py` | 6000 | **run last, alone.** Refuses to start while another solve is running |
+| `runs/openfoam/repr3` | `mesh_native_probe.py`, 5 cases × 3 arms, one process per case | 6000 | Phase A: the controlled test of §3.1 and the channel split of §3.5 |
 
-Restart commands are in each script's docstring; every case checkpoints
-atomically and `completed_run` reuses finished ones, so an interrupted sweep
-resumes by re-running the same command.
-
-The wall-clock control is not optional and not a footnote. On the shared box the
-arms ran at 0.134 / 0.251 / 0.281 / 0.407 s per iteration (oracle / cold /
-uniform / fitted). Taken at face value, the fitted arm's **+35.8% iteration
-saving at 5e-6 becomes a 4% loss in seconds**, while the oracle arm's +92.4%
-stays a 96% win. Whether those ratios are real or an artifact of a dozen solves
-competing for memory bandwidth decides which of those two sentences goes in the
-paper.
+`logs/mesh_native_*.log`; results land in `results/mesh_native_*.json`. Every case
+checkpoints atomically and `completed_run` reuses finished ones, so an interrupted
+sweep resumes by re-running the same command.
 
 ---
 
 ## 4. The road to the paper
 
-The target is a paper that is **novel, practical, and positive** — a recipe a CFD
-engineer can apply on Monday to a surrogate they already have, with a guarantee
-attached. Everything below serves that. Phases 1–3 are compute; 4–6 are what turn
-measurements into a defensible paper.
+Phases A–C are compute and are what stand between today's numbers and the bar in
+§0. D–F turn measurements into a paper.
 
-### The paper, in one arc
-
-> **Problem.** ML surrogates are sold as accelerators for classical CFD via warm
-> starting. In practice a warm start can make a steady RANS solve *slower*, and
-> you only find out after paying for the solve. Whether it helped even depends on
-> which quantity you measure.
->
-> **Protocol.** A measurement discipline that does not fool itself (§3.1, §3.2,
-> `solver/scoring.py`). Without it, three of our own conclusions had the wrong
-> sign.
->
-> **Diagnosis.** Cold RANS is slow at pressure and fast at near-wall shear;
-> a surrogate is exactly the reverse (§3.4). That is *why* the literature's
-> warm-start results are mixed.
->
-> **Recipe.** Hand over the pressure and outer field; keep the near-wall velocity.
-> And put the surrogate's points in the solver's wall-normal coordinates, not on
-> a Cartesian grid — same output budget, opposite sign.
->
-> **Guarantee.** A cheap acceptance test that bounds the worst case, so the recipe
-> can never cost more than a fixed fraction over a cold start.
-
-### Phase 1 — the controlled corpus (running, ~2–3 h)
-
-`repr3`, `resladder2`, `crossover2`. Gives the representation criterion, the
-resolution negative, and the Reynolds dependence, all on a converging solve and
-all with an oracle control. See §3.9.
-
-### Phase 2 — the recipe (built, runs next, ~2 h)
+### Phase A — establish the mechanism, and split the channels (running, ~1 h)
 
 ```bash
-python scripts/selective_seed_probe.py --only naca0012@4 --work-dir runs/openfoam/repr3
+python scripts/mesh_native_probe.py --only naca0012@4      # one process per case
 ```
-`fitted_p` (pressure only) and `fitted_outer` (velocity handed back inside the
-boundary layer) against the same wall-fitted projection. Reuses `cold` and
-`oracle_mesh` from `repr3`, so three solves per case, not five.
 
-**Also Phase 2, and a gap in the plan until now: the classical baseline.**
-`potentialFoam` ships with OpenFOAM and produces a potential-flow initial field
-in seconds, for free, with no model and no training data. It is what industry
-actually does, and it is the baseline
-[NVIDIA's hybrid initialisation](https://arxiv.org/html/2503.15766v1) blends
-*with*. **If a NeuroForge seed does not beat potential flow, the paper has no
-practical claim** — and no reviewer will let that pass unasked. Add it as an arm.
+Three arms, one prediction, so nothing else can move:
 
-### Phase 3 — wall-clock, serially (~1 h, alone)
+- **`nf_bl_proj`** — the *same network prediction*, sent through the *same*
+  256×64 round-trip the `fitted_*` arms use, then boundary-layer-masked.
+  Removes the confound in §3.2: today `fitted_bl` comes from the oracle and
+  `nf_bl` from the network, so representation and source of truth are entangled.
+  **If it goes negative, §3.1 is established as a controlled result and the
+  paper's central claim is proved rather than inferred.** If it stays positive,
+  the mechanism is the source of the field and the paper says that instead —
+  a weaker paper, but an honest one, and the diagnostic in §3.1 still stands.
+- **`nf_bl_nut`** — eddy viscosity only inside the boundary layer.
+- **`nf_bl_vel`** — velocity only inside the boundary layer.
 
-`scripts/wallclock_control.py`. Iterations are contention-proof; seconds are not.
-This decides whether "+35.8% iterations" is also a speed-up (§3.9).
+`nut` is the field the model predicts *worst* (52–111% error) and the slowest to
+develop, so either answer is publishable. If `nut` alone carries the win, the
+recipe becomes "seed the turbulence field, not the flow field", which is a
+sharper and more surprising sentence than the one we have.
 
-### Phase 4 — a real model, not just the oracle (~2 h)
+### Phase B — generality: the objection that actually decides the paper (~10 h compute)
 
-Every arm so far is the **exact answer** degraded only in representation, which
-makes it an upper bound on any surrogate. That is the right way to isolate the
-mechanism and the wrong way to end a paper: a reviewer will ask whether a
-*trained* model gets anywhere near the bound. Seed from an actual NeuroForge
-prediction on the same cases and report the fraction of the oracle's saving that
-survives. Include inference cost in the accounting (milliseconds, but state it).
+Five NACA sections at 0–6° at one Reynolds number is not a study, and no error
+bar fixes that. Generality is worth more per compute-hour than `n`.
 
-### Phase 5 — the no-harm certificate (mostly analysis)
+- **B1 — into separation (~4 h).** AoA 8°, 10°, 12° on `naca0012` and `naca2412`,
+  plus `naca0018`/`naca4415` at 4°. Every case measured so far is attached flow.
+  The recipe "seed the boundary layer, let the solver do the outer field" is
+  most likely to break when the wake stops being something the solver gets
+  quickly — and `naca4412@3` (§3.8) is already a warning from that region. A
+  reviewer will ask this first. Report the fixed-point check per case; a case
+  with no unique steady solution is excluded *with its floor and its arm spread
+  printed*, never silently.
+- **B2 — a second turbulence model (~1 day, mostly plumbing).** k-ω SST. Shows
+  the recipe is not an artifact of Spalart–Allmaras. Not cheap: new `fvSchemes`
+  and `fvSolution`, and `k`/`ω` need initialising even though the model's `nut`
+  output maps over. Budget honestly.
+- **B3 — a second Reynolds number at the same protocol (~2 h).** Re 1e6, five
+  cases, same arms. Turns "at Re 3e6" into "across the range where it matters".
+- **B4 — the budget that makes Cd@0.5% readable (~3 h).** 12,000 iterations on
+  the five existing cases, `cold` / `oracle_mesh` / `nf_bl` only. §3.3 says the
+  settled arms must agree to 0.25% for a 0.5% band; they are at 0.33%. Either
+  this closes it or the paper states 1% as the resolution limit of the method —
+  both acceptable, neither guessable.
+- **B5 — re-measure the Reynolds crossover on the relaxed settings (~2 h).** The
+  low-Re numbers in §3.8 predate the relaxation fix and sit near their floors.
 
-Run `K` probe iterations from the seed; if the residual has not fallen below the
-cold trajectory's envelope by `K`, discard the seed and continue cold. Worst case
-is then `(1 + K/N)` times a cold solve — a *guarantee*, not a hope. Two things to
-measure from the corpus Phases 1–4 produce: the smallest `K` that separates the
-winners from the losers, and the fraction of the available saving the rule
-captures. Paper 1's trust map is the natural pre-flight predictor to test
-alongside it.
+### Phase C — cost, honestly (~2 h, serial and exclusive)
 
-This is the contribution that matches where the field has moved: both
-[NOWS](https://arxiv.org/abs/2511.02481) and
-[PCGBandit](https://arxiv.org/html/2509.08765) sell *inherited correctness* over
-raw speed, and PCGBandit's headline property is "always at least as fast as the
-default".
+`scripts/wallclock_control.py` at n=5, nothing else running. Iterations are
+contention-proof; seconds are not, and the current sentence rests on one case.
+**Include in the accounting**, because a reviewer will ask and "milliseconds" is
+not an answer:
 
-### Phase 6 — write it
+- backbone inference at 31,700 points,
+- `wall_distance` (O(N·M), and not free),
+- the projection round-trip for the arms that use one,
+- reading and writing the `0/` fields.
 
-Figures: the representation comparison, the per-quantity convergence
-decomposition (§3.4), the selective-seeding ablation, the certificate's
-capture-versus-cost curve. Tables from `results/*.json` — every number in the
-paper traceable to a committed file.
+### Phase D — statistics and figures
+
+- Per-case scatter for every headline number (the mean hides that `nf_bl` ranges
+  +12% to +66% across cases), bootstrap CI, and a sign test — with n≥12 from
+  Phase B, a sign test is the honest instrument for "this helps".
+- Figures: (i) the wall-gradient bar chart of §3.1 — the paper's central image;
+  (ii) the 2×2 of §3.2; (iii) the per-quantity convergence decomposition of §3.5;
+  (iv) the certificate's capture-versus-`K` curve; (v) mesh structure.
+- Every number traceable to a committed `results/*.json`.
+
+### Phase E — adversarial review before submission
+
+Run the reviewer panel over the draft. The three objections already visible:
+
+1. *"You compare a trained model against a projected oracle; the comparison is
+   confounded."* → Phase A exists to remove exactly this. Do not submit without it.
+2. *"Five NACA airfoils at small incidence."* → Phase B.
+3. *"You report the metric that worked."* → §3.3's readability table and §3.6's
+   gate, both of which report the metrics that did not.
+
+### Phase F — write it
+
+Working title: **"A surrogate must speak the solver's mesh: mesh-native,
+boundary-layer-only warm starts for RANS."** The arc:
+
+> **Problem.** ML surrogates are sold as accelerators for classical CFD via warm
+> starting. In practice a warm start often makes a steady RANS solve *slower*,
+> and you find out after paying. Whether it helped even depends on which
+> quantity you measure.
+>
+> **Mechanism.** Measured, not argued: a 16k-value grid — Cartesian or
+> wall-fitted — cannot represent a first cell 4e-6 chords off the wall, so
+> projecting even the *exact* answer through one leaves a 20× error in the wall
+> shear that viscous drag integrates.
+>
+> **Recipe.** Evaluate the surrogate at the solver's own cell centres, and hand
+> over the boundary layer only. Both necessary, neither sufficient.
+>
+> **Guarantee.** A 25-iteration probe and an acceptance test bound the worst case
+> at 1.03× a cold solve, turning a strategy with a −1170% tail into one with a
+> −5.8% floor.
+>
+> **Protocol.** The measurement discipline that makes all of the above readable.
+> Without it three of our own conclusions had the wrong sign.
 
 ### Positioning against the 2026 literature
 
 | work | what it warm-starts | reported | how ours differs |
 |---|---|---|---|
-| [NOWS](https://arxiv.org/abs/2511.02481) (CMAME 2026) | inner Krylov solves | up to 90% time | we warm-start the outer field; complementary, and they note learned preconditioners are "typically restricted to Cartesian grids" |
-| [Spectrally Safe](https://arxiv.org/abs/2606.21828) (2026) | Newton solvers | 5.4× at 6.4M DOF | same core insight from a different angle — **L² accuracy is not the property that makes a seed good**; theirs is Jacobian definiteness, ours is *which field* is handed over |
-| [PCGBandit](https://arxiv.org/html/2509.08765) | preconditioner choice, online | 1.5× total, 4× linear | orthogonal, and composable with ours |
-| [Hybrid init](https://arxiv.org/html/2503.15766v1) (NVIDIA) | transient URANS, DoMINO + potential flow | ~2× | uses the same drag-band convergence metric we do; ours is steady RANS, and asks *what to hand over* rather than *what to blend* |
-| [Wake extension](https://arxiv.org/abs/2501.14699) | near-body/wake decomposition | 26.3× iterations | decomposition by region; ours is by **field and wall distance**, and derived from a measured convergence-rate decomposition |
+| [NOWS](https://arxiv.org/abs/2511.02481) (CMAME 2026) | inner Krylov solves | up to 90% time | we warm-start the outer field; complementary, and they note learned preconditioners are "typically restricted to Cartesian grids" — which is the limitation we *measure the cost of* |
+| [Spectrally Safe](https://arxiv.org/abs/2606.21828) (2026) | Newton solvers | 5.4× at 6.4M DOF | **closest prior art**: same core insight — L² accuracy is not what makes a seed good — from a different angle. Theirs is Jacobian definiteness; ours is a named, measured defect (first-cell wall gradient) and a representational cause. Differentiate explicitly in the paper, not in review. |
+| [PCGBandit](https://arxiv.org/html/2509.08765) | preconditioner choice, online | 1.5× total, 4× linear | orthogonal and composable; its "never worse than the default" property is what §3.6 supplies for seeds |
+| [Hybrid init](https://arxiv.org/html/2503.15766v1) (NVIDIA) | transient URANS, DoMINO + potential flow | ~2× | uses the same drag-band metric; ours is steady RANS, and we measure potential flow as an arm and find it inert on drag (+0.7%) |
+| [Wake extension](https://arxiv.org/abs/2501.14699) | near-body/wake decomposition | 26.3× iterations | decomposition by region; ours by **field and wall distance**, derived from a measured convergence decomposition |
+| [PCNO](https://arxiv.org/html/2501.14475) and mesh-native surrogates | — | — | the point-cloud literature argues mesh-native is better *for prediction accuracy*. Nobody has shown it is the difference between a warm start that works and one that costs 6× more. **That framing is the novelty.** |
 
-The niche nobody occupies: **no published warm-start study reports which
-*quantity* converges and which does not, and none can tell you before paying
-whether a given seed will help.** That is the gap Phases 2 and 5 fill.
+**The niche nobody occupies:** no published warm-start study reports which
+*quantity* converges and which does not, none measures what its own
+representation does to the wall gradient, and none can tell you before paying
+whether a given seed will help.
 
 ### Still queued, beyond this paper
 
@@ -350,66 +417,58 @@ whether a given seed will help.** That is the gap Phases 2 and 5 fill.
 - **Self-consistency via Neural Residual Iteration** — run Paper 1's monotone
   acceptance loop on the prediction before seeding. Cheap with what is built, and
   would make Paper 2 depend on Paper 1's contribution.
-- **Region-decomposed seeding** — the inverse of what we tried: surrogate wake,
-  cheap precursor near-body.
+- **Region-decomposed seeding** — surrogate wake, cheap precursor near-body.
 
+---
 
 ## 5. Gotchas that cost time — do not rediscover these
 
-- **The four scoring rules are in `solver/scoring.py`, with a test naming each
-  mistake they prevent.** Read that module before writing a new analysis script;
-  every one of these was made here, and each changed a sign, not a decimal:
-  a threshold only measures a rate while the residual is falling; an arm that
-  never reaches the target is bounded rather than dropped; all arms are scored
-  against one *external* reference; and that reference is only usable if the arms
-  agree to well inside the band.
-- **A residual threshold is only a measurement while the residual is falling.**
-  Print the threshold as a multiple of the floor and refuse to read anything
-  under ~5×. Better: score on the forces.
+- **Read `solver/scoring.py` before writing a new analysis script.** Every rule
+  in it was learned by getting a sign wrong here (§3.7).
 - **Score a Reynolds sweep one Reynolds number at a time.** The floor moves three
-  orders of magnitude across it, so an aggregate "× floor" describes no point in
-  the sweep. `reanalyse_depth.py --filter re1e+05`.
+  orders of magnitude across it. `reanalyse_depth.py --filter re1e+05`.
 - **`forceCoeffs`' `Cd(f)` / `Cd(r)` are front and rear about `CofR`**, not
-  viscous and pressure. For that, add the separate `forces` object and read its
-  column names from its own header — v2606 writes Time, *total*, pressure,
-  viscous, so counting columns from the left lands on the total vector.
-- **Split the sweeps by case, never by resolution.** Every rung of a case shares
-  its `cold` and `oracle_mesh` runs; two processes splitting resolutions write
-  the same directory at once.
-- **`nNonOrthogonalCorrectors` multiplies the pressure history.** Group residuals
-  per `Time` block; never scan a whole log for `Initial residual` and zip fields
-  by index.
+  viscous and pressure. Add the separate `forces` object and read its column
+  names **from its own header** — v2606 writes Time, *total*, pressure, viscous,
+  so counting from the left lands on the total vector.
+- **`wall_distance` must be point-to-*segment*.** To the nearest polyline vertex
+  it overestimates by 368× at the first cell ring (1.4e-3 against 3.8e-6), which
+  halved the model's field error when fixed. It did *not* invalidate the
+  selective-seeding masks (26 of 31,700 cells moved, max weight change 0.035) —
+  that was checked, not assumed.
+- **Split the sweeps by case, never by resolution or by arm.** Every rung of a
+  case shares its `cold` and `oracle_mesh` runs. `running_solvers()` now refuses
+  a case another process is solving; `--force` overrides it, and once cost three
+  re-solves.
 - **`f"{1.5e-5:.0e}"` is `"2e-05"`.** One significant figure silently collides
-  depth-ladder keys. `reanalyse_depth.key()` uses one decimal.
-- **`$var` does not survive `wsl.exe` argument passing.** A probe like
-  `for f in ...; do echo "$f"; done` silently returns nothing. Every command this
+  depth-ladder keys.
+- **`potentialFoam` needs three things**: a Dirichlet anchor for `Phi` (the
+  Poisson problem is otherwise singular), `div(div(phi,U)) Gauss linear` in
+  `fvSchemes` for `-writep`, and GaussSeidel rather than DIC.
+- **`$var` does not survive `wsl.exe` argument passing.** Every command this
   package builds is variable-free by design.
-- **Bash heredocs here mangle backslashes** — `\\n` in a Python heredoc arrives
-  as a real newline. Use the Write/Edit tools for content with escapes.
+- **Bash heredocs here mangle backslashes** — `\n` in a Python heredoc arrives as
+  a real newline, so a `.replace()` on a string containing an escape silently
+  fails to match. Use the Write/Edit tools for content with escapes.
 - **Never grep OpenFOAM logs for `"Floating point"`** — every log opens with
-  `trapFpe: Floating point exception trapping enabled`. Match
-  `sigFpe::sigHandler` / `FOAM FATAL` instead.
-- **`geometry.solid_mask` returns 1.0 = FLUID**, not solid. Reading it the other
-  way inverts the mesh cut-out and both guards in `write_case` survive it.
-- **blockMesh rejects concave straight-sided topology hexes.** One block per
-  surface segment avoids every corner-placement trap.
-- **Per-segment radial grading is illegal** — adjacent blocks share a radial face
-  and must agree ("Point merge failure ... inconsistent grading"). `edgeGrading`
-  is the legal way to vary it along the C, and is untried.
+  `trapFpe: Floating point exception trapping enabled`. Match `sigFpe::sigHandler`
+  or `FOAM FATAL`.
+- **`geometry.solid_mask` returns 1.0 = FLUID**, not solid.
+- **blockMesh rejects concave straight-sided topology hexes**; one block per
+  surface segment avoids every corner trap. Per-segment radial grading is illegal
+  (adjacent blocks share a radial face); `edgeGrading` is the legal way and is
+  untried.
 - **Non-ASCII in a `print` crashes under cp1252** when stdout is redirected.
-- Dashboard: `python scripts/dashboard.py --port 8013`. It dies with the session;
-  restart it, nothing is lost.
 
 ---
 
 ## 6. Housekeeping
 
 - Branch is **not merged to `main`**. Nothing conflicts with Paper 1.
-- `runs/` is gitignored (~2 GB of case dirs); `results/` is tracked.
-- Solves **resume from disk** (`openfoam.completed_run`) — an interrupted
-  experiment re-reads finished cases instead of re-solving (1.8 s vs 150 s).
-  `completed_run` rejects a run that stopped short of the requested `n_iter`, so
-  raising the budget re-solves rather than silently reusing a short run.
+- `runs/` is gitignored (~2 GB of case dirs); `results/` and `logs/` are tracked.
+- Solves **resume from disk** (`openfoam.completed_run`) — 1.8 s against 150 s.
+  It rejects a run that stopped short of the requested `n_iter`, so raising the
+  budget re-solves rather than silently reusing a short run.
 - `write_cgrid_case` `rmtree`s the case directory first, so no stale time
   directory can be read back as the answer. Still, **use a fresh `--work-dir`**
   for a re-run: the old tree is the evidence behind the tables above.
