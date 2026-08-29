@@ -352,6 +352,40 @@ All six live in `solver/scoring.py` with a test naming the mistake.
   one case, serial and exclusive. The per-iteration penalty is 1.14×, not the
   1.62× a contended box suggested. Phase C makes this n=5.
 
+### 3.8a The wake is not where this solver's time goes
+
+The largest number in this literature — **26.3x iterations, 16.4x wall-clock**,
+[wake extension](https://arxiv.org/abs/2501.14699) — comes from initialising the
+far wake. Every seed here deliberately does the opposite: the backbone's training
+`sdf` distribution is centred on 0.23 chords, so the seed is cut off at 3.5 and
+the wake is handed back to the solver. That looks like a limitation, and the
+obvious next move is to compose the two.
+
+It is not a limitation, and the composition is not worth building.
+`scripts/wake_probe.py` seeds the **exact converged field** across the whole
+downstream region — 37.5% of the cells, 21.6% of them fully — which bounds what
+*any* wake model could ever buy on these cases. Five cases, Re 3e6:
+
+| metric | oracle wake seed | 95% CI | per case |
+|---|---:|---|---|
+| **Cd_v@1%** | **+0.5%** | [+0.4, +0.7] | +0, +0, +1, +1, +1 |
+| Cd_v@0.5% | +1.3% | [+1.0, +1.5] | +1, +1, +1, +1, +2 |
+| Cd@1% | −242.1% | [−676, −0.3] | −1098, −103, −19, −4, +13 |
+| Cl@1% | −22.0% | [−68, +1.6] | −92, +0, +2, +2 |
+| residual 1e-5 | never reached on 3 of 5 | — | −97%, −1% on the two that did |
+
+**The perfect wake seed is worth half a percent.** On a 2-D attached-flow airfoil
+at Re 3e6 on a 20-chord C-grid, the solver is not spending its time developing
+the wake — it is spending it on the near-wall state, which is exactly where §3.5
+said the pressure and shear quantities converge. So 26.3x is a fact about *their*
+configuration, geometry and cold baseline, not a better method; and our
+restriction to the boundary layer is a **finding**, not a compromise.
+
+It also repeats §3.1a's lesson at a different scale: the wake seed is *harmful*
+on drag, because handing over a downstream field while leaving the boundary layer
+cold is another inconsistent pair. Consistency is not a detail of the recipe, it
+is most of it.
+
 ---
 
 ## 3.9 In flight right now
@@ -434,26 +468,12 @@ bar fixes that. Generality is worth more per compute-hour than `n`.
 - **B5 — re-measure the Reynolds crossover on the relaxed settings (~2 h).** The
   low-Re numbers in §3.8 predate the relaxation fix and sit near their floors.
 
-- **B6 — the wake, and the honest answer to the strongest competitor
-  (~3 h).** The best number in this literature is
-  [wake extension](https://arxiv.org/abs/2501.14699): **26.3× iterations, 16.4×
-  wall-clock**. Ours is +34%. On raw speed we lose, and no amount of framing
-  changes that — so say it, and then look at *why* they win. Their gain comes
-  from initialising the **far wake**, which a cold RANS solve takes an enormous
-  number of iterations to develop. We deliberately do not seed it: the backbone's
-  training `sdf` distribution is centred on 0.23 chords, so we cut the seed off
-  at 3.5 and hand the wake back to the solver.
-
-  Those two results are therefore **complementary, not competing** — near-body
-  boundary layer from the surrogate, far wake from a wake model — and the
-  combination is untested by anyone. It is also cheap here: `masked_seed` already
-  composes two seeds, and the wake region is a wall-distance band like any other.
-  If it works, the paper gets a large number *and* keeps the mechanism. If it does
-  not, the negative is worth as much, because it says the two regions do not
-  compose.
-
-  Do this **after** B1–B4. It is the highest-upside item on this list and the
-  easiest to let expand into a second paper; the bar in §0 must be cleared first.
+- **B6 — the wake: asked, answered, and closed.** ~~Compose a boundary-layer
+  surrogate with a wake model.~~ **Cancelled — measured, not guessed.** See
+  §3.8a. An oracle seed of the *exact converged field* across the whole
+  downstream region buys **+0.5% [+0.4, +0.7] on viscous drag** and is negative
+  on everything else. There is nothing there to compose with, and the days this
+  would have cost are better spent on B1–B4.
 
 ### Phase C — cost, honestly (~2 h, serial and exclusive)
 

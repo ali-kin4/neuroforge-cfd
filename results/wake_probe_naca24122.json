@@ -1,0 +1,28 @@
+{
+  "re": 3000000.0,
+  "n_iter": 6000,
+  "x_start": 1.0,
+  "rows": [
+    {
+      "case": "naca2412_aoa2",
+      "re": 3000000.0,
+      "wake": {
+        "mode": "wake",
+        "x_start": 1.0,
+        "ramp": 0.5,
+        "seeded_fraction": 0.3752681388012618,
+        "fully_seeded_fraction": 0.21589905362776024
+      },
+      "cold@1e-03": 66,
+      "oracle_wake@1e-03": 49,
+      "cold@1e-04": 179,
+      "oracle_wake@1e-04": null,
+      "cold@1e-05": 464,
+      "oracle_wake@1e-05": null,
+      "cold@5e-06": 1013,
+      "oracle_wake@5e-06": null,
+      "cold@1e-06": 2413,
+      "oracle_wake@1e-06": null
+    }
+  ]
+}
