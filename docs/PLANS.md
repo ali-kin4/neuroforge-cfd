@@ -329,11 +329,23 @@ bar fixes that. Generality is worth more per compute-hour than `n`.
   output maps over. Budget honestly.
 - **B3 — a second Reynolds number at the same protocol (~2 h).** Re 1e6, five
   cases, same arms. Turns "at Re 3e6" into "across the range where it matters".
-- **B4 — the budget that makes Cd@0.5% readable (~3 h).** 12,000 iterations on
-  the five existing cases, `cold` / `oracle_mesh` / `nf_bl` only. §3.3 says the
-  settled arms must agree to 0.25% for a 0.5% band; they are at 0.33%. Either
-  this closes it or the paper states 1% as the resolution limit of the method —
-  both acceptable, neither guessable.
+- **B4 — the budget that makes Cd@0.5% readable (~1 h, not 3).** §3.3 says the
+  settled arms must agree to 0.25% for a 0.5% band and they are at 0.33%. The
+  per-case breakdown says this is a *budget* problem on **two cases only**:
+
+  | case | settled Cd spread | 0.5% band needs ≤ 0.25% |
+  |---|---:|---|
+  | `naca0012_aoa4` | 0.079% | ✓ |
+  | `naca2415_aoa5` | 0.079% | ✓ |
+  | `naca0015_aoa6` | 0.087% | ✓ |
+  | `naca0012_aoa0` | 0.191% | ✓ (marginal) |
+  | **`naca2412_aoa2`** | **0.232%** | marginal, and `oracle_mesh` itself has not settled on it |
+
+  So run 12,000 iterations on `naca2412_aoa2` and `naca0012_aoa0` alone —
+  **into a fresh `--work-dir`**, because `completed_run` rejects a short run and
+  would otherwise re-solve the tree every current number rests on. Either it
+  closes the 0.5% band or the paper states 1% as the method's resolution limit;
+  both are acceptable and neither is guessable.
 - **B5 — re-measure the Reynolds crossover on the relaxed settings (~2 h).** The
   low-Re numbers in §3.8 predate the relaxation fix and sit near their floors.
 
