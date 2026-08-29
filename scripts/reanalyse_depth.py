@@ -49,7 +49,13 @@ from neuroforge.solver import openfoam as of, scoring as sc
 
 DEPTHS = (1e-2, 1e-3, 1e-4, 1e-5, 5e-6, 1e-6, 5e-7)
 KNOWN_ARMS = ("oracle_mesh", "cartesian_128", "fitted_256x64", "fitted_outer",
-              "fitted_p", "fitted_bl", "composite", "potential", "nf_mesh", "nf_bl", "oracle_128_hybrid", "oracle_128", "oracle_192",
+              "fitted_p", "fitted_bl", "composite", "potential", "nf_mesh", "nf_bl",
+              # The mesh-native control and the channel split. `nf_bl_proj` is
+              # the same network prediction as `nf_bl`, sent through the same
+              # 256x64 round-trip the fitted arms use, so the pair isolates
+              # resampling from the source of the field.
+              "nf_bl_proj", "nf_bl_nut", "nf_bl_vel",
+              "oracle_128_hybrid", "oracle_128", "oracle_192",
               "oracle_256", "oracle_320", "oracle_421", "neighbour",
               "oracle",
               "cold")
