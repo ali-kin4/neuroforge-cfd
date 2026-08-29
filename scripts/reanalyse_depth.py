@@ -54,7 +54,7 @@ KNOWN_ARMS = ("oracle_mesh", "cartesian_128", "fitted_256x64", "fitted_outer",
               # the same network prediction as `nf_bl`, sent through the same
               # 256x64 round-trip the fitted arms use, so the pair isolates
               # resampling from the source of the field.
-              "nf_bl_proj", "nf_bl_nut", "nf_bl_vel",
+              "nf_bl_proj", "nf_bl_nut", "nf_bl_vel", "oracle_wake",
               "oracle_128_hybrid", "oracle_128", "oracle_192",
               "oracle_256", "oracle_320", "oracle_421", "neighbour",
               "oracle",

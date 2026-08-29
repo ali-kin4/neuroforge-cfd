@@ -61,6 +61,7 @@ __all__ = [
     "plain_seed",
     "hybrid_seed",
     "masked_seed",
+    "wake_seed",
     "FIELDS",
 ]
 
@@ -430,5 +431,62 @@ def masked_seed(
         "ramp": ramp,
         "blended_fraction": blended,
         "background": "freestream" if background is None else "seed",
+    }
+    return tuple(out[name] for name in FIELDS), report
+
+
+def wake_seed(
+    values: tuple,
+    centres: np.ndarray,
+    *,
+    x_start: float = 1.0,
+    ramp: float = 0.5,
+    u_inf: float,
+    v_inf: float,
+    nut_freestream: float,
+) -> tuple[tuple[np.ndarray, ...], dict]:
+    """Hand over the **downstream** region and nothing else.
+
+    The counterpart to :func:`masked_seed`'s boundary-layer handover, and the
+    reason it exists is a competing result rather than a hypothesis of ours. The
+    largest speed-up in this literature -- 26.3x iterations and 16.4x wall clock,
+    `arXiv:2501.14699 <https://arxiv.org/abs/2501.14699>`_ -- comes from
+    initialising the far wake, which a cold RANS solve is slowest to develop.
+    Every seed in this package deliberately does the opposite: the surrogate's
+    training ``sdf`` distribution is centred on 0.23 chords, so the seed is cut
+    off near the body and the wake is handed back to the solver.
+
+    Whether that costs anything *here* is a question about this configuration,
+    not about their method, and it is answerable with an oracle: seed the
+    converged field downstream of ``x_start`` and freestream everywhere else. If
+    the saving is small on a C-grid at Re 3e6, the wake is not where this
+    solver's time goes and the comparison is between different regimes rather
+    than between better and worse methods. If it is large, the near-body and wake
+    seeds are complementary and worth composing.
+
+    The transition is a smoothstep over ``ramp`` chords so the seed carries no
+    jump, matching :func:`masked_seed`. All four fields are handed over together,
+    because seeding a subset inconsistently is what makes ``nut``-only fail.
+    """
+    u, v, p, nut = (np.asarray(a, dtype=np.float64).copy() for a in values)
+    x = np.asarray(centres, dtype=np.float64)[:, 0]
+
+    # 0 upstream of x_start, 1 beyond x_start + ramp, smooth in between.
+    w = np.clip((x - float(x_start)) / max(float(ramp), 1e-30), 0.0, 1.0)
+    w = w * w * (3.0 - 2.0 * w)
+
+    free = {"u": float(u_inf), "v": float(v_inf), "p": 0.0,
+            "nut": float(nut_freestream)}
+    out = {"u": u, "v": v, "p": p, "nut": nut}
+    for name, arr in out.items():
+        out[name] = w * arr + (1.0 - w) * free[name]
+    out["nut"] = np.maximum(out["nut"], 0.0)
+
+    report = {
+        "mode": "wake",
+        "x_start": float(x_start),
+        "ramp": float(ramp),
+        "seeded_fraction": float((w > 0).mean()),
+        "fully_seeded_fraction": float((w >= 1.0).mean()),
     }
     return tuple(out[name] for name in FIELDS), report

@@ -128,6 +128,14 @@ resampling *helps* residuals and lift, because a resampled field is smoother and
 lift is pressure-dominated. **A study that scored residuals alone would have
 concluded the projection was the better seed.**
 
+One limitation that does *not* explain this, checked rather than assumed:
+`write_case` floors `nuTilda` at freestream, which clips 37% of the
+boundary-layer cells. It removes only **2.1-2.3%** of the eddy-viscosity field's
+energy there, because the clipped cells hold values ~88x below the peak, and it
+applies identically to every arm including the oracle. It is a common-mode
+limitation of the study, not a differential effect that could produce a swing
+from +33.9% to -293.2%.
+
 **The channels are non-additive, and that is a third condition.** Eddy viscosity
 alone is the best arm in the study on viscous drag (+42.4%) and lift (+41.1%) —
 matching the oracle projection — and it is the *worst* on total drag (−293.2%).
@@ -146,6 +154,41 @@ showing it is necessary and none of them sufficient alone:
 2. **hand over the boundary layer only** (`nf_mesh` fails without it),
 3. **hand over velocity and eddy viscosity together** (`nf_bl_nut` and
    `nf_bl_vel` each fail without it).
+
+### 3.1b The residual objection, answered in one place
+
+**The objection.** The recommended arm, `nf_bl`, is *negative on the residual at
+every depth* (−29.5% at 1e-5, <−80.5% at 5e-6) and positive on drag (+33.9%).
+`nf_bl_proj` is the exact inverse (+22.1% and −58.8%). A reviewer reads that as
+metric-shopping, and they are right to look. This is the paragraph the paper owes
+them; today the answer is scattered across §3.1a, §3.6 and §3.7.
+
+**The answer, in three parts.**
+
+1. **The residual is not the objective.** Nobody runs a RANS solve to obtain a
+   small residual; they run it to obtain a force coefficient that has stopped
+   moving. The residual is a *proxy*, and this study measures the proxy failing:
+   the same seed is +22.1% on the proxy and −58.8% on the thing the proxy stands
+   in for. We report both, always, and say which one the engineering question
+   asks about.
+2. **We know what the residual is rewarding.** The `Ux` residual measures how
+   much the field changes per iteration, so it rewards *smoothness* — a
+   resampled field has had its near-wall structure interpolated away and
+   therefore changes less, while carrying a 1583% error in the wall gradient
+   (§3.1). The residual is not being fooled at random; it is faithfully measuring
+   something that is not drag.
+3. **The choice was pre-committed, not selected after the fact.** The force
+   metric replaced the residual metric in §3.7 rule 1 for a reason that predates
+   this arm and cuts against our own earlier results: residual thresholds near
+   the floor gave the *same arm* +15%, +31% and +13% at three adjacent rungs. The
+   readability test (§3.3) then rejects rows we would rather quote — Cd@0.5% and
+   Cd@0.2%, where `nf_bl` reads −7.4% and −90.1%. A rule that only ever deleted
+   inconvenient numbers would not be doing that.
+
+And the honest residue, which stays in the paper: **on the residual, `nf_bl` is
+worse than a cold start.** The acceptance test in §3.6 is what makes that
+survivable rather than fatal — 25 probe iterations catch it, and the same gate
+bounds the residual metric's worst case at −7.6%.
 
 ### 3.2 The recipe: a 2×2 in which only one corner works
 
