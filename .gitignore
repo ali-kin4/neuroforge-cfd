@@ -70,3 +70,6 @@ results/**/_smoke/
 # machine-specific wall-clock journal (see measure_inference_cost.py):
 # replaying it on other hardware would report this machine timings as yours
 results/control/_cache/inference_cost_progress.jsonl
+
+# Paper-2 PDF build scratch (the .md is the source; the PDF is committed)
+docs/paper2/_build/
