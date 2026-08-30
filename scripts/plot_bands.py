@@ -110,7 +110,12 @@ def main(argv=None):
         ax.set_xlim(-0.35, len(BANDS) - 0.65)
         ax.set_xlabel("convergence band (tighter $\\rightarrow$)",
                       fontsize=9.5, color=INK_2)
-        ax.set_title(nice, fontsize=11, color=INK, loc="left", pad=10)
+        # Per-panel n: a row whose reference no case could supply drops that
+        # case, so the two quantities need not be scored over the same set. One
+        # n in the suptitle would be wrong for one of the panels.
+        n_here = (depth.get(f"{metric}@0.01") or {}).get("cold_n")
+        ax.set_title(f"{nice}   ({n_here} cases)" if n_here else nice,
+                     fontsize=11, color=INK, loc="left", pad=10)
         ax.grid(axis="y", color=GRID, lw=0.8)
         ax.set_axisbelow(True)
 
@@ -131,9 +136,9 @@ def main(argv=None):
                  transform=axes[1].transAxes, ha="right", va="bottom",
                  fontsize=7.8, color=INK_3)
 
-    n = (depth.get("Cd@0.01") or {}).get("cold_n")
-    fig.suptitle("Viscous drag is a rate; total drag is a rate only at 1%"
-                 f"    (Re 3$\\times$10$^6$, {n} cases)",
+    fig.suptitle("Only one of these two panels is a measurement"
+                 "    (Re 3$\\times$10$^6$; the control is the flat line, "
+                 "and on the left it is not flat)",
                  fontsize=11.5, color=INK, y=0.98)
     fig.tight_layout(rect=(0, 0, 1, 0.92))
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)

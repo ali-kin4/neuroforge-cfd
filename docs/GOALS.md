@@ -41,13 +41,13 @@ Everything below is a step toward that, or a measured limit on it.
 | The residual-floor theorem | Paper 1 |
 | **A real classical solver in the loop** — OpenFOAM v2606 driven from WSL2, body-fitted meshes we generate ourselves, at AirfRANS Reynolds | `solver/{openfoam,ogrid,cgrid}.py`, ~360 tests |
 | **A measurement rig that cannot fool itself** — every experiment carries an oracle control that must pass before any other arm is read, and every force band declares its own readability | twelve experiments, control +68% to +99.9% in all of them; `solver/scoring.py` |
-| **A trained NeuroForge model that accelerates a production RANS solver on total drag** | +33.9% on Cd@1%, 5/5 cases, Re 3e6, oracle control +92.1% |
+| **A trained NeuroForge model that accelerates a production RANS solver, at n=13** | **+18.4% on Cd_v@1% [+12.4, +25.3], 13/13 cases, p = 0.0002**, Re 3e6, oracle control +93.6%, Cartesian negative control null (+3.4%, p = 0.27). On the 5-case mechanism study, +33.9% on Cd@1%. |
 
 ### ▶ In progress
 
 | Goal | State |
 |---|---|
-| **Paper 2**: mesh-native, boundary-layer-only warm starts, with a no-harm certificate | Mechanism measured **and controlled** (the oracle-vs-model confound is gone), recipe established at n=5, guarantee cross-validated, **full draft written** (`docs/paper2/DRAFT.md`). Two gaps remain: generality (13-case sweep **running**; five NACA sections at 0–6° is not a study) and **wall-clock, which is at n=0 for the recommended arm** — the only timing we have is an oracle arm on a residual target (`PLANS.md` §3.8). §0 states the bar; §4 Phases B–C close it. |
+| **Paper 2**: mesh-native, boundary-layer-only warm starts, with a no-harm certificate | Mechanism measured **and controlled**, guarantee cross-validated, **generality closed at n=13** (all 13 admitted, 13/13 wins, p = 0.0002), **full draft written** (`docs/paper2/DRAFT.md`). **One gap left: wall-clock, at n=0 for the recommended arm** (`PLANS.md` §3.8) — Phase C. The pre-registered +30% bar is **missed at +18.4%** and stays where it is; see `PLANS.md` §0. |
 
 ### ○ Queued
 

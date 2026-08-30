@@ -25,16 +25,29 @@ Last updated: **2026-08-30** · branch `paper2/openfoam-warm-start` · pushed to
 5. at **n ≥ 12 cases**, spanning attached to incipient separation,
 6. confirmed in **wall-clock seconds**, inference and seed construction included.
 
-**Item 1 is met by Cd@1% = +33.9%, and that number is never quoted without its
-band curve** (+33.9% / −4.2% / −38.5%); `Cd_v` (+14.6% / +13.7% / +11.0%,
-monotone) is reported alongside it as the stability evidence. We considered
-restating item 1 around `Cd_v` and decided against it — see §3.3.
+**Scored against the bar, 2026-08-30, with the 13-case sweep in (§3.0):**
 
-Today: 1–4 hold (+33.9% Cd@1%, control +92.1%), 5 is at n=5 (**13-case sweep
-running**), and **6 is at n=0** — the only existing wall-clock number is an
-oracle arm on a residual target, and the recommended arm has never been timed
-(§3.8). Phases B and C close those two, and **Phase C is on the critical path**.
-Nothing else is missing to clear the bar.
+| # | clause | verdict |
+|---|---|---|
+| 1 | ≥ +30% on a force metric | ❌ **missed. +18.4% on Cd_v@1%.** |
+| 2 | flight Reynolds, wall-resolved body-fitted mesh | ✅ |
+| 3 | trained model, not an oracle | ✅ |
+| 4 | oracle control passing | ✅ +93.6%, 13/13 |
+| 5 | n ≥ 12, attached → incipient separation | ✅ **13 cases, 13 admitted** |
+| 6 | confirmed in wall-clock seconds | ❌ **n=0 for the recommended arm** (§3.8) |
+
+**Item 1 is missed and the threshold stays where it is.** Restating a
+pre-registered number after seeing the result is the move §3.7 exists to prevent,
+and a reviewer who catches it discounts everything else in the paper. The primary
+analysis is +18.4% [+12.4, +25.3], **13/13 cases, p = 0.0002**, monotone across
+bands, with a passing oracle control and a *null* negative control. **Smaller
+than we hoped, more certain than we expected** — write that sentence, do not
+negotiate with it.
+
+The five-case +33.9% on Cd@1% is not withdrawn; it does not *generalise as a
+readable number*, which is a different and more interesting fact (§3.0).
+
+**Only item 6 is still open, and Phase C closes it.**
 
 **Venue.** CMAME — this is new computational methodology, which is exactly what
 CMAME told us Paper 1 lacked. JCP alternative. Subscription licence, no APC
@@ -88,6 +101,49 @@ Ordered by what they contribute to the paper, not by when they were found.
 Everything below is at Re 3e6 on the C-grid unless stated, relaxation `U` 0.7 /
 `nuTilda` 0.4, 6000 iterations, five cases (`naca4412@3` excluded with cause,
 §3.8), oracle control passing.
+
+### 3.0 The headline, at thirteen cases (2026-08-30)
+
+`scripts/corpus_probe.py`, `results/depth_corpus.json`. Thirteen cases, 2°–12°,
+four arms, **all thirteen admitted** by the gate declared before the sweep — the
+exclusion judgement call flagged at the last shutdown never arose.
+
+| row | `nf_bl` | 95% CI | wins | p | oracle | Cartesian |
+|---|---:|---|---:|---:|---:|---:|
+| **Cd_v@1%** | **+18.4%** | [+12.4, +25.3] | **13/13** | **0.0002** | +93.6% | +3.4% (p 0.27) |
+| Cd_v@0.5% | +15.7% | [+10.6, +21.8] | 13/13 | 0.0002 | +93.2% | +4.9% (p 0.27) |
+| Cd_v@0.2% | +8.8% | [+4.3, +13.5] | 11/13 | 0.022 | +92.8% | −43.6% |
+
+Per case at 1%: +3 +9 +9 +10 +11 +11 +16 +17 +19 +25 +28 +35 +47. No loser, no
+case carrying the mean, and the **negative control is null** — a rig that
+manufactured savings could not produce that.
+
+**Every total-drag, lift and pressure-drag row is unreadable over the thirteen**,
+and **two cases cause all of it**: `naca4415@4` (arms 1.274% apart on final Cd)
+and `naca4415@2` (1.040%), against ≤0.113% everywhere else. No arm is *unsettled*
+on them — they settle in different places. With `naca4415` dropped, n=11 gives
+**Cd@1% = +30.0% [+5.3, +47.0], 10/11, p = 0.012**, oracle +95.4%
+(`results/depth_corpus_no4415.json`). **That is post hoc and must be labelled as
+a sensitivity analysis, never as the headline.** Do not carry its Cd@0.5% row:
+the oracle control fails there (−13.9%, one case at −1112%), so rule 4 rejects it
+whatever `nf_bl` reads.
+
+**Two new protocol rules, both earned here:**
+
+7. **An admission threshold and a scoring threshold must come from the same
+   quantity.** The gate admits at 2% arm spread; readability needs ≤0.5% for a 1%
+   band. Both were pre-registered, they disagree, and so the sweep admitted two
+   cases it could not read. Do not fix this by moving the gate now.
+8. **A converged run is finished, not truncated.** `residualControl` makes
+   OpenFOAM exit early. Judging completeness by length alone discards exactly the
+   arms that converge fastest — it dropped the oracle on `naca0012@12` (converged
+   at 1289) and turned a +93% control into a +49.7% bound. Fixed in
+   `scoreable_budgets`, six tests in `tests/test_reanalyse_budgets.py`.
+
+`naca4415@2`, `naca4415@4` and `naca4412@3` are all **thick cambered sections at
+low incidence** with the worst residual floors in the study. That is a coherent
+statement about where steady RANS lacks a unique fixed point, and it belongs in
+the paper as one.
 
 ### 3.1 The mechanism: a projection does not lose accuracy near the wall, it loses the wall
 

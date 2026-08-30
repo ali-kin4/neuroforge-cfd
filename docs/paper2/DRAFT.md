@@ -1,9 +1,10 @@
 # [TITLE NOT CHOSEN — see §0 below]
 
-**Status:** first full draft, 2026-08-30. Written against `docs/PLANS.md` §3.
-Every number here is traceable to a `results/*.json` file and a script; numbers
-still pending are marked `[[B1]]` (13-case sweep, running) or `[[C]]` (wall-clock
-at n=5). **No number in this file may be changed without changing PLANS.md too.**
+**Status:** full draft, 2026-08-30, with the thirteen-case generality sweep in.
+Every number here is traceable to a `results/*.json` file and a script. The one
+measurement still outstanding is marked `[[C]]`: wall-clock seconds for the
+recommended arm, which has never been timed. **No number in this file may be
+changed without changing PLANS.md too.**
 
 **Two decisions are the author's and are deliberately left open:** the title and
 the venue. The draft is written venue-neutral (no template, no page budget) so
@@ -30,15 +31,20 @@ prediction to a production RANS solver (OpenFOAM `simpleFoam`, Spalart–Allmara
 on a wall-resolved body-fitted C-grid at flight Reynolds number, and measure the
 iterations the solver still needs before its force coefficients stop moving.
 
-The result is strongly conditional. A trained surrogate accelerates convergence
-of **viscous drag — 60–84% of the total here — by +14.6%, and monotonically so
-across every convergence band we can read** (+13.7% at 0.5%, +11.0% at 0.2%),
-with a converged-field oracle control at +92.5%. On *total* drag it is **+33.9%**
-at the 1% band, and we always report that number with the fact that it falls to
-−4.2% at 0.5%: the total-drag saving is real at the band an engineer usually
-stops at, and it is not a stable rate measurement. Both hold only when three
-conditions hold simultaneously, each of which we show is necessary with a
-controlled arm, and none of which is sufficient alone:
+The result is strongly conditional. Over **thirteen cases** spanning 2° to 12°,
+attached flow into incipient separation, a trained surrogate accelerates the
+convergence of **viscous drag — 60–84% of the total drag here — by +18.4%
+[+12.4, +25.3], winning on 13 of 13 cases (exact sign test p = 0.0002)**, with a
+converged-field oracle control at +93.6% and a negative control statistically
+indistinguishable from no seed at all (+3.4%, p = 0.27). The saving is monotone
+across convergence bands (+18.4% / +15.7% / +8.8%), which is what distinguishes a
+convergence-rate measurement from a curve crossing a line. Total drag is not
+readable over all thirteen: two cases converge to drag values 1% apart under
+different seeds, and we report that rather than excluding them. This is smaller
+than we pre-registered and more certain than we expected.
+
+It holds only when three conditions hold simultaneously, each of which we show is
+necessary with a controlled arm, and none of which is sufficient alone:
 
 1. the prediction is **evaluated at the solver's own cell centres**, never
    resampled through a grid;
@@ -65,9 +71,9 @@ mean, worst -5.8%, admitting none of the 46 harmful seeds**. The gate is
 insurance rather than a profit centre, and we report the one quantity it fails
 on (lift) rather than the four it handles.
 
-We report three of our own falsified predictions and six measurement rules that
-each changed a *sign* on our own data, including one published number we withdraw
-here.
+We report three of our own falsified predictions, eight measurement rules — six
+of which changed a *sign* on our own data — one number we withdraw, and one
+pre-registered threshold we miss.
 
 ---
 
@@ -135,9 +141,12 @@ carries 54%.
    wake (worth +0.5% here, against a 26.3x claim elsewhere) (§7).
 4. **An acceptance certificate** that bounds the worst case at (1 + K/N) x cold
    using a rule that never sees a cold run (§8).
-5. **A measurement protocol** whose six rules each changed a sign on our own
-   data, and under which we withdraw one of our own previously reported numbers
-   (§4).
+5. **Generality at n = 13**, spanning attached flow to incipient separation, with
+   a pre-registered admission gate that excluded nothing, a passing oracle
+   control and a null negative control (§5.1).
+6. **A measurement protocol** of eight rules, six of which each changed a sign on
+   our own data, under which we withdraw one of our own previously reported
+   numbers and miss one of our own pre-registered thresholds (§4).
 
 ### Is this a fact about your network?
 
@@ -227,8 +236,12 @@ to y+ < 1. The same mesh is used for every arm of every experiment, so mesh
 quality is never a differential effect.
 
 **Cases.** NACA 4-digit sections at Re = 3e6, `u_inf = 1`, kinematic pressure.
-The core study is 5 cases (0012@4°, 2412@2°, 0015@6°, 0012@0°, 2415@5°). The
-generality sweep is 13 cases spanning 0°–12°, into incipient separation `[[B1]]`.
+Two sets. The **mechanism study** is 5 cases (0012@4°, 2412@2°, 0015@6°, 0012@0°,
+2415@5°) carrying fifteen seeding arms, which is where every controlled contrast
+and the acceptance gate are measured. The **generality corpus** is 13 cases
+(0012 at 8/10/12°, 2412 at 8/10°, 0018 at 4/8°, 4415 at 2/4°, 2415 at 2/8°, 0015
+at 2/4°) carrying four arms, which is where the headline is measured. The two
+sets are disjoint, and every number states which it came from.
 
 **Surrogate.** A Transolver-style point model, (B,N,7) -> (B,N,4), trained on
 AirfRANS under the conventions of the companion paper (dimensional fields,
@@ -248,9 +261,11 @@ rather than reporting its other arms.
 
 ## 4. How to measure a warm start without fooling yourself
 
-This section is a contribution, not preamble. Each of the six rules below changed
-a **sign** on this project's own data. All six are implemented in
-`solver/scoring.py`, each with a test that names the mistake it prevents.
+This section is a contribution, not preamble. Each of the first six rules below
+changed a **sign** on this project's own data; rules 7 and 8 were added by the
+thirteen-case sweep and each cost us a result. All are implemented in
+`solver/scoring.py` or `scripts/reanalyse_depth.py`, each with a test that names
+the mistake it prevents.
 
 1. **A residual threshold measures a convergence rate only while the residual is
    still falling.** Report every threshold as a multiple of the run's residual
@@ -299,42 +314,59 @@ rather than only the verdict, because one additional case can flip it.
 > case set, since the reference is a median over cases and arms. The 13-case
 > sweep recomputes all of them, and they are re-checked rather than inherited.
 
-**The saving depends on the band, and the two drag components differ.** This is
-the single most important table in the protocol section, because reporting either
-row alone would mislead:
+**The saving depends on the band, and the two drag components differ.** On the
+five-case mechanism study:
 
 | arm | Cd@1% | Cd@0.5% | Cd@0.2% | Cd_v@1% | Cd_v@0.5% | Cd_v@0.2% |
 |---|---:|---:|---:|---:|---:|---:|
 | `nf_bl` | **+33.9%** | **-4.2%** | -38.5% *(unreadable)* | **+14.6%** | **+13.7%** | +11.0% *(unreadable)* |
 | `oracle_mesh` | +92.1% | +92.4% | +93.1% | +92.5% | +91.9% | +91.3% |
 
-> **Figure 2** (`results/bands.png`, from `scripts/plot_bands.py`) draws this
-> table. Bands the readability rule rejects are plotted hollow rather than
-> deleted — a curve with its last point removed would look more stable than the
-> measurement is.
-
 **Viscous drag is monotone across bands and total drag is not.** Monotone
 stability *is* the evidence that a number is a convergence-rate measurement
 rather than an artifact of where a wandering curve happens to cross a line — and
-`Cd_v` is 60–84% of the drag here. The oracle control is monotone on both, which
-is what tells us the instability in the `nf_bl` Cd row is a property of that seed
-and not of the measurement.
+`Cd_v` is 60–84% of the drag here.
 
-We therefore **quote +33.9% only with this curve attached**, and treat +14.6% on
-viscous drag as the robust claim. We do not withdraw +33.9%: it is readable, 5/5,
-with a passing control. We do refuse to present it alone.
+> **Figure 2** (`results/bands.png`, from `scripts/plot_bands.py`) draws the same
+> two panels on the **thirteen-case corpus**, where the point is sharper still:
+> every total-drag band is rejected by the readability rule *and the oracle
+> control itself swings +49.7% → −42.6% → +12.8% across them*, while on viscous
+> drag the control is flat at +93% and the trained arm is monotone. A control
+> that is not flat is a measurement that is not a measurement. Rejected bands are
+> plotted hollow rather than deleted, because a curve with its last point removed
+> would look steadier than the measurement is. (`results/bands_n5.png` is the
+> same figure on the five-case study.)
 
 > **A withdrawal.** A previously recorded +41.8% at Cd@0.5% was read against a
 > reference that a diverged arm had moved. On the settled reference over the
 > declared arm set that row is **-4.2%** — readable, and negative. The +33.9% at
-> Cd@1% is unaffected. We report this because a protocol that only ever deleted
+> Cd@1% is unaffected on the five-case study, and §5.1 reports what happens to it
+> at thirteen. We report this because a protocol that only ever deleted
 > inconvenient numbers would not be a protocol.
+
+**Rule 7, learned from the corpus: an admission threshold and a scoring
+threshold must be derived from the same quantity.** We pre-registered a gate that
+admits a case if its arms agree on final drag to within 2%, and a scoring rule
+that can read a 1% band only if they agree to within 0.5%. Both were declared in
+advance, and they disagree — so the sweep admitted two cases it could not then
+read, and they cost us every total-drag row (§5.1). The gate should have been
+derived from the readability limit. We did not change it after the fact; we
+report the inconsistency, because a study can admit cases it cannot score and the
+failure is invisible until it happens.
+
+**Rule 8, from the same sweep: a converged run is finished, not truncated.**
+OpenFOAM exits early when `residualControl` is satisfied. A scorer that judges
+completeness by run length alone calls that a truncation and discards it —
+penalising precisely the arms that converge *fastest*. Ours did, and it silently
+dropped the oracle control on one case, turning a +93% control into a +49.7%
+bound.
 
 **Statistics.** Savings 1 - warm/cold are left-skewed, so we report percentile
 bootstrap 95% CIs (10,000 resamples) rather than t-intervals, plus an exact
 two-sided sign test. At n = 5 the smallest attainable p is 0.0625; we state this
 wherever n < 6 rather than reporting a non-significant p as if the test could
-have succeeded. `[[B1]]` raises n to 13, where the sign test can reach p ~ 0.0002.
+have succeeded. The thirteen-case corpus of §5.1 is where the sign test can bite:
+13/13 gives p = 0.0002.
 
 ---
 
@@ -352,7 +384,58 @@ more than 0.5 points.
 | `nf_bl_nut` | eddy viscosity only | +1.2% | **-293.2%** | **+41.1%** | **+42.4%** |
 | `nf_bl_vel` | velocity only | -8.2% | -40.3% | -10.3% | -4.9% |
 
-### 5.1 Condition 1 — evaluate at the solver's cell centres
+### 5.1 The headline, at thirteen cases
+
+`scripts/corpus_probe.py`. Thirteen cases — five NACA sections, 2° to 12°, from
+attached flow into incipient separation — each admitted under a gate declared
+before the sweep ran (residual floor ≤ 1e-5, arms agreeing on final Cd to within
+2%). **All thirteen were admitted**, so nothing here rests on a discretionary
+exclusion.
+
+| row | `nf_bl` | 95% CI | wins | sign test | oracle control | Cartesian control |
+|---|---:|---|---:|---:|---:|---:|
+| **Cd_v@1%** | **+18.4%** | [+12.4, +25.3] | **13/13** | **p = 0.0002** | +93.6% (13/13) | +3.4% (p = 0.27) |
+| Cd_v@0.5% | +15.7% | [+10.6, +21.8] | 13/13 | p = 0.0002 | +93.2% | +4.9% (p = 0.27) |
+| Cd_v@0.2% | +8.8% | [+4.3, +13.5] | 11/13 | p = 0.022 | +92.8% | −43.6% (p = 0.58) |
+
+Per case at the 1% band: **+3, +9, +9, +10, +11, +11, +16, +17, +19, +25, +28,
++35, +47**. There is no losing case and no case carrying the mean.
+
+Three properties make this a rate measurement rather than a crossing artifact:
+it is **monotone** across every band, the **oracle control** is flat at +93% and
+wins 13/13, and the **negative control** — the exact converged field resampled
+onto a 128² Cartesian grid — is statistically indistinguishable from no seed at
+all (+3.4%, p = 0.27). A pipeline that manufactured savings would not produce a
+null there.
+
+**Total drag, lift and pressure drag are unreadable over the thirteen**, and two
+cases carry all of it. `naca4415` at 2° and 4° have arms that settle on drag
+values **1.04% and 1.27% apart**, against ≤0.113% for every other case in the
+corpus. No arm is *unsettled* on those two — they settle in different places,
+which is the signature of a case without a unique steady fixed point, and the
+same signature `naca4412@3` showed. All three are thick cambered sections at low
+incidence, and all three have the corpus's worst residual floors (8.75e-6 and
+1.22e-6, against ~1e-7 elsewhere).
+
+> **Sensitivity analysis, and it is post hoc.** Dropping those two cases leaves
+> eleven, on which Cd@1% becomes readable and reads **+30.0% [+5.3, +47.0],
+> 10/11 wins, p = 0.012**, with the oracle control at +95.4% (11/11) and the
+> Cartesian control at −262.5%. We report it because withholding it would be
+> hiding a result, and we label it because the exclusion was chosen after seeing
+> the data. It is not the headline. We do **not** carry the Cd@0.5% row from that
+> subset: the oracle control there reads −13.9% with one case at −1112%, so by
+> our own rule the row is unreadable regardless of what `nf_bl` does.
+
+**Against our own pre-registered bar.** We committed in advance to ≥ +30% on a
+force-convergence metric, at flight Reynolds, on a wall-resolved mesh, from a
+trained model, with a passing oracle control, at n ≥ 12. The primary analysis
+meets every clause except the first: **+18.4%, not +30%**. We are not restating
+the threshold now that we can see the result — that is exactly the move §4
+exists to prevent. The honest summary is that the effect is smaller than we
+hoped for and more certain than we expected: thirteen cases out of thirteen,
+p = 0.0002, on the quantity that is 60–84% of the drag.
+
+### 5.2 Condition 1 — evaluate at the solver's cell centres
 
 `nf_bl` and `nf_bl_proj` differ in exactly one respect: whether the identical
 prediction was resampled through a wall-fitted 256x64 grid before being written.
@@ -370,7 +453,7 @@ resampled field is smoother — it changes less per iteration — and lift is
 pressure-dominated. **A study that scored residuals alone would have concluded
 the projection was the better seed.**
 
-### 5.2 Condition 2 — hand over the boundary layer only
+### 5.3 Condition 2 — hand over the boundary layer only
 
 The region axis is controlled the same way as the resampling axis: both arms are
 the same network, both mesh-native, differing only in whether the handover is
@@ -387,7 +470,7 @@ training `sdf` distribution is centred on 0.23 chords while the C-grid reaches 2
 — and an extrapolated outer field is an inconsistent boundary condition for a
 boundary layer the solver is still computing.
 
-**Together with §5.1 this gives two controlled contrasts sharing a common arm**
+**Together with §5.2 this gives two controlled contrasts sharing a common arm**
 (`nf_bl`), one per axis, each changing a single variable. Neither factor alone is
 sufficient: mesh-native evaluation of the whole field is the worst arm in the
 study, and boundary-layer restriction under resampling is still negative.
@@ -408,7 +491,7 @@ entirely, is reported separately and is the stronger statement:
 
 Even a perfect field, resampled, costs the solver more than starting it cold.
 
-### 5.3 Condition 3 — velocity and eddy viscosity together
+### 5.4 Condition 3 — velocity and eddy viscosity together
 
 This condition was not anticipated; it came out of splitting the channels.
 
@@ -428,7 +511,7 @@ shear-driven quantities do not care, and speed up.
 most of it**, and §7.3 finds the same lesson again at a completely different
 length scale.
 
-### 5.4 A common-mode limitation, checked rather than assumed
+### 5.5 A common-mode limitation, checked rather than assumed
 
 `write_case` floors `nuTilda` at its freestream value, which clips 37% of the
 boundary-layer cells. That sounds like it could produce these swings. It cannot:
@@ -437,7 +520,7 @@ the clipped cells hold values ~88x below the peak, so the floor removes only
 every arm including the oracle. It is a common-mode limitation of the study, not
 a differential effect that could move an arm from +33.9% to -293.2%.
 
-### 5.5 The residual objection
+### 5.6 The residual objection
 
 `nf_bl` is **negative on the residual at every depth** and positive on drag;
 `nf_bl_proj` is the exact inverse. A reviewer is right to look hard at that. Our
@@ -472,7 +555,7 @@ bounds drag bounds the residual metric's worst case at -7.6%.
 > of the exact answer. **B** — that gradient error against what it bought on
 > drag, one point per arm, circles evaluated at the cell centres and squares
 > resampled; the two clusters separate cleanly. **C** — the two controlled
-> contrasts of §5.1 and §5.2, each pair the same network and the same prediction,
+> contrasts of §5.2 and §5.3, each pair the same network and the same prediction,
 > one variable apart.
 
 `scripts/seed_gradient_diagnostic.py`, six cases. For each seed *as the solver
@@ -590,7 +673,7 @@ boundary layer is a finding rather than a compromise.
 
 Note also that the oracle wake seed is *harmful* on total drag. Handing over a
 downstream field while leaving the boundary layer cold is another inconsistent
-pair, which is §5.3's lesson at a length scale two orders of magnitude larger.
+pair, which is §5.4's lesson at a length scale two orders of magnitude larger.
 
 ---
 
@@ -633,7 +716,7 @@ seeds already help, it is a near no-op at 96% capture.
 harmful seeds, and its gated worst case is −672.6% — the *same* as the ungated
 worst, meaning it admits the single worst lift seed in the study. Lift converges
 by a
-different route — it is pressure-dominated, and §5.1 showed that resampling
+different route — it is pressure-dominated, and §5.2 showed that resampling
 *helps* lift while destroying drag — so a probe reading the momentum residual is
 weakly informative about it. The gate should be applied per quantity, and on the
 quantity a user cares about; we do not claim it is a universal filter. Its
@@ -694,22 +777,34 @@ wall-clock seconds, inference and seed construction included") is not yet met.
   n = 1 per Reynolds number and one low-Re claim is withdrawn pending
   re-measurement.
 - **Bands below 1% need a longer budget.** At b = 0.5% and 0.2% the total-drag
-  rows are unreadable at 6000 iterations, and we do not quote them `[[B4]]`.
+  rows are unreadable at 6000 iterations on the corpus, and on the mechanism
+  study the 0.5% margin is 0.232% against a 0.25% limit `[[B4]]`.
 - **`nuTilda` is floored at freestream** on write, a common-mode limitation
-  quantified in §5.4.
-- **naca4412@3° is excluded, always with cause**: no unique steady fixed point
-  at this budget (arms 7% apart in final Cd; floor 1.6e-5 against 6e-8–1.7e-6
-  elsewhere). This is a real warning about the separated regime, which the
-  generality sweep enters deliberately.
-- **The residual metric is negative for the recommended arm** (§5.5).
+  quantified in §5.5.
+- **Three cases have no unique steady drag at this budget**, and they share a
+  shape: `naca4412@3°`, `naca4415@2°` and `naca4415@4°` — thick cambered sections
+  at low incidence. Their arms settle on drag values 1.0–7% apart while every
+  other case in either study agrees to ≤0.113%, and they carry the corpus's worst
+  residual floors (8.75e-6, 1.6e-5, 1.22e-6, against ~1e-7 elsewhere). `4412@3` is
+  excluded with cause from the mechanism study; the two `4415` cases are
+  **admitted and reported** in the corpus, where they cost us every total-drag
+  row (§5.1). We do not know whether this is genuine non-uniqueness or a budget
+  we did not pay, and we do not claim to.
+- **The headline misses our own pre-registered threshold**: +18.4% against +30%
+  (§5.1). Stated rather than restated.
+- **The residual metric is negative for the recommended arm** (§5.6).
+- **The recommended arm has never been timed** (§9). This is the one clause of
+  our own bar with no measurement behind it at all.
 
 ---
 
 ## 11. Conclusion
 
-A neural surrogate can accelerate a production RANS solver, and the conditions
-under which it does are narrow, checkable, and explicable by a single measured
-quantity. It must be evaluated at the solver's own cell centres, because the
+A neural surrogate can accelerate a production RANS solver — **+18.4% on viscous
+drag, on every one of thirteen cases from attached flow into incipient
+separation, p = 0.0002** — and the conditions under which it does are narrow,
+checkable, and explicable by a single measured quantity. It must be evaluated at
+the solver's own cell centres, because the
 first-cell wall gradient — which no practical grid representation can carry — is
 what viscous drag integrates. It must hand over the boundary layer and nothing
 else, because the outer field is where the model extrapolates. And it must hand
@@ -720,6 +815,15 @@ Read as advice rather than as a result, the paper is short: **query your surroga
 where the solver lives, give it only the region your surrogate was trained on,
 give it whole physics rather than single channels, and spend 3% of a solve
 checking before you commit.**
+
+The size of the effect is the part we would revise downward if we ran this again.
+We pre-registered +30% and measured +18.4%; the +33.9% on total drag that the
+five-case study supports does not survive to thirteen cases as a readable number.
+What did survive is the shape of the result — every case, both controls behaving,
+monotone across bands — and the mechanism that explains it, which is stated in
+units a reader can check on their own mesh before running anything: **how much of
+the first-cell wall gradient does your representation keep?** Ours keeps 46% of
+it and buys 18%. A 16,384-value grid keeps none of it and costs you the solve.
 
 ---
 
