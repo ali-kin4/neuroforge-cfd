@@ -316,21 +316,38 @@ rejecting costs `K + cold`. Worst case `(1 + K/N)` × cold, whatever the seed
 does. The rule never sees a cold run — in production there isn't one — and its
 threshold is chosen on the other cases and applied to the held-out one.
 
-Five cases × eleven strategies, `K = 25`, threshold on the residual level:
+> **Correction, 2026-08-30.** The table below used to be scored over eleven arms
+> and read +3.7% / +1.8% / +1.9% / +23.5%. Those numbers were **arm-set
+> dependent**: the tree now holds fifteen arms, and re-scoring all four metrics
+> over the same declared set moves the drag mean from +3.7% to **+1.5%** and the
+> lift mean from +1.9% to **−8.2%**. The invariant claims — *zero harmful seeds
+> admitted on drag and on the residual*, and the worst cases −5.8% / −7.6% — did
+> not move. **Sell the gate as insurance, not as a mean saving.** Files:
+> `results/cert_all13_{Cd,Cd_v,Cl,residual}.json`.
 
-| metric | ungated mean | worst seed | **gated mean** | **gated worst** | harmful admitted |
-|---|---:|---:|---:|---:|---:|
-| Cd@1% | −168.9% | −1169.6% | **+3.7%** | **−5.8%** | 0/32 |
-| residual 5e-6 | −170.8% | −1449.3% | +1.8% | −7.6% | 0/36 |
-| Cl@1% | −21.5% | −671.9% | +1.9% | −100.0% | 1/22 |
-| Cd_v@1% | +23.5% | −8.6% | +23.5% | −8.6% | 9/10 |
+Five cases × fifteen strategies (70 seeds; 56 on lift, where one case has
+near-zero lift), `K = 25`, threshold on the residual level:
+
+| metric | seeds | ungated mean | ungated worst | **gated mean** | **gated worst** | harmful admitted |
+|---|---:|---:|---:|---:|---:|---:|
+| Cd@1% | 70 | −163.6% | −1169.6% | **+1.5%** | **−5.8%** | **0/46** |
+| residual 5e-6 | 70 | −161.9% | −1449.3% | −0.5% | **−7.6%** | **0/53** |
+| Cd_v@1% | 70 | +20.1% | −8.6% | +20.1% | −8.6% | 14/15 |
+| Cl@1% | 56 | +1.1% | −672.6% | **−8.2%** | **−672.6%** | 5/18 |
+
+**The gate fails on lift** — its gated worst equals its ungated worst, so it
+admits the single worst lift seed in the study. Say so; the `(1 + K/N)` bound is
+arithmetic and survives it, and §3.5 already explains why lift behaves
+differently from drag.
 
 The gate is not what makes warm starting fast; it is what makes it adoptable. It
-captures only 17–24% of what a gatekeeper with foreknowledge would get on the
-metrics where most seeds are harmful — conservative by construction — and on
-viscous drag, where 40 of 50 seeds already help, it is nearly a no-op at 97%
-capture. Longer probes are monotonically worse: by `K = 400` the probe cost alone
-(−49.6%) exceeds anything the decision can recover.
+captures 12% of what a gatekeeper with foreknowledge would get on total drag,
+where 46 of 70 seeds are harmful — conservative by construction — and on viscous
+drag, where 55 of 70 already help, it is a near no-op at 96% capture. Longer
+probes are monotonically worse, and not marginally: at `K = 400` on drag the rule
+admits 13 harmful seeds it rejected at `K = 25` and returns −43.9%, because the
+probe cost alone (bound −49.8%) exceeds anything the decision can recover. **A
+short probe is the better rule, not a compromise forced by cost.**
 
 ### 3.7 The protocol, and three of our own sign errors
 

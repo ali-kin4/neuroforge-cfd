@@ -126,10 +126,17 @@ exciting one and the more fragile one.
 
 ### 4. A no-harm certificate makes a mixed result deployable
 A 25-iteration probe on the residual, with the threshold calibrated on other
-cases and applied to a held-out one, converts a strategy averaging **−168.9%**
-with a **−1169.6%** tail into one averaging **+3.7%** whose worst single seed is
-**−5.8%**, admitting none of the 32 harmful seeds. Worst case is bounded at
-(1 + K/N) × cold by construction. Longer probes are monotonically worse.
+cases and applied to a held-out one, converts a population of 70 seeds averaging
+**−163.6%** with a **−1169.6%** tail into one averaging **+1.5%** whose worst
+single seed is **−5.8%**, admitting **none of the 46 harmful seeds**. Worst case
+is bounded at (1 + K/N) × cold by construction. Longer probes are monotonically
+worse.
+
+**Claim it as insurance, not as a mean saving.** The mean is small and it moved
+when the arm set grew (+3.7% → +1.5% on drag, +1.9% → −8.2% on lift; see
+`PLANS.md` §3.6). What did not move is the pair that matters: the tail collapses
+and no harmful seed is admitted. **And the gate fails on lift** — its gated worst
+equals its ungated worst — which the paper states rather than omits.
 
 This is what makes the paper practical rather than observational, and it is the
 property [PCGBandit](https://arxiv.org/html/2509.08765) sells as "never worse

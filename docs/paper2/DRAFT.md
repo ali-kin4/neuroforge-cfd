@@ -55,9 +55,11 @@ Because a bad seed can be much worse than no seed, we add an acceptance test: ru
 K = 25 probe iterations, read one scalar from the residual history, and either
 continue or discard the seed and start cold. The rule never observes a cold run,
 its threshold is calibrated leave-one-case-out, and it bounds the worst case at
-(1 + K/N) x cold by construction. Across 5 cases x 11 seeding strategies it
-turns an ungated mean of -168.9% (worst -1169.6%) into **+3.7%, worst -5.8%, with
-zero harmful seeds admitted**.
+(1 + K/N) x cold by construction. Across 5 cases x 15 seeding strategies (70
+seeds) it turns an ungated mean of -163.6% with a -1169.6% tail into **+1.5%
+mean, worst -5.8%, admitting none of the 46 harmful seeds**. The gate is
+insurance rather than a profit centre, and we report the one quantity it fails
+on (lift) rather than the four it handles.
 
 We report three of our own falsified predictions and six measurement rules that
 each changed a *sign* on our own data, including one published number we withdraw
@@ -548,8 +550,9 @@ pair, which is §5.3's lesson at a length scale two orders of magnitude larger.
 ## 8. An acceptance test that bounds the worst case
 
 Warm starting is only adoptable if a bad seed cannot cost more than not seeding.
-Ours can: ungated across 5 cases x 11 strategies, the mean is -168.9% and the
-worst seed is -1169.6% on Cd@1%.
+Ours can: ungated across 5 cases x 15 strategies (70 seeds, every arm in the
+tree, not a favourable subset), the mean is -163.6% on Cd@1% and the worst single
+seed is -1169.6%. Only 24 of the 70 seeds help at all.
 
 **The rule.** Run K probe iterations from the seed. Read two scalars from the
 residual history — the level log10 r_K and the drop log10 r_K - log10 r_0. Either
@@ -562,17 +565,27 @@ solve; rejecting costs K + cold. The worst case is therefore
 the entire point of warm starting. The threshold is calibrated leave-one-case-out
 and applied to the held-out case.
 
-K = 25 (~3% of a cold solve):
+K = 25 (~3% of a cold solve), threshold on the residual level, scored over every
+arm in the `repr3` tree:
 
-| metric | ungated mean | worst seed | **gated mean** | **gated worst** | harmful admitted |
-|---|---:|---:|---:|---:|---:|
-| Cd@1% | -168.9% | -1169.6% | **+3.7%** | **-5.8%** | 0/32 |
-| residual 5e-6 | -170.8% | -1449.3% | +1.8% | -7.6% | 0/36 |
-| Cl@1% | -21.5% | -671.9% | +1.9% | -100.0% | 1/22 |
-| Cd_v@1% | +23.5% | -8.6% | +23.5% | -8.6% | 9/10 |
+| metric | seeds | ungated mean | ungated worst | **gated mean** | **gated worst** | harmful admitted |
+|---|---:|---:|---:|---:|---:|---:|
+| Cd@1% | 70 | -163.6% | -1169.6% | **+1.5%** | **-5.8%** | **0 / 46** |
+| residual 5e-6 | 70 | -161.9% | -1449.3% | -0.5% | **-7.6%** | **0 / 53** |
+| Cd_v@1% | 70 | +20.1% | -8.6% | +20.1% | -8.6% | 14 / 15 |
+| Cl@1% | 56 | +1.1% | -672.6% | **-8.2%** | **-672.6%** | 5 / 18 |
 
-**Where the gate fails, stated rather than buried.** On lift it admits one
-harmful seed in 22 and its gated worst case is −100%. Lift converges by a
+**Read the two columns that matter as a pair.** The gated mean is small — the
+gate is insurance, not a profit centre, and selling it as a mean saving would be
+selling the wrong product. What it does is convert a −1169.6% tail into a −5.8%
+one on drag, and a −1449.3% tail into −7.6% on the residual, while admitting
+**none** of the harmful seeds in either case. On viscous drag, where 55 of 70
+seeds already help, it is a near no-op at 96% capture.
+
+**Where the gate fails, stated rather than buried.** On lift it admits 5 of 18
+harmful seeds, and its gated worst case is −672.6% — the *same* as the ungated
+worst, meaning it admits the single worst lift seed in the study. Lift converges
+by a
 different route — it is pressure-dominated, and §5.1 showed that resampling
 *helps* lift while destroying drag — so a probe reading the momentum residual is
 weakly informative about it. The gate should be applied per quantity, and on the
@@ -582,11 +595,13 @@ arithmetic, not statistical: it holds for any seed, any metric, and any threshol
 including a threshold that admits every seed.
 
 The gate is not what makes warm starting fast; it is what makes it deployable. It
-is conservative by construction, capturing only 17–24% of what a gatekeeper with
-foreknowledge would achieve on the metrics where most seeds are harmful, and it
-is nearly a no-op (97% capture) on viscous drag, where 40 of 50 seeds already
-help. Longer probes are monotonically worse: by K = 400 the probe cost alone
-(-49.6%) exceeds anything the decision can recover.
+is conservative by construction, capturing only 12% of what a gatekeeper with
+foreknowledge would achieve on total drag — the metric where two thirds of the
+seeds are harmful. Longer probes are monotonically worse, and not marginally:
+at K = 400 on drag the rule admits 13 harmful seeds it rejected at K = 25 and
+returns −43.9%, because the probe cost alone (bound −49.8%) exceeds anything the
+decision can recover. **A short probe is not a compromise forced by cost; it is
+the better rule.**
 
 ---
 
