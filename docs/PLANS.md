@@ -774,6 +774,43 @@ Run the reviewer panel over the draft. The three objections already visible:
    quantity and the paper says so; do not let this be discovered in review.
 5. *"You never timed the arm you recommend."* → Phase C. **True until it runs.**
 
+### Phase G — the submission pass (NOT STARTED, ~half a day)
+
+**Audited 2026-08-30 against the CMAME/Elsevier guide for authors.** The draft is
+a *working document* and was never formatted for a journal; the length is fine
+and almost every formal requirement is missing. None of this is hard, but none of
+it is done.
+
+| requirement | CMAME / Elsevier | ours | |
+|---|---|---|---|
+| Abstract | **~250 words** | **669 words, 8 paragraphs** | ❌ 2.7× over |
+| Highlights | 3–5 bullets, **≤85 chars each**, separate file | none | ❌ |
+| Graphical abstract | expected | none | ❌ |
+| Keywords | 1–7, no multi-word phrases | none | ❌ |
+| CRediT statement | required | none | ❌ |
+| Data availability statement | required | none | ❌ |
+| Declaration of competing interest | required | none | ❌ |
+| Reference list | numbered Elsevier style | **7 inline arXiv ids, no bibliography** | ❌ |
+| Figure captions | numbered, self-contained | referenced by file path in prose | ❌ |
+| Length / pages | no hard cap | 17 pp, ~7,600 words, 22 tables, 3 figures | ✅ |
+| Template | `elsarticle` | plain `article` | ⚠ |
+
+**Working matter that must not reach an editor**, all currently in the draft:
+the `Status:` block, the `The framing, decided 2026-08-30` paragraph, the
+`Draft --- not submitted` datestamp, every `[[B2]]`/`[[B4]]`/`[[B5]]` marker,
+references to `PLANS.md`, and the `results/*.json` + script names sprinkled
+through the prose. Those are *why the draft is trustworthy to us* and *why it
+looks unfinished to them*. Move them to a reproducibility appendix or delete.
+
+**The one item that is real writing, not formatting: the abstract.** 669 → 250
+words means choosing which of the five contributions survives the abstract. On
+the framing decided today it should be the representation failure and the
+criterion; the +18.4% is a sentence, not a paragraph.
+
+**Do this only after the venue is chosen** — the table above is CMAME's, and JCP
+differs (250-word cap, no YPYW, see `jcp-submission-state`). Formatting to the
+wrong template is the one part of this work that can be wasted.
+
 ### Phase F — write it
 
 Working title: **"A surrogate must speak the solver's mesh: mesh-native,
