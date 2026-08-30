@@ -126,10 +126,14 @@ a flat curve crossing a line. **Now quantified: `nf_bl` on total drag reads
 1% and gone by 0.5% — while `oracle_mesh` is monotone on both, so the
 instability belongs to the seed and not to the measurement.
 
-**Decision (2026-08-30):** the §0 bar is not restated around Cd_v, because
-+14.6% would fail an item we pre-registered at +30%. Cd@1% stays the headline
-and is **never quoted without its band curve**; Cd_v is reported alongside as
-the stability evidence. Both rows, always, in that order (`PLANS.md` §3.3).
+**Decision, revised later the same day when the 13-case sweep landed.** The
+morning's call — keep Cd@1% as the headline because Cd_v's +14.6% failed the
++30% bar — rested on Cd@1% being *readable*. At n=13 it is not: two `naca4415`
+cases settle 1.0–1.3% apart and every total-drag row falls. So **Cd_v is the
+headline** (+18.4%, 13/13, p = 0.0002) **and the bar is simply missed**, which
+is the honest pairing. Cd@1% = +33.9% remains true on the 5-case mechanism
+study and is quoted only there, always with its band curve
+(+33.9% / −4.2% / −38.5%). See `PLANS.md` §0 and §3.0.
 
 ### 4. A no-harm certificate makes a mixed result deployable
 A 25-iteration probe on the residual, with the threshold calibrated on other
