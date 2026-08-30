@@ -34,7 +34,7 @@ Last updated: **2026-08-30** · branch `paper2/openfoam-warm-start` · pushed to
 | 3 | trained model, not an oracle | ✅ |
 | 4 | oracle control passing | ✅ +93.6%, 13/13 |
 | 5 | n ≥ 12, attached → incipient separation | ✅ **13 cases, 13 admitted** |
-| 6 | confirmed in wall-clock seconds | ❌ **n=0 for the recommended arm** (§3.8) |
+| 6 | confirmed in wall-clock seconds | ✅ **+28.8% end-to-end, n=5, exclusive** (§3.8) |
 
 **Item 1 is missed and the threshold stays where it is.** Restating a
 pre-registered number after seeing the result is the move §3.7 exists to prevent,
@@ -47,7 +47,14 @@ negotiate with it.
 The five-case +33.9% on Cd@1% is not withdrawn; it does not *generalise as a
 readable number*, which is a different and more interesting fact (§3.0).
 
-**Only item 6 is still open, and Phase C closes it.**
+**Phase C landed 2026-08-30 and closed item 6.** Five cases, serial and
+exclusive, seed construction charged in full: **+34.0% iterations → +28.8%
+end-to-end seconds**, oracle control +93.1% s, Cartesian negative control
+−308% s. **The translation from iterations to seconds costs about five
+percentage points**, consistently, case by case (gap 0.1–8.0 pts) — that is the
+transferable statement and it does not depend on any readability verdict.
+
+**Item 1 is the only clause we miss, and we are not moving it.**
 
 **Venue.** CMAME — this is new computational methodology, which is exactly what
 CMAME told us Paper 1 lacked. JCP alternative. Subscription licence, no APC
@@ -479,7 +486,20 @@ All six live in `solver/scoring.py` with a test naming the mistake.
 - **`naca4412@3` is excluded, always with the reason**: no unique steady fixed
   point (arms 7% apart in final Cd; floor 1.6e-5 against 6e-8–1.7e-6 elsewhere).
   It is a warning about the separated regime, which Phase B1 enters deliberately.
-- **The wall-clock number is not the recipe's** — read this before quoting it.
+- **The wall-clock number is now the recipe's** (Phase C, 2026-08-30,
+  `results/wallclock_control.json`, `exclusive: true`). `nf_bl`: **+34.0%
+  iterations → +28.8% end-to-end seconds** over five cases; per case the
+  iteration-to-seconds gap is 0.1, 6.2, 6.1, 5.6, 8.0 points. Seed construction
+  charged in full: inference 10.4–10.6 s at 31,700 points, `wall_distance` 0.4 s,
+  masking 0.4 s — ~11 s against cold solves of 88–239 s. **Two of the five cases
+  exceed the 0.5% readability limit on this five-arm tree** (0.751%, 0.745%); on
+  the three readable ones it is +29.7% it → +25.0% s. Note the oracle does
+  *better* in seconds than iterations (+93.1 vs +92.0) and Cartesian is *less*
+  bad (−308 vs −514): a seeded solve has cheaper inner linear solves, so
+  iterations are the conservative unit.
+
+- **The superseded wall-clock note, kept because it is a warning** — read this
+  before quoting any pre-Phase-C timing.
   `+41% iterations → +30% seconds` is `fitted_256x64`, an **oracle** arm, at
   **residual 5e-6**, on one case (`results/wallclock_control.json`, which
   predates the script's rewrite and contains no `nf_bl` column at all). The same

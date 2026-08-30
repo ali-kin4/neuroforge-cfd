@@ -1,10 +1,9 @@
 # The wall gradient is the warm start: why projected neural predictions slow a RANS solver down
 
-**Status:** full draft, 2026-08-30, with the thirteen-case generality sweep in.
-Every number here is traceable to a `results/*.json` file and a script. The one
-measurement still outstanding is marked `[[C]]`: wall-clock seconds for the
-recommended arm, which has never been timed. **No number in this file may be
-changed without changing PLANS.md too.**
+**Status:** full draft, 2026-08-30. **All planned measurements are in** — the
+thirteen-case generality sweep and the exclusive wall-clock run both landed
+today. Every number here is traceable to a `results/*.json` file and a script.
+**No number in this file may be changed without changing PLANS.md too.**
 
 **The framing, decided 2026-08-30.** This paper is *not* a speedup paper. The
 largest number in this literature is 26.3×; ours is +18.4%, and a paper that
@@ -775,32 +774,55 @@ the better rule.**
 ## 9. Wall-clock
 
 Iterations are the honest unit for a mechanism, but the claim an engineer cares
-about is seconds, and a mesh-native seed costs seconds a projected one does not:
+about is seconds — and a mesh-native seed costs seconds a projected one does not:
 wall-distance computation, surrogate inference, masking, and writing the case.
 
-`scripts/wallclock_control.py` charges each preparation stage — wall distance,
-inference, masking, writing — to the arms that need it and reports end-to-end
-seconds, running serially and refusing to start while any other solver is up.
+`scripts/wallclock_control.py` charges each preparation stage to the arms that
+need it and reports **end-to-end** seconds. It runs serially and refuses to start
+while any other solver is up; that refusal is part of the measurement. Five
+cases, all arms, `exclusive: true`.
 
-**What is measured today, stated exactly.** One case, one arm, one metric:
-`fitted_256x64` — an **oracle** seed — reaches residual 5e-6 in 567 iterations
-against a cold start's 960 (**+41%**) and in 131.6 s against 189.2 s (**+30%**).
-The iteration saving therefore does survive translation into seconds: the
-per-iteration penalty of a seeded solve is 1.14x, not enough to eat a 41%
-iteration saving. That is the transferable part of this measurement, and it is
-the part the mechanism sections need.
+| arm | iterations | **end-to-end seconds** |
+|---|---:|---:|
+| `oracle_mesh` (control) | +92.0% | **+93.1%** |
+| **`nf_bl`** | **+34.0%** | **+28.8%** |
+| `fitted_bl` | −190.7% | −138.0% |
+| `cartesian_128` | −513.5% | −308.4% |
 
-**What is not measured, and we will not imply otherwise.** That arm is not the
-recommended one, and on the metric this paper leads with it is *bad* — the same
-`fitted_256x64` run needs 1077 iterations against cold's 433 on Cd@1% (−149%).
-**The recommended arm, `nf_bl`, has no wall-clock measurement at all yet**;
-`wallclock_control.py` includes it and the run is pending `[[C]]`. Until that
-lands, the honest statement is: *iteration savings translate to seconds at a
-1.14x per-iteration penalty, and whether `nf_bl`'s +33.9% on drag survives that
-translation — including its inference and wall-distance cost — is untested.*
+**The iteration saving survives translation into seconds, and the cost of the
+translation is about five percentage points.** That is the transferable finding
+here, and it holds case by case rather than only on the mean:
 
-This is the one place where our own bar (§0 of the project plan: "confirmed in
-wall-clock seconds, inference and seed construction included") is not yet met.
+| case | iterations | seconds | gap |
+|---|---:|---:|---:|
+| `naca0012@4` | −3.3% | −3.4% | 0.1 |
+| `naca2412@2` | +40.9% | +34.7% | 6.2 |
+| `naca0015@6` | +27.6% | +21.5% | 6.1 |
+| `naca0012@0` | +40.1% | +34.5% | 5.6 |
+| `naca2415@5` | +64.9% | +56.9% | 8.0 |
+
+Seed construction is charged in full and is small against the solve: backbone
+inference at 31,700 points **10.4–10.6 s**, `wall_distance` 0.4 s, masking 0.4 s
+— **~11 s** against cold solves of 88–239 s. The rest of the five-point gap is
+the per-iteration penalty of a seeded solve, which is modest.
+
+Two details worth stating because they cut *for* us and could look like errors:
+the **oracle does better in seconds than in iterations** (+93.1% vs +92.0%), and
+the Cartesian arm is **less bad** in seconds than in iterations (−308% vs −514%).
+Both have the same cause — a solve started near the answer has cheaper inner
+linear solves — and both mean iteration counts are the conservative unit.
+
+**Readability, stated rather than assumed.** This tree carries five arms, not the
+fifteen of the mechanism study, so its reference is a median over fewer settled
+arms and its spreads are wider: two of the five cases (`naca2412@2` at 0.751%,
+`naca0012@0` at 0.745%) exceed the 0.5% limit for a 1% band. On the three
+readable cases the result is **+29.7% iterations → +25.0% seconds**, a 4.8-point
+translation cost — the same conclusion at a smaller n. The per-case gap column
+above is what we actually lean on, and it is independent of the readability
+verdict entirely.
+
+With this, the last clause of our pre-registered bar — *confirmed in wall-clock
+seconds, inference and seed construction included* — is **met**.
 
 ---
 
@@ -830,8 +852,9 @@ wall-clock seconds, inference and seed construction included") is not yet met.
 - **The headline misses our own pre-registered threshold**: +18.4% against +30%
   (§5.1). Stated rather than restated.
 - **The residual metric is negative for the recommended arm** (§5.6).
-- **The recommended arm has never been timed** (§9). This is the one clause of
-  our own bar with no measurement behind it at all.
+- **Wall-clock is n = 5, and two of those five exceed the readability limit on
+  that tree** (§9). The per-case iteration-to-seconds gap, which is what we lean
+  on, is consistent across all five and independent of that verdict.
 
 ---
 

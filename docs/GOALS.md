@@ -47,7 +47,7 @@ Everything below is a step toward that, or a measured limit on it.
 
 | Goal | State |
 |---|---|
-| **Paper 2**: mesh-native, boundary-layer-only warm starts, with a no-harm certificate | Mechanism measured **and controlled**, guarantee cross-validated, **generality closed at n=13** (all 13 admitted, 13/13 wins, p = 0.0002), **full draft written** (`docs/paper2/DRAFT.md`). **One gap left: wall-clock, at n=0 for the recommended arm** (`PLANS.md` §3.8) — Phase C. The pre-registered +30% bar is **missed at +18.4%** and stays where it is; see `PLANS.md` §0. |
+| **Paper 2**: mesh-native, boundary-layer-only warm starts, with a no-harm certificate | Mechanism measured **and controlled**, guarantee cross-validated, **generality closed at n=13** (all 13 admitted, 13/13 wins, p = 0.0002), **full draft written** (`docs/paper2/DRAFT.md`). **Wall-clock closed 2026-08-30**: +34.0% iterations → **+28.8% end-to-end seconds**, n=5, serial and exclusive, seed construction charged in full (`PLANS.md` §3.8). **Every clause of the bar is met except the magnitude**: +18.4% against a pre-registered +30%, and the threshold stays where it is (`PLANS.md` §0). Title chosen; framing decided — this is a representation paper, not a speedup paper. |
 
 ### ○ Queued
 
