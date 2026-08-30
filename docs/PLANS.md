@@ -540,7 +540,12 @@ working).
 Phases A–C are compute and are what stand between today's numbers and the bar in
 §0. D–F turn measurements into a paper.
 
-### Phase A — establish the mechanism, and split the channels (running, ~1 h)
+### Phase A — establish the mechanism, and split the channels ✅ DONE
+
+**Landed, and it went the way the paper needed.** `nf_bl_proj` is **−58.8%**
+against `nf_bl`'s **+33.9%**, so §3.1 is a controlled result rather than an
+inference, and the channel split produced a *third* condition nobody predicted
+(§3.1a). The confound named below no longer exists anywhere in the paper.
 
 ```bash
 python scripts/mesh_native_probe.py --only naca0012@4      # one process per case
@@ -583,9 +588,14 @@ bar fixes that. Generality is worth more per compute-hour than `n`.
   output maps over. Budget honestly.
 - **B3 — a second Reynolds number at the same protocol (~2 h).** Re 1e6, five
   cases, same arms. Turns "at Re 3e6" into "across the range where it matters".
-- **B4 — the budget that makes Cd@0.5% readable (~1 h, not 3).** §3.3 says the
-  settled arms must agree to 0.25% for a 0.5% band and they are at 0.33%. The
-  per-case breakdown says this is a *budget* problem on **two cases only**:
+- **B4 — the budget that makes Cd@0.5% *robust* (~1 h, not 3).** ⚠ **Its premise
+  changed on 2026-08-30.** Cd@0.5% is no longer unreadable: the settled arms
+  agree to **0.232%** against a 0.25% limit (§3.3). So B4 is no longer about
+  unlocking the row — it is about the **margin**, which is 0.018 percentage
+  points wide. The row currently reads **−4.2%** for `nf_bl`, and the paper
+  quotes it as part of the band curve, so the question B4 now answers is whether
+  that −4.2% is a measurement or a coin-flip. The two cases below are still the
+  right ones to lengthen, for the same reason:
 
   | case | settled Cd spread | 0.5% band needs ≤ 0.25% |
   |---|---:|---|
@@ -610,10 +620,24 @@ bar fixes that. Generality is worth more per compute-hour than `n`.
   on everything else. There is nothing there to compose with, and the days this
   would have cost are better spent on B1–B4.
 
-### Phase C — cost, honestly (~2 h, serial and exclusive)
+### Phase C — cost, honestly ⚠ CRITICAL PATH (~4 h, serial and exclusive)
 
-`scripts/wallclock_control.py` at n=5, nothing else running. Iterations are
-contention-proof; seconds are not, and the current sentence rests on one case.
+**Run this the moment B1 finishes, and run nothing else while it runs.**
+
+```bash
+.venv/Scripts/python.exe scripts/wallclock_control.py > logs/wallclock.log 2>&1
+```
+
+5 cases × 5 arms × 6000 iterations, serial, ≈4 h; `completed_run` reuses the four
+solves already in `runs/openfoam/wallclock`. The script refuses to start while
+any other solver is up, **and that refusal is the measurement working** — do not
+pass `--force`.
+
+Why it is critical rather than cosmetic: §3.8 shows the only wall-clock number we
+have is `fitted_256x64`, an **oracle** arm, at a **residual** target, on one case
+— and that arm is −149% on Cd@1%. `results/wallclock_control.json` predates the
+script's rewrite and has **no `nf_bl` column at all**. So bar item 6 is at n=0
+for the recommended arm. Iterations are contention-proof; seconds are not.
 **Include in the accounting**, because a reviewer will ask and "milliseconds" is
 not an answer:
 
@@ -627,20 +651,32 @@ not an answer:
 - Per-case scatter for every headline number (the mean hides that `nf_bl` ranges
   +12% to +66% across cases), bootstrap CI, and a sign test — with n≥12 from
   Phase B, a sign test is the honest instrument for "this helps".
-- Figures: (i) the wall-gradient bar chart of §3.1 — the paper's central image;
-  (ii) the 2×2 of §3.2; (iii) the per-quantity convergence decomposition of §3.5;
-  (iv) the certificate's capture-versus-`K` curve; (v) mesh structure.
-- Every number traceable to a committed `results/*.json`.
+- Figures. **Figure 1 is built** (`scripts/plot_mechanism.py` →
+  `results/mechanism.png`): (A) the wall-gradient bar chart of §3.1, (B) gradient
+  error against drag saving, (C) the two controlled contrasts of §3.2 — panel C
+  replaced the retired 2×2 on 2026-08-30. Still to draw: (ii) **the band curve**
+  — Cd and Cd_v at 1% / 0.5% / 0.2% for `nf_bl` and `oracle_mesh`, which is the
+  figure §3.3 now demands; (iii) the per-quantity convergence decomposition of
+  §3.5; (iv) the certificate's capture-versus-`K` curve; (v) mesh structure.
+- Every number traceable to a committed `results/*.json`, **and every figure
+  regenerated from the declared arm set** (`--drop-arm oracle_wake`), so figures
+  and tables cannot drift apart.
 
 ### Phase E — adversarial review before submission
 
 Run the reviewer panel over the draft. The three objections already visible:
 
-1. *"You compare a trained model against a projected oracle; the comparison is
-   confounded."* → Phase A exists to remove exactly this. Do not submit without it.
-2. *"Five NACA airfoils at small incidence."* → Phase B.
-3. *"You report the metric that worked."* → §3.3's readability table and §3.6's
-   gate, both of which report the metrics that did not.
+1. ✅ *"You compare a trained model against a projected oracle; the comparison is
+   confounded."* → **closed by Phase A.** `nf_bl` vs `nf_bl_proj` is one network,
+   one prediction, one variable.
+2. *"Five NACA airfoils at small incidence."* → Phase B1, running.
+3. *"You report the metric that worked."* → §3.3's band curve (which shows our
+   own headline falling to −4.2% one band down) and §3.6's gate (which reports
+   the quantity it fails on).
+4. **New, and the sharpest one left:** *"Your headline is +33.9% at a 1% band and
+   −4.2% at 0.5%. Which is it?"* → §3.3. The answer is that Cd_v is the stable
+   quantity and the paper says so; do not let this be discovered in review.
+5. *"You never timed the arm you recommend."* → Phase C. **True until it runs.**
 
 ### Phase F — write it
 
