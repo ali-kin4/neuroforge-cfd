@@ -192,8 +192,21 @@ def main(argv=None):
     # full budget can bound a target they never reached.
     lengths = {(c, a): len(hist[(c, a)].get("Ux", ())) if hist[(c, a)] else 0
                for c in cases for a in [args.cold] + arms}
+    # A run that satisfied `residualControl` is *finished*, not truncated --
+    # OpenFOAM prints "SIMPLE solution converged in N iterations" and exits. The
+    # length test alone called those unfinished and left them unscored, which
+    # penalised exactly the arms that converge fastest: at n=13 it silently
+    # dropped the oracle control on one case and turned a +93% control into a
+    # +49.7% bound. `completed_run` has always had this right; the scorer did not.
+    converged = {k: bool(v["converged"]) if v else False for k, v in info.items()}
     full = max(lengths.values(), default=0)
-    budgets = {k: (v if v >= 0.9 * full else 0) for k, v in lengths.items()}
+    budgets = {k: (v if (v >= 0.9 * full or converged.get(k)) else 0)
+               for k, v in lengths.items()}
+    early = sorted(f"{c}_{a} ({lengths[(c, a)]})" for (c, a) in converged
+                   if converged[(c, a)] and lengths[(c, a)] < 0.9 * full)
+    if early:
+        print("\nconverged early and scored at that length (residualControl met): "
+              + ", ".join(early))
     unfinished = sorted(f"{c}_{a} ({lengths[(c, a)]})"
                         for (c, a), v in budgets.items() if v == 0 and lengths[(c, a)])
     if unfinished:
