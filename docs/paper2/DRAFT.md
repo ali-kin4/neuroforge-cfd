@@ -1,4 +1,4 @@
-# [TITLE NOT CHOSEN — see §0 below]
+# The wall gradient is the warm start: why projected neural predictions slow a RANS solver down
 
 **Status:** full draft, 2026-08-30, with the thirteen-case generality sweep in.
 Every number here is traceable to a `results/*.json` file and a script. The one
@@ -6,60 +6,68 @@ measurement still outstanding is marked `[[C]]`: wall-clock seconds for the
 recommended arm, which has never been timed. **No number in this file may be
 changed without changing PLANS.md too.**
 
-**Two decisions are the author's and are deliberately left open:** the title and
-the venue. The draft is written venue-neutral (no template, no page budget) so
-that either choice costs a formatting pass and nothing else.
-
----
-
-## 0. Title candidates
-
-1. *A surrogate must speak the solver's mesh: mesh-native, boundary-layer-only
-   warm starts for RANS* — the working title; states the finding, slightly long.
-2. *Three conditions for a neural surrogate to accelerate a RANS solver* —
-   shorter, promises exactly what the paper delivers, loses the mechanism.
-3. *The wall gradient is the warm start: why projected neural predictions slow
-   RANS solvers down* — leads with the mechanism, sharper, riskier.
+**The framing, decided 2026-08-30.** This paper is *not* a speedup paper. The
+largest number in this literature is 26.3×; ours is +18.4%, and a paper that
+competes on that axis loses before it is read. What we have that nobody else has
+is a **measured, checkable reason** why a surrogate stored the way the entire
+neural-operator field stores its outputs is not merely a *worse* initial
+condition than a uniform freestream but a **catastrophic** one — and a single
+scalar, computable on your own mesh before you run anything, that says which it
+will be. The speedup is the confirmation that the criterion is the right one.
+Venue is left open; the draft is venue-neutral so that choice costs a formatting
+pass and nothing else.
 
 ---
 
 ## Abstract
 
 Neural surrogates for external aerodynamics are usually evaluated as predictors.
-We evaluate one as an *initial condition*: we hand a trained surrogate's
-prediction to a production RANS solver (OpenFOAM `simpleFoam`, Spalart–Allmaras)
-on a wall-resolved body-fitted C-grid at flight Reynolds number, and measure the
-iterations the solver still needs before its force coefficients stop moving.
+Used instead as *initial conditions* for a production RANS solver, they are
+routinely **worse than no initialisation at all** — and we show the reason is not
+accuracy but **representation**, that it is measurable in advance, and that
+fixing it turns a large loss into a reliable gain.
 
-The result is strongly conditional. Over **thirteen cases** spanning 2° to 12°,
-attached flow into incipient separation, a trained surrogate accelerates the
-convergence of **viscous drag — 60–84% of the total drag here — by +18.4%
-[+12.4, +25.3], winning on 13 of 13 cases (exact sign test p = 0.0002)**, with a
-converged-field oracle control at +93.6% and a negative control statistically
-indistinguishable from no seed at all (+3.4%, p = 0.27). The saving is monotone
-across convergence bands (+18.4% / +15.7% / +8.8%), which is what distinguishes a
-convergence-rate measurement from a curve crossing a line. Total drag is not
-readable over all thirteen: two cases converge to drag values 1% apart under
-different seeds, and we report that rather than excluding them. This is smaller
-than we pre-registered and more certain than we expected.
+Take the **exact converged flow field**, store it the way neural-operator outputs
+are normally stored — a 128² Cartesian raster, or a wall-fitted 256×64 grid at
+equal budget — and hand it back to the solver as a starting point. Convergence of
+total drag is **−548% and −173%** against a uniform freestream. A *perfect*
+answer, resampled, costs the solve five times over. The cause is geometric: the
+first cell on a wall-resolved mesh is 10⁻⁵ chords tall, no 16,384-value grid has
+a station anywhere near it, and so the round trip does not degrade the near-wall
+state but **deletes** it — leaving ~1900% error in the first-cell tangential
+velocity gradient, the quantity viscous drag integrates, against 2851% for a
+uniform freestream. Cartesian or body-fitted makes no difference; refining the
+raster does not help, because resolving one cell across the inner layer would
+need N ≈ 11,800.
 
-It holds only when three conditions hold simultaneously, each of which we show is
-necessary with a controlled arm, and none of which is sufficient alone:
+This gives a **criterion a practitioner can evaluate on their own mesh before
+running anything**: how much of the first-cell wall gradient does my
+representation retain? Ours, a Transolver-style point model queried directly at
+the solver's cell centres with no resampling, retains 46% of it where a grid
+retains none. **The criterion is necessary and not sufficient, and we are precise
+about which**: every seed that loses the wall gradient costs the solve, without
+exception, so a practitioner can use it to *rule a representation out* before
+spending anything. Keeping the gradient does not by itself buy a saving — one arm
+in this study retains it perfectly and is still the worst of all — which is what
+the remaining two conditions are for.
 
-1. the prediction is **evaluated at the solver's own cell centres**, never
-   resampled through a grid;
-2. only the **boundary layer** is handed over, not the whole field;
-3. **velocity and eddy viscosity are handed over together**, not separately.
+Acting on the criterion yields a recipe with **three conditions, each isolated by
+a controlled arm that changes one variable on one prediction**, none sufficient
+alone: evaluate at the solver's own **cell centres** (the same prediction
+resampled swings total drag by 93 points), hand over the **boundary layer only**
+(the whole field costs <−568%), and hand over **velocity and eddy viscosity
+together** (eddy viscosity alone is the study's *best* arm on viscous drag and
+its *worst* on total drag, because Spalart–Allmaras production is strain-driven).
 
-The mechanism is measured rather than argued. The quantity viscous drag
-integrates is the first-cell tangential velocity gradient. The first cell on this
-mesh is 1e-5 chords tall, so its centre sits 5e-6 chords off the wall and we
-probe the gradient at 4e-6. No 16,384-value grid — Cartesian *or* wall-fitted —
-has a station anywhere near there, so projecting even the **exact converged
-field** through one leaves ~1900% error in that gradient, against 2851% for a
-uniform freestream. The same surrogate queried pointwise at the cell
-centres leaves 54%. Resampling one identical prediction swings total drag by 93
-percentage points.
+Applied across **thirteen cases** from 2° to 12°, attached flow into incipient
+separation, the recipe accelerates convergence of **viscous drag — 60–84% of the
+total drag here — by +18.4% [+12.4, +25.3], winning on 13 of 13 cases (exact sign
+test p = 0.0002)**, monotone across convergence bands, with a converged-field
+oracle control at +93.6% and a negative control statistically indistinguishable
+from no seed at all (+3.4%, p = 0.27). Total drag is not readable over all
+thirteen — two cases converge to drag values 1% apart under different seeds — and
+we report that rather than excluding them. **The effect is smaller than we
+pre-registered (+30%) and more certain than we expected.**
 
 Because a bad seed can be much worse than no seed, we add an acceptance test: run
 K = 25 probe iterations, read one scalar from the residual history, and either
@@ -130,22 +138,32 @@ carries 54%.
 
 ### Contributions
 
-1. **Three necessary conditions**, each isolated by a controlled arm that changes
-   exactly one variable, on a common prediction (§5). Mesh-native evaluation, the
-   boundary layer alone, and the velocity–eddy-viscosity pair.
-2. **The mechanism, measured**: first-cell wall-gradient error for every seed
-   construction, including oracle projections that remove the accuracy confound
-   entirely (§6).
-3. **Three falsified predictions** that a reader would otherwise make: seed the
-   pressure (inert), seed what the cold solver is slow at (negative), seed the
-   wake (worth +0.5% here, against a 26.3x claim elsewhere) (§7).
-4. **An acceptance certificate** that bounds the worst case at (1 + K/N) x cold
+Ordered by what we think survives, not by what is largest.
+
+1. **A representational failure of the field's standard output format, measured
+   with the accuracy confound removed** (§6). The *exact converged answer*,
+   stored as a 128² raster or a wall-fitted 256×64 grid, is a catastrophically
+   bad initial condition — −548% and −173% on drag convergence. This is not about
+   any network's accuracy, and it is not fixable by refining the raster (§7.1).
+2. **A necessary criterion for it, computable before running a solve**:
+   first-cell wall-gradient retention. Every seed that loses the gradient costs
+   the solve, without exception — so it rules representations *out* for free. It
+   does not rule them in: `nf_mesh` retains the gradient perfectly and is the
+   worst arm in the study, which is why conditions 2 and 3 exist. It is a
+   property of the *representation*, not of the model (§6).
+3. **A recipe that follows from the criterion, with three necessary conditions**,
+   each isolated by a controlled arm changing exactly one variable on one
+   prediction; none sufficient alone (§5.2–§5.4).
+4. **Generality at n = 13**, attached flow to incipient separation, pre-registered
+   admission gate excluding nothing, +18.4% on viscous drag, 13/13, p = 0.0002,
+   with a passing oracle control and a **null** negative control (§5.1).
+5. **An acceptance certificate** that bounds the worst case at (1 + K/N) × cold
    using a rule that never sees a cold run (§8).
-5. **Generality at n = 13**, spanning attached flow to incipient separation, with
-   a pre-registered admission gate that excluded nothing, a passing oracle
-   control and a null negative control (§5.1).
-6. **A measurement protocol** of eight rules, six of which each changed a sign on
-   our own data, under which we withdraw one of our own previously reported
+6. **Three falsified predictions** a reader would otherwise make: seed the
+   pressure (inert), seed what the cold solver is slow at (negative), seed the
+   wake (worth +0.5%, against a 26.3× claim elsewhere) (§7).
+7. **A measurement protocol** of eight rules, six of which each changed a *sign*
+   on our own data, under which we withdraw one of our own previously reported
    numbers and miss one of our own pre-registered thresholds (§4).
 
 ### Is this a fact about your network?
@@ -168,13 +186,21 @@ strong classical alternative is also worth on this configuration.
 
 ### What this paper does not claim
 
+**It does not claim a speed record, and it is not competing for one.** The
+largest number in this literature is 26.3×; ours is +18.4%. §7.3 explains with a
+measurement rather than a rebuttal why that number and ours are about different
+regimes — an oracle seed of the entire wake buys +0.5% here. A reader who wants
+the fastest warm start should read that paper; a reader who wants to know whether
+*their* surrogate can warm-start *their* solver, and to find out before paying
+for it, should read this one.
+
 It does not claim the surrogate is accurate — accuracy is a separate question and
-is irrelevant here, since the solver converges to its own answer regardless. It
-does not claim a speed record: the largest number in this literature is 26.3x,
-and §7.3 explains, with a measurement rather than a rebuttal, why that number and
-ours are about different regimes. It does not claim generality beyond 2-D
-incompressible steady RANS with one turbulence model on NACA 4-digit sections at
-one Reynolds number; §10 says so plainly.
+irrelevant here, since the solver converges to its own answer regardless. And it
+does not claim generality of the *demonstration* beyond 2-D incompressible steady
+RANS with one turbulence model on NACA 4-digit sections at one Reynolds number.
+The **mechanism** is more general than that by construction — no grid of 16,384
+values has a station 5·10⁻⁶ chords off a wall, whatever solver or turbulence
+model reads it — but we measured it in one place and §10 says so plainly.
 
 ---
 
