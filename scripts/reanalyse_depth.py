@@ -120,6 +120,14 @@ def main(argv=None):
                          "is a property of the case, not of the seeds, and which "
                          "poisons every aggregate it appears in. Always report "
                          "the exclusion and the reason.")
+    ap.add_argument("--drop-arm", action="append", metavar="ARM", default=[],
+                    help="remove this arm from the tree entirely (repeatable): it "
+                         "is neither scored nor allowed to define the shared "
+                         "reference. The reference is the median over the arms "
+                         "that have settled, so *adding* an arm to a tree "
+                         "re-scores every arm already in it. A number that goes "
+                         "in a paper must therefore name the arm set it was "
+                         "computed over, and this is how that set is declared.")
     ap.add_argument("--filter", metavar="SUBSTRING",
                     help="score only the cases whose name contains this. A "
                          "Reynolds sweep must be scored one Reynolds number at a "
@@ -140,7 +148,11 @@ def main(argv=None):
                 cases.add(e[: -len(arm) - 1])
                 arms.add(arm)
                 break
-    arms = [a for a in KNOWN_ARMS if a in arms and a != args.cold]
+    arms = [a for a in KNOWN_ARMS
+            if a in arms and a != args.cold and a not in args.drop_arm]
+    if args.drop_arm:
+        print("arms dropped from the tree (not scored, not in the reference): "
+              + ", ".join(args.drop_arm))
     dropped = sorted(c for c in cases if any(x in c for x in args.exclude))
     cases = sorted(c for c in cases
                    if (not args.filter or args.filter in c)

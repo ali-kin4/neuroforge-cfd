@@ -88,12 +88,19 @@ metric is not a residual threshold: it is the number of iterations before a forc
 coefficient enters and stays inside a band around its converged value, because
 that is the quantity an engineer actually waits for.
 
-Under those conditions the naive experiment fails. Handing the solver the
-surrogate's whole predicted field, resampled onto a 128^2 grid the way most
-neural-operator work stores its outputs, makes the solve **slower on drag by
-185%**. Handing it the whole field mesh-natively is worse still. Two of the four
-corners of the obvious 2x2 are catastrophic, one is merely bad, and only the
-fourth is positive.
+Under those conditions the naive experiment fails, and it fails in a way that is
+easy to measure and easy to misattribute. Take one surrogate prediction,
+restricted to the boundary layer, and hand it to the solver twice: once evaluated
+at the solver's own cell centres, once resampled through a wall-fitted 256x64
+grid first. The first is **+33.9%** on total drag. The second is **-58.8%**. Same
+network, same weights, same case, same prediction — 93 percentage points, and the
+only difference is the representation it travelled through.
+
+That is not an accuracy effect, and the cleanest way to see so is to remove
+accuracy from the experiment entirely. Resample the **exact converged field** and
+seed with that: -172.6% on a wall-fitted 256x64 grid, -548.4% on a Cartesian
+128^2 grid. A perfect answer, stored the way neural-operator outputs are normally
+stored, is a *worse* initial condition than a uniform freestream.
 
 The failure is specific and it has a location: the wall. Viscous drag is the
 integral of the tangential velocity gradient in the first cell off the surface,
@@ -242,6 +249,13 @@ a **sign** on this project's own data. All six are implemented in
    `Time` block; zipping fields by index across a log made pressure lag velocity
    3:1 and moved every shallow number.
 
+One consequence of rule 5 is worth stating even though it is small here. Because
+the reference is a median over the arms that have settled, *adding* an arm to a
+tree re-scores every arm already in it. **A number must therefore name the arm
+set it was computed over**, and ours does (`--drop-arm` declares it). We measured
+the sensitivity rather than assuming it away: removing our most recently added
+arm moves every headline number by at most 0.5 percentage points.
+
 **The primary metric.** `iterations_to_force_band`: the first iteration after
 which a coefficient stays within +/-b of the reference for the rest of the run.
 Saving is 1 - warm/cold, bounded at the budget. We report b = 1%, 0.5%, 0.2%
@@ -295,19 +309,41 @@ the projection was the better seed.**
 
 ### 5.2 Condition 2 — hand over the boundary layer only
 
-Cd@1%, five cases, cold = 802 iterations:
+The region axis is controlled the same way as the resampling axis: both arms are
+the same network, both mesh-native, differing only in whether the handover is
+masked to the boundary layer. Cd@1%, five cases, cold = 805 iterations, oracle
+control **+92.1%**:
 
-|  | whole field | boundary layer only |
-|---|---:|---:|
-| **resampled to a 16k grid** | -184.6% | -217.5% |
-| **mesh-native** | < -573.6% | **+33.9%** |
+| arm (network, mesh-native) | region handed over | Cd@1% |
+|---|---|---:|
+| `nf_bl` | boundary layer only | **+33.9%** |
+| `nf_mesh` | the whole field | **< -568.3%** |
 
-Both factors are necessary and neither is sufficient. The oracle control reads
-**+92.1%** on the same row. Handing over the outer field fails because the model
-is extrapolating there — its training `sdf` distribution is centred on 0.23
-chords while the C-grid reaches 20 — and an extrapolated outer field is an
-inconsistent boundary condition for a boundary layer the solver is still
-computing.
+Handing over the outer field fails because the model is extrapolating there — its
+training `sdf` distribution is centred on 0.23 chords while the C-grid reaches 20
+— and an extrapolated outer field is an inconsistent boundary condition for a
+boundary layer the solver is still computing.
+
+**Together with §5.1 this gives two controlled contrasts sharing a common arm**
+(`nf_bl`), one per axis, each changing a single variable. Neither factor alone is
+sufficient: mesh-native evaluation of the whole field is the worst arm in the
+study, and boundary-layer restriction under resampling is still negative.
+
+We deliberately do **not** present these as a 2×2. The fourth corner — a network
+prediction of the whole field, resampled — was never run, and the arms that would
+fill it come from a different population (oracle rather than network). A table
+whose cells mix provenance would read as a design when it is a gap.
+
+**The oracle bound on the resampled row**, which removes the accuracy confound
+entirely, is reported separately and is the stronger statement:
+
+| arm | field | representation | Cd@1% |
+|---|---|---|---:|
+| `fitted_256x64` | exact converged answer | wall-fitted 256x64 | -172.6% |
+| `fitted_bl` | exact converged answer, BL only | wall-fitted 256x64 | -206.1% |
+| `cartesian_128` | exact converged answer | Cartesian 128^2 | -548.4% |
+
+Even a perfect field, resampled, costs the solver more than starting it cold.
 
 ### 5.3 Condition 3 — velocity and eddy viscosity together
 

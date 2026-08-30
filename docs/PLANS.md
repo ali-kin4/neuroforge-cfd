@@ -190,21 +190,45 @@ worse than a cold start.** The acceptance test in §3.6 is what makes that
 survivable rather than fatal — 25 probe iterations catch it, and the same gate
 bounds the residual metric's worst case at −7.6%.
 
-### 3.2 The recipe: a 2×2 in which only one corner works
+### 3.2 Two controlled contrasts, not a 2×2 — and a stale table retired
 
-Cd@1%, the one readable total-drag row (§3.3), five cases, cold = 802 iterations:
+> **Correction, 2026-08-30.** This section used to print a 2×2 reading
+> −184.6% / −217.5% / <−573.6% / +33.9%. **Both of its problems are fixed here.**
+> (a) The numbers were stale: the current scoring gives −172.6% / −206.1% /
+> <−568.3% / +33.9%. The ~12-point drift is the settled-reference rule of §3.3,
+> which the old numbers predate — *not* the later addition of `oracle_wake`,
+> which moves every headline arm by ≤0.5 points (measured with the new
+> `--drop-arm`, which reproduces §3.1a exactly). (b) More seriously, **its top
+> row was oracle arms and its bottom row was network arms.** The missing corner —
+> a network prediction of the whole field, resampled — was never run. A 2×2 whose
+> cells come from two populations reads as a design when it is a gap, so it is
+> replaced rather than relabelled.
 
-|  | whole field | boundary layer only |
-|---|---:|---:|
-| **resampled to a 16k grid** | −184.6% | −217.5% |
-| **mesh-native** | < −573.6% | **+33.9%** |
+Cd@1%, the one readable total-drag row (§3.3), five cases, cold = 805 iterations,
+oracle control **+92.1%**. Two contrasts, each changing one variable, sharing the
+common arm `nf_bl`:
 
-Both factors necessary, neither sufficient. Mesh-native evaluation preserves the
-wall gradient (§3.1); restricting to the boundary layer avoids handing over an
-outer field the model extrapolates badly (its training `sdf` distribution is
-centred on 0.23 chords, the C-grid reaches 20).
+| axis | arms compared | held fixed | result |
+|---|---|---|---|
+| **representation** | `nf_bl` vs `nf_bl_proj` | network, BL only, one prediction | **+33.9%** vs **−58.8%** |
+| **region** | `nf_bl` vs `nf_mesh` | network, mesh-native | **+33.9%** vs **<−568.3%** |
 
-The oracle control reads **+92.1%** on the same row.
+Mesh-native evaluation preserves the wall gradient (§3.1); restricting to the
+boundary layer avoids handing over an outer field the model extrapolates badly
+(its training `sdf` distribution is centred on 0.23 chords, the C-grid reaches
+20). Neither factor alone is sufficient.
+
+The resampled row is then bounded **with the accuracy confound removed**, by
+resampling the exact converged field:
+
+| arm | field | representation | Cd@1% |
+|---|---|---|---:|
+| `fitted_256x64` | exact answer | wall-fitted 256×64 | −172.6% |
+| `fitted_bl` | exact answer, BL only | wall-fitted 256×64 | −206.1% |
+| `cartesian_128` | exact answer | Cartesian 128² | −548.4% |
+
+Even a perfect field, resampled, costs more than starting cold. That is a
+stronger sentence than the 2×2 ever gave us.
 
 ### 3.3 What may be quoted, and what may not
 

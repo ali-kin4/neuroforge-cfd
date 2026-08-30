@@ -89,23 +89,31 @@ The point-cloud literature argues mesh-native evaluation is better *for
 prediction accuracy*. This says something stronger and from the other side: it is
 the difference between a warm start that pays and one that costs six times more.
 
-**Status:** the diagnostic is measured and controlled. The *solve* comparison
-behind it is not yet fully controlled — `fitted_bl` comes from an oracle and
-`nf_bl` from the network — and `scripts/mesh_native_probe.py` is running the arm
-that removes the confound. Do not write the abstract until it lands.
+**Status (2026-08-30): controlled, and the confound is gone.**
+`scripts/mesh_native_probe.py` landed: `nf_bl` vs `nf_bl_proj` is the same
+network, the same prediction, the same region, differing only in whether the
+field was resampled — +33.9% vs −58.8% on total drag. The old oracle-vs-network
+comparison (`fitted_bl` vs `nf_bl`) is no longer load-bearing anywhere and the
+table that used it is retired (§2 below). The abstract is written; the draft is
+`docs/paper2/DRAFT.md`.
 
 ### 2. Both conditions are necessary; neither is sufficient
-Cd@1%, five cases, cold = 802 iterations, oracle control +92.1%:
+Cd@1%, five cases, cold = 805 iterations, oracle control +92.1%. Two controlled
+contrasts sharing the common arm `nf_bl`, each changing exactly one variable
+(**the old 2×2 here is retired — it was stale by ~12 points and mixed oracle and
+network arms in the same table; see `PLANS.md` §3.2**):
 
-|  | whole field | boundary layer only |
-|---|---:|---:|
-| **resampled to a 16k grid** | −184.6% | −217.5% |
-| **mesh-native** | < −573.6% | **+33.9%** |
+| axis | arms compared | held fixed | result |
+|---|---|---|---|
+| **representation** | `nf_bl` vs `nf_bl_proj` | network, BL only, one prediction | **+33.9%** vs **−58.8%** |
+| **region** | `nf_bl` vs `nf_mesh` | network, mesh-native | **+33.9%** vs **<−568.3%** |
 
 Mesh-native evaluation preserves the wall gradient; restricting to the boundary
 layer avoids handing over an outer field the model extrapolates badly. Only the
-corner with both is positive — and it is positive on **total drag**, the quantity
-every other arm in the study failed at.
+arm with both is positive — and it is positive on **total drag**, the quantity
+every other arm in the study failed at. Resampling the *exact converged field*
+is −172.6% (wall-fitted) and −548.4% (Cartesian), so this is not an accuracy
+effect.
 
 ### 3. Viscous drag is the quantity that pays, and it is 60–84% of the drag
 Three wall-fitted seed constructions, three bands, 5/5 cases, monotone, no sign
