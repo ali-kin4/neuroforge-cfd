@@ -15,8 +15,12 @@ eye should land on.
 one point per arm. Arms cluster into the ones that kept the gradient and the ones
 that lost it, and the split in saving follows.
 
-**C.** The 2x2. Mesh-native evaluation and boundary-layer-only handover are each
-necessary and neither is sufficient; only the corner with both is positive.
+**C.** The two contrasts the study actually controlled, sharing the arm ``nf_bl``
+and moving one variable each: representation (cell centres vs resampled) and
+region (boundary layer vs whole field). This replaced a 2x2 on 2026-08-30 whose
+top row was oracle arms and whose bottom row was network arms -- the cell that
+would have completed it was never run, and four cells from two populations read
+as a design when they are a gap.
 
 Usage
 -----
@@ -135,17 +139,22 @@ def main(argv=None):
     # sideways, not above and below: three stacked labels in the same decade is
     # what the first draft produced. Points on the right are labelled leftwards
     # and vice versa, so no label leaves the axes.
-    xs = [p[0] for p in points]
-    midpoint = np.sqrt(min(xs) * max(xs))
+    # Split on position along the *drawn* log axis, not on the geometric mean of
+    # the data: four of the five arms sit in one decade near the right-hand end,
+    # so the geometric mean lands among them and sends the cell-centre arm's
+    # label leftwards into the y-axis.
+    x_lo, x_hi = 0.25, 1.2e4
+    def frac(v):
+        return np.log10(v / x_lo) / np.log10(x_hi / x_lo)
     for x, y, label, _colour, _native in points:
-        right = x < midpoint
+        right = frac(x) < 0.6
         ax.annotate(label, (x, y), fontsize=8, color=INK_2,
                     xytext=(14 if right else -14, 0), textcoords="offset points",
                     ha="left" if right else "right", va="center")
     lo, hi = min(p[1] for p in points), max(p[1] for p in points)
     pad = 0.14 * (hi - lo)
     ax.set_ylim(lo - pad, hi + pad)
-    ax.set_xlim(0.25, 1.2e4)
+    ax.set_xlim(x_lo, x_hi)
     ax.axhline(0, color=INK_3, lw=1, ls="--")
     ax.set_xscale("log")
     ax.set_xlabel("error in the first-cell wall gradient (%)",
@@ -163,43 +172,67 @@ def main(argv=None):
             transform=ax.transAxes, ha="right", va="top",
             fontsize=8, color=INK_3)
 
-    # --- C: the 2x2 ----------------------------------------------------------
+    # --- C: the two controlled contrasts -------------------------------------
+    # This panel used to be a 2x2. It was retired on 2026-08-30: its top row was
+    # oracle arms and its bottom row network arms, and the cell that would have
+    # made it a real 2x2 -- a network prediction of the whole field, resampled --
+    # was never run. Four cells drawn from two populations read as a design when
+    # they are a gap. What replaces it is what the study actually controlled:
+    # two contrasts that share the arm nf_bl and move one variable each.
     ax = axes[2]
-    cells = [["fitted_256x64", "fitted_bl"], ["nf_mesh", "nf_bl"]]
-    grid_vals = np.full((2, 2), np.nan)
-    for i, rowk in enumerate(cells):
-        for j, key in enumerate(rowk):
+    contrasts = [
+        ("representation",
+         [("at the cell\ncentres", "nf_bl", GOOD),
+          ("resampled\nthrough 256x64", "nf_bl_proj", ORANGE)]),
+        ("region",
+         [("boundary\nlayer only", "nf_bl", GOOD),
+          ("the whole\nfield", "nf_mesh", BAD)]),
+    ]
+    xs, heights, colours, labels, groups = [], [], [], [], []
+    x = 0.0
+    for gi, (gname, pair) in enumerate(contrasts):
+        groups.append((x + 0.5, gname))
+        for lab, key, col in pair:
             s = saving(key)
-            if s is not None:
-                grid_vals[i, j] = 100 * s
-    # Scaled to +/-100% and clipped. On the true range one arm at -568% pushes
-    # everything else into the middle of the ramp, so -173% reads warmer than
-    # -206% and the +34% barely registers as green -- the colour would then say
-    # the opposite of the numbers. Clipping makes the sign legible; the printed
-    # value is always the real one.
-    limit = 100.0
-    ax.imshow(np.clip(grid_vals, -limit, limit), cmap="RdYlGn",
-              vmin=-limit, vmax=limit, aspect="auto")
-    for i in range(2):
-        for j in range(2):
-            v = grid_vals[i, j]
-            ax.text(j, i, "--" if not np.isfinite(v) else f"{v:+.0f}%",
-                    ha="center", va="center", fontsize=17,
-                    color=SURFACE if np.isfinite(v) and abs(v) > 55 else INK,
-                    fontweight="bold")
-    ax.set_xticks([0, 1]); ax.set_xticklabels(["whole field", "boundary layer only"],
-                                              fontsize=9, color=INK_2)
-    ax.set_yticks([0, 1]); ax.set_yticklabels(["resampled\nto a 16k grid",
-                                               "mesh-native"],
-                                              fontsize=9, color=INK_2)
-    ax.set_title("C.  Both necessary, neither sufficient",
+            xs.append(x)
+            heights.append(100 * s if s is not None else np.nan)
+            colours.append(col)
+            labels.append(lab)
+            x += 1.0
+        x += 0.7
+    floor_v = min(v for v in heights if np.isfinite(v))
+    span = 150 - floor_v * 1.30
+    ax.axhline(0, color=INK_2, lw=1.0, zorder=4)
+    ax.bar(xs, heights, width=0.82, color=colours, zorder=3)
+    for xi, v, lab in zip(xs, heights, labels):
+        up = v >= 0
+        # Value *and* label both beyond the bar's free end, stacked, so each
+        # bar owns one column of text. Splitting them across the zero line put
+        # a negative bar's label at the same height as its neighbour's value,
+        # which read as if the label belonged to the wrong bar.
+        ax.text(xi, v + (0.025 if up else -0.025) * span, f"{v:+.0f}%",
+                ha="center", va="bottom" if up else "top",
+                fontsize=13, fontweight="bold", color=INK, zorder=5)
+        ax.text(xi, v + (0.085 if up else -0.085) * span, lab,
+                ha="center", va="bottom" if up else "top",
+                fontsize=8, color=INK_2, zorder=5)
+    for xc, gname in groups:
+        ax.text(xc - 0.5, -0.055, gname, transform=ax.get_xaxis_transform(),
+                ha="center", va="top", fontsize=8.5, color=INK_3)
+    ax.set_ylim(floor_v * 1.30, 235)
+    ax.set_xlim(-0.7, x - 0.9)
+    ax.set_xticks([])
+    ax.set_ylabel(f"iteration saving on {args.row.replace('@0.01', '@1%')} (%)",
+                  fontsize=9, color=INK_2)
+    ax.set_title("C.  Two controlled contrasts, one variable each",
                  fontsize=11, color=INK, loc="left", pad=12)
-    for side in ("left", "bottom"):
+    ax.grid(axis="y", color=GRID, lw=0.8)
+    ax.set_axisbelow(True)
+    for side in ("top", "right", "bottom"):
         ax.spines[side].set_visible(False)
-    ax.tick_params(length=0)
-    ax.text(0.5, -0.19, "colour clipped at $\\pm$100%; the printed value is the "
-                        "measured one", transform=ax.transAxes, ha="center",
-            fontsize=7.8, color=INK_3)
+    ax.text(0.5, -0.135, "each pair is the same network and the same prediction, "
+                         "one variable apart",
+            transform=ax.transAxes, ha="center", fontsize=7.8, color=INK_3)
 
     n = row.get("cold_n")
     fig.suptitle(

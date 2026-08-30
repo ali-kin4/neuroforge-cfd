@@ -457,6 +457,15 @@ bounds drag bounds the residual metric's worst case at -7.6%.
 
 ## 6. The mechanism
 
+> **Figure 1** (`results/mechanism.png`, from `scripts/plot_mechanism.py`) is the
+> paper's central figure and carries this section and §5 together. **A** — what
+> each representation does to the first-cell wall gradient, including projections
+> of the exact answer. **B** — that gradient error against what it bought on
+> drag, one point per arm, circles evaluated at the cell centres and squares
+> resampled; the two clusters separate cleanly. **C** — the two controlled
+> contrasts of §5.1 and §5.2, each pair the same network and the same prediction,
+> one variable apart.
+
 `scripts/seed_gradient_diagnostic.py`, six cases. For each seed *as the solver
 received it*, the error in the first-cell tangential velocity gradient du_t/dy
 — the quantity viscous drag integrates — measured along the outward wall normal
