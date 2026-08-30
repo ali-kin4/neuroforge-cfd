@@ -370,19 +370,12 @@ have succeeded. The thirteen-case corpus of §5.1 is where the sign test can bit
 
 ---
 
-## 5. Three conditions, each with its own control
+## 5. The result, and the three conditions behind it
 
-`scripts/mesh_native_probe.py`. Five cases, **one prediction**, one variable
-changed per arm; all twenty solves complete. Scored over the thirteen-arm
-`repr3` set with `oracle_wake` dropped (§4); including it moves no entry below by
-more than 0.5 points.
-
-| arm | what it hands over | residual 5e-6 | **Cd@1%** | Cl@1% | Cd_v@1% |
-|---|---|---:|---:|---:|---:|
-| `nf_bl` | u, v, nut in the BL, mesh-native | < -80.5% | **+33.9%** | +10.1% | +14.6% |
-| `nf_bl_proj` | the same, resampled through 256x64 | +22.1% | **-58.8%** | +25.4% | +7.7% |
-| `nf_bl_nut` | eddy viscosity only | +1.2% | **-293.2%** | **+41.1%** | **+42.4%** |
-| `nf_bl_vel` | velocity only | -8.2% | -40.3% | -10.3% | -4.9% |
+Two studies, disjoint (§3). The **corpus** — thirteen cases, four arms — carries
+the headline and answers *does this generalise*. The **mechanism study** — five
+cases, fifteen arms — carries the controlled contrasts and answers *why, and
+under what conditions*. §5.1 is the first; §5.2–§5.4 are the second.
 
 ### 5.1 The headline, at thirteen cases
 
@@ -434,6 +427,24 @@ the threshold now that we can see the result — that is exactly the move §4
 exists to prevent. The honest summary is that the effect is smaller than we
 hoped for and more certain than we expected: thirteen cases out of thirteen,
 p = 0.0002, on the quantity that is 60–84% of the drag.
+
+### The three conditions, and the study that isolates them
+
+Everything from here to §5.6 is the **mechanism study**:
+`scripts/mesh_native_probe.py`, five cases, **one prediction**, one variable
+changed per arm, all twenty solves complete. Scored over the thirteen-arm
+`repr3` set with `oracle_wake` dropped (§4); including it moves no entry below by
+more than 0.5 points.
+
+| arm | what it hands over | residual 5e-6 | **Cd@1%** | Cl@1% | Cd_v@1% |
+|---|---|---:|---:|---:|---:|
+| `nf_bl` | u, v, nut in the BL, mesh-native | < -80.5% | **+33.9%** | +10.1% | +14.6% |
+| `nf_bl_proj` | the same, resampled through 256x64 | +22.1% | **-58.8%** | +25.4% | +7.7% |
+| `nf_bl_nut` | eddy viscosity only | +1.2% | **-293.2%** | **+41.1%** | **+42.4%** |
+| `nf_bl_vel` | velocity only | -8.2% | -40.3% | -10.3% | -4.9% |
+
+The recommended arm in this table, `nf_bl`, is the one measured at thirteen cases
+in §5.1. Its Cd@1% here is +33.9%; §5.1 is where that number meets a corpus.
 
 ### 5.2 Condition 1 — evaluate at the solver's cell centres
 
