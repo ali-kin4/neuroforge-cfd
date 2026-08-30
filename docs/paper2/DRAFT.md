@@ -31,11 +31,14 @@ on a wall-resolved body-fitted C-grid at flight Reynolds number, and measure the
 iterations the solver still needs before its force coefficients stop moving.
 
 The result is strongly conditional. A trained surrogate accelerates convergence
-of total drag by **+33.9%** (viscous drag **+14.6%**, lift **+10.1%**) against a
-cold start, with a converged-field oracle control reading +92.1% on the same
-measurement — but only when three conditions hold simultaneously, each of which
-we show is necessary with a controlled arm, and none of which is sufficient
-alone:
+of **viscous drag — 60–84% of the total here — by +14.6%, and monotonically so
+across every convergence band we can read** (+13.7% at 0.5%, +11.0% at 0.2%),
+with a converged-field oracle control at +92.5%. On *total* drag it is **+33.9%**
+at the 1% band, and we always report that number with the fact that it falls to
+−4.2% at 0.5%: the total-drag saving is real at the band an engineer usually
+stops at, and it is not a stable rate measurement. Both hold only when three
+conditions hold simultaneously, each of which we show is necessary with a
+controlled arm, and none of which is sufficient alone:
 
 1. the prediction is **evaluated at the solver's own cell centres**, never
    resampled through a grid;
@@ -282,14 +285,40 @@ Saving is 1 - warm/cold, bounded at the budget. We report b = 1%, 0.5%, 0.2%
 and state which bands are readable.
 
 **Readability.** A band is readable only if the settled arms agree about the
-converged value to well inside it (rule 5). This is a public criterion that
-deletes our own numbers: at b = 0.5% and 0.2% the total-drag rows are unreadable,
-and **Cd@1% is the only readable total-drag row in the core study.**
+converged value to well inside it (rule 5) — concretely, to within half the band.
+On the core study the largest disagreement is 0.232% of Cd, so b = 1% and
+b = 0.5% are readable (limits 0.5% and 0.25%) and b = 0.2% is not (limit 0.1%).
+**The 0.5% verdict is thin**: 0.232% against a 0.25% limit. We report the margin
+rather than only the verdict, because one additional case can flip it.
+
+> **Provisional.** Every readability verdict in this paper is a property of the
+> case set, since the reference is a median over cases and arms. The 13-case
+> sweep recomputes all of them, and they are re-checked rather than inherited.
+
+**The saving depends on the band, and the two drag components differ.** This is
+the single most important table in the protocol section, because reporting either
+row alone would mislead:
+
+| arm | Cd@1% | Cd@0.5% | Cd@0.2% | Cd_v@1% | Cd_v@0.5% | Cd_v@0.2% |
+|---|---:|---:|---:|---:|---:|---:|
+| `nf_bl` | **+33.9%** | **-4.2%** | -38.5% *(unreadable)* | **+14.6%** | **+13.7%** | +11.0% *(unreadable)* |
+| `oracle_mesh` | +92.1% | +92.4% | +93.1% | +92.5% | +91.9% | +91.3% |
+
+**Viscous drag is monotone across bands and total drag is not.** Monotone
+stability *is* the evidence that a number is a convergence-rate measurement
+rather than an artifact of where a wandering curve happens to cross a line — and
+`Cd_v` is 60–84% of the drag here. The oracle control is monotone on both, which
+is what tells us the instability in the `nf_bl` Cd row is a property of that seed
+and not of the measurement.
+
+We therefore **quote +33.9% only with this curve attached**, and treat +14.6% on
+viscous drag as the robust claim. We do not withdraw +33.9%: it is readable, 5/5,
+with a passing control. We do refuse to present it alone.
 
 > **A withdrawal.** A previously recorded +41.8% at Cd@0.5% was read against a
-> reference that a diverged arm had moved. On the settled reference it is
-> **-7.4%**, and the row is unreadable in any case. The +33.9% at Cd@1% is
-> unaffected. We report this because a protocol that only ever deleted
+> reference that a diverged arm had moved. On the settled reference over the
+> declared arm set that row is **-4.2%** — readable, and negative. The +33.9% at
+> Cd@1% is unaffected. We report this because a protocol that only ever deleted
 > inconvenient numbers would not be a protocol.
 
 **Statistics.** Savings 1 - warm/cold are left-skewed, so we report percentile

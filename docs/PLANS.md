@@ -25,6 +25,11 @@ Last updated: **2026-08-29** · branch `paper2/openfoam-warm-start` · pushed to
 5. at **n ≥ 12 cases**, spanning attached to incipient separation,
 6. confirmed in **wall-clock seconds**, inference and seed construction included.
 
+**Item 1 is met by Cd@1% = +33.9%, and that number is never quoted without its
+band curve** (+33.9% / −4.2% / −38.5%); `Cd_v` (+14.6% / +13.7% / +11.0%,
+monotone) is reported alongside it as the stability evidence. We considered
+restating item 1 around `Cd_v` and decided against it — see §3.3.
+
 Today: 1–4 hold (+33.9% Cd@1%, control +92.1%), 5 is at n=5 (**13-case sweep
 running**), and **6 is at n=0** — the only existing wall-clock number is an
 oracle arm on a residual target, and the recommended arm has never been timed
@@ -248,18 +253,44 @@ their full budget, so they are bounded rather than excused. Spread 3.104% →
 
 | row | status | `nf_bl` | `oracle_mesh` |
 |---|---|---:|---:|
-| **Cd@1%** | readable | **+33.9%** | +92.1% |
-| Cd@0.5% | unreadable (settled arms disagree by 0.33%) | −7.4% | +92.6% |
-| Cd@0.2% | unreadable | −90.1% | +92.9% |
+| **Cd@1%** | readable (spread 0.232% vs 0.5% limit) | **+33.9%** | +92.1% |
+| **Cd@0.5%** | **readable, but barely** (0.232% vs 0.25% limit) | **−4.2%** | +92.4% |
+| Cd@0.2% | unreadable (0.232% vs 0.1% limit) | −38.5% | +93.1% |
 | **Cd_v@1%, @0.5%** | readable | +14.6%, +13.7% | +92.5%, +91.9% |
-| **Cl@1%, @0.5%, @0.2%** | readable | +10.1%, +3.5%, −1.3% | +99.9% |
+| Cd_v@0.2% | unreadable (0.108% vs 0.1%) | +11.0% | +91.3% |
+| **Cl@1%, @0.5%, @0.2%** | readable, 4/5 cases | +10.1%, +3.5%, −1.4% | +99.9% |
 | Cd_p@1% | unreadable (arms disagree by 12.4%) | — | — |
 
-> **The +41.8% at Cd@0.5% reported on 2026-08-28 is withdrawn.** It was read
-> against a reference a diverged arm had moved; on the settled reference it is
-> −7.4%. The +34.1% at Cd@1% survives as +33.9%.
+> **Correction, 2026-08-30 — Cd@0.5% has become readable.** This table used to
+> record it as unreadable at a 0.33% spread. On the declared arm set the spread
+> is **0.232%**, inside the 0.25% limit, because more arms now settle on that
+> coefficient than when 0.33% was measured. **The margin is thin — 0.232%
+> against 0.25% — so one more case can flip it back**, and Phase B1 recomputes
+> every verdict here over 13 cases. Re-check them; do not inherit them.
+>
+> Two numbers inside the old withdrawal note were stale with it: `nf_bl` at
+> Cd@0.5% is **−4.2%**, not −7.4%, and at Cd@0.2% is **−38.5%**, not −90.1%.
 
-Making Cd@0.5% readable needs a longer budget, not a better metric — see Phase B4.
+> **The +41.8% at Cd@0.5% reported on 2026-08-28 stays withdrawn**, and the
+> ground is now simpler: it was read against a reference a diverged arm had
+> moved, and on the settled reference that row is readable and reads **−4.2%**.
+> The +34.1% at Cd@1% survives as +33.9%.
+
+**The consequence for the paper, and it is not small.** `nf_bl` on total drag
+reads +33.9% / −4.2% / −38.5% across the three bands, of which the first two are
+readable. `Cd_v` reads +14.6% / +13.7% / +11.0% — monotone, and `oracle_mesh` is
+monotone on both. So the total-drag advantage is **real at the 1% band and gone
+by 0.5%**, while the viscous-drag advantage is a stable rate measurement.
+
+**Decision (2026-08-30): the §0 bar is NOT restated.** Item 1 asks for ≥ +30% on
+a force metric, and Cd@1% = +33.9% meets it on a readable row with a passing
+control. Leading instead with Cd_v's +14.6% would mean quietly leading with a
+number that fails a bar we pre-registered — worse than the problem it fixes. So:
+**Cd@1% remains the headline, and it is never quoted without its band curve**;
+Cd_v is reported alongside as the stability evidence. Both rows, always, in that
+order.
+
+A saving that survives to 0.5% needs a longer budget — see Phase B4.
 
 ### 3.4 The stable quantity is viscous drag, and it is 60–84% of the drag
 

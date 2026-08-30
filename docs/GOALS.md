@@ -121,8 +121,15 @@ flip: `fitted_bl` +41.7%/+31.7%/+26.4%, `fitted_256x64` +37.2%/+29.4%/+24.5%,
 `nf_bl` +14.6%/+13.7%/+11.0%, against Cartesian's +10.0%/+12.5%/**−38.8%**.
 
 Stability across bands *is* the evidence this is a rate measurement rather than
-a flat curve crossing a line. It is the number to lead with; Cd@1% is the more
-exciting one and the more fragile one.
+a flat curve crossing a line. **Now quantified: `nf_bl` on total drag reads
++33.9% / −4.2% / −38.5% across the same three bands** — the advantage is real at
+1% and gone by 0.5% — while `oracle_mesh` is monotone on both, so the
+instability belongs to the seed and not to the measurement.
+
+**Decision (2026-08-30):** the §0 bar is not restated around Cd_v, because
++14.6% would fail an item we pre-registered at +30%. Cd@1% stays the headline
+and is **never quoted without its band curve**; Cd_v is reported alongside as
+the stability evidence. Both rows, always, in that order (`PLANS.md` §3.3).
 
 ### 4. A no-harm certificate makes a mixed result deployable
 A 25-iteration probe on the residual, with the threshold calibrated on other
@@ -179,7 +186,10 @@ furthest beyond CFD:
 - **Only arms that have stopped moving may define the reference they are all
   scored against.** One diverged arm condemned an entire table here, and the
   blunt version of the rule hid a headline that was real and inflated one that
-  was not (+41.8% at Cd@0.5%, withdrawn; it is −7.4% on a clean reference).
+  was not (+41.8% at Cd@0.5%, withdrawn; on a clean reference over the declared
+  arm set that row is readable and reads **−4.2%**). The same rule later made
+  Cd@0.5% readable again at a 0.232% spread against a 0.25% limit — a thin
+  margin that the 13-case sweep will re-decide (`PLANS.md` §3.3).
 
 Neither appears in the papers we surveyed.
 
