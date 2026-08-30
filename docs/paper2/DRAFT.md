@@ -131,6 +131,24 @@ carries 54%.
    data, and under which we withdraw one of our own previously reported numbers
    (§4).
 
+### Is this a fact about your network?
+
+No, and that is the reason the oracle arms are in the study rather than in an
+appendix. Every statement about representation is reproduced with the **exact
+converged field** in place of the prediction: the projection of a perfect answer
+carries 1881% wall-gradient error and costs −206% on drag. Nothing about that
+depends on which network produced the field, on how it was trained, or on how
+accurate it is. The surrogate supplies the *practical* version of the result; the
+oracle supplies the version that cannot be explained away by our model being bad.
+
+### Is the cold baseline a straw man?
+
+The industrial alternative to a uniform freestream is a potential-flow
+initialisation, and OpenFOAM ships one. We ran it as an arm: `potentialFoam`
+alone is worth **+0.6%** on Cd@1% and +3.3% on lift — inert. A uniform freestream
+is therefore not a weak baseline being beaten by a strong method; it is what the
+strong classical alternative is also worth on this configuration.
+
 ### What this paper does not claim
 
 It does not claim the surrogate is accurate — accuracy is a separate question and
@@ -283,7 +301,9 @@ have succeeded. `[[B1]]` raises n to 13, where the sign test can reach p ~ 0.000
 ## 5. Three conditions, each with its own control
 
 `scripts/mesh_native_probe.py`. Five cases, **one prediction**, one variable
-changed per arm; all twenty solves complete.
+changed per arm; all twenty solves complete. Scored over the thirteen-arm
+`repr3` set with `oracle_wake` dropped (§4); including it moves no entry below by
+more than 0.5 points.
 
 | arm | what it hands over | residual 5e-6 | **Cd@1%** | Cl@1% | Cd_v@1% |
 |---|---|---:|---:|---:|---:|
@@ -298,8 +318,11 @@ changed per arm; all twenty solves complete.
 prediction was resampled through a wall-fitted 256x64 grid before being written.
 Total drag swings **93 percentage points**, and the seed's first-cell
 wall-gradient error rises from 54% to 1583% — landing in the same place as the
-*oracle's* projection (1881%). The round trip destroys the wall gradient
-regardless of the quality of the field that entered it.
+matched oracle arm, `fitted_bl`, which is the *exact converged field* through the
+same 256x64 round trip and the same boundary-layer mask (1881%). The round trip
+destroys the wall gradient regardless of the quality of the field that entered
+it: a network prediction and a perfect answer come out of it indistinguishable
+where it matters.
 
 The signs that go the other way confirm the mechanism rather than complicating
 it. Resampling *helps* the residual (+22.1%) and *helps* lift (+25.4%), because a
@@ -547,6 +570,16 @@ K = 25 (~3% of a cold solve):
 | residual 5e-6 | -170.8% | -1449.3% | +1.8% | -7.6% | 0/36 |
 | Cl@1% | -21.5% | -671.9% | +1.9% | -100.0% | 1/22 |
 | Cd_v@1% | +23.5% | -8.6% | +23.5% | -8.6% | 9/10 |
+
+**Where the gate fails, stated rather than buried.** On lift it admits one
+harmful seed in 22 and its gated worst case is −100%. Lift converges by a
+different route — it is pressure-dominated, and §5.1 showed that resampling
+*helps* lift while destroying drag — so a probe reading the momentum residual is
+weakly informative about it. The gate should be applied per quantity, and on the
+quantity a user cares about; we do not claim it is a universal filter. Its
+worst-case bound of (1 + K/N) x cold survives regardless, because that bound is
+arithmetic, not statistical: it holds for any seed, any metric, and any threshold,
+including a threshold that admits every seed.
 
 The gate is not what makes warm starting fast; it is what makes it deployable. It
 is conservative by construction, capturing only 17–24% of what a gatekeeper with
