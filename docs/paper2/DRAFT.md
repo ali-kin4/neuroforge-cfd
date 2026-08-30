@@ -611,11 +611,29 @@ Iterations are the honest unit for a mechanism, but the claim an engineer cares
 about is seconds, and a mesh-native seed costs seconds a projected one does not:
 wall-distance computation, surrogate inference, masking, and writing the case.
 
-`scripts/wallclock_control.py` charges each preparation stage to the arms that
-need it and reports end-to-end seconds, running serially and refusing to start
-while any other solver is up. At n = 1: **+41% iterations -> +30% seconds**, with
-a per-iteration penalty of 1.14x (a contended box had suggested 1.62x, which is
-why the exclusivity check exists). `[[C]]` extends this to n = 5.
+`scripts/wallclock_control.py` charges each preparation stage — wall distance,
+inference, masking, writing — to the arms that need it and reports end-to-end
+seconds, running serially and refusing to start while any other solver is up.
+
+**What is measured today, stated exactly.** One case, one arm, one metric:
+`fitted_256x64` — an **oracle** seed — reaches residual 5e-6 in 567 iterations
+against a cold start's 960 (**+41%**) and in 131.6 s against 189.2 s (**+30%**).
+The iteration saving therefore does survive translation into seconds: the
+per-iteration penalty of a seeded solve is 1.14x, not enough to eat a 41%
+iteration saving. That is the transferable part of this measurement, and it is
+the part the mechanism sections need.
+
+**What is not measured, and we will not imply otherwise.** That arm is not the
+recommended one, and on the metric this paper leads with it is *bad* — the same
+`fitted_256x64` run needs 1077 iterations against cold's 433 on Cd@1% (−149%).
+**The recommended arm, `nf_bl`, has no wall-clock measurement at all yet**;
+`wallclock_control.py` includes it and the run is pending `[[C]]`. Until that
+lands, the honest statement is: *iteration savings translate to seconds at a
+1.14x per-iteration penalty, and whether `nf_bl`'s +33.9% on drag survives that
+translation — including its inference and wall-distance cost — is untested.*
+
+This is the one place where our own bar (§0 of the project plan: "confirmed in
+wall-clock seconds, inference and seed construction included") is not yet met.
 
 ---
 

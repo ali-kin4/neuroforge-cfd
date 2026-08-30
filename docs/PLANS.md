@@ -25,8 +25,11 @@ Last updated: **2026-08-29** · branch `paper2/openfoam-warm-start` · pushed to
 5. at **n ≥ 12 cases**, spanning attached to incipient separation,
 6. confirmed in **wall-clock seconds**, inference and seed construction included.
 
-Today: 1–4 hold (+33.9% Cd@1%, control +92.1%), 5 is at n=5, 6 is at n=1.
-Phases B and C close those two. Nothing else is missing to clear the bar.
+Today: 1–4 hold (+33.9% Cd@1%, control +92.1%), 5 is at n=5 (**13-case sweep
+running**), and **6 is at n=0** — the only existing wall-clock number is an
+oracle arm on a residual target, and the recommended arm has never been timed
+(§3.8). Phases B and C close those two, and **Phase C is on the critical path**.
+Nothing else is missing to clear the bar.
 
 **Venue.** CMAME — this is new computational methodology, which is exactly what
 CMAME told us Paper 1 lacked. JCP alternative. Subscription licence, no APC
@@ -389,9 +392,16 @@ All six live in `solver/scoring.py` with a test naming the mistake.
 - **`naca4412@3` is excluded, always with the reason**: no unique steady fixed
   point (arms 7% apart in final Cd; floor 1.6e-5 against 6e-8–1.7e-6 elsewhere).
   It is a warning about the separated regime, which Phase B1 enters deliberately.
-- **The wall-clock saving is real** but n=1: `+41% iterations → +30% seconds` on
-  one case, serial and exclusive. The per-iteration penalty is 1.14×, not the
-  1.62× a contended box suggested. Phase C makes this n=5.
+- **The wall-clock number is not the recipe's** — read this before quoting it.
+  `+41% iterations → +30% seconds` is `fitted_256x64`, an **oracle** arm, at
+  **residual 5e-6**, on one case (`results/wallclock_control.json`, which
+  predates the script's rewrite and contains no `nf_bl` column at all). The same
+  arm is **−149% on Cd@1%** in that very file. What the number licenses is the
+  *translation*: a seeded solve costs 1.14× per iteration, so an iteration saving
+  survives into seconds. What it does **not** license is any wall-clock claim
+  about `nf_bl`, which **has never been timed**. Bar item 6 is therefore at n=0
+  for the recommended arm, not n=1 — Phase C is on the critical path, not a
+  polish item.
 
 ### 3.8a The wake is not where this solver's time goes
 
