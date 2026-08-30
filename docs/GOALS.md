@@ -22,6 +22,8 @@ Everything below is a step toward that, or a measured limit on it.
 
 - **No pay-to-publish.** Subscription/hybrid venues only; take the subscription
   licence. (See memory: `no-apc-venues-only`.)
+- **Paper 2 venue: Computers & Fluids** (Elsevier, hybrid, subscription route).
+  Decided 2026-08-31; see `PLANS.md` §0 for why not CMAME.
 - **Frozen contracts**: `core/types.py`, `core/config.py`, `models/base.py`,
   `CONVENTIONS.md`. The 7-in/4-out channel spec is load-bearing for Paper 1 and
   must not move while it is under review.

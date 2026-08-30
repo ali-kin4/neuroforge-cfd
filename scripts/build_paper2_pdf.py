@@ -30,20 +30,23 @@ import sys
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-AUTHORS = (
-    r"Ali Jabbary\thanks{Corresponding author: \texttt{st\_a.jabbary@urmia.ac.ir}. "
-    r"ORCID 0000-0003-0573-6909.}\\"
-    "\n"
-    r"\small Department of Mechanical Engineering, Urmia University, Urmia, Iran"
-    "\n\\and\n"
-    r"Kasra Ghanavati\\"
-    "\n"
-    r"\small School of Computing and Mathematical Sciences,\\"
-    "\n"
-    r"\small University of Greenwich, London, UK"
-)
+# elsarticle wants a frontmatter block, not \maketitle: authors carry affiliation
+# labels, the corresponding author is marked with \corref, and the abstract and
+# keywords live inside the block rather than after it.
+AUTHORS = r"""\author[urmia]{Ali Jabbary\corref{cor1}}
+\ead{st_a.jabbary@urmia.ac.ir}
+\affiliation[urmia]{organization={Department of Mechanical Engineering,
+  Urmia University}, city={Urmia}, country={Iran}}
 
-PREAMBLE = r"""\documentclass[11pt,a4paper]{article}
+\author[gre]{Kasra Ghanavati}
+\affiliation[gre]{organization={School of Computing and Mathematical Sciences,
+  University of Greenwich}, city={London}, country={United Kingdom}}
+
+\cortext[cor1]{Corresponding author.}"""
+
+PREAMBLE = r"""% `number` (not authoryear): the bibliography is a hand-written
+% thebibliography, and natbib's author-year mode rejects it outright.
+\documentclass[preprint,11pt,number]{elsarticle}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
@@ -53,6 +56,7 @@ PREAMBLE = r"""\documentclass[11pt,a4paper]{article}
 \usepackage{longtable}
 \usepackage{array}
 \usepackage{graphicx}
+\usepackage[skip=4pt]{caption}
 \usepackage{xcolor}
 \usepackage{framed}
 \usepackage{textcomp}
@@ -84,6 +88,11 @@ def protect_code(text: str, store: list[str]) -> str:
 def restore_code(text: str, store: list[str]) -> str:
     def sub(m):
         body = store[int(m.group(1))]
+        # A URL in a code span must be \url{}: \texttt{} will not break it, and
+        # the repository link ran off the right margin in the first elsarticle
+        # build.
+        if body.startswith(("http://", "https://", "www.")):
+            return r"\url{" + body + "}"
         for a, b in (("\\", r"\textbackslash{}"), ("{", r"\{"), ("}", r"\}"),
                      ("_", r"\_"), ("^", r"\^{}"), ("&", r"\&"), ("%", r"\%"),
                      ("$", r"\$"), ("#", r"\#"), ("~", r"\textasciitilde{}")):
@@ -202,6 +211,38 @@ def unwrap(lines: list[str]) -> list[str]:
     return out
 
 
+def split_sections(md: str) -> dict:
+    """`## Name` blocks, for the pieces that are front matter rather than body."""
+    out, name, buf = {}, None, []
+    for line in md.split("\n"):
+        if line.startswith("## "):
+            if name:
+                out[name] = "\n".join(buf).strip()
+            name, buf = line[3:].strip(), []
+        elif name:
+            buf.append(line)
+    if name:
+        out[name] = "\n".join(buf).strip()
+    return out
+
+
+def split_numbered(text: str) -> list[str]:
+    """A `1. ...` list, with wrapped continuation lines rejoined."""
+    items: list[str] = []
+    for line in text.split("\n"):
+        if re.match(r"^\s*\d+\.\s", line):
+            items.append(line.strip())
+        elif items and line.strip():
+            items[-1] += " " + line.strip()
+    return items
+
+
+def convert_body(md: str) -> str:
+    """Paragraph-only conversion, for the abstract."""
+    return "\n\n".join(inline(p.replace("\n", " ").strip())
+                       for p in md.split("\n\n") if p.strip())
+
+
 def convert(md: str) -> str:
     lines = unwrap(md.split("\n"))
     out: list[str] = []
@@ -253,15 +294,22 @@ def convert(md: str) -> str:
             while i < n and lines[i].startswith(">"):
                 block.append(lines[i].lstrip(">").strip()); i += 1
             text = " ".join(block)
-            out.append(r"\begin{shaded}\noindent " + inline(text)
-                       + r"\end{shaded}")
-            # A blockquote that names a rendered figure gets the figure. The
-            # draft describes Figures 1 and 2 in prose and points at the PNG;
-            # a paper has to actually show them.
-            for path in re.findall(r"results/[\w./-]+\.png", text):
-                if os.path.isfile(os.path.join(HERE, path)):
-                    out.append(r"\begin{center}\includegraphics[width=\textwidth]{"
-                               + path + r"}\end{center}")
+            # A blockquote carrying ![](path) is a figure with its caption: emit
+            # a real float so the caption travels with the image and the numbers
+            # in the text ("Figure 1") match what a reader sees.
+            images = re.findall(r"!\[[^\]]*\]\(([^)]+)\)", text)
+            caption = re.sub(r"!\[[^\]]*\]\([^)]+\)", "", text).strip()
+            if images:
+                out.append(r"\begin{figure}[htbp]\centering")
+                for path in images:
+                    if os.path.isfile(os.path.join(HERE, path)):
+                        out.append(r"\includegraphics[width=\textwidth]{"
+                                   + path + "}")
+                out.append(r"\caption*{\small " + inline(caption) + "}")
+                out.append(r"\end{figure}")
+            else:
+                out.append(r"\begin{shaded}\noindent " + inline(text)
+                           + r"\end{shaded}")
             continue
 
         m = re.match(r"^(\d+)\.\s+(.*)", line)
@@ -297,22 +345,70 @@ def main(argv=None) -> int:
         return 1
     md = open(src, encoding="utf-8").read()
 
-    # Escape each half *before* inserting the LaTeX, or the line break and
-    # \large are escaped along with the prose -- which is what build one did.
+    sections = split_sections(md)
+    for required in ("Abstract", "Keywords", "Highlights", "References"):
+        if required not in sections:
+            print(f"the draft has no '## {required}' section")
+            return 1
+
+    # Escape before inserting LaTeX, or the line break is escaped with the prose.
     raw = md.split("\n", 1)[0].lstrip("# ").strip()
     head, sep, tail = raw.partition(":")
     title = unicode_to_tex(escape(head.strip()))
     if sep:
         title += ":" + r"\\[0.35em] \large " + unicode_to_tex(escape(tail.strip()))
 
+    keywords = r" \sep ".join(
+        inline(k.strip()) for k in
+        re.split(r"[;\n]", sections["Keywords"]) if k.strip())
+
+    frontmatter = "\n".join([
+        r"\begin{frontmatter}",
+        r"\title{" + title + "}",
+        AUTHORS,
+        r"\begin{abstract}",
+        convert_body(sections["Abstract"]),
+        r"\end{abstract}",
+        r"\begin{keyword}",
+        keywords,
+        r"\end{keyword}",
+        r"\end{frontmatter}",
+    ])
+
+    # Elsevier wants Highlights as a separate file at submission; they are also
+    # shown here so the PDF is self-contained for a reader.
+    bullets = [b.strip() for b in re.findall(r"^- (.+)$",
+                                             sections["Highlights"], re.M)]
+    over = [b for b in bullets if len(b) > 85]
+    if over:
+        print("highlights over the 85-character limit:")
+        for b in over:
+            print(f"  {len(b)}  {b}")
+        return 1
+    hl_path = os.path.join(os.path.dirname(os.path.join(HERE, args.out)),
+                           "highlights.txt")
+    with open(hl_path, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write("\n".join("- " + b for b in bullets) + "\n")
+
+    highlights_tex = "\n".join(
+        [r"\section*{Highlights}", r"\begin{itemize}"]
+        + [r"\item " + inline(b) for b in bullets]
+        + [r"\end{itemize}"])
+
+    bib = "\n".join(
+        [r"\begin{thebibliography}{99}"]
+        + [r"\bibitem{r%d} " % k + inline(re.sub(r"^\d+\.\s*", "", e))
+           for k, e in enumerate(split_numbered(sections["References"]), 1)]
+        + [r"\end{thebibliography}"])
+
+    body_md = md[md.index("## 1. Introduction"):md.index("## References")]
     tex = "\n".join([
         PREAMBLE,
-        r"\title{\bfseries " + title + "}",
-        r"\author{" + AUTHORS + "}",
-        r"\date{\today\\[0.4em]\small Draft --- not submitted}",
         r"\begin{document}",
-        r"\maketitle",
-        convert(md),
+        frontmatter,
+        highlights_tex,
+        convert(body_md),
+        bib,
         r"\end{document}",
     ])
 

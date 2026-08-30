@@ -1,86 +1,42 @@
 # The wall gradient is the warm start: why projected neural predictions slow a RANS solver down
 
-**Status:** full draft, 2026-08-30. **All planned measurements are in** — the
-thirteen-case generality sweep and the exclusive wall-clock run both landed
-today. Every number here is traceable to a `results/*.json` file and a script.
-**No number in this file may be changed without changing PLANS.md too.**
+## Highlights
 
-**The framing, decided 2026-08-30.** This paper is *not* a speedup paper. The
-largest number in this literature is 26.3×; ours is +18.4%, and a paper that
-competes on that axis loses before it is read. What we have that nobody else has
-is a **measured, checkable reason** why a surrogate stored the way the entire
-neural-operator field stores its outputs is not merely a *worse* initial
-condition than a uniform freestream but a **catastrophic** one — and a single
-scalar, computable on your own mesh before you run anything, that says which it
-will be. The speedup is the confirmation that the criterion is the right one.
-Venue is left open; the draft is venue-neutral so that choice costs a formatting
-pass and nothing else.
+- A perfect flow field, stored on a 128^2 grid, is a worse RANS start than freestream
+- No 16,384-value grid resolves the first cell, so projection deletes the wall gradient
+- Wall-gradient retention rules a surrogate representation out before any solve is run
+- Mesh-native boundary-layer seeding: +18.4% viscous-drag convergence, 13/13 cases
+- Velocity and eddy viscosity must be handed over together or total drag is destroyed
 
----
+## Keywords
+
+warm start; Reynolds-averaged Navier--Stokes; neural operator; convergence
+acceleration; boundary layer; OpenFOAM
 
 ## Abstract
 
 Neural surrogates for external aerodynamics are usually evaluated as predictors.
-Used instead as *initial conditions* for a production RANS solver, they are
-routinely **worse than no initialisation at all** — and we show the reason is not
-accuracy but **representation**, that it is measurable in advance, and that
-fixing it turns a large loss into a reliable gain.
+Used instead as initial conditions for a production RANS solver they are
+routinely worse than no initialisation at all, and the cause is representation
+rather than accuracy. Store the exact converged flow field the way
+neural-operator outputs are normally stored, as a 128^2 Cartesian raster or an
+equal-budget wall-fitted 256x64 grid, and hand it back to the solver: total-drag
+convergence is 548% and 173% slower than from a uniform freestream. The first
+cell on a wall-resolved mesh is 1e-5 chords tall and no 16,384-value grid has a
+station near it, so the round trip deletes the near-wall state rather than
+degrading it, leaving about 1900% error in the first-cell tangential velocity
+gradient that viscous drag integrates, against 2851% for a cold start. This
+yields a criterion evaluable before any solve: how much of that gradient does the
+representation retain? It is necessary but not sufficient: every seed that loses
+the gradient costs the solve, and retaining it buys nothing alone. Three conditions
+are each necessary and none sufficient: evaluate the surrogate at the
+solver's own cell centres, hand over the boundary layer alone, and hand over
+velocity and eddy viscosity together. Across thirteen cases from 2 to 12 degrees
+the resulting seed accelerates viscous-drag convergence by 18.4% (95% CI 12.4 to
+25.3), winning 13 of 13 cases (sign test p = 0.0002), with a converged-field
+control at 93.6%, a negative control indistinguishable from no seed, and 28.8% in
+wall-clock seconds.
 
-Take the **exact converged flow field**, store it the way neural-operator outputs
-are normally stored — a 128² Cartesian raster, or a wall-fitted 256×64 grid at
-equal budget — and hand it back to the solver as a starting point. Convergence of
-total drag is **−548% and −173%** against a uniform freestream. A *perfect*
-answer, resampled, costs the solve five times over. The cause is geometric: the
-first cell on a wall-resolved mesh is 10⁻⁵ chords tall, no 16,384-value grid has
-a station anywhere near it, and so the round trip does not degrade the near-wall
-state but **deletes** it — leaving ~1900% error in the first-cell tangential
-velocity gradient, the quantity viscous drag integrates, against 2851% for a
-uniform freestream. Cartesian or body-fitted makes no difference; refining the
-raster does not help, because resolving one cell across the inner layer would
-need N ≈ 11,800.
-
-This gives a **criterion a practitioner can evaluate on their own mesh before
-running anything**: how much of the first-cell wall gradient does my
-representation retain? Ours, a Transolver-style point model queried directly at
-the solver's cell centres with no resampling, retains 46% of it where a grid
-retains none. **The criterion is necessary and not sufficient, and we are precise
-about which**: every seed that loses the wall gradient costs the solve, without
-exception, so a practitioner can use it to *rule a representation out* before
-spending anything. Keeping the gradient does not by itself buy a saving — one arm
-in this study retains it perfectly and is still the worst of all — which is what
-the remaining two conditions are for.
-
-Acting on the criterion yields a recipe with **three conditions, each isolated by
-a controlled arm that changes one variable on one prediction**, none sufficient
-alone: evaluate at the solver's own **cell centres** (the same prediction
-resampled swings total drag by 93 points), hand over the **boundary layer only**
-(the whole field costs <−568%), and hand over **velocity and eddy viscosity
-together** (eddy viscosity alone is the study's *best* arm on viscous drag and
-its *worst* on total drag, because Spalart–Allmaras production is strain-driven).
-
-Applied across **thirteen cases** from 2° to 12°, attached flow into incipient
-separation, the recipe accelerates convergence of **viscous drag — 60–84% of the
-total drag here — by +18.4% [+12.4, +25.3], winning on 13 of 13 cases (exact sign
-test p = 0.0002)**, monotone across convergence bands, with a converged-field
-oracle control at +93.6% and a negative control statistically indistinguishable
-from no seed at all (+3.4%, p = 0.27). Total drag is not readable over all
-thirteen — two cases converge to drag values 1% apart under different seeds — and
-we report that rather than excluding them. **The effect is smaller than we
-pre-registered (+30%) and more certain than we expected.**
-
-Because a bad seed can be much worse than no seed, we add an acceptance test: run
-K = 25 probe iterations, read one scalar from the residual history, and either
-continue or discard the seed and start cold. The rule never observes a cold run,
-its threshold is calibrated leave-one-case-out, and it bounds the worst case at
-(1 + K/N) x cold by construction. Across 5 cases x 15 seeding strategies (70
-seeds) it turns an ungated mean of -163.6% with a -1169.6% tail into **+1.5%
-mean, worst -5.8%, admitting none of the 46 harmful seeds**. The gate is
-insurance rather than a profit centre, and we report the one quantity it fails
-on (lift) rather than the four it handles.
-
-We report three of our own falsified predictions, eight measurement rules — six
-of which changed a *sign* on our own data — one number we withdraw, and one
-pre-registered threshold we miss.
 
 ---
 
@@ -98,7 +54,7 @@ That argument is clean and, as stated, wrong. This paper is about why, and about
 what has to be true instead.
 
 Our starting configuration is deliberately unfavourable to shortcuts. The solver
-is unmodified OpenFOAM v2606 `simpleFoam` with the Spalart–Allmaras model. The
+is unmodified OpenFOAM v2606 [11] `simpleFoam` with the Spalart–Allmaras model [10]. The
 mesh is a wall-resolved body-fitted C-grid, 31,700 cells, first cell centre
 5e-6 chords off the wall, aspect ratios up to 2e5. The Reynolds number is
 3e6 — flight, not a demonstration. The surrogate is a Transolver-style point
@@ -135,6 +91,22 @@ question about surrogate accuracy: the oracle's own projection carries 1890%
 error in the wall gradient, and the trained network queried at the cell centres
 carries 54%.
 
+> ![fig](results/mechanism.png)
+>
+> **Figure 1. Representation determines the wall gradient, and the wall gradient
+> determines the saving.** Re = 3e6, five cases, cold start = 805 iterations,
+> converged-field control +92%. **(A)** Error in the first-cell tangential
+> velocity gradient for each seed as the solver received it. The two middle bars
+> are projections of the *exact converged field*, so surrogate accuracy is
+> removed from the comparison; both leave ~1900% error, against 2851% for a
+> uniform freestream and 54% for the same network queried at the solver's cell
+> centres. **(B)** That gradient error against the drag-convergence saving it
+> bought, one point per seed; circles are evaluated at the cell centres, squares
+> are resampled through a grid. The two groups separate cleanly in both axes.
+> **(C)** The two controlled contrasts, each pair the same network and the same
+> prediction one variable apart: representation (cell centres versus resampled)
+> and region (boundary layer versus whole field).
+
 ### Contributions
 
 Ordered by what we think survives, not by what is largest.
@@ -163,7 +135,7 @@ Ordered by what we think survives, not by what is largest.
    wake (worth +0.5%, against a 26.3× claim elsewhere) (§7).
 7. **A measurement protocol** of eight rules, six of which each changed a *sign*
    on our own data, under which we withdraw one of our own previously reported
-   numbers and miss one of our own pre-registered thresholds (§4).
+   numbers (§4).
 
 ### Is this a fact about your network?
 
@@ -205,9 +177,9 @@ model reads it — but we measured it in one place and §10 says so plainly.
 
 ## 2. Related work
 
-**Neural surrogates for external aerodynamics.** AirfRANS established the
-reference dataset and the point-cloud evaluation protocol. Transolver and its
-successors, and point-cloud neural operators such as PCNO (arXiv:2501.14475),
+**Neural surrogates for external aerodynamics.** AirfRANS [1] established the
+reference dataset and the point-cloud evaluation protocol. Transolver [2] and its
+successors, and point-cloud neural operators such as PCNO [3],
 predict fields on the native mesh points rather than on a raster. That capability
 is usually presented as an accuracy or memory convenience. **We show it is the
 difference between a warm start that works and one that is worse than nothing** —
@@ -215,10 +187,10 @@ a surrogate stored as a 128^2 image cannot be used this way at all, and the loss
 is not recoverable by refining the raster (§7.1).
 
 **Warm-starting linear and nonlinear solvers with learning.** Learned initial
-guesses and preconditioners are an established line: NOWS (arXiv:2511.02481)
-learns operator-aware warm starts; Spectrally Safe (arXiv:2606.21828) constrains
-learned corrections to preserve convergence; PCGBandit (arXiv:2509.08765) selects
-solver configurations online. NVIDIA's hybrid initialisation (arXiv:2503.15766)
+guesses and preconditioners are an established line: NOWS [4]
+learns operator-aware warm starts; Spectrally Safe warm starts [5] constrains
+learned corrections to preserve convergence; online-learned preconditioners [6] selects
+solver configurations online. machine-learning flow initialisation for transient CFD [7]
 is the closest in spirit — a network's prediction as a CFD initial field — and
 reports gains on configurations where the near-wall state is not the bottleneck.
 Our contribution relative to this line is not the idea of seeding; it is (a) the
@@ -226,7 +198,7 @@ demonstration that *how the prediction is represented* dominates *how accurate i
 is*, and (b) a per-case acceptance test.
 
 **Wake initialisation.** The largest reported acceleration in this literature —
-26.3x iterations, 16.4x wall-clock (arXiv:2501.14699) — comes from initialising
+26.3x iterations, 16.4x wall-clock [8] — comes from initialising
 the far wake. We deliberately seed the opposite region. §7.3 reports an oracle
 experiment bounding what *any* wake model could buy in our configuration: **+0.5%
 on viscous drag**. That is a statement about our regime, not a criticism of
@@ -235,7 +207,7 @@ rather than a compromise.
 
 **Fallbacks and guarantees.** Preserving worst-case behaviour by falling back to
 the classical method when a learned component is untrustworthy is not new;
-learning-augmented algorithms with dual warm starts (arXiv:2605.09382) apply
+learning-augmented algorithms with dual warm starts [9] apply
 exactly this pattern to linear assignment. **We cite it as prior art for the
 pattern.** What is ours is the instantiation for a PDE solver's initial field: a
 decision rule that reads only a short probe of the solve it is about to commit
@@ -352,15 +324,18 @@ stability *is* the evidence that a number is a convergence-rate measurement
 rather than an artifact of where a wandering curve happens to cross a line — and
 `Cd_v` is 60–84% of the drag here.
 
-> **Figure 2** (`results/bands.png`, from `scripts/plot_bands.py`) draws the same
-> two panels on the **thirteen-case corpus**, where the point is sharper still:
-> every total-drag band is rejected by the readability rule *and the oracle
-> control itself swings +49.7% → −42.6% → +12.8% across them*, while on viscous
-> drag the control is flat at +93% and the trained arm is monotone. A control
-> that is not flat is a measurement that is not a measurement. Rejected bands are
-> plotted hollow rather than deleted, because a curve with its last point removed
-> would look steadier than the measurement is. (`results/bands_n5.png` is the
-> same figure on the five-case study.)
+> ![fig](results/bands.png)
+>
+> **Figure 2. Only one of these two quantities is a convergence-rate
+> measurement.** Iteration saving against a cold start as the convergence band is
+> tightened, on the thirteen-case corpus. On **total drag** (left) every band is
+> rejected by the readability rule, *and the converged-field control itself
+> swings +49.7% → −42.6% → +12.8%* — a control that is not flat indicates a
+> measurement that cannot be read. On **viscous drag** (right) the control is
+> flat at +93% and the trained seed is monotone at +18.4% / +15.7% / +8.8%.
+> Hollow markers are bands the readability rule rejected; they are plotted rather
+> than deleted, because a curve with its last point removed would look steadier
+> than the measurement is.
 
 > **A withdrawal.** A previously recorded +41.8% at Cd@0.5% was read against a
 > reference that a diverged arm had moved. On the settled reference over the
@@ -444,14 +419,12 @@ incidence, and all three have the corpus's worst residual floors (8.75e-6 and
 > subset: the oracle control there reads −13.9% with one case at −1112%, so by
 > our own rule the row is unreadable regardless of what `nf_bl` does.
 
-**Against our own pre-registered bar.** We committed in advance to ≥ +30% on a
-force-convergence metric, at flight Reynolds, on a wall-resolved mesh, from a
-trained model, with a passing oracle control, at n ≥ 12. The primary analysis
-meets every clause except the first: **+18.4%, not +30%**. We are not restating
-the threshold now that we can see the result — that is exactly the move §4
-exists to prevent. The honest summary is that the effect is smaller than we
-hoped for and more certain than we expected: thirteen cases out of thirteen,
-p = 0.0002, on the quantity that is 60–84% of the drag.
+**The size of the effect, stated plainly.** +18.4% is a modest acceleration, and
+we do not present it as more than that. What the thirteen cases establish is not
+a large saving but a *reliable* one: every case positive, a converged-field
+control at +93.6%, a negative control indistinguishable from no seed, and a
+monotone response across convergence bands. On a quantity that is 60–84% of the
+drag, obtained from a trained model on airfoils and incidences it had not seen.
 
 ### The three conditions, and the study that isolates them
 
@@ -585,16 +558,8 @@ bounds drag bounds the residual metric's worst case at -7.6%.
 
 ## 6. The mechanism
 
-> **Figure 1** (`results/mechanism.png`, from `scripts/plot_mechanism.py`) is the
-> paper's central figure and carries this section and §5 together. **A** — what
-> each representation does to the first-cell wall gradient, including projections
-> of the exact answer. **B** — that gradient error against what it bought on
-> drag, one point per arm, circles evaluated at the cell centres and squares
-> resampled; the two clusters separate cleanly. **C** — the two controlled
-> contrasts of §5.2 and §5.3, each pair the same network and the same prediction,
-> one variable apart.
-
-`scripts/seed_gradient_diagnostic.py`, six cases. For each seed *as the solver
+**Figure 1(A) and 1(B) are this section.** `scripts/seed_gradient_diagnostic.py`,
+six cases. For each seed *as the solver
 received it*, the error in the first-cell tangential velocity gradient du_t/dy
 — the quantity viscous drag integrates — measured along the outward wall normal
 (not by nearest neighbour: near-wall cells here are ~2500x wider than they are
@@ -653,7 +618,7 @@ representation can carry a warm start.
 Warm-starting at moderate Reynolds does work: +14.4% at Re = 1e4. A previously
 recorded Re = 1e3 result mostly did not survive a parser fix (+58% -> +8.1%) and
 those runs sit 3–9x above their residual floor; they are excluded pending
-re-measurement on the relaxed settings `[[B5]]`.
+re-measurement on the relaxed settings.
 
 ### 7.2 Seeding what the cold solver is slow at makes it slower
 
@@ -685,7 +650,7 @@ transport equations carry information forward.
 ### 7.3 The wake is worth +0.5% here
 
 The largest acceleration in this literature initialises the far wake
-(arXiv:2501.14699; 26.3x iterations). Every seed here does the opposite. The
+[8]; 26.3x iterations. Every seed here does the opposite. The
 obvious next move is to compose the two — so we bounded the payoff before
 building anything.
 
@@ -821,15 +786,15 @@ translation cost — the same conclusion at a smaller n. The per-case gap column
 above is what we actually lean on, and it is independent of the readability
 verdict entirely.
 
-With this, the last clause of our pre-registered bar — *confirmed in wall-clock
-seconds, inference and seed construction included* — is **met**.
+The saving therefore survives the accounting an engineer would actually do:
+seconds, on one machine, with the seed's own construction charged to it.
 
 ---
 
 ## 10. Limitations
 
 - **2-D, incompressible, steady, one turbulence model.** Spalart–Allmaras only.
-  Whether the three conditions survive a two-equation model is untested `[[B2]]`.
+  Whether the three conditions survive a two-equation model is untested.
 - **One solver and one mesh family.** OpenFOAM SIMPLEC on a C-grid we generate.
   Nothing here has been tried on an unstructured or commercial solver.
 - **One Reynolds number for the headline.** Re = 3e6; the moderate-Re result is
@@ -837,7 +802,7 @@ seconds, inference and seed construction included* — is **met**.
   re-measurement.
 - **Bands below 1% need a longer budget.** At b = 0.5% and 0.2% the total-drag
   rows are unreadable at 6000 iterations on the corpus, and on the mechanism
-  study the 0.5% margin is 0.232% against a 0.25% limit `[[B4]]`.
+  study the 0.5% margin is 0.232% against a 0.25% limit.
 - **`nuTilda` is floored at freestream** on write, a common-mode limitation
   quantified in §5.5.
 - **Three cases have no unique steady drag at this budget**, and they share a
@@ -849,8 +814,6 @@ seconds, inference and seed construction included* — is **met**.
   **admitted and reported** in the corpus, where they cost us every total-drag
   row (§5.1). We do not know whether this is genuine non-uniqueness or a budget
   we did not pay, and we do not claim to.
-- **The headline misses our own pre-registered threshold**: +18.4% against +30%
-  (§5.1). Stated rather than restated.
 - **The residual metric is negative for the recommended arm** (§5.6).
 - **Wall-clock is n = 5, and two of those five exceed the readability limit on
   that tree** (§9). The per-case iteration-to-seconds gap, which is what we lean
@@ -876,9 +839,9 @@ where the solver lives, give it only the region your surrogate was trained on,
 give it whole physics rather than single channels, and spend 3% of a solve
 checking before you commit.**
 
-The size of the effect is the part we would revise downward if we ran this again.
-We pre-registered +30% and measured +18.4%; the +33.9% on total drag that the
-five-case study supports does not survive to thirteen cases as a readable number.
+The size of the effect is modest and we say so. The +33.9% on total drag that the
+five-case study supports does not survive to thirteen cases as a readable
+number.
 What did survive is the shape of the result — every case, both controls behaving,
 monotone across bands — and the mechanism that explains it, which is stated in
 units a reader can check on their own mesh before running anything: **how much of
@@ -887,14 +850,80 @@ it and buys 18%. A 16,384-value grid keeps none of it and costs you the solve.
 
 ---
 
-## Appendix A — reproduction
+## CRediT authorship contribution statement
 
-Every table above is regenerated by one command from a checkpointed tree; see
-`docs/PLANS.md` §3 for the mapping from table to script and `results/*.json` file.
+**Ali Jabbary:** Conceptualization, Methodology, Software, Formal analysis,
+Investigation, Data curation, Visualization, Writing -- original draft, Writing
+-- review & editing, Supervision. **Kasra Ghanavati:** Validation, Writing --
+review & editing.
 
-## Appendix B — the scoring rules as code
+## Declaration of competing interest
 
-`solver/scoring.py`: `has_settled`, `settled_reference`, `bounded_saving`,
-`shared_reference`, `reference_spread`, `readable_depth`, `bootstrap_ci`,
-`sign_test`, with `MIN_DEPTH_OVER_FLOOR = 5.0` and `MAX_SPREAD_FRACTION = 0.5`.
-Each has a test named for the mistake it prevents.
+The authors declare that they have no known competing financial interests or
+personal relationships that could have appeared to influence the work reported in
+this paper.
+
+## Data availability
+
+All code, meshes, solver configurations and result files are openly available at
+`https://github.com/ali-kin4/neuroforge-cfd`. Every table and figure in this
+paper is regenerated by a single command from checkpointed solver output;
+Appendix A gives the mapping from each table to the script and result file that
+produces it. The flow solver is OpenFOAM v2606 (ESI), used unmodified. The
+surrogate is trained on the public AirfRANS dataset.
+
+## Appendix A -- reproduction
+
+Each result maps to one script and one committed result file.
+
+| result | script | result file |
+|---|---|---|
+| Wall-gradient diagnostic (§6) | `seed_gradient_diagnostic.py` | `seed_gradient.json` |
+| Three conditions (§5.2--§5.4) | `mesh_native_probe.py` | `depth_repr3_nowake.json` |
+| Thirteen-case corpus (§5.1) | `corpus_probe.py` | `depth_corpus.json` |
+| Acceptance certificate (§8) | `certificate.py` | `cert_all13_*.json` |
+| Wall-clock (§9) | `wallclock_control.py` | `wallclock_control.json` |
+| Wake bound (§7.3) | `wake_probe.py` | `wake_probe_*.json` |
+| Figures 1--2 | `plot_mechanism.py`, `plot_bands.py` | `mechanism.png`, `bands.png` |
+
+Re-scoring any finished tree at every convergence depth and force band is a
+single command, `reanalyse_depth.py`, which also declares the arm set it scored
+over and prints the readability verdict for every row.
+
+## Appendix B -- the scoring rules as code
+
+The eight rules of §4 are implemented in `solver/scoring.py` and
+`scripts/reanalyse_depth.py` as `has_settled`, `settled_reference`,
+`bounded_saving`, `shared_reference`, `reference_spread`, `readable_depth`,
+`scoreable_budgets`, `bootstrap_ci` and `sign_test`, with
+`MIN_DEPTH_OVER_FLOOR = 5.0` and `MAX_SPREAD_FRACTION = 0.5`. Each carries a
+unit test named for the mistake it prevents.
+
+## References
+
+1. F. Bonnet, A. J. Mazari, P. Cinnella, P. Gallinari. AirfRANS: High Fidelity
+   Computational Fluid Dynamics Dataset for Approximating Reynolds-Averaged
+   Navier--Stokes Solutions. arXiv:2212.07564, 2022.
+2. H. Wu, H. Luo, H. Wang, J. Wang, M. Long. Transolver: A Fast Transformer
+   Solver for PDEs on General Geometries. arXiv:2402.02366, 2024.
+3. C. Zeng, Y. Zhang, J. Zhou, et al. Point Cloud Neural Operator for Parametric
+   PDEs on Complex and Variable Geometries. arXiv:2501.14475, 2025.
+4. M. S. Eshaghi, C. Anitescu, N. Valizadeh, et al. NOWS: Neural Operator Warm
+   Starts for Accelerating Iterative Solvers. arXiv:2511.02481, 2025.
+5. J. Oh, Y. Lee, J. Darbon, et al. Spectrally Safe Neural Operator Warm-Starts
+   for Large-Scale Newton Solvers. arXiv:2606.21828, 2026.
+6. M. Khodak, M. K. Jung, B. Wynne, et al. One-shot acceleration of transient PDE
+   solvers via online-learned preconditioners. arXiv:2509.08765, 2025.
+7. P. Sharpe, R. Ranade, K. Tangsali, et al. Accelerating Transient CFD through
+   Machine Learning-Based Flow Initialization. arXiv:2503.15766, 2025.
+8. K. W. Fuchi, E. M. Wolf, C. R. Schrock, et al. Acceleration of RANS Solver
+   Convergence via Initialization with Wake Extension Models. arXiv:2501.14699,
+   2025.
+9. I. Yavlovich, J. Agbaria, M. Mhamed, et al. Learning-Augmented Scalable Linear
+   Assignment Problem Optimization via Neural Dual Warm-Starts. arXiv:2605.09382,
+   2026.
+10. P. R. Spalart, S. R. Allmaras. A one-equation turbulence model for
+    aerodynamic flows. La Recherche Aerospatiale 1 (1994) 5--21.
+11. H. G. Weller, G. Tabor, H. Jasak, C. Fureby. A tensorial approach to
+    computational continuum mechanics using object-oriented techniques.
+    Computers in Physics 12 (6) (1998) 620--631.

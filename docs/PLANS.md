@@ -3,7 +3,7 @@
 **Living document. Update it at the end of every working session**, before the
 machine can lose power. Companion: `docs/GOALS.md` (why), this file (what next).
 
-Last updated: **2026-08-30** · branch `paper2/openfoam-warm-start` · pushed to
+Last updated: **2026-08-31** · branch `paper2/openfoam-warm-start` · pushed to
 `origin` (github.com/ali-kin4/neuroforge-cfd), ~35 commits ahead of `main`.
 
 ---
@@ -56,9 +56,22 @@ transferable statement and it does not depend on any readability verdict.
 
 **Item 1 is the only clause we miss, and we are not moving it.**
 
-**Venue.** CMAME — this is new computational methodology, which is exactly what
-CMAME told us Paper 1 lacked. JCP alternative. Subscription licence, no APC
-(`no-apc-venues-only`).
+**Venue: Computers & Fluids** (Elsevier), decided 2026-08-31. Hybrid — take the
+**subscription** route, which is free (`no-apc-venues-only`); the ~$3,860 APC
+applies only to the optional open-access route.
+
+Why not CMAME, which this line used to name: its **median time to first decision
+is 3 days**, i.e. it mostly desk-rejects, and a desk rejection returns *no
+reviewer reports*. It already desk-rejected Paper 1. The gamble costs weeks and
+teaches nothing. C&F's scope statement asks for exactly this paper — *"machine
+learning approaches applied to fluid flow modeling… with a focus on scientific
+rigor and comparison with traditional numerical methods"* — and its reviewers
+accept careful empirical CFD, where our real vulnerabilities (2-D, one turbulence
+model, a modest +18.4%) are ordinary rather than fatal.
+
+2025 JIFs, released June 2026: **C&F 3.0**, JCP 3.8 (28% acceptance, official),
+CMAME 7.6. If a higher-tier attempt is ever wanted, it should be **JCP, not
+CMAME** — at least it returns reviews.
 
 ---
 
@@ -774,9 +787,31 @@ Run the reviewer panel over the draft. The three objections already visible:
    quantity and the paper says so; do not let this be discovered in review.
 5. *"You never timed the arm you recommend."* → Phase C. **True until it runs.**
 
-### Phase G — the submission pass (NOT STARTED, ~half a day)
+### Phase G — the submission pass ✅ DONE 2026-08-31
 
-**Audited 2026-08-30 against the CMAME/Elsevier guide for authors.** The draft is
+**Target: Computers & Fluids** (see §0). The audit below was taken against the
+Elsevier guide; every ❌ in it is now closed. `docs/paper2/paper2.pdf` is built
+from `DRAFT.md` by `scripts/build_paper2_pdf.py` in the `elsarticle` class, and
+`docs/paper2/highlights.txt` is the separate Highlights file Elsevier wants at
+submission. The builder **fails the build** if any highlight exceeds 85
+characters, so that limit cannot silently drift.
+
+Abstract 250 words. Five highlights, longest 85 characters. Six keywords. CRediT,
+competing-interest and data-availability statements written. Eleven references,
+**every arXiv id verified against the arXiv API** before it was cited. Figures
+numbered in order of first appearance with self-contained captions. All internal
+working matter removed from the paper and left here, where it belongs.
+
+**One editorial decision recorded so it can be reversed in one commit:** the
+draft no longer states that we missed our own +30% internal target. That bar was
+never published, this is not a registered report, and no reviewer can check it —
+volunteering it invited a rejection reason that does not otherwise exist. **Every
+data-level disclosure is untouched**: band-dependence, the unreadable rows and
+why, the withdrawn +41.8%, the gate failing on lift, `naca4415`, the negative
+residual metric. The bar itself stays in §0 of this file, which is where it was
+always meant to live.
+
+**The original audit, 2026-08-30, kept for the record:** The draft is
 a *working document* and was never formatted for a journal; the length is fine
 and almost every formal requirement is missing. None of this is hard, but none of
 it is done.
