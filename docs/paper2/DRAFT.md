@@ -304,6 +304,11 @@ row alone would mislead:
 | `nf_bl` | **+33.9%** | **-4.2%** | -38.5% *(unreadable)* | **+14.6%** | **+13.7%** | +11.0% *(unreadable)* |
 | `oracle_mesh` | +92.1% | +92.4% | +93.1% | +92.5% | +91.9% | +91.3% |
 
+> **Figure 2** (`results/bands.png`, from `scripts/plot_bands.py`) draws this
+> table. Bands the readability rule rejects are plotted hollow rather than
+> deleted — a curve with its last point removed would look more stable than the
+> measurement is.
+
 **Viscous drag is monotone across bands and total drag is not.** Monotone
 stability *is* the evidence that a number is a convergence-rate measurement
 rather than an artifact of where a wandering curve happens to cross a line — and
