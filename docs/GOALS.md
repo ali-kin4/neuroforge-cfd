@@ -79,7 +79,7 @@ cases at Re 3e6, measuring each seed as the solver received it:
 | wall-fitted 256×64 projection of **the exact answer** | 1890% |
 | **trained NeuroForge, queried at the cell centres** | **54%** |
 
-A 16,384-value grid — Cartesian *or* wall-fitted — has no station 4e-6 chords off
+A 16,384-value grid — Cartesian *or* wall-fitted — has no station 5e-6 chords off
 the wall, so it puts near-freestream velocity at the first cell centre and
 overestimates the wall shear by a factor of 20. Projecting the *exact answer*
 through one removes only a third to a half of a cold start's error in the

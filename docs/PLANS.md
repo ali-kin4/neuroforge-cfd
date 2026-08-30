@@ -104,7 +104,7 @@ solver received it:
 | oracle (the exact answer itself) | 0% | 0% |
 
 Both projections **overestimate the wall shear by a factor of ~20**. They place
-near-freestream velocity at a cell centre 4e-6 chords off the wall, because no
+near-freestream velocity at a cell centre 5e-6 chords off the wall, because no
 16,384-value grid — Cartesian *or* wall-fitted — has a station there. Against a
 cold start's 2851% they remove between a third and a half of the error in the
 quantity that decides drag. The network, evaluated pointwise at the solver's own
@@ -689,7 +689,7 @@ boundary-layer-only warm starts for RANS."** The arc:
 > quantity you measure.
 >
 > **Mechanism.** Measured, not argued: a 16k-value grid — Cartesian or
-> wall-fitted — cannot represent a first cell 4e-6 chords off the wall, so
+> wall-fitted — cannot represent a first cell 1e-5 chords tall, so
 > projecting even the *exact* answer through one leaves a 20× error in the wall
 > shear that viscous drag integrates.
 >
