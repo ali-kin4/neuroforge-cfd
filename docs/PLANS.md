@@ -526,70 +526,90 @@ is most of it.
 
 ---
 
-## 3.9 Where the machine was when it was shut down (2026-08-29)
+## 3.9 Handoff — 2026-08-30, power warning given mid-run
 
-**Everything is committed and pushed. Nothing is lost.** `runs/` is gitignored,
-so the interrupted solves are the only casualties and they cost compute, not
+**Everything is committed and pushed. The working tree was clean when this was
+written.** `runs/` is gitignored, so an interrupted solve costs compute, never
 evidence.
 
-**Interrupted:** Phase B1, the 13-case generality sweep, ~1 case of 13 complete
-per group. Six `simpleFoam` processes were killed by the shutdown. No
-`results/corpus_g*.json` had been written yet — each group checkpoints only after
-its first *complete* case (all four arms), and every group was still on its
-first.
+### What is DONE and needs nothing
 
-`completed_run` reuses solves that finished at the requested `n_iter` and
-re-solves anything that stopped short, so **resuming is just re-running the same
-six commands.** Roughly 2-3 hours from cold.
+- **Phase A** — the controlled mechanism test. §3.1a.
+- **Phase B1** — the 13-case sweep. **All 13 solved, all 13 admitted.** §3.0.
+  `results/depth_corpus.json`, `results/depth_corpus_no4415.json`.
+- **The draft** — `docs/paper2/DRAFT.md`, full, leading with the n=13 headline.
+- **Figures 1 and 2** — `results/mechanism.png`, `results/bands.png`,
+  `results/bands_n5.png`. Regenerate with:
+  ```bash
+  .venv/Scripts/python.exe scripts/plot_mechanism.py --depth results/depth_repr3_nowake.json
+  .venv/Scripts/python.exe scripts/plot_bands.py --depth results/depth_corpus.json
+  ```
+- **Tests** — full suite green, including `tests/test_reanalyse_budgets.py`.
+
+### What was IN FLIGHT when the warning came
+
+**Phase C**, `scripts/wallclock_control.py`, on case 1 of 5
+(`naca0012_aoa4`). It checkpoints to `results/wallclock_control.json` **after
+each complete case**, and it had not yet finished one, so expect that file to
+still hold the *old* pre-rewrite content with no `nf_bl` column. Do not read it
+as a Phase C result until the log shows completed cases.
+
+**Resume — one command, and it must have the machine to itself:**
 
 ```bash
 cd /d/Codes/Github/neuroforge-cfd
-mkdir -p logs
-.venv/Scripts/python.exe scripts/corpus_probe.py --only naca0012@8  --only naca0012@10 --out results/corpus_g1.json > logs/corpus_g1.log 2>&1 &
-.venv/Scripts/python.exe scripts/corpus_probe.py --only naca0012@12 --only naca2412@8  --out results/corpus_g2.json > logs/corpus_g2.log 2>&1 &
-.venv/Scripts/python.exe scripts/corpus_probe.py --only naca2412@10 --only naca0018@4  --out results/corpus_g3.json > logs/corpus_g3.log 2>&1 &
-.venv/Scripts/python.exe scripts/corpus_probe.py --only naca0018@8  --only naca4415@4  --out results/corpus_g4.json > logs/corpus_g4.log 2>&1 &
-.venv/Scripts/python.exe scripts/corpus_probe.py --only naca2415@8  --only naca0015@2  --out results/corpus_g5.json > logs/corpus_g5.log 2>&1 &
-.venv/Scripts/python.exe scripts/corpus_probe.py --only naca2415@2 --only naca4415@2 --only naca0015@4 --out results/corpus_g6.json > logs/corpus_g6.log 2>&1 &
+.venv/Scripts/python.exe scripts/wallclock_control.py > logs/wallclock.log 2>&1 &
 ```
 
-Then score it, and **check the admission verdicts by hand before trusting them**:
+`completed_run` reuses every solve that finished at 6000 iterations (or exited on
+`residualControl`), so this picks up where it stopped. **~4 h from cold, 25
+solves, serial.** It refuses to start while any other solver is up and **that
+refusal is the measurement working — never pass `--force`.** Check first:
 
 ```bash
-.venv/Scripts/python.exe scripts/reanalyse_depth.py --root runs/openfoam/corpus --per-case --stats nf_bl oracle_mesh cartesian_128
-grep -h "admission:" logs/corpus_g*.log
+wsl.exe -d Ubuntu -- bash -lc "pgrep -c simpleFoam"     # must be 0 before starting
 ```
 
-> ⚠ **The one judgement call waiting on the other side.** The pre-registered gate
-> excludes a case if its cold residual floor exceeds 1e-5 *or* its arms disagree
-> on final Cd by more than 2%. At 10-12 degrees those two failure modes are not
-> distinguishable by the gate: a case excluded **on floor** may simply have needed
-> more than 6000 iterations, which is a *budget* verdict wearing a *fixed-point*
-> verdict's clothes. For every excluded case, look at whether its residual was
-> still falling at iteration 6000. If it was, the honest report is "needs a longer
-> budget", not "no unique steady solution", and the case should be re-run at
-> 12,000 rather than dropped. Do not let the gate make that call unsupervised.
+### Why Phase C is the only thing left
 
-**Not running, and next in order after B1:** B4 (two cases at 12,000 iterations,
-fresh work-dir), then Phase C (`wallclock_control.py`, **serial and exclusive** —
-it refuses to start while any solver is up, and that refusal is the measurement
-working).
+It is the **last open clause of the §0 bar** — item 6, and it is at **n=0**, not
+n=1. The wall-clock number quoted for months (`+41% iterations -> +30% seconds`)
+is `fitted_256x64`, an **oracle** arm, at a **residual** target, on one case, and
+that same arm is **-149% on Cd@1%**. The recommended arm has never been timed.
+See §3.8.
+
+When it lands, score it and write it into §9 of the draft. If `nf_bl`'s iteration
+saving does **not** survive into seconds once inference and `wall_distance` are
+charged to it, that is a publishable negative and the paper says so — §9 is
+already written to be honest either way.
+
+### After Phase C, in order
+
+1. **B4** — 12,000 iterations on `naca4415@2` and `naca4415@4`, **into a fresh
+   `--work-dir`**, to find out whether their 1.0–1.3% arm disagreement is genuine
+   non-uniqueness or a budget we did not pay (§3.0). This is the single most
+   valuable remaining experiment: it decides whether total drag is reportable at
+   n=13 at all.
+2. **B2** — k-omega SST, if the answer to open question 1 is yes.
+3. **B3/B5** — second Reynolds number; re-measure the low-Re crossover.
+4. **Phase E** — the adversarial reviewer panel over the draft.
 
 ### Open questions for the next session
 
-1. **Is k-omega SST (B2) worth a day?** It is the largest remaining item and it
-   is purely reviewer-defensive — it shows the recipe is not an artifact of
-   Spalart-Allmaras. Everything else on the list is cheap. If the answer is no,
-   the paper states single-turbulence-model as a limitation and ships sooner.
-2. **Title.** Working: *"A surrogate must speak the solver's mesh: mesh-native,
-   boundary-layer-only warm starts for RANS."* Not chosen.
-3. **Draft before or after B2?** The arc is stable enough to draft now (three
-   conditions, mechanism, certificate); drafting first would surface which
-   numbers actually need tightening.
-4. **CMAME confirmed as the target?** `GOALS.md` says so and the no-APC
-   constraint holds there, but it has not been re-checked since Paper 1.
+1. **Is k-omega SST (B2) worth a day?** Purely reviewer-defensive: it shows the
+   recipe is not an artifact of Spalart-Allmaras. If no, the paper states
+   single-turbulence-model as a limitation and ships sooner.
+2. **Title.** Three candidates are in `docs/paper2/DRAFT.md` §0. Not chosen.
+3. **CMAME still the target?** Not re-checked since Paper 1. The paper is now
+   *new computational methodology*, which is the gap CMAME named — but the
+   headline misses our own pre-registered bar (§0), so the venue call should be
+   made with that in view.
+4. **New: is +18.4% at 13/13 with p = 0.0002 the paper you want to submit?** It
+   is a smaller number than the +33.9% this project chased for weeks, and a much
+   better-evidenced one. The alternative is to spend B4 and a longer budget
+   trying to make total drag readable at n=13. That is a judgement about
+   ambition versus time, and it is yours.
 
----
 
 ## 4. The road to the paper
 
