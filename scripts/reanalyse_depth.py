@@ -102,6 +102,28 @@ def residuals(case_dir: str):
     return info["residuals"] if info else None
 
 
+def scoreable_budgets(lengths: dict, converged: dict, *, fraction: float = 0.9) -> dict:
+    """Which runs may bound a target they never reached, and at what length.
+
+    An arm that stopped short of the tree's budget is *unfinished*, not censored:
+    scoring it against its own truncated length would read a run a power cut
+    interrupted as a catastrophic failure. So a short run gets 0 and is left
+    unscored.
+
+    But **a run that satisfied ``residualControl`` is finished**. OpenFOAM prints
+    ``SIMPLE solution converged in N iterations`` and exits, and no further
+    iterations exist to be had -- so its own length *is* its budget. Judging
+    completeness by length alone penalised exactly the arms that converge
+    fastest: on the 13-case corpus it dropped the oracle control on
+    ``naca0012_aoa12``, which had converged at 1289 of 6000 iterations.
+    ``openfoam.completed_run`` has always made this distinction; this scorer did
+    not, until 2026-08-30.
+    """
+    full = max(lengths.values(), default=0)
+    return {k: (v if (v >= fraction * full or converged.get(k)) else 0)
+            for k, v in lengths.items()}
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--root", default=os.path.join("runs", "openfoam", "repr"))
@@ -200,8 +222,7 @@ def main(argv=None):
     # +49.7% bound. `completed_run` has always had this right; the scorer did not.
     converged = {k: bool(v["converged"]) if v else False for k, v in info.items()}
     full = max(lengths.values(), default=0)
-    budgets = {k: (v if (v >= 0.9 * full or converged.get(k)) else 0)
-               for k, v in lengths.items()}
+    budgets = scoreable_budgets(lengths, converged)
     early = sorted(f"{c}_{a} ({lengths[(c, a)]})" for (c, a) in converged
                    if converged[(c, a)] and lengths[(c, a)] < 0.9 * full)
     if early:
