@@ -1,0 +1,52 @@
+{
+  "re": 3000000.0,
+  "n_iter": 6000,
+  "checkpoints": [
+    "checkpoints\\v2_transolver\\seed0.pt"
+  ],
+  "rows": [
+    {
+      "case": "naca2415_aoa8",
+      "re": 3000000.0,
+      "aoa": 8.0,
+      "airfoil": "naca2415",
+      "covered_fraction": 0.8010410094637224,
+      "cold_residual_floor": 9.245910805500001e-08,
+      "final_Cd_by_arm": {
+        "cold": 0.016982587675,
+        "oracle_mesh": 0.016982415946,
+        "nf_bl": 0.016978717968,
+        "cartesian_128": 0.016991617519
+      },
+      "arm_Cd_spread": 0.0005367706479125869,
+      "admitted": true,
+      "field_error_pct": {
+        "u": 16.85043609488836,
+        "v": 16.85900699880725,
+        "p": 14.514463084652094,
+        "nut": 69.51901776551375,
+        "u_in_bl": 22.36164202024864
+      },
+      "cold@1e-03": 85,
+      "oracle_mesh@1e-03": 6,
+      "nf_bl@1e-03": 78,
+      "cartesian_128@1e-03": 77,
+      "cold@1e-04": 240,
+      "oracle_mesh@1e-04": 15,
+      "nf_bl@1e-04": 233,
+      "cartesian_128@1e-04": 406,
+      "cold@1e-05": 1106,
+      "oracle_mesh@1e-05": 66,
+      "nf_bl@1e-05": 552,
+      "cartesian_128@1e-05": 1002,
+      "cold@5e-06": 1295,
+      "oracle_mesh@5e-06": 81,
+      "nf_bl@5e-06": 603,
+      "cartesian_128@5e-06": 1571,
+      "cold@1e-06": 1688,
+      "oracle_mesh@1e-06": 139,
+      "nf_bl@1e-06": 1840,
+      "cartesian_128@1e-06": 2491
+    }
+  ]
+}
