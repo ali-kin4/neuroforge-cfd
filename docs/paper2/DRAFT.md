@@ -534,11 +534,11 @@ velocity gradient; a surrogate is the reverse. The obvious inference — hand ov
 the pressure, keep the near-wall velocity — is what this project pursued for two
 working sessions, and it is **false**:
 
-- `fitted_p` (pressure only) is **inert**: +0.1% on every metric at every depth.
+- `fitted_p` (pressure only) is **inert**: +0.2% on drag and +0.1% elsewhere at every depth.
 - `composite` (potential-flow pressure + surrogate boundary layer) is
-  **negative**: -320.0%.
+  **negative**: -305.4%.
 - `potential` (`potentialFoam` alone — the free industrial baseline) is inert on
-  drag (+0.7%) and mildly positive on lift (+3.3%).
+  drag (+0.6%) and mildly positive on lift (+3.3%).
 
 The reason is SIMPLE's structure: pressure is *recomputed* from continuity given
 the velocity field, so a pressure seed inconsistent with `U` is overwritten

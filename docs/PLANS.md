@@ -3,8 +3,8 @@
 **Living document. Update it at the end of every working session**, before the
 machine can lose power. Companion: `docs/GOALS.md` (why), this file (what next).
 
-Last updated: **2026-08-29** · branch `paper2/openfoam-warm-start` · pushed to
-`origin` (github.com/ali-kin4/neuroforge-cfd) · 29 commits ahead of `main`.
+Last updated: **2026-08-30** · branch `paper2/openfoam-warm-start` · pushed to
+`origin` (github.com/ali-kin4/neuroforge-cfd), ~35 commits ahead of `main`.
 
 ---
 
@@ -325,10 +325,10 @@ surrogate is the reverse. The obvious inference — *hand over the pressure, kee
 the near-wall velocity* — is what this repo pursued for two sessions, and it is
 **false**:
 
-- `fitted_p` (pressure only) is **inert**: +0.1% on every metric, at every depth.
-- `composite` (potential-flow pressure + surrogate BL) is **negative**: −320.0%.
+- `fitted_p` (pressure only) is **inert**: +0.2% on drag and +0.1% elsewhere, at every depth.
+- `composite` (potential-flow pressure + surrogate BL) is **negative**: −305.4%.
 - `potential` (potentialFoam alone, the free industrial baseline) is inert on
-  drag (+0.7% Cd@1%) and mildly positive on lift (+3.3%).
+  drag (+0.6% Cd@1%) and mildly positive on lift (+3.3%).
 - The winner hands over **velocity and eddy viscosity inside the boundary layer
   and no pressure at all.**
 
@@ -674,7 +674,7 @@ boundary-layer-only warm starts for RANS."** The arc:
 | [NOWS](https://arxiv.org/abs/2511.02481) (CMAME 2026) | inner Krylov solves | up to 90% time | we warm-start the outer field; complementary, and they note learned preconditioners are "typically restricted to Cartesian grids" — which is the limitation we *measure the cost of* |
 | [Spectrally Safe](https://arxiv.org/abs/2606.21828) (2026) | Newton solvers | 5.4× at 6.4M DOF | **closest prior art**: same core insight — L² accuracy is not what makes a seed good — from a different angle. Theirs is Jacobian definiteness; ours is a named, measured defect (first-cell wall gradient) and a representational cause. Differentiate explicitly in the paper, not in review. |
 | [PCGBandit](https://arxiv.org/html/2509.08765) | preconditioner choice, online | 1.5× total, 4× linear | orthogonal and composable; its "never worse than the default" property is what §3.6 supplies for seeds |
-| [Hybrid init](https://arxiv.org/html/2503.15766v1) (NVIDIA) | transient URANS, DoMINO + potential flow | ~2× | uses the same drag-band metric; ours is steady RANS, and we measure potential flow as an arm and find it inert on drag (+0.7%) |
+| [Hybrid init](https://arxiv.org/html/2503.15766v1) (NVIDIA) | transient URANS, DoMINO + potential flow | ~2× | uses the same drag-band metric; ours is steady RANS, and we measure potential flow as an arm and find it inert on drag (+0.6%) |
 | [Wake extension](https://arxiv.org/abs/2501.14699) | near-body/wake decomposition | **26.3× iterations, 16.4× wall-clock** | **The strongest number in the field, and far beyond ours.** They initialise the far wake, which a cold solve is slowest at; we cut our seed off at 3.5 chords and hand the wake back. Complementary rather than competing — Phase B6 tests the composition. State the gap plainly; do not let a reviewer find it. |
 | [Learning-augmented dual warm starts](https://arxiv.org/html/2605.09382) (2026) | linear assignment, with a fallback | runtime → baseline even at 100% fallback | **Closest prior art for §3.6.** The idea of a fallback preserving the worst case is *theirs*, not ours; cite it. What is new here is the fallback applied to a PDE solver's field seed, a rule that reads only the probe, and a measured capture-versus-`K` curve. |
 | [PCNO](https://arxiv.org/html/2501.14475) and mesh-native surrogates | — | — | the point-cloud literature argues mesh-native is better *for prediction accuracy*. Nobody has shown it is the difference between a warm start that works and one that costs 6× more. **That framing is the novelty.** |

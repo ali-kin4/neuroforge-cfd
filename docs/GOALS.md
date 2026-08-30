@@ -3,7 +3,7 @@
 **Living document. Update whenever a goal is reached, dropped, or reframed.**
 Companion: `docs/PLANS.md` (what next), this file (why, and what has been won).
 
-Last updated: **2026-08-29**
+Last updated: **2026-08-30**
 
 ---
 
@@ -47,7 +47,7 @@ Everything below is a step toward that, or a measured limit on it.
 
 | Goal | State |
 |---|---|
-| **Paper 2**: mesh-native, boundary-layer-only warm starts, with a no-harm certificate | Mechanism measured, recipe established at n=5, guarantee cross-validated. Two gaps stand between this and submission: the controlled test that removes the oracle-vs-model confound (running), and generality — five NACA sections at 0–6° is not a study. `PLANS.md` §0 states the bar; §4 Phases A–C close it. |
+| **Paper 2**: mesh-native, boundary-layer-only warm starts, with a no-harm certificate | Mechanism measured **and controlled** (the oracle-vs-model confound is gone), recipe established at n=5, guarantee cross-validated, **full draft written** (`docs/paper2/DRAFT.md`). Two gaps remain: generality (13-case sweep **running**; five NACA sections at 0–6° is not a study) and **wall-clock, which is at n=0 for the recommended arm** — the only timing we have is an oracle arm on a residual target (`PLANS.md` §3.8). §0 states the bar; §4 Phases B–C close it. |
 
 ### ○ Queued
 
@@ -118,7 +118,7 @@ effect.
 ### 3. Viscous drag is the quantity that pays, and it is 60–84% of the drag
 Three wall-fitted seed constructions, three bands, 5/5 cases, monotone, no sign
 flip: `fitted_bl` +41.7%/+31.7%/+26.4%, `fitted_256x64` +37.2%/+29.4%/+24.5%,
-`nf_bl` +14.6%/+13.7%/+11.0%, against Cartesian's +10.0%/+12.5%/**−38.8%**.
+`nf_bl` +14.6%/+13.7%/+11.0%, against Cartesian's +10.0%/+12.4%/**−37.9%**.
 
 Stability across bands *is* the evidence this is a rate measurement rather than
 a flat curve crossing a line. **Now quantified: `nf_bl` on total drag reads
