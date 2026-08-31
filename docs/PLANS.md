@@ -51,6 +51,42 @@ there fails silently, which already cost one wrong diagnosis today.
 repair; the one stale `results/sequencing_naca00124.json` was **deleted** because
 it was produced at 12:51 with the *old* mapper. Do not resurrect it.
 
+### ⚠ `reanalyse_depth.py` silently drops arms it does not know
+
+It filters discovered directories against a hardcoded `KNOWN_ARMS`, so an arm
+absent from that tuple is scored as *not present* with no warning — the first
+scored sequencing file listed two arms for a six-arm tree. Today's arms are now
+registered. **Add any new arm to `KNOWN_ARMS` before scoring it**, and check the
+`N cases | arms: ...` line names every arm you expect.
+
+### Grid sequencing is IN, and it corrects the paper twice (2026-08-31 14:2x)
+
+`results/depth_sequencing.json`, 5 cases, all six arms:
+
+| row | cold | oracle | `nf_bl` | `sequenced_bl` | `sequenced` |
+|---|---:|---:|---:|---:|---:|
+| Cd@1% | 808 | +92.2% | +34.0% | −300.5% | −376.1% |
+| Cd_v@1% | 696 | +92.4% | +14.6% | **+75.9%** | **+63.1%** |
+| Cd_v@0.5% | 802 | +91.9% | +13.7% | +65.7% | +58.4% |
+| Cl@1% | 947 | +99.9% | +10.1% | +50.1% | +34.7% |
+
+1. **The classical seed is better than ours, and still loses.** +75.9% on
+   viscous drag against `nf_bl`'s +14.6% — which is what the placement criterion
+   predicts for a coarsened body-fitted mesh. But the coarse solve is charged
+   **1486 fine-equivalent iterations** against a cold run of 696, so once paid
+   for it is net negative. **The learned seed's advantage is not quality, it is
+   that it is nearly free** (~11 s inference). Write the paper that way — it is
+   fairer and more interesting than "ours is better".
+   *Caveat to state:* the coarse solve ran its full 6000 iterations, so the
+   charge is pessimistic; a practitioner would stop it early.
+2. **Condition 2 holds with no network in it.** `sequenced_bl` beats `sequenced`
+   on every row. The draft explains boundary-layer-only by *surrogate
+   extrapolation*, but a coarse-mesh solution is valid everywhere — so **that
+   explanation is wrong or incomplete and §5.3 must be rewritten.** The likely
+   right one is consistency: both arms are strongly negative on total drag,
+   exactly like `nf_bl_nut`, and a seeded region inconsistent with the rest
+   destroys pressure drag.
+
 ### Score them when they finish, each in its own tree
 
 ```bash
