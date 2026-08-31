@@ -62,6 +62,7 @@ __all__ = [
     "hybrid_seed",
     "masked_seed",
     "wake_seed",
+    "sequence_seed",
     "FIELDS",
 ]
 
@@ -488,5 +489,98 @@ def wake_seed(
         "ramp": float(ramp),
         "seeded_fraction": float((w > 0).mean()),
         "fully_seeded_fraction": float((w >= 1.0).mean()),
+    }
+    return tuple(out[name] for name in FIELDS), report
+
+
+def sequence_seed(
+    values: tuple,
+    coarse_centres: np.ndarray,
+    fine_centres: np.ndarray,
+    surface: np.ndarray,
+    *,
+    u_inf: float,
+    v_inf: float,
+    nut_freestream: float,
+) -> tuple[tuple[np.ndarray, ...], dict]:
+    """Map a solution from a coarse mesh onto a fine one -- **grid sequencing**.
+
+    This is the classical warm start, and the one the machine-learning
+    initialisation literature does not measure itself against: solve on a
+    coarsened mesh, map the result up, continue on the fine mesh. OpenFOAM ships
+    it as ``mapFields``, and every production aerodynamics workflow has some
+    form of it.
+
+    It is in this package for a reason beyond fairness. A coarsened body-fitted
+    mesh is *still body-fitted*: halving the wall-normal count doubles the first
+    cell but leaves its stations clustered at the wall, so the representation
+    keeps a sample point inside -- or within a factor of two of -- the fine
+    mesh's first cell. The placement criterion therefore **predicts that grid
+    sequencing helps**, on a method it was not derived from and which involves
+    no network at all. That is the criterion's out-of-sample test.
+
+    The map follows ``mapFields`` rather than a bare cell-to-cell interpolation:
+    the wall's own boundary values are carried into the interpolation as data.
+    Without them a fine cell centre nearer the wall than any coarse centre sits
+    outside the convex hull and has to be extrapolated, which is precisely where
+    the wall gradient lives. With them, ``u`` and ``v`` interpolate between
+    no-slip at the surface and the first coarse centre, which is what makes the
+    near-wall map faithful. ``nut`` goes to zero at the wall as Spalart-Allmaras
+    requires; ``p`` is zero-gradient there, so the surface carries its nearest
+    coarse value.
+
+    Parameters
+    ----------
+    values:
+        ``(u, v, p, nut)`` on ``coarse_centres``.
+    coarse_centres, fine_centres:
+        Cell centres of the two meshes, ``(N, 2)`` or ``(N, 3)``.
+    surface:
+        The wall polyline, used both as no-slip data and to anchor ``p``.
+    """
+    from scipy.interpolate import LinearNDInterpolator, NearestNDInterpolator
+    from scipy.spatial import cKDTree
+
+    u, v, p, nut = (np.asarray(a, dtype=np.float64).ravel() for a in values)
+    src = np.asarray(coarse_centres, dtype=np.float64)[:, :2]
+    dst = np.asarray(fine_centres, dtype=np.float64)[:, :2]
+    wall = np.unique(np.asarray(surface, dtype=np.float64)[:, :2], axis=0)
+
+    # Pressure is zero-gradient at the wall, so the surface inherits the nearest
+    # coarse value; velocity and nuTilda are zero there by the wall condition.
+    p_wall = p[cKDTree(src).query(wall)[1]]
+
+    points = np.vstack([src, wall])
+    columns = {
+        "u": np.concatenate([u, np.zeros(len(wall))]),
+        "v": np.concatenate([v, np.zeros(len(wall))]),
+        "p": np.concatenate([p, p_wall]),
+        "nut": np.concatenate([nut, np.zeros(len(wall))]),
+    }
+    fill = {"u": float(u_inf), "v": float(v_inf), "p": 0.0,
+            "nut": float(nut_freestream)}
+
+    out = {}
+    outside = np.zeros(len(dst), dtype=bool)
+    for name, col in columns.items():
+        linear = LinearNDInterpolator(points, col)
+        got = linear(dst)
+        gap = ~np.isfinite(got)
+        outside |= gap
+        if gap.any():
+            # Beyond the coarse mesh's hull -- the far field, where freestream is
+            # the right answer anyway. Nearest keeps it continuous.
+            got[gap] = NearestNDInterpolator(points, col)(dst[gap])
+        out[name] = got
+    out["nut"] = np.maximum(out["nut"], 0.0)
+
+    report = {
+        "mode": "sequence",
+        "coarse_cells": int(len(src)),
+        "fine_cells": int(len(dst)),
+        "coarsening_ratio": float(len(dst) / max(len(src), 1)),
+        "wall_points": int(len(wall)),
+        "extrapolated_fraction": float(outside.mean()),
+        "fill": fill,
     }
     return tuple(out[name] for name in FIELDS), report
