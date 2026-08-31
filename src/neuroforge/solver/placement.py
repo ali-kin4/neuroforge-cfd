@@ -47,6 +47,9 @@ __all__ = [
     "uniform_stations",
     "stations_inside",
     "preflight",
+    "invert_u_tau",
+    "wall_law_profile",
+    "wall_law_repair",
     "KAPPA",
     "B_LOG",
 ]
@@ -208,4 +211,108 @@ def preflight(
         "stations_inside_first_cell": stations_inside(st, cell_centre),
         "first_station_over_cell_centre": float(st[0] / cell_centre),
         **amp,
+    }
+
+
+def invert_u_tau(speed: np.ndarray | float, height: float, nu: float,
+                 *, iterations: int = 60) -> np.ndarray:
+    """Recover ``u_tau`` from a velocity known at one off-wall height.
+
+    Solves ``speed = u_tau * u+(height * u_tau / nu)`` for ``u_tau``. This is the
+    standard wall-function inversion; it is here because it is what makes the
+    repair in :func:`wall_law_profile` possible using **only what the
+    representation actually carries** -- a velocity at its own first station --
+    and nothing from the converged solution.
+
+    The right-hand side is monotone increasing in ``u_tau``, so bisection is
+    unconditionally safe and needs no derivative or initial guess.
+    """
+    s = np.asarray(speed, dtype=np.float64)
+    if height <= 0 or nu <= 0:
+        raise ValueError("height and nu must be positive")
+
+    lo = np.full(s.shape, 1e-12)
+    hi = np.maximum(np.abs(s), 1e-12)          # u+ >= 1 for y+ >= 1, so u_tau <= speed
+    hi = np.maximum(hi, np.sqrt(np.abs(s) * nu / height))   # covers the sublayer branch
+    for _ in range(iterations):
+        mid = 0.5 * (lo + hi)
+        predicted = mid * u_plus(np.maximum(height * mid / nu, 1e-30))
+        too_small = predicted < np.abs(s)
+        lo = np.where(too_small, mid, lo)
+        hi = np.where(too_small, hi, mid)
+    return 0.5 * (lo + hi)
+
+
+def wall_law_profile(speed_at_station: np.ndarray, height: float,
+                     distance: np.ndarray, nu: float) -> tuple[np.ndarray, np.ndarray]:
+    """Rebuild the near-wall speed a representation could not store.
+
+    Given the speed the representation holds at its first station ``height`` and
+    the wall distance of each mesh cell, return ``(speed, u_tau)`` with the speed
+    evaluated from the law of the wall at each cell's own distance.
+
+    **This is the repair the mechanism implies.** Section 6 says a projection
+    overestimates the first-cell gradient by ``u+(y1+)/u+(yc+)``, a factor that
+    is known in closed form -- so it can be divided back out. Nothing here is
+    learned or fitted, and nothing uses the converged answer: the only input is
+    the value the representation already carries.
+
+    It is not new physics. Inverting a wall function to get ``u_tau`` from an
+    off-wall velocity is what every wall-modelled LES does. What is new is the
+    use: repairing a surrogate's *output format* so that a seed which would
+    otherwise cost the solve can be handed to the solver.
+    """
+    d = np.asarray(distance, dtype=np.float64)
+    u_tau = invert_u_tau(speed_at_station, height, nu)
+    y_plus = np.maximum(d * u_tau / nu, 1e-30)
+    return u_tau * u_plus(y_plus), u_tau
+
+
+def wall_law_repair(
+    values: tuple,
+    distance: np.ndarray,
+    *,
+    first_station: float,
+    nu: float,
+    kappa_damping: float = 26.0,
+) -> tuple[tuple[np.ndarray, ...], dict]:
+    """Repair a projected seed below the representation's first station.
+
+    Takes ``(u, v, p, nut)`` as a projection left them -- every cell nearer the
+    wall than ``first_station`` holding that station's value -- and rebuilds the
+    velocity magnitude and eddy viscosity from the law of the wall at each
+    cell's own wall distance. Direction is preserved; only magnitude is
+    rescaled, which keeps the repair free of any surface-tangent geometry.
+
+    ``nut`` is rebuilt as the mixing-length estimate ``kappa * u_tau * d`` with
+    van Driest damping, which is what Spalart-Allmaras relaxes to in the log
+    layer and which correctly goes to zero at the wall.
+
+    Pressure is untouched: it is constant across a boundary layer, and it is the
+    one channel a coarse representation does not damage.
+    """
+    u, v, p, nut = (np.asarray(a, dtype=np.float64).copy() for a in values)
+    d = np.asarray(distance, dtype=np.float64)
+    below = d < first_station
+    if not below.any():
+        return (u, v, p, nut), {"mode": "wall_law_repair", "repaired_cells": 0,
+                                "first_station": float(first_station)}
+
+    speed = np.hypot(u[below], v[below])
+    rebuilt, u_tau = wall_law_profile(speed, first_station, d[below], nu)
+    scale = rebuilt / np.maximum(speed, 1e-30)
+    u[below] *= scale
+    v[below] *= scale
+
+    y_plus = np.maximum(d[below] * u_tau / nu, 1e-30)
+    damping = (1.0 - np.exp(-y_plus / kappa_damping)) ** 2
+    nut[below] = np.maximum(KAPPA * u_tau * d[below] * damping, 0.0)
+
+    return (u, v, p, np.maximum(nut, 0.0)), {
+        "mode": "wall_law_repair",
+        "repaired_cells": int(below.sum()),
+        "repaired_fraction": float(below.mean()),
+        "first_station": float(first_station),
+        "u_tau_median": float(np.median(u_tau)),
+        "speed_scale_median": float(np.median(scale)),
     }

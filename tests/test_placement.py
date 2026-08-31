@@ -124,3 +124,75 @@ def test_predicts_the_measured_overestimate_on_the_repr3_cases():
     assert len(ratios) >= 5
     assert ratios.mean() == pytest.approx(1.13, abs=0.05)
     assert ratios.std() < 0.05
+
+
+# --------------------------------------------------------------------------- #
+# The repair: inverting the damage the closed form predicts
+# --------------------------------------------------------------------------- #
+
+NU, U_TAU = 3.333e-7, 0.0477
+
+
+def test_u_tau_inversion_round_trips():
+    """Recovering u_tau from a velocity at one height must return what made it."""
+    for height in (2.5e-4, 1e-3, 5e-3):
+        speed = U_TAU * pl.u_plus(height * U_TAU / NU)
+        assert float(pl.invert_u_tau(speed, height, NU)) == pytest.approx(U_TAU, rel=1e-4)
+
+
+def test_inversion_is_vectorised_over_stations():
+    speeds = U_TAU * pl.u_plus(np.full(7, 2.5e-4) * U_TAU / NU)
+    got = pl.invert_u_tau(speeds, 2.5e-4, NU)
+    assert got.shape == (7,)
+    assert np.allclose(got, U_TAU, rtol=1e-4)
+
+
+def test_the_repair_restores_the_first_cell_gradient():
+    """The point of the whole exercise, on a profile that obeys the law exactly."""
+    d = np.array([5e-6, 1e-5, 5e-5, 2.5e-4])
+    station = U_TAU * pl.u_plus(2.5e-4 * U_TAU / NU)
+    # What a projection leaves behind: the station's value, everywhere below it.
+    projected = (np.full(4, station), np.zeros(4), np.zeros(4), np.full(4, 1e-5))
+    fixed, report = pl.wall_law_repair(projected, d, first_station=2.5e-4, nu=NU)
+
+    truth = U_TAU * pl.u_plus(d * U_TAU / NU)
+    assert np.allclose(fixed[0][:3], truth[:3], rtol=1e-3)
+    assert report["repaired_cells"] == 3          # the cell *at* the station is untouched
+
+
+def test_the_repair_leaves_cells_above_the_station_alone():
+    d = np.array([1e-3, 5e-3])
+    projected = (np.full(2, 0.6), np.zeros(2), np.zeros(2), np.full(2, 1e-5))
+    fixed, report = pl.wall_law_repair(projected, d, first_station=2.5e-4, nu=NU)
+    assert report["repaired_cells"] == 0
+    assert np.allclose(fixed[0], projected[0])
+
+
+def test_the_repair_preserves_velocity_direction():
+    """Only magnitude is rescaled -- no surface-tangent geometry is involved."""
+    d = np.array([5e-6, 1e-5])
+    u0, v0 = np.array([0.3, 0.3]), np.array([0.4, 0.4])
+    fixed, _ = pl.wall_law_repair((u0, v0, np.zeros(2), np.full(2, 1e-5)),
+                                  d, first_station=2.5e-4, nu=NU)
+    before = u0 / np.hypot(u0, v0)
+    after = fixed[0] / np.hypot(fixed[0], fixed[1])
+    assert np.allclose(before, after)
+
+
+def test_the_repair_sends_nut_and_velocity_to_zero_at_the_wall():
+    """SA requires it, and a repair that violated it would be worse than none."""
+    d = np.array([1e-9, 1e-7, 5e-6])
+    projected = (np.full(3, 0.5), np.zeros(3), np.zeros(3), np.full(3, 1e-3))
+    fixed, _ = pl.wall_law_repair(projected, d, first_station=2.5e-4, nu=NU)
+    assert fixed[0][0] < fixed[0][-1]
+    assert fixed[3][0] < fixed[3][-1]
+    assert (fixed[3] >= 0).all()
+
+
+def test_the_repair_passes_pressure_through_untouched():
+    """Pressure is constant across a boundary layer; touching it would be wrong."""
+    d = np.array([5e-6, 1e-5])
+    p = np.array([-0.3, -0.29])
+    fixed, _ = pl.wall_law_repair((np.full(2, 0.5), np.zeros(2), p, np.full(2, 1e-5)),
+                                  d, first_station=2.5e-4, nu=NU)
+    assert np.allclose(fixed[2], p)
