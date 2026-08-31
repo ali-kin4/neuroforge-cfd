@@ -1,0 +1,235 @@
+{
+  "root": "runs/openfoam/sequencing",
+  "re": 3000000.0,
+  "heights": [
+    4e-06,
+    8.625049189613924e-06,
+    1.859786838081495e-05,
+    4.010188240162351e-05,
+    8.647017707752893e-05,
+    0.0001864523826820783,
+    0.0004020402430384107,
+    0.0008669042181026563,
+    0.0018692728809548017,
+    0.0040306426367616235,
+    0.008691122751956033,
+    0.018740340312148367
+  ],
+  "rows": [
+    {
+      "case": "naca0012_aoa0",
+      "converged_roughness": 0.08827203212445442,
+      "converged_mean_gradient": 6817.745400843203,
+      "arms": {
+        "cold": {
+          "grad_err": 31.269390342967718,
+          "roughness": 0.027131818763671878,
+          "profile_rough": 0.0,
+          "field_err_bl": 0.8948465762943942,
+          "mean_gradient": 237874.51376874416
+        },
+        "oracle_mesh": {
+          "grad_err": 8.919925736813349e-10,
+          "roughness": 0.08827203223280275,
+          "profile_rough": 0.10426507845541057,
+          "field_err_bl": 1.7683245034507977e-09,
+          "mean_gradient": 6817.745400615415
+        },
+        "nf_bl": {
+          "grad_err": 0.5452154548389555,
+          "roughness": 0.1650130987347908,
+          "profile_rough": 0.1252555610759205,
+          "field_err_bl": 0.12836764117161722,
+          "mean_gradient": 4680.135392963887
+        },
+        "sequenced": {
+          "grad_err": 6.544765060716806,
+          "roughness": 5.397369387126339,
+          "profile_rough": 0.3164554015624272,
+          "field_err_bl": 0.4818774177170715,
+          "mean_gradient": 28074.9720233343
+        }
+      }
+    },
+    {
+      "case": "naca0012_aoa4",
+      "converged_roughness": 0.05973661699527744,
+      "converged_mean_gradient": 7047.42108241856,
+      "arms": {
+        "cold": {
+          "grad_err": 28.227238170704286,
+          "roughness": 0.01964897281498847,
+          "profile_rough": 0.0,
+          "field_err_bl": 0.9035469716838793,
+          "mean_gradient": 237382.69710785884
+        },
+        "oracle_mesh": {
+          "grad_err": 7.845218297941679e-10,
+          "roughness": 0.05973661703554845,
+          "profile_rough": 0.10833142668370592,
+          "field_err_bl": 1.631033506242845e-09,
+          "mean_gradient": 7047.421082396643
+        },
+        "nf_bl": {
+          "grad_err": 0.5081186189908198,
+          "roughness": 0.29019649180866963,
+          "profile_rough": 0.13507407047718897,
+          "field_err_bl": 0.14328352140671421,
+          "mean_gradient": 5502.1846065355285
+        },
+        "sequenced": {
+          "grad_err": 6.378078215779453,
+          "roughness": 5.7275381719670575,
+          "profile_rough": 0.32037932710575234,
+          "field_err_bl": 0.4858528081366104,
+          "mean_gradient": 28570.982418786076
+        },
+        "sequenced_bl": {
+          "grad_err": 6.378078215779453,
+          "roughness": 5.7275381719670575,
+          "profile_rough": 0.3203859884736013,
+          "field_err_bl": 0.48585277402918403,
+          "mean_gradient": 28570.982418786076
+        }
+      }
+    },
+    {
+      "case": "naca0015_aoa6",
+      "converged_roughness": 0.03660111168552043,
+      "converged_mean_gradient": 7190.649581665308,
+      "arms": {
+        "cold": {
+          "grad_err": 25.639433565358253,
+          "roughness": 0.01723886873180338,
+          "profile_rough": 0.0,
+          "field_err_bl": 0.9084673866469227,
+          "mean_gradient": 234015.95763345537
+        },
+        "oracle_mesh": {
+          "grad_err": 7.565524969520427e-10,
+          "roughness": 0.03660111165131742,
+          "profile_rough": 0.11679125717798897,
+          "field_err_bl": 1.5419255719716528e-09,
+          "mean_gradient": 7190.6495811331215
+        },
+        "nf_bl": {
+          "grad_err": 0.5119838888192555,
+          "roughness": 0.30588823155974076,
+          "profile_rough": 0.16095723346805335,
+          "field_err_bl": 0.17498254625335408,
+          "mean_gradient": 5942.3062629309625
+        },
+        "sequenced": {
+          "grad_err": 6.7205249107980185,
+          "roughness": 5.85223735409565,
+          "profile_rough": 0.32896502018782364,
+          "field_err_bl": 0.49363307091382036,
+          "mean_gradient": 31980.39603438906
+        },
+        "sequenced_bl": {
+          "grad_err": 6.7205249107980185,
+          "roughness": 5.85223735409565,
+          "profile_rough": 0.32898146374569737,
+          "field_err_bl": 0.49363312850945457,
+          "mean_gradient": 31980.39603438906
+        }
+      }
+    },
+    {
+      "case": "naca2412_aoa2",
+      "converged_roughness": 0.0680755449441652,
+      "converged_mean_gradient": 6881.570269910074,
+      "arms": {
+        "cold": {
+          "grad_err": 30.26589438679245,
+          "roughness": 0.020037306332248324,
+          "profile_rough": 0.0,
+          "field_err_bl": 0.8999002269799953,
+          "mean_gradient": 237490.5966423956
+        },
+        "oracle_mesh": {
+          "grad_err": 8.851833691447076e-10,
+          "roughness": 0.06807554490092604,
+          "profile_rough": 0.10830991725971849,
+          "field_err_bl": 1.6308833249994922e-09,
+          "mean_gradient": 6881.570269948653
+        },
+        "nf_bl": {
+          "grad_err": 0.523454037417993,
+          "roughness": 0.1777393499826318,
+          "profile_rough": 0.12626596481959038,
+          "field_err_bl": 0.1383126542711407,
+          "mean_gradient": 5716.570991277692
+        }
+      }
+    },
+    {
+      "case": "naca2415_aoa5",
+      "converged_roughness": 0.046107805220467216,
+      "converged_mean_gradient": 7087.369751833759,
+      "arms": {
+        "cold": {
+          "grad_err": 26.786493746769924,
+          "roughness": 0.02041540777145636,
+          "profile_rough": 0.0,
+          "field_err_bl": 0.9097639807475956,
+          "mean_gradient": 233976.36716443984
+        },
+        "oracle_mesh": {
+          "grad_err": 7.840999457139592e-10,
+          "roughness": 0.04610780521441468,
+          "profile_rough": 0.12216301464544539,
+          "field_err_bl": 1.4102789496850591e-09,
+          "mean_gradient": 7087.369751309731
+        },
+        "nf_bl": {
+          "grad_err": 0.5942652171521913,
+          "roughness": 0.3160582977477916,
+          "profile_rough": 0.16112039581349868,
+          "field_err_bl": 0.17580059153295768,
+          "mean_gradient": 6571.995134519671
+        },
+        "sequenced": {
+          "grad_err": 6.746258562882427,
+          "roughness": 5.764629501658119,
+          "profile_rough": 0.3290084215678817,
+          "field_err_bl": 0.49420859616016416,
+          "mean_gradient": 31165.11441994325
+        }
+      }
+    }
+  ],
+  "summary": {
+    "cold": {
+      "grad_err": 28.43769004251853,
+      "roughness": 0.02089447488283368,
+      "profile_rough": 0.0,
+      "field_err_bl": 0.9033050284705574
+    },
+    "oracle_mesh": {
+      "grad_err": 8.204700430572425e-10,
+      "roughness": 0.05975862220700188,
+      "profile_rough": 0.11197213884445387,
+      "field_err_bl": 1.5964891712699695e-09
+    },
+    "nf_bl": {
+      "grad_err": 0.5366074434438429,
+      "roughness": 0.25097909396672496,
+      "profile_rough": 0.14173464513085038,
+      "field_err_bl": 0.1521493909271568
+    },
+    "sequenced": {
+      "grad_err": 6.597406687544177,
+      "roughness": 5.685443603711791,
+      "profile_rough": 0.3237020426059712,
+      "field_err_bl": 0.4888929732319166
+    },
+    "sequenced_bl": {
+      "grad_err": 6.549301563288736,
+      "roughness": 5.789887763031354,
+      "profile_rough": 0.32468372610964935,
+      "field_err_bl": 0.4897429512693193
+    }
+  },
+  "converged_roughness": 0.05975862219397694
+}
