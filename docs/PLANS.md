@@ -8,6 +8,93 @@ Last updated: **2026-08-31** · branch `paper2/openfoam-warm-start` · pushed to
 
 ---
 
+## 0.0 The pivot of 2026-08-31 — read this before anything below it
+
+**The paper's central claim was arithmetically false and has been replaced.**
+Everything in sections 0-5 below was written before this and is *superseded
+where it conflicts*; the measurements are all still good, the interpretation of
+one of them was not.
+
+**What was wrong.** The abstract said *"no 16,384-value grid has a station near
+the first cell"*. `clustered_seed` builds its wall-fitted grid with
+`first = 2.5e-4`; the C-grid's first cell centre is `5e-6`, fifty times finer. A
+64-level geometric stack from 5e-6 to 1.0 has growth ratio **1.214** — an
+ordinary mesh. A 16,384-value wall-fitted grid *can* have a station in the first
+cell. Ours did not. **The failure is placement, not budget**, and a reviewer
+with a calculator finds this in the abstract.
+
+**What replaced it, and it is stronger.** The damage is available in closed
+form. A projection hands every cell nearer the wall than its first station that
+station's velocity, so the first-cell gradient — what viscous drag integrates —
+is overestimated by
+
+> `G = u+(y+ of the first station) / u+(y+ of the first cell centre)`
+
+with `u_tau` from the converged field's own wall gradient and **nothing fitted**.
+Against the six cases already on disk: **predicted 23.7x, measured 21.0x, ratio
+1.13 ± 0.02**. It also explains the flat resolution ladder quantitatively —
+128² to 421² is 10.8x the values for a predicted 36.6x → 35.3x, because `u+`
+saturates at `u_inf/u_tau` once the station leaves the log layer.
+
+**And it implies a repair.** A factor that is known can be divided out. Invert
+the wall function at the station to recover `u_tau` from *only what the
+representation carries*, re-evaluate the profile at each cell's own wall
+distance, rebuild `nut` as a damped mixing length. Measured offline on three
+converged cases: first-cell gradient error **1803–1976% → 37–52%**, overestimate
+**24.6–35.1x → 1.16–1.43x**, against mesh-native `nf_bl` at 53.7%. **A repaired
+projection is as good as mesh-native on the quantity that decides drag.**
+
+That converts the paper from *"be mesh-native or don't bother"* into a criterion
+**plus a fix that works with the raster-based surrogates the field already has**.
+
+### What this changes in the paper
+
+| section | change |
+|---|---|
+| Title | **deferred** until the probes land. It must be provable by every section. |
+| Abstract | the false sentence goes, whatever else happens |
+| Condition 1 | was "evaluate at the solver's cell centres". Becomes "resolve the first cell" — mesh-native is *one* way, correct grading is another, and the wall-law repair is a third |
+| §6 mechanism | rewritten as the closed form; draft in `docs/paper2/section6_mechanism.md` |
+| §2 related work | rewritten; draft in `docs/paper2/section2_related.md`. The literature's spread in reported speedups **sorts by representation and seeded region**, and the criterion retrodicts it over nine papers |
+| §7.1 | the flat ladder stops being a curiosity and becomes a quantitative consequence |
+| new | grid sequencing as the classical baseline the paper never had — and the criterion's out-of-sample test |
+
+### The three probes launched 2026-08-31, all fresh trees
+
+Scored **each in its own tree** — rule 4 re-scores every arm when a new arm
+joins one. Run per case in parallel (5 processes each); **iterations are
+contention-proof and wall-clock is not, so do not quote seconds from these.**
+
+| probe | tree | question |
+|---|---|---|
+| `placement_probe.py` | `runs/openfoam/placement` | budget or placement? Discriminator is `*_half`: **8,192 values** with a station inside the first cell against **16,384** without |
+| `sequencing_probe.py` | `runs/openfoam/sequencing` | does the criterion predict a method with no network in it? Coarse solve charged in fine-equivalent iterations |
+| `repair_probe.py` | `runs/openfoam/repair` | does removing the predicted damage recover the saving? |
+
+Predictions were registered **before the data existed** in
+`docs/protocols/placement_prediction.md`. If they fail, that file stays and the
+paper reports it.
+
+### Shipped with it
+
+- `solver/placement.py` — the closed form, the pre-flight check, the repair
+- `solver/warmstart.py::sequence_seed` — grid sequencing, mapping wall boundary
+  values as `mapFields` does (without them the near-wall map is extrapolated,
+  which doubles the first-cell velocity; there is a test named for it)
+- `scripts/preflight.py` — the reader-facing tool, so the criterion is
+  executable on a mesh and a format that have nothing to do with this study
+- `docs/paper2/literature.md` — 26 references, every arXiv id checked against
+  the API
+- `docs/paper2/submission/` — checklist, cover letter, suggested reviewers
+
+### Still true from below, and still the blocker
+
+The data-availability statement names the repo root, and `main` contains none of
+this work (`git ls-tree origin/main` — verified). Fix with a tag plus a Zenodo
+DOI, **not** a merge: Paper 1 is under review and describes `main`.
+
+---
+
 ## 0. The goal, stated so it can be failed
 
 > A paper establishing **the three conditions under which a neural surrogate
