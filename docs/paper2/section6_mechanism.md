@@ -102,3 +102,37 @@ exception across every arm measured here — so the check rules formats *out* fo
 free. It does not rule them in: `nf_mesh` retains the gradient perfectly and is
 the worst arm in the study, because it hands over an outer field the model
 extrapolates badly. Conditions 2 and 3 exist for that reason.
+
+### 6.5 The criterion applied to the formats the field actually ships
+
+Table 6 evaluates the closed form for the output formats a surrogate might emit,
+against the mesh used throughout this paper (first cell 10⁻⁵ chords, `u_τ` =
+0.0477, `ν` = 3.33·10⁻⁷). It costs no solve and no network, and it is the whole
+argument in one place.
+
+| output format | values | first station | `y⁺` | predicted `G` | verdict |
+|---|---:|---:|---:|---:|---|
+| uniform raster 128², 3-chord crop | 16,384 | 1.2·10⁻² | 1700 | 29.3× | fails (bound) |
+| uniform raster 256², 3-chord crop | 65,536 | 5.9·10⁻³ | 840 | 29.3× | fails (bound) |
+| **uniform raster 512², 3-chord crop** | **262,144** | 2.9·10⁻³ | 420 | **27.6×** | **fails** |
+| uniform raster 128², 1-chord crop | 16,384 | 3.9·10⁻³ | 560 | 28.6× | fails |
+| wall-fitted 256×64 from 2.5·10⁻⁴ | 16,384 | 2.5·10⁻⁴ | 36 | 19.2× | fails |
+| wall-fitted 256×64 from 2.5·10⁻⁵ | 16,384 | 2.5·10⁻⁵ | 3.6 | 5.0× | fails |
+| wall-fitted 256×64 from 5·10⁻⁶ | 16,384 | 5.0·10⁻⁶ | 0.72 | 1.0× | **passes** |
+| **wall-fitted 256×32 from 5·10⁻⁶** | **8,192** | 5.0·10⁻⁶ | 0.72 | **1.0×** | **passes** |
+| mesh-native, queried at cell centres | native | 5.0·10⁻⁶ | 0.72 | 1.0× | **passes** |
+
+Two rows carry the paper. A **512² raster holds 262,144 values and still fails**,
+at 27.6×; a **wall-fitted grid of 8,192 values — one thirty-second of that
+budget — passes**. Sixteen times the values cannot buy what one grading decision
+gives away for free.
+
+The practical reading is a design rule, not a ranking of architectures. Any
+surrogate whose output is a uniform raster over a crop of order the chord cannot
+warm-start a wall-resolved RANS mesh, however finely it is rasterised, because a
+uniform grid must resolve its smallest scale everywhere and the near-wall scale
+collapses like `ν/u_τ`. Surrogates that predict on native mesh points satisfy the
+criterion by construction. Between the two sits a large and mostly unexplored
+middle — graded wall-fitted outputs — where the criterion is satisfied or not
+purely by the choice of first station, and where §5.5's repair applies when it
+is not.
