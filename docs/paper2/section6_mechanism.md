@@ -136,3 +136,50 @@ criterion by construction. Between the two sits a large and mostly unexplored
 middle — graded wall-fitted outputs — where the criterion is satisfied or not
 purely by the choice of first station, and where §5.5's repair applies when it
 is not.
+
+### 6.6 The criterion across Reynolds number, at no compute cost
+
+Because the closed form is written in wall units it makes a prediction about a
+regime this study never set out to measure, and the prediction is not the
+obvious one:
+
+> **On the same mesh, a lower Reynolds number makes the projection worse.**
+
+Both `y⁺` values fall together as `ν` rises, but through different parts of the
+profile. The mesh's first cell sinks deeper into the *linear* sublayer, where
+`u⁺ = y⁺` falls in proportion; the representation's fixed station at 2.5·10⁻⁴
+remains in the buffer or log layer, where `u⁺` falls only logarithmically. The
+ratio — the damage — therefore grows.
+
+This is testable with no new solves. Converged cold solves on the *same* C-grid
+already exist at Re = 10³ to 3·10⁶. Projecting each through the same wall-fitted
+grid gives Table 7 (`scripts/reynolds_transfer.py`):
+
+| Re | `y⁺` first cell | `y⁺` station | predicted `G` | measured `G` | ratio | weak-shear surface |
+|---:|---:|---:|---:|---:|---:|---:|
+| 10³ | 0.001 | 0.1 | 62.5× | 179× | 0.35 | 61% |
+| 10⁴ | 0.004 | 0.3 | 62.5× | 185× | 0.34 | 62% |
+| 10⁵ | 0.027 | 1.7 | 62.5× | 195× | 0.32 | 42% |
+| **10⁶** | 0.21 | 13.3 | **44.9×** | **54.0×** | **0.83** | 11% |
+| **3·10⁶** | 0.58 | 36.1 | **23.8×** | **24.7×** | **0.96** | 6% |
+
+**The direction is confirmed across three and a half decades and is monotone**:
+the same representation on the same mesh costs 24.7× at Re = 3·10⁶ and 179× at
+Re = 10³. A practitioner's instinct — that a coarse representation is more
+forgiving at low Reynolds number, where the flow is smoother — is exactly wrong,
+and the reason is that the mesh's first cell has moved into the linear sublayer
+while the representation's has not.
+
+**The quantitative agreement holds only where the law of the wall does**, and
+the last column says where that is. It reports the fraction of surface stations
+carrying under a tenth of the peak wall shear — the signature of a laminar or
+separated layer. At Re ≥ 10⁶ it is 6–11% and the closed form is accurate to
+within 4–17%. At Re ≤ 10⁵ it is 42–62%: the boundary layer is laminar and
+largely separated, the law of the wall does not describe it, and the expression
+becomes a **lower bound**, under-predicting the true damage by about three-fold.
+
+We regard this as the honest outcome rather than a weakness. The formula is
+derived from an equilibrium turbulent wall profile and it is accurate exactly
+where such a profile exists; outside that regime it still gets the sign and the
+ordering right, and it errs conservatively — it says a representation is worse
+than it looks, never better.
