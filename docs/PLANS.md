@@ -8,6 +8,94 @@ Last updated: **2026-08-31** · branch `paper2/openfoam-warm-start` · pushed to
 
 ---
 
+## 0.1 SHUT-DOWN HANDOFF — 2026-08-31 14:00, power warning given mid-run
+
+**Everything is committed and pushed.** `runs/` is gitignored, so an interrupted
+solve costs compute, never evidence. Finished solves on disk are reused by
+`completed_run` (1.8 s against 150 s), so **resuming is just re-running the same
+three commands** — they pick up exactly where they stopped.
+
+### Resume: three commands, run per case in parallel
+
+```bash
+cd /d/Codes/Github/neuroforge-cfd
+for c in "naca0012@4" "naca2412@2" "naca0015@6" "naca0012@0" "naca2415@5"; do
+  tag=$(echo $c | tr '@' '_')
+  nohup .venv/Scripts/python.exe scripts/placement_probe.py  --only "$c" > "logs/placement_$tag.log"  2>&1 &
+  nohup .venv/Scripts/python.exe scripts/sequencing_probe.py --only "$c" > "logs/sequencing_$tag.log" 2>&1 &
+  nohup .venv/Scripts/python.exe scripts/repair_probe.py     --only "$c" > "logs/repair_$tag.log"     2>&1 &
+done
+```
+
+**Before starting, clear orphans** — killing a probe's Python leaves its
+`simpleFoam` child running, and the collision guard will (correctly) refuse:
+
+```bash
+wsl.exe -d Ubuntu -- bash -lc "pgrep -c simpleFoam"          # want 0
+wsl.exe -d Ubuntu -- bash -lc "pkill -f 'runs/openfoam'"     # if not 0
+```
+
+⚠ **Check for orphans with `ps -eo args | grep simpleFoam`, not a `/tmp` script**
+— `/tmp` in Git Bash is a Windows path WSL cannot see, and a script written
+there fails silently, which already cost one wrong diagnosis today.
+
+### Where it stopped (solves complete, of the total each tree needs)
+
+| tree | complete | needs | decisive arms outstanding |
+|---|---:|---:|---|
+| `runs/openfoam/placement` | **31** | 40 | `*_half` (8,192 values, correct placement) |
+| `runs/openfoam/repair` | **23** | 35 | `nf_proj_fix`, `or_proj_fix` |
+| `runs/openfoam/sequencing` | **25** | 30 | `sequenced_bl` |
+
+**Nothing is scored yet.** No per-case JSON had been written for placement or
+repair; the one stale `results/sequencing_naca00124.json` was **deleted** because
+it was produced at 12:51 with the *old* mapper. Do not resurrect it.
+
+### Score them when they finish, each in its own tree
+
+```bash
+.venv/Scripts/python.exe scripts/reanalyse_depth.py --root runs/openfoam/placement     --out results/depth_placement.json --per-case     --stats nf_proj_coarse nf_proj_fine nf_proj_half or_proj_coarse or_proj_fine or_proj_half
+.venv/Scripts/python.exe scripts/reanalyse_depth.py --root runs/openfoam/repair     --out results/depth_repair.json --per-case --stats nf_proj nf_proj_fix or_proj or_proj_fix
+.venv/Scripts/python.exe scripts/reanalyse_depth.py --root runs/openfoam/sequencing     --out results/depth_sequencing.json --per-case --stats sequenced sequenced_bl
+```
+
+Then the seed gradients (**pass `--arms`, the default list does not know the new
+arms**) and the figure:
+
+```bash
+PYTHONPATH=src .venv/Scripts/python.exe scripts/seed_gradient_diagnostic.py   --root runs/openfoam/placement --json results/seed_gradient_placement.json   --arms cold oracle_mesh nf_bl nf_proj_coarse nf_proj_fine nf_proj_half or_proj_coarse or_proj_fine or_proj_half
+PYTHONPATH=src .venv/Scripts/python.exe scripts/seed_gradient_diagnostic.py   --root runs/openfoam/repair --json results/seed_gradient_repair.json   --arms cold oracle_mesh nf_bl nf_proj nf_proj_fix or_proj or_proj_fix
+PYTHONPATH=src .venv/Scripts/python.exe scripts/plot_placement.py --out results/placement.png
+```
+
+### Reproducibility check that already passed
+
+Both fresh trees reproduce the published mechanism numbers: `nf_bl` reads
+**+34.3% Cd@1%** and **+14.7% Cd_v@1%** against the paper's +33.9% / +14.6%,
+with `oracle_mesh` at +92.2%. The rig is sound.
+
+### What is DONE and needs nothing
+
+- The closed form, its validation (1.13 ± 0.02, six cases) and its regression test
+- The wall-law repair, validated offline (1900% → 37–52% gradient error)
+- Reynolds transfer, Re 1e3–3e6, **no solves needed** (`results/reynolds_transfer.json`)
+- The corrected grid-sequencing mapper, and the three bugs it exposed
+- §2, §6, §7, §10 rewritten and spliced into `DRAFT.md`; 26 verified references
+- `scripts/preflight.py`, `docs/paper2/submission/`, full test suite green
+
+### What is still OPEN
+
+1. The three probes above.
+2. **Title, abstract, §1, §5, §11** — deliberately unwritten; they turn on the
+   probe outcomes. Candidates and the section-by-section title test are in
+   `docs/paper2/abstract_draft.md`.
+3. **The submission blocker:** the data-availability statement names the repo
+   root and `main` has none of this work. Fix with a **tag + Zenodo DOI**, never
+   a merge — Paper 1 is under review at JCP and describes `main`.
+4. Phase E, the adversarial reviewer panel, has not been run.
+
+---
+
 ## 0.0 The pivot of 2026-08-31 — read this before anything below it
 
 **The paper's central claim was arithmetically false and has been replaced.**
