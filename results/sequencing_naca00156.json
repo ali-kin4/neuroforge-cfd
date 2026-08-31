@@ -1,0 +1,85 @@
+{
+  "re": 3000000.0,
+  "n_iter": 6000,
+  "n_iter_coarse": 6000,
+  "factor": 2,
+  "checkpoints": [
+    "checkpoints\\v2_transolver\\seed0.pt"
+  ],
+  "rows": [
+    {
+      "case": "naca0015_aoa6",
+      "re": 3000000.0,
+      "covered_fraction": 0.8010725552050473,
+      "map": {
+        "mode": "sequence",
+        "coordinates": "body-fitted (arclength, asinh wall distance)",
+        "coarse_cells": 7850,
+        "fine_cells": 31700,
+        "coarsening_ratio": 4.038216560509555,
+        "coarse_first_cell": 6.651385074572877e-06,
+        "below_coarse_first_cell": 0.006277602523659306,
+        "extrapolated_fraction": 0.0003154574132492114,
+        "fill": {
+          "u": 0.9945218953682733,
+          "v": 0.10452846326765347,
+          "p": 0.0,
+          "nut": 1.0000000000000002e-06
+        }
+      },
+      "coarse": {
+        "cells": 7850,
+        "first_cell": 2e-05,
+        "iterations": 6000,
+        "converged": false,
+        "wall_time_s": NaN,
+        "execution_time_s": 105.64,
+        "fine_equivalent_iterations": 1485.8044164037856
+      },
+      "cold_wall_time_s": NaN,
+      "bl_error_pct_vs_converged": {
+        "sequenced": {
+          "u": 19.18490861043792,
+          "v": 30.711910591344296,
+          "p": 17.099190479234448,
+          "nut": 40.5581988153587
+        },
+        "nf_bl": {
+          "u": 19.319580261820555,
+          "v": 18.311043367061423,
+          "p": 17.432531611139062,
+          "nut": 25.491949049298857
+        }
+      },
+      "oracle_mesh_wall_time_s": NaN,
+      "nf_bl_wall_time_s": NaN,
+      "sequenced_wall_time_s": 1789.5446699000004,
+      "sequenced_bl_wall_time_s": 1436.704789200001,
+      "cold@1e-03": 77,
+      "oracle_mesh@1e-03": 5,
+      "nf_bl@1e-03": 67,
+      "sequenced@1e-03": 32,
+      "sequenced_bl@1e-03": 72,
+      "cold@1e-04": 198,
+      "oracle_mesh@1e-04": 14,
+      "nf_bl@1e-04": 193,
+      "sequenced@1e-04": 227,
+      "sequenced_bl@1e-04": 201,
+      "cold@1e-05": 966,
+      "oracle_mesh@1e-05": 63,
+      "nf_bl@1e-05": 393,
+      "sequenced@1e-05": 879,
+      "sequenced_bl@1e-05": 462,
+      "cold@5e-06": 1143,
+      "oracle_mesh@5e-06": 78,
+      "nf_bl@5e-06": 1042,
+      "sequenced@5e-06": 1196,
+      "sequenced_bl@5e-06": 918,
+      "cold@1e-06": 1549,
+      "oracle_mesh@1e-06": 133,
+      "nf_bl@1e-06": 1513,
+      "sequenced@1e-06": 2165,
+      "sequenced_bl@1e-06": 1859
+    }
+  ]
+}
