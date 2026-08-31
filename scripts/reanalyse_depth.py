@@ -58,6 +58,22 @@ KNOWN_ARMS = ("oracle_mesh", "cartesian_128", "fitted_256x64", "fitted_outer",
               "oracle_128_hybrid", "oracle_128", "oracle_192",
               "oracle_256", "oracle_320", "oracle_421", "neighbour",
               "oracle",
+              # Placement (`scripts/placement_probe.py`): the same round trip at
+              # three first stations. `*_half` holds 8,192 values against
+              # `*_coarse`'s 16,384, so it is the arm that separates placement
+              # from budget. `nf_*` is the network prediction, `or_*` the exact
+              # converged field, so every statement has an accuracy-free twin.
+              "nf_proj_coarse", "nf_proj_fine", "nf_proj_half",
+              "or_proj_coarse", "or_proj_fine", "or_proj_half",
+              # Repair (`scripts/repair_probe.py`): the projection, and the same
+              # projection with the wall-law reconstruction applied below the
+              # representation's first station.
+              "nf_proj_fix", "or_proj_fix", "nf_proj", "or_proj",
+              # Grid sequencing (`scripts/sequencing_probe.py`). NB the coarse
+              # solve's own directory is `<case>_coarse` and is deliberately
+              # **not** listed: it lives on a different mesh and is a cost to be
+              # charged, not an arm to be scored.
+              "sequenced_bl", "sequenced",
               "cold")
 
 # Relative bands for the force metric. Unlike a residual threshold this does not

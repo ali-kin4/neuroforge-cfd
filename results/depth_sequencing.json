@@ -9,7 +9,9 @@
   ],
   "arms": [
     "oracle_mesh",
-    "nf_bl"
+    "nf_bl",
+    "sequenced_bl",
+    "sequenced"
   ],
   "cold_floor": {
     "naca0012_aoa0": 1.7133769085e-06,
@@ -26,27 +28,37 @@
         "naca0012_aoa0": {
           "cold": 23,
           "oracle_mesh": 1,
-          "nf_bl": 9
+          "nf_bl": 9,
+          "sequenced_bl": 17,
+          "sequenced": 23
         },
         "naca0012_aoa4": {
           "cold": 9,
           "oracle_mesh": 1,
-          "nf_bl": 7
+          "nf_bl": 7,
+          "sequenced_bl": 8,
+          "sequenced": 21
         },
         "naca0015_aoa6": {
           "cold": 9,
           "oracle_mesh": 1,
-          "nf_bl": 7
+          "nf_bl": 7,
+          "sequenced_bl": 8,
+          "sequenced": 21
         },
         "naca2412_aoa2": {
           "cold": 9,
           "oracle_mesh": 1,
-          "nf_bl": 8
+          "nf_bl": 8,
+          "sequenced_bl": 9,
+          "sequenced": 23
         },
         "naca2415_aoa5": {
           "cold": 9,
           "oracle_mesh": 1,
-          "nf_bl": 7
+          "nf_bl": 7,
+          "sequenced_bl": 8,
+          "sequenced": 22
         }
       },
       "threshold_over_floor": 13529.075651336347,
@@ -69,6 +81,26 @@
           0.11111111111111116,
           0.6086956521739131
         ]
+      },
+      "sequenced_bl": {
+        "saving": 0.11884057971014497,
+        "saving_reached_only": 0.11884057971014497,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          0.0,
+          0.26086956521739135
+        ]
+      },
+      "sequenced": {
+        "saving": -1.1333333333333333,
+        "saving_reached_only": -1.1333333333333333,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -1.5555555555555554,
+          0.0
+        ]
       }
     },
     "1.0e-03": {
@@ -78,27 +110,37 @@
         "naca0012_aoa0": {
           "cold": 85,
           "oracle_mesh": 1,
-          "nf_bl": 112
+          "nf_bl": 112,
+          "sequenced_bl": 85,
+          "sequenced": 59
         },
         "naca0012_aoa4": {
           "cold": 71,
           "oracle_mesh": 5,
-          "nf_bl": 64
+          "nf_bl": 64,
+          "sequenced_bl": 67,
+          "sequenced": 33
         },
         "naca0015_aoa6": {
           "cold": 77,
           "oracle_mesh": 5,
-          "nf_bl": 67
+          "nf_bl": 67,
+          "sequenced_bl": 72,
+          "sequenced": 32
         },
         "naca2412_aoa2": {
           "cold": 66,
           "oracle_mesh": 6,
-          "nf_bl": 72
+          "nf_bl": 72,
+          "sequenced_bl": 71,
+          "sequenced": 38
         },
         "naca2415_aoa5": {
           "cold": 74,
           "oracle_mesh": 6,
-          "nf_bl": 71
+          "nf_bl": 71,
+          "sequenced_bl": 72,
+          "sequenced": 34
         }
       },
       "threshold_over_floor": 1352.9075651336348,
@@ -121,6 +163,26 @@
           -0.3176470588235294,
           0.1298701298701299
         ]
+      },
+      "sequenced_bl": {
+        "saving": 0.014508508874706071,
+        "saving_reached_only": 0.014508508874706071,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.07575757575757569,
+          0.06493506493506496
+        ]
+      },
+      "sequenced": {
+        "saving": 0.47805843394907194,
+        "saving_reached_only": 0.47805843394907194,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          0.3058823529411765,
+          0.5844155844155844
+        ]
       }
     },
     "1.0e-04": {
@@ -130,27 +192,37 @@
         "naca0012_aoa0": {
           "cold": 249,
           "oracle_mesh": 6,
-          "nf_bl": 408
+          "nf_bl": 408,
+          "sequenced_bl": 372,
+          "sequenced": 565
         },
         "naca0012_aoa4": {
           "cold": 185,
           "oracle_mesh": 14,
-          "nf_bl": 175
+          "nf_bl": 175,
+          "sequenced_bl": 188,
+          "sequenced": 174
         },
         "naca0015_aoa6": {
           "cold": 198,
           "oracle_mesh": 14,
-          "nf_bl": 193
+          "nf_bl": 193,
+          "sequenced_bl": 201,
+          "sequenced": 227
         },
         "naca2412_aoa2": {
           "cold": 179,
           "oracle_mesh": 16,
-          "nf_bl": 202
+          "nf_bl": 202,
+          "sequenced_bl": 193,
+          "sequenced": 175
         },
         "naca2415_aoa5": {
           "cold": 198,
           "oracle_mesh": 15,
-          "nf_bl": 188
+          "nf_bl": 188,
+          "sequenced_bl": 200,
+          "sequenced": 159
         }
       },
       "threshold_over_floor": 135.29075651336348,
@@ -173,6 +245,26 @@
           -0.6385542168674698,
           0.05405405405405406
         ]
+      },
+      "sequenced_bl": {
+        "saving": -0.12273138711719853,
+        "saving_reached_only": -0.12273138711719853,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.49397590361445776,
+          -0.010101010101010166
+        ]
+      },
+      "sequenced": {
+        "saving": -0.22735308530825793,
+        "saving_reached_only": -0.22735308530825793,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -1.2690763052208833,
+          0.19696969696969702
+        ]
       }
     },
     "1.0e-05": {
@@ -182,27 +274,37 @@
         "naca0012_aoa0": {
           "cold": 877,
           "oracle_mesh": 55,
-          "nf_bl": 1788
+          "nf_bl": 1788,
+          "sequenced_bl": 995,
+          "sequenced": 1173
         },
         "naca0012_aoa4": {
           "cold": 379,
           "oracle_mesh": 62,
-          "nf_bl": 407
+          "nf_bl": 407,
+          "sequenced_bl": 634,
+          "sequenced": 575
         },
         "naca0015_aoa6": {
           "cold": 966,
           "oracle_mesh": 63,
-          "nf_bl": 393
+          "nf_bl": 393,
+          "sequenced_bl": 462,
+          "sequenced": 879
         },
         "naca2412_aoa2": {
           "cold": 464,
           "oracle_mesh": 67,
-          "nf_bl": 572
+          "nf_bl": 572,
+          "sequenced_bl": 430,
+          "sequenced": 560
         },
         "naca2415_aoa5": {
           "cold": 404,
           "oracle_mesh": 66,
-          "nf_bl": 695
+          "nf_bl": 695,
+          "sequenced_bl": 333,
+          "sequenced": 826
         }
       },
       "threshold_over_floor": 13.529075651336347,
@@ -225,6 +327,26 @@
           -1.0387685290763966,
           0.5931677018633541
         ]
+      },
+      "sequenced_bl": {
+        "saving": -0.0073230506296776635,
+        "saving_reached_only": -0.0073230506296776635,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.6728232189973615,
+          0.5217391304347826
+        ]
+      },
+      "sequenced": {
+        "saving": -0.4032107088564988,
+        "saving_reached_only": -0.4032107088564988,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -1.0445544554455446,
+          0.09006211180124224
+        ]
       }
     },
     "5.0e-06": {
@@ -234,27 +356,37 @@
         "naca0012_aoa0": {
           "cold": 1009,
           "oracle_mesh": 80,
-          "nf_bl": null
+          "nf_bl": null,
+          "sequenced_bl": 1362,
+          "sequenced": 1387
         },
         "naca0012_aoa4": {
           "cold": 960,
           "oracle_mesh": 77,
-          "nf_bl": 515
+          "nf_bl": 515,
+          "sequenced_bl": 727,
+          "sequenced": 838
         },
         "naca0015_aoa6": {
           "cold": 1143,
           "oracle_mesh": 78,
-          "nf_bl": 1042
+          "nf_bl": 1042,
+          "sequenced_bl": 918,
+          "sequenced": 1196
         },
         "naca2412_aoa2": {
           "cold": 1013,
           "oracle_mesh": 82,
-          "nf_bl": 608
+          "nf_bl": 608,
+          "sequenced_bl": 651,
+          "sequenced": 771
         },
         "naca2415_aoa5": {
           "cold": 1139,
           "oracle_mesh": 80,
-          "nf_bl": 1172
+          "nf_bl": 1172,
+          "sequenced_bl": 374,
+          "sequenced": 1145
         }
       },
       "threshold_over_floor": 6.764537825668174,
@@ -277,6 +409,26 @@
           -4.946481665014867,
           0.46354166666666663
         ]
+      },
+      "sequenced_bl": {
+        "saving": 0.2237407146025842,
+        "saving_reached_only": 0.2237407146025842,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.34985133795837453,
+          0.6716417910447761
+        ]
+      },
+      "sequenced": {
+        "saving": -0.012057524203270465,
+        "saving_reached_only": -0.012057524203270465,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.37462834489593666,
+          0.23889437314906214
+        ]
       }
     },
     "1.0e-06": {
@@ -286,22 +438,30 @@
         "naca0012_aoa4": {
           "cold": 1305,
           "oracle_mesh": 126,
-          "nf_bl": 1195
+          "nf_bl": 1195,
+          "sequenced_bl": 1700,
+          "sequenced": 2685
         },
         "naca0015_aoa6": {
           "cold": 1549,
           "oracle_mesh": 133,
-          "nf_bl": 1513
+          "nf_bl": 1513,
+          "sequenced_bl": 1859,
+          "sequenced": 2165
         },
         "naca2412_aoa2": {
           "cold": 2413,
           "oracle_mesh": 420,
-          "nf_bl": null
+          "nf_bl": null,
+          "sequenced_bl": 5632,
+          "sequenced": null
         },
         "naca2415_aoa5": {
           "cold": 2024,
           "oracle_mesh": 129,
-          "nf_bl": 1573
+          "nf_bl": 1573,
+          "sequenced_bl": 2492,
+          "sequenced": 4167
         }
       },
       "threshold_over_floor": 1.3529075651336346,
@@ -324,6 +484,26 @@
           -1.4865312888520514,
           0.22282608695652173
         ]
+      },
+      "sequenced_bl": {
+        "saving": -0.5170151102018506,
+        "saving_reached_only": -0.5170151102018506,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -1.3340240364691254,
+          -0.20012911555842483
+        ]
+      },
+      "sequenced": {
+        "saving": -1.0001182348928457,
+        "saving_reached_only": -0.8379805502397772,
+        "n_reached": 3,
+        "n_censored": 1,
+        "spread": [
+          -1.4865312888520514,
+          -0.3976759199483537
+        ]
       }
     },
     "5.0e-07": {
@@ -333,17 +513,23 @@
         "naca0012_aoa4": {
           "cold": 1594,
           "oracle_mesh": 190,
-          "nf_bl": 1412
+          "nf_bl": 1412,
+          "sequenced_bl": 3411,
+          "sequenced": 4430
         },
         "naca0015_aoa6": {
           "cold": 1725,
           "oracle_mesh": 183,
-          "nf_bl": 1786
+          "nf_bl": 1786,
+          "sequenced_bl": 2137,
+          "sequenced": 2999
         },
         "naca2415_aoa5": {
           "cold": 3900,
           "oracle_mesh": 153,
-          "nf_bl": 2506
+          "nf_bl": 2506,
+          "sequenced_bl": 4641,
+          "sequenced": null
         }
       },
       "threshold_over_floor": 0.6764537825668173,
@@ -366,452 +552,748 @@
           -0.03536231884057961,
           0.35743589743589743
         ]
+      },
+      "sequenced_bl": {
+        "saving": -0.5229134010995339,
+        "saving_reached_only": -0.5229134010995339,
+        "n_reached": 3,
+        "n_censored": 0,
+        "spread": [
+          -1.1398996235884566,
+          -0.18999999999999995
+        ]
+      },
+      "sequenced": {
+        "saving": -1.0187280525679958,
+        "saving_reached_only": -1.2588613096212247,
+        "n_reached": 2,
+        "n_censored": 1,
+        "spread": [
+          -1.7791718946047679,
+          -0.5384615384615385
+        ]
       }
     }
   },
   "by_force": {
     "Cd@0.01": {
-      "cold_mean": 815.4,
+      "cold_mean": 808.4,
       "cold_n": 5,
       "per_case": {
         "naca0012_aoa0": {
           "cold": 479,
           "oracle_mesh": 51,
-          "nf_bl": 288
+          "nf_bl": 288,
+          "sequenced_bl": 3183,
+          "sequenced": 3762
         },
         "naca0012_aoa4": {
-          "cold": 429,
-          "oracle_mesh": 49,
-          "nf_bl": 443
+          "cold": 430,
+          "oracle_mesh": 50,
+          "nf_bl": 444,
+          "sequenced_bl": 2020,
+          "sequenced": 2428
         },
         "naca0015_aoa6": {
-          "cold": 1142,
+          "cold": 1138,
           "oracle_mesh": 46,
-          "nf_bl": 822
+          "nf_bl": 825,
+          "sequenced_bl": 948,
+          "sequenced": 864
         },
         "naca2412_aoa2": {
           "cold": 491,
           "oracle_mesh": 49,
-          "nf_bl": 293
+          "nf_bl": 293,
+          "sequenced_bl": 3097,
+          "sequenced": 4003
         },
         "naca2415_aoa5": {
-          "cold": 1536,
+          "cold": 1504,
           "oracle_mesh": 44,
-          "nf_bl": 516
+          "nf_bl": 517,
+          "sequenced_bl": 2315,
+          "sequenced": 2093
         }
       },
       "values": {
         "oracle_mesh": [
           0.8935281837160751,
-          0.8857808857808858,
-          0.9597197898423818,
+          0.8837209302325582,
+          0.9595782073813708,
           0.90020366598778,
-          0.9713541666666666
+          0.9707446808510638
         ],
         "nf_bl": [
           0.39874739039665974,
-          -0.03263403263403264,
-          0.28021015761821366,
+          -0.032558139534883734,
+          0.27504393673110716,
           0.4032586558044806,
-          0.6640625
+          0.65625
+        ],
+        "sequenced_bl": [
+          -5.645093945720251,
+          -3.6976744186046515,
+          0.1669595782073814,
+          -5.307535641547862,
+          -0.5392287234042554
+        ],
+        "sequenced": [
+          -6.853862212943633,
+          -4.6465116279069765,
+          0.24077328646748686,
+          -7.152749490835031,
+          -0.3916223404255319
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9221173383987578,
-        "saving_reached_only": 0.9221173383987578,
+        "saving": 0.9215551336337697,
+        "saving_reached_only": 0.9215551336337697,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          0.8857808857808858,
-          0.9713541666666666
+          0.8837209302325582,
+          0.9707446808510638
         ]
       },
       "nf_bl": {
-        "saving": 0.3427289342370643,
-        "saving_reached_only": 0.3427289342370643,
+        "saving": 0.34014836867947273,
+        "saving_reached_only": 0.34014836867947273,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          -0.03263403263403264,
-          0.6640625
+          -0.032558139534883734,
+          0.65625
         ]
       },
-      "settled_spread": 0.0007075319885321899,
+      "sequenced_bl": {
+        "saving": -3.0045146302139276,
+        "saving_reached_only": -3.0045146302139276,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -5.645093945720251,
+          0.1669595782073814
+        ]
+      },
+      "sequenced": {
+        "saving": -3.760794477128737,
+        "saving_reached_only": -3.760794477128737,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -7.152749490835031,
+          0.24077328646748686
+        ]
+      },
+      "settled_spread": 0.0019800456936282843,
       "readable": true
     },
     "Cd@0.005": {
-      "cold_mean": 1228.0,
+      "cold_mean": 1203.6,
       "cold_n": 5,
       "per_case": {
         "naca0012_aoa0": {
           "cold": 578,
           "oracle_mesh": 67,
-          "nf_bl": 1065
+          "nf_bl": 1065,
+          "sequenced_bl": 5030,
+          "sequenced": 5840
         },
         "naca0012_aoa4": {
-          "cold": 1068,
-          "oracle_mesh": 67,
-          "nf_bl": 639
+          "cold": 1054,
+          "oracle_mesh": 68,
+          "nf_bl": 642,
+          "sequenced_bl": 3239,
+          "sequenced": 3860
         },
         "naca0015_aoa6": {
-          "cold": 1534,
+          "cold": 1524,
           "oracle_mesh": 65,
-          "nf_bl": 1166
+          "nf_bl": 1175,
+          "sequenced_bl": 1632,
+          "sequenced": 950
         },
         "naca2412_aoa2": {
           "cold": 556,
           "oracle_mesh": 66,
-          "nf_bl": 954
+          "nf_bl": 954,
+          "sequenced_bl": 5293,
+          "sequenced": null
         },
         "naca2415_aoa5": {
-          "cold": 2404,
-          "oracle_mesh": 57,
-          "nf_bl": 958
+          "cold": 2306,
+          "oracle_mesh": 59,
+          "nf_bl": 950,
+          "sequenced_bl": 3583,
+          "sequenced": 3581
         }
       },
       "values": {
         "oracle_mesh": [
           0.884083044982699,
-          0.9372659176029963,
-          0.9576271186440678,
+          0.935483870967742,
+          0.9573490813648294,
           0.8812949640287769,
-          0.9762895174708819
+          0.9744145706851691
         ],
         "nf_bl": [
           -0.8425605536332179,
-          0.401685393258427,
-          0.23989569752281614,
+          0.3908918406072106,
+          0.229002624671916,
           -0.7158273381294964,
-          0.6014975041597338
+          0.588031222896791
+        ],
+        "sequenced_bl": [
+          -7.70242214532872,
+          -2.0730550284629983,
+          -0.07086614173228356,
+          -8.51978417266187,
+          -0.5537727666955767
+        ],
+        "sequenced": [
+          -9.103806228373703,
+          -2.6622390891840606,
+          0.3766404199475065,
+          -0.5529054640069384,
+          -9.79136690647482
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9273121125458843,
-        "saving_reached_only": 0.9273121125458843,
+        "saving": 0.9265251064058433,
+        "saving_reached_only": 0.9265251064058433,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
           0.8812949640287769,
-          0.9762895174708819
+          0.9744145706851691
         ]
       },
       "nf_bl": {
-        "saving": -0.06306185936434747,
-        "saving_reached_only": -0.06306185936434747,
+        "saving": -0.07009244071735934,
+        "saving_reached_only": -0.07009244071735934,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
           -0.8425605536332179,
-          0.6014975041597338
+          0.588031222896791
         ]
       },
-      "settled_spread": 0.0007075319885321899,
+      "sequenced_bl": {
+        "saving": -3.7839800509762895,
+        "saving_reached_only": -3.7839800509762895,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -8.51978417266187,
+          -0.07086614173228356
+        ]
+      },
+      "sequenced": {
+        "saving": -4.346735453618403,
+        "saving_reached_only": -2.985577590404299,
+        "n_reached": 4,
+        "n_censored": 1,
+        "spread": [
+          -9.79136690647482,
+          0.3766404199475065
+        ]
+      },
+      "settled_spread": 0.0019800456936282843,
       "readable": true
     },
     "Cd@0.002": {
-      "cold_mean": 2173.2,
+      "cold_mean": 2094.8,
       "cold_n": 5,
       "per_case": {
         "naca0012_aoa0": {
           "cold": 728,
           "oracle_mesh": 102,
-          "nf_bl": 3210
+          "nf_bl": 3210,
+          "sequenced_bl": null,
+          "sequenced": null
         },
         "naca0012_aoa4": {
-          "cold": 2047,
-          "oracle_mesh": 105,
-          "nf_bl": 1082
+          "cold": 1977,
+          "oracle_mesh": 108,
+          "nf_bl": 1099,
+          "sequenced_bl": 5002,
+          "sequenced": 5887
         },
         "naca0015_aoa6": {
-          "cold": 2244,
-          "oracle_mesh": 132,
-          "nf_bl": 1999
+          "cold": 2209,
+          "oracle_mesh": 135,
+          "nf_bl": 2042,
+          "sequenced_bl": 2947,
+          "sequenced": 1704
         },
         "naca2412_aoa2": {
           "cold": 1862,
           "oracle_mesh": 109,
-          "nf_bl": 5885
+          "nf_bl": 5885,
+          "sequenced_bl": null,
+          "sequenced": null
         },
         "naca2415_aoa5": {
-          "cold": 3985,
-          "oracle_mesh": 99,
-          "nf_bl": 1293
+          "cold": 3698,
+          "oracle_mesh": 109,
+          "nf_bl": 1267,
+          "sequenced_bl": 5374,
+          "sequenced": 5973
         }
       },
       "values": {
         "oracle_mesh": [
           0.8598901098901099,
-          0.9487054225696141,
-          0.9411764705882353,
+          0.9453717754172989,
+          0.9388863739248529,
           0.9414607948442535,
-          0.9751568381430364
+          0.9705246078961601
         ],
         "nf_bl": [
           -3.4093406593406597,
-          0.4714215925744992,
-          0.10918003565062384,
+          0.4441072331815883,
+          0.07559981892258938,
           -2.1605800214822772,
-          0.6755332496863238
+          0.657382368848026
+        ],
+        "sequenced_bl": [
+          -1.530096105209914,
+          -0.3340878225441377,
+          -0.45321795565170353,
+          -7.241758241758241,
+          -2.2223415682062297
+        ],
+        "sequenced": [
+          -1.9777440566514923,
+          0.22861023087369847,
+          -0.6151974040021633,
+          -7.241758241758241,
+          -2.2223415682062297
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9332779272070499,
-        "saving_reached_only": 0.9332779272070499,
+        "saving": 0.9312267323945351,
+        "saving_reached_only": 0.9312267323945351,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
           0.8598901098901099,
-          0.9751568381430364
+          0.9705246078961601
         ]
       },
       "nf_bl": {
-        "saving": -0.8627571605822981,
-        "saving_reached_only": -0.8627571605822981,
+        "saving": -0.8785662519741466,
+        "saving_reached_only": -0.8785662519741466,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
           -3.4093406593406597,
-          0.6755332496863238
+          0.657382368848026
         ]
       },
-      "settled_spread": 0.0007075319885321899,
-      "readable": true
+      "sequenced_bl": {
+        "saving": -2.356300338674045,
+        "saving_reached_only": -0.772467294468585,
+        "n_reached": 3,
+        "n_censored": 2,
+        "spread": [
+          -7.241758241758241,
+          -0.3340878225441377
+        ]
+      },
+      "sequenced": {
+        "saving": -2.3656862079488854,
+        "saving_reached_only": -0.7881104099266523,
+        "n_reached": 3,
+        "n_censored": 2,
+        "spread": [
+          -7.241758241758241,
+          0.22861023087369847
+        ]
+      },
+      "settled_spread": 0.0019800456936282843,
+      "readable": false
     },
     "Cl@0.01": {
-      "cold_mean": 940.75,
+      "cold_mean": 947.25,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa4": {
-          "cold": 862,
+          "cold": 863,
           "oracle_mesh": 1,
-          "nf_bl": 674
+          "nf_bl": 675,
+          "sequenced_bl": 474,
+          "sequenced": 476
         },
         "naca0015_aoa6": {
-          "cold": 1042,
+          "cold": 1044,
           "oracle_mesh": 1,
-          "nf_bl": 1004
+          "nf_bl": 1005,
+          "sequenced_bl": 667,
+          "sequenced": 687
         },
         "naca2412_aoa2": {
-          "cold": 883,
+          "cold": 905,
           "oracle_mesh": 1,
-          "nf_bl": 716
+          "nf_bl": 737,
+          "sequenced_bl": 524,
+          "sequenced": 826
         },
         "naca2415_aoa5": {
-          "cold": 976,
+          "cold": 977,
           "oracle_mesh": 1,
-          "nf_bl": 1013
+          "nf_bl": 1014,
+          "sequenced_bl": 224,
+          "sequenced": 480
         }
       },
       "values": {
         "oracle_mesh": [
-          0.9988399071925754,
-          0.9990403071017274,
-          0.9988674971687429,
-          0.9989754098360656
+          0.9988412514484357,
+          0.9990421455938697,
+          0.9988950276243094,
+          0.9989764585465711
         ],
         "nf_bl": [
-          0.21809744779582363,
-          0.03646833013435702,
-          0.1891279728199321,
-          -0.037909836065573854
+          0.21784472769409036,
+          0.03735632183908044,
+          0.18563535911602214,
+          -0.03787103377686796
+        ],
+        "sequenced_bl": [
+          0.4507531865585168,
+          0.36111111111111116,
+          0.4209944751381215,
+          0.7707267144319345
+        ],
+        "sequenced": [
+          0.44843568945538814,
+          0.34195402298850575,
+          0.08729281767955799,
+          0.5087001023541453
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9989307803247779,
-        "saving_reached_only": 0.9989307803247779,
+        "saving": 0.9989387208032965,
+        "saving_reached_only": 0.9989387208032965,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.9988399071925754,
-          0.9990403071017274
+          0.9988412514484357,
+          0.9990421455938697
         ]
       },
       "nf_bl": {
-        "saving": 0.10144597867113472,
-        "saving_reached_only": 0.10144597867113472,
+        "saving": 0.10074134371808124,
+        "saving_reached_only": 0.10074134371808124,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.037909836065573854,
-          0.21809744779582363
+          -0.03787103377686796,
+          0.21784472769409036
         ]
       },
-      "settled_spread": 9.219065320628292e-05,
+      "sequenced_bl": {
+        "saving": 0.5008963718099211,
+        "saving_reached_only": 0.5008963718099211,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          0.36111111111111116,
+          0.7707267144319345
+        ]
+      },
+      "sequenced": {
+        "saving": 0.3465956581193993,
+        "saving_reached_only": 0.3465956581193993,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          0.08729281767955799,
+          0.5087001023541453
+        ]
+      },
+      "settled_spread": 0.0007759821550909489,
       "readable": true
     },
     "Cl@0.005": {
-      "cold_mean": 1102.5,
+      "cold_mean": 1117.25,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa4": {
-          "cold": 1009,
+          "cold": 1011,
           "oracle_mesh": 1,
-          "nf_bl": 912
+          "nf_bl": 914,
+          "sequenced_bl": 561,
+          "sequenced": 1251
         },
         "naca0015_aoa6": {
-          "cold": 1205,
+          "cold": 1207,
           "oracle_mesh": 1,
-          "nf_bl": 1240
+          "nf_bl": 1243,
+          "sequenced_bl": 733,
+          "sequenced": 753
         },
         "naca2412_aoa2": {
-          "cold": 1077,
+          "cold": 1130,
           "oracle_mesh": 1,
-          "nf_bl": 898
+          "nf_bl": 931,
+          "sequenced_bl": 1633,
+          "sequenced": 1847
         },
         "naca2415_aoa5": {
-          "cold": 1119,
+          "cold": 1121,
           "oracle_mesh": 1,
-          "nf_bl": 1225
+          "nf_bl": 1228,
+          "sequenced_bl": 1738,
+          "sequenced": 1122
         }
       },
       "values": {
         "oracle_mesh": [
-          0.9990089197224975,
-          0.9991701244813278,
-          0.9990714948932219,
-          0.9991063449508489
+          0.9990108803165183,
+          0.9991714995857498,
+          0.9991150442477876,
+          0.9991079393398751
         ],
         "nf_bl": [
-          0.09613478691774036,
-          -0.029045643153526868,
-          0.16620241411327763,
-          -0.09472743521000893
+          0.09594460929772497,
+          -0.029826014913007404,
+          0.17610619469026545,
+          -0.09545049063336308
+        ],
+        "sequenced_bl": [
+          0.4451038575667656,
+          0.3927091963545982,
+          -0.4451327433628318,
+          -0.5504014272970561
+        ],
+        "sequenced": [
+          -0.2373887240356083,
+          0.376139188069594,
+          -0.6345132743362831,
+          -0.000892060660124816
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9990892210119741,
-        "saving_reached_only": 0.9990892210119741,
+        "saving": 0.9991013408724828,
+        "saving_reached_only": 0.9991013408724828,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.9990089197224975,
-          0.9991701244813278
+          0.9990108803165183,
+          0.9991714995857498
         ]
       },
       "nf_bl": {
-        "saving": 0.03464103066687055,
-        "saving_reached_only": 0.03464103066687055,
+        "saving": 0.03669357461040498,
+        "saving_reached_only": 0.03669357461040498,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.09472743521000893,
-          0.16620241411327763
+          -0.09545049063336308,
+          0.17610619469026545
         ]
       },
-      "settled_spread": 9.219065320628292e-05,
+      "sequenced_bl": {
+        "saving": -0.03943027918463102,
+        "saving_reached_only": -0.03943027918463102,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -0.5504014272970561,
+          0.4451038575667656
+        ]
+      },
+      "sequenced": {
+        "saving": -0.12416371774060556,
+        "saving_reached_only": -0.12416371774060556,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -0.6345132743362831,
+          0.376139188069594
+        ]
+      },
+      "settled_spread": 0.0007759821550909489,
       "readable": true
     },
     "Cl@0.002": {
-      "cold_mean": 1337.75,
+      "cold_mean": 1423.25,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa4": {
-          "cold": 1203,
+          "cold": 1207,
           "oracle_mesh": 1,
-          "nf_bl": 1173
+          "nf_bl": 1178,
+          "sequenced_bl": 2463,
+          "sequenced": 2741
         },
         "naca0015_aoa6": {
-          "cold": 1417,
+          "cold": 1422,
           "oracle_mesh": 1,
-          "nf_bl": 1602
+          "nf_bl": 1613,
+          "sequenced_bl": 1837,
+          "sequenced": 1814
         },
         "naca2412_aoa2": {
-          "cold": 1447,
-          "oracle_mesh": 1,
-          "nf_bl": 1104
+          "cold": 1777,
+          "oracle_mesh": 2,
+          "nf_bl": 1232,
+          "sequenced_bl": 2828,
+          "sequenced": 3255
         },
         "naca2415_aoa5": {
-          "cold": 1284,
+          "cold": 1287,
           "oracle_mesh": 1,
-          "nf_bl": 1549
+          "nf_bl": 1557,
+          "sequenced_bl": 3128,
+          "sequenced": 3107
         }
       },
       "values": {
         "oracle_mesh": [
-          0.999168744804655,
-          0.9992942836979535,
-          0.9993089149965446,
-          0.9992211838006231
+          0.9991714995857498,
+          0.9992967651195499,
+          0.9988745075970737,
+          0.9992229992229992
         ],
         "nf_bl": [
-          0.02493765586034913,
-          -0.13055751587861675,
-          0.23704215618521074,
-          -0.20638629283489096
+          0.024026512013256007,
+          -0.13431786216596353,
+          0.30669667979741133,
+          -0.2097902097902098
+        ],
+        "sequenced_bl": [
+          -1.0405965202982603,
+          -0.2918424753867792,
+          -0.5914462577377602,
+          -1.4304584304584305
+        ],
+        "sequenced": [
+          -1.2709196354598178,
+          -0.2756680731364276,
+          -0.8317388857625212,
+          -1.414141414141414
         ]
       },
       "oracle_mesh": {
-        "saving": 0.999248281824944,
-        "saving_reached_only": 0.999248281824944,
+        "saving": 0.9991414428813432,
+        "saving_reached_only": 0.9991414428813432,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.999168744804655,
-          0.9993089149965446
+          0.9988745075970737,
+          0.9992967651195499
         ]
       },
       "nf_bl": {
-        "saving": -0.01874099916698696,
-        "saving_reached_only": -0.01874099916698696,
+        "saving": -0.003346220036376496,
+        "saving_reached_only": -0.003346220036376496,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.20638629283489096,
-          0.23704215618521074
+          -0.2097902097902098,
+          0.30669667979741133
         ]
       },
-      "settled_spread": 9.219065320628292e-05,
+      "sequenced_bl": {
+        "saving": -0.8385859209703075,
+        "saving_reached_only": -0.8385859209703075,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -1.4304584304584305,
+          -0.2918424753867792
+        ]
+      },
+      "sequenced": {
+        "saving": -0.9481170021250451,
+        "saving_reached_only": -0.9481170021250451,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -1.414141414141414,
+          -0.2756680731364276
+        ]
+      },
+      "settled_spread": 0.0007759821550909489,
       "readable": true
     },
     "Cd_p@0.01": {
-      "cold_mean": 1609.6,
+      "cold_mean": 1996.0,
       "cold_n": 5,
       "per_case": {
         "naca0012_aoa0": {
           "cold": 770,
           "oracle_mesh": 235,
-          "nf_bl": 3593
+          "nf_bl": 3593,
+          "sequenced_bl": null,
+          "sequenced": null
         },
         "naca0012_aoa4": {
           "cold": 1555,
           "oracle_mesh": 1,
-          "nf_bl": 525
+          "nf_bl": 525,
+          "sequenced_bl": 4307,
+          "sequenced": 5093
         },
         "naca0015_aoa6": {
-          "cold": 1674,
+          "cold": 1664,
           "oracle_mesh": 2,
-          "nf_bl": 1206
+          "nf_bl": 1214,
+          "sequenced_bl": 2119,
+          "sequenced": 1527
         },
         "naca2412_aoa2": {
-          "cold": 1411,
-          "oracle_mesh": 2,
-          "nf_bl": 1747
+          "cold": 3353,
+          "oracle_mesh": 268,
+          "nf_bl": 1123,
+          "sequenced_bl": 5737,
+          "sequenced": null
         },
         "naca2415_aoa5": {
           "cold": 2638,
           "oracle_mesh": 2,
-          "nf_bl": 1186
+          "nf_bl": 1186,
+          "sequenced_bl": 4039,
+          "sequenced": 4181
         }
       },
       "values": {
         "oracle_mesh": [
           0.6948051948051948,
           0.9993569131832798,
-          0.998805256869773,
-          0.9985825655563431,
+          0.9987980769230769,
+          0.9200715776916194,
           0.9992418498862775
         ],
         "nf_bl": [
           -3.6662337662337663,
           0.662379421221865,
-          0.27956989247311825,
-          -0.23812898653437276,
+          0.2704326923076923,
+          0.6650760512973457,
           0.5504169825625473
+        ],
+        "sequenced_bl": [
+          -1.769774919614148,
+          -0.2734375,
+          -0.7110050700864896,
+          -0.5310841546626233,
+          -6.792207792207792
+        ],
+        "sequenced": [
+          -2.27524115755627,
+          0.08233173076923073,
+          -0.5849128127369219,
+          -6.792207792207792,
+          -0.7894422904861318
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9381583560601736,
-        "saving_reached_only": 0.9381583560601736,
+        "saving": 0.9224547224978897,
+        "saving_reached_only": 0.9224547224978897,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -820,638 +1302,986 @@
         ]
       },
       "nf_bl": {
-        "saving": -0.48239929130212184,
-        "saving_reached_only": -0.48239929130212184,
+        "saving": -0.3035857237688631,
+        "saving_reached_only": -0.3035857237688631,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
           -3.6662337662337663,
-          0.662379421221865
+          0.6650760512973457
         ]
       },
-      "settled_spread": 0.005780972792991162,
+      "sequenced_bl": {
+        "saving": -2.0155018873142105,
+        "saving_reached_only": -0.8213254110908152,
+        "n_reached": 4,
+        "n_censored": 1,
+        "spread": [
+          -6.792207792207792,
+          -0.2734375
+        ]
+      },
+      "sequenced": {
+        "saving": -2.0718944644435773,
+        "saving_reached_only": -0.9259407465079871,
+        "n_reached": 3,
+        "n_censored": 2,
+        "spread": [
+          -6.792207792207792,
+          0.08233173076923073
+        ]
+      },
+      "settled_spread": 0.014883212838046648,
       "readable": false
     },
     "Cd_p@0.005": {
-      "cold_mean": 2492.0,
-      "cold_n": 5,
+      "cold_mean": 2342.75,
+      "cold_n": 4,
       "per_case": {
         "naca0012_aoa0": {
           "cold": 829,
           "oracle_mesh": 389,
-          "nf_bl": 5565
+          "nf_bl": 5565,
+          "sequenced_bl": null,
+          "sequenced": null
         },
         "naca0012_aoa4": {
           "cold": 2500,
           "oracle_mesh": 250,
-          "nf_bl": 1342
+          "nf_bl": 1342,
+          "sequenced_bl": 5764,
+          "sequenced": null
         },
         "naca0015_aoa6": {
-          "cold": 2203,
-          "oracle_mesh": 233,
-          "nf_bl": 1935
-        },
-        "naca2412_aoa2": {
-          "cold": 3057,
-          "oracle_mesh": null,
-          "nf_bl": 5915
+          "cold": 2171,
+          "oracle_mesh": 244,
+          "nf_bl": 1971,
+          "sequenced_bl": 2913,
+          "sequenced": 1705
         },
         "naca2415_aoa5": {
           "cold": 3871,
           "oracle_mesh": 4,
-          "nf_bl": 1337
+          "nf_bl": 1337,
+          "sequenced_bl": 5606,
+          "sequenced": null
         }
       },
       "values": {
         "oracle_mesh": [
           0.5307599517490953,
           0.9,
-          0.8942351339083069,
-          0.998966675277706,
-          -0.9627085377821394
+          0.8876093965914326,
+          0.998966675277706
         ],
         "nf_bl": [
           -5.712907117008444,
           0.46319999999999995,
-          0.12165229232864272,
-          -0.934903500163559,
+          0.09212344541685857,
           0.6546112115732369
+        ],
+        "sequenced_bl": [
+          -1.3056,
+          -0.34177798249654545,
+          -0.44820459829501424,
+          -6.237635705669481
+        ],
+        "sequenced": [
+          0.21464762782128055,
+          -6.237635705669481,
+          -1.4,
+          -0.5499870834409712
         ]
       },
       "oracle_mesh": {
-        "saving": 0.47225064463059374,
-        "saving_reached_only": 0.830990440233777,
+        "saving": 0.8293340059045584,
+        "saving_reached_only": 0.8293340059045584,
         "n_reached": 4,
-        "n_censored": 1,
+        "n_censored": 0,
         "spread": [
-          -0.9627085377821394,
+          0.5307599517490953,
           0.998966675277706
         ]
       },
       "nf_bl": {
-        "saving": -1.0816694226540249,
-        "saving_reached_only": -1.0816694226540249,
-        "n_reached": 5,
+        "saving": -1.1257431150045871,
+        "saving_reached_only": -1.1257431150045871,
+        "n_reached": 4,
         "n_censored": 0,
         "spread": [
           -5.712907117008444,
           0.6546112115732369
         ]
       },
-      "settled_spread": 0.005780972792991162,
-      "readable": false
+      "sequenced_bl": {
+        "saving": -2.08330457161526,
+        "saving_reached_only": -0.69852752693052,
+        "n_reached": 3,
+        "n_censored": 1,
+        "spread": [
+          -6.237635705669481,
+          -0.34177798249654545
+        ]
+      },
+      "sequenced": {
+        "saving": -1.993243790322293,
+        "saving_reached_only": 0.21464762782128055,
+        "n_reached": 1,
+        "n_censored": 3,
+        "spread": [
+          -6.237635705669481,
+          0.21464762782128055
+        ]
+      },
+      "settled_spread": 0.0008557627731662925,
+      "readable": true
     },
     "Cd_p@0.002": {
-      "cold_mean": 3736.2,
-      "cold_n": 5,
+      "cold_mean": 3411.0,
+      "cold_n": 4,
       "per_case": {
         "naca0012_aoa0": {
           "cold": 892,
           "oracle_mesh": 490,
-          "nf_bl": null
+          "nf_bl": null,
+          "sequenced_bl": null,
+          "sequenced": null
         },
         "naca0012_aoa4": {
           "cold": 4055,
           "oracle_mesh": 377,
-          "nf_bl": 2328
+          "nf_bl": 2328,
+          "sequenced_bl": null,
+          "sequenced": null
         },
         "naca0015_aoa6": {
-          "cold": 3144,
-          "oracle_mesh": 363,
-          "nf_bl": 2939
-        },
-        "naca2412_aoa2": {
-          "cold": 4939,
-          "oracle_mesh": null,
-          "nf_bl": 5956
+          "cold": 3046,
+          "oracle_mesh": 373,
+          "nf_bl": 3047,
+          "sequenced_bl": 4379,
+          "sequenced": 2467
         },
         "naca2415_aoa5": {
           "cold": 5651,
           "oracle_mesh": 229,
-          "nf_bl": 1917
+          "nf_bl": 1917,
+          "sequenced_bl": null,
+          "sequenced": null
         }
       },
       "values": {
         "oracle_mesh": [
           0.4506726457399103,
           0.9070283600493219,
-          0.8845419847328244,
-          0.9594761989028491,
-          -0.21482081392994523
+          0.8775443204202232,
+          0.9594761989028491
         ],
         "nf_bl": [
           0.4258939580764488,
-          0.06520356234096691,
-          -0.2059121279611258,
+          -0.00032829940906098365,
           0.6607680056627145,
           -5.726457399103139
+        ],
+        "sequenced_bl": [
+          -0.437623112278398,
+          -5.726457399103139,
+          -0.4796547472256474,
+          -0.06175898071137853
+        ],
+        "sequenced": [
+          0.19008535784635583,
+          -5.726457399103139,
+          -0.4796547472256474,
+          -0.06175898071137853
         ]
       },
       "oracle_mesh": {
-        "saving": 0.5973796750989921,
-        "saving_reached_only": 0.8004297973562264,
+        "saving": 0.7986803812780761,
+        "saving_reached_only": 0.7986803812780761,
         "n_reached": 4,
-        "n_censored": 1,
+        "n_censored": 0,
         "spread": [
-          -0.21482081392994523,
+          0.4506726457399103,
           0.9594761989028491
         ]
       },
       "nf_bl": {
-        "saving": -0.9561008001968269,
-        "saving_reached_only": 0.23648834952975112,
-        "n_reached": 4,
+        "saving": -1.160030933693259,
+        "saving_reached_only": 0.36211122144336744,
+        "n_reached": 3,
         "n_censored": 1,
         "spread": [
           -5.726457399103139,
           0.6607680056627145
         ]
       },
-      "settled_spread": 0.005780972792991162,
-      "readable": false
+      "sequenced_bl": {
+        "saving": -1.6763735598296408,
+        "saving_reached_only": -0.437623112278398,
+        "n_reached": 1,
+        "n_censored": 3,
+        "spread": [
+          -5.726457399103139,
+          -0.06175898071137853
+        ]
+      },
+      "sequenced": {
+        "saving": -1.5194464422984524,
+        "saving_reached_only": 0.19008535784635583,
+        "n_reached": 1,
+        "n_censored": 3,
+        "spread": [
+          -5.726457399103139,
+          0.19008535784635583
+        ]
+      },
+      "settled_spread": 0.0008557627731662925,
+      "readable": true
     },
     "Cd_v@0.01": {
-      "cold_mean": 695.4,
+      "cold_mean": 696.0,
       "cold_n": 5,
       "per_case": {
         "naca0012_aoa0": {
-          "cold": 640,
+          "cold": 641,
           "oracle_mesh": 51,
-          "nf_bl": 518
+          "nf_bl": 519,
+          "sequenced_bl": 25,
+          "sequenced": 114
         },
         "naca0012_aoa4": {
           "cold": 684,
           "oracle_mesh": 53,
-          "nf_bl": 579
+          "nf_bl": 580,
+          "sequenced_bl": 292,
+          "sequenced": 327
         },
         "naca0015_aoa6": {
           "cold": 760,
           "oracle_mesh": 53,
-          "nf_bl": 664
+          "nf_bl": 664,
+          "sequenced_bl": 387,
+          "sequenced": 418
         },
         "naca2412_aoa2": {
-          "cold": 660,
+          "cold": 661,
           "oracle_mesh": 52,
-          "nf_bl": 550
+          "nf_bl": 551,
+          "sequenced_bl": 62,
+          "sequenced": 164
         },
         "naca2415_aoa5": {
-          "cold": 733,
+          "cold": 734,
           "oracle_mesh": 53,
-          "nf_bl": 663
+          "nf_bl": 665,
+          "sequenced_bl": 100,
+          "sequenced": 286
         }
       },
       "values": {
         "oracle_mesh": [
-          0.9203125,
+          0.9204368174726989,
           0.922514619883041,
           0.9302631578947369,
-          0.9212121212121213,
-          0.9276944065484312
+          0.9213313161875946,
+          0.9277929155313351
         ],
         "nf_bl": [
-          0.19062500000000004,
-          0.1535087719298246,
+          0.19032761310452417,
+          0.15204678362573099,
           0.12631578947368416,
-          0.16666666666666663,
-          0.09549795361527968
+          0.16641452344931917,
+          0.09400544959128065
+        ],
+        "sequenced_bl": [
+          0.9609984399375975,
+          0.5730994152046784,
+          0.49078947368421055,
+          0.9062027231467473,
+          0.8637602179836512
+        ],
+        "sequenced": [
+          0.8221528861154446,
+          0.5219298245614035,
+          0.44999999999999996,
+          0.7518910741301059,
+          0.6103542234332425
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9243993611076661,
-        "saving_reached_only": 0.9243993611076661,
+        "saving": 0.9244677653938813,
+        "saving_reached_only": 0.9244677653938813,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          0.9203125,
+          0.9204368174726989,
           0.9302631578947369
         ]
       },
       "nf_bl": {
-        "saving": 0.146522836337091,
-        "saving_reached_only": 0.146522836337091,
+        "saving": 0.14582203184890782,
+        "saving_reached_only": 0.14582203184890782,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          0.09549795361527968,
-          0.19062500000000004
+          0.09400544959128065,
+          0.19032761310452417
         ]
       },
-      "settled_spread": 7.19430899751285e-05,
+      "sequenced_bl": {
+        "saving": 0.7589700539913771,
+        "saving_reached_only": 0.7589700539913771,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          0.49078947368421055,
+          0.9609984399375975
+        ]
+      },
+      "sequenced": {
+        "saving": 0.6312656016480392,
+        "saving_reached_only": 0.6312656016480392,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          0.44999999999999996,
+          0.8221528861154446
+        ]
+      },
+      "settled_spread": 0.00040147268489935825,
       "readable": true
     },
     "Cd_v@0.005": {
-      "cold_mean": 800.4,
+      "cold_mean": 801.6,
       "cold_n": 5,
       "per_case": {
         "naca0012_aoa0": {
-          "cold": 736,
+          "cold": 737,
           "oracle_mesh": 62,
-          "nf_bl": 598
+          "nf_bl": 599,
+          "sequenced_bl": 78,
+          "sequenced": 179
         },
         "naca0012_aoa4": {
-          "cold": 780,
+          "cold": 781,
           "oracle_mesh": 66,
-          "nf_bl": 669
+          "nf_bl": 670,
+          "sequenced_bl": 384,
+          "sequenced": 399
         },
         "naca0015_aoa6": {
           "cold": 876,
-          "oracle_mesh": 65,
-          "nf_bl": 780
+          "oracle_mesh": 66,
+          "nf_bl": 780,
+          "sequenced_bl": 507,
+          "sequenced": 516
         },
         "naca2412_aoa2": {
-          "cold": 765,
+          "cold": 767,
           "oracle_mesh": 64,
-          "nf_bl": 633
+          "nf_bl": 635,
+          "sequenced_bl": 113,
+          "sequenced": 224
         },
         "naca2415_aoa5": {
-          "cold": 845,
+          "cold": 847,
           "oracle_mesh": 65,
-          "nf_bl": 784
+          "nf_bl": 786,
+          "sequenced_bl": 330,
+          "sequenced": 379
         }
       },
       "values": {
         "oracle_mesh": [
-          0.9157608695652174,
-          0.9153846153846154,
-          0.9257990867579908,
-          0.9163398692810457,
-          0.9230769230769231
+          0.9158751696065128,
+          0.9154929577464789,
+          0.9246575342465754,
+          0.9165580182529335,
+          0.9232585596221959
         ],
         "nf_bl": [
-          0.1875,
-          0.14230769230769236,
+          0.1872455902306649,
+          0.14212548015364912,
           0.1095890410958904,
-          0.1725490196078432,
-          0.07218934911242603
+          0.1720990873533247,
+          0.0720188902007084
+        ],
+        "sequenced_bl": [
+          0.8941655359565808,
+          0.5083226632522407,
+          0.4212328767123288,
+          0.8526727509778358,
+          0.6103896103896104
+        ],
+        "sequenced": [
+          0.757123473541384,
+          0.4891165172855314,
+          0.410958904109589,
+          0.7079530638852674,
+          0.552538370720189
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9192722728131585,
-        "saving_reached_only": 0.9192722728131585,
+        "saving": 0.9191684478949392,
+        "saving_reached_only": 0.9191684478949392,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          0.9153846153846154,
-          0.9257990867579908
+          0.9154929577464789,
+          0.9246575342465754
         ]
       },
       "nf_bl": {
-        "saving": 0.1368270204247704,
-        "saving_reached_only": 0.1368270204247704,
+        "saving": 0.1366156178068475,
+        "saving_reached_only": 0.1366156178068475,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          0.07218934911242603,
-          0.1875
+          0.0720188902007084,
+          0.1872455902306649
         ]
       },
-      "settled_spread": 7.19430899751285e-05,
+      "sequenced_bl": {
+        "saving": 0.6573566874577192,
+        "saving_reached_only": 0.6573566874577192,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          0.4212328767123288,
+          0.8941655359565808
+        ]
+      },
+      "sequenced": {
+        "saving": 0.5835380659083921,
+        "saving_reached_only": 0.5835380659083921,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          0.410958904109589,
+          0.757123473541384
+        ]
+      },
+      "settled_spread": 0.00040147268489935825,
       "readable": true
     },
     "Cd_v@0.002": {
-      "cold_mean": 929.0,
+      "cold_mean": 931.8,
       "cold_n": 5,
       "per_case": {
         "naca0012_aoa0": {
-          "cold": 846,
-          "oracle_mesh": 77,
-          "nf_bl": 683
+          "cold": 849,
+          "oracle_mesh": 78,
+          "nf_bl": 686,
+          "sequenced_bl": 1136,
+          "sequenced": 1282
         },
         "naca0012_aoa4": {
-          "cold": 893,
-          "oracle_mesh": 81,
-          "nf_bl": 783
+          "cold": 894,
+          "oracle_mesh": 82,
+          "nf_bl": 785,
+          "sequenced_bl": 464,
+          "sequenced": 873
         },
         "naca0015_aoa6": {
           "cold": 1024,
           "oracle_mesh": 82,
-          "nf_bl": 980
+          "nf_bl": 982,
+          "sequenced_bl": 628,
+          "sequenced": 630
         },
         "naca2412_aoa2": {
-          "cold": 900,
+          "cold": 905,
           "oracle_mesh": 81,
-          "nf_bl": 727
+          "nf_bl": 731,
+          "sequenced_bl": 1117,
+          "sequenced": 1496
         },
         "naca2415_aoa5": {
-          "cold": 982,
-          "oracle_mesh": 81,
-          "nf_bl": 980
+          "cold": 987,
+          "oracle_mesh": 82,
+          "nf_bl": 989,
+          "sequenced_bl": 448,
+          "sequenced": 471
         }
       },
       "values": {
         "oracle_mesh": [
-          0.9089834515366431,
-          0.9092945128779395,
+          0.9081272084805654,
+          0.9082774049217002,
           0.919921875,
-          0.91,
-          0.9175152749490835
+          0.9104972375690608,
+          0.916919959473151
         ],
         "nf_bl": [
-          0.19267139479905437,
-          0.12318029115341544,
-          0.04296875,
-          0.19222222222222218,
-          0.0020366598778004397
+          0.19199057714958778,
+          0.12192393736017892,
+          0.041015625,
+          0.1922651933701658,
+          -0.0020263424518742745
+        ],
+        "sequenced_bl": [
+          -0.33804475853945815,
+          0.4809843400447428,
+          0.38671875,
+          -0.23425414364640873,
+          0.5460992907801419
+        ],
+        "sequenced": [
+          -0.5100117785630154,
+          0.023489932885906062,
+          0.384765625,
+          -0.6530386740331491,
+          0.5227963525835866
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9131430228727332,
-        "saving_reached_only": 0.9131430228727332,
+        "saving": 0.9127487370888954,
+        "saving_reached_only": 0.9127487370888954,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          0.9089834515366431,
+          0.9081272084805654,
           0.919921875
         ]
       },
       "nf_bl": {
-        "saving": 0.1106158636104985,
-        "saving_reached_only": 0.1106158636104985,
+        "saving": 0.10903379808561164,
+        "saving_reached_only": 0.10903379808561164,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          0.0020366598778004397,
-          0.19267139479905437
+          -0.0020263424518742745,
+          0.1922651933701658
         ]
       },
-      "settled_spread": 7.19430899751285e-05,
+      "sequenced_bl": {
+        "saving": 0.16830069572780354,
+        "saving_reached_only": 0.16830069572780354,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.33804475853945815,
+          0.5460992907801419
+        ]
+      },
+      "sequenced": {
+        "saving": -0.04639970842533436,
+        "saving_reached_only": -0.04639970842533436,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.6530386740331491,
+          0.5227963525835866
+        ]
+      },
+      "settled_spread": 0.00040147268489935825,
       "readable": true
     },
     "Cl_p@0.01": {
-      "cold_mean": 940.75,
+      "cold_mean": 947.25,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa4": {
-          "cold": 862,
+          "cold": 863,
           "oracle_mesh": 1,
-          "nf_bl": 674
+          "nf_bl": 675,
+          "sequenced_bl": 474,
+          "sequenced": 476
         },
         "naca0015_aoa6": {
-          "cold": 1042,
+          "cold": 1044,
           "oracle_mesh": 1,
-          "nf_bl": 1004
+          "nf_bl": 1005,
+          "sequenced_bl": 667,
+          "sequenced": 687
         },
         "naca2412_aoa2": {
-          "cold": 883,
+          "cold": 905,
           "oracle_mesh": 1,
-          "nf_bl": 716
+          "nf_bl": 737,
+          "sequenced_bl": 523,
+          "sequenced": 826
         },
         "naca2415_aoa5": {
-          "cold": 976,
+          "cold": 977,
           "oracle_mesh": 1,
-          "nf_bl": 1013
+          "nf_bl": 1014,
+          "sequenced_bl": 223,
+          "sequenced": 480
         }
       },
       "values": {
         "oracle_mesh": [
-          0.9988399071925754,
-          0.9990403071017274,
-          0.9988674971687429,
-          0.9989754098360656
+          0.9988412514484357,
+          0.9990421455938697,
+          0.9988950276243094,
+          0.9989764585465711
         ],
         "nf_bl": [
-          0.21809744779582363,
-          0.03646833013435702,
-          0.1891279728199321,
-          -0.037909836065573854
+          0.21784472769409036,
+          0.03735632183908044,
+          0.18563535911602214,
+          -0.03787103377686796
+        ],
+        "sequenced_bl": [
+          0.4507531865585168,
+          0.36111111111111116,
+          0.4220994475138121,
+          0.7717502558853634
+        ],
+        "sequenced": [
+          0.44843568945538814,
+          0.34195402298850575,
+          0.08729281767955799,
+          0.5087001023541453
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9989307803247779,
-        "saving_reached_only": 0.9989307803247779,
+        "saving": 0.9989387208032965,
+        "saving_reached_only": 0.9989387208032965,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.9988399071925754,
-          0.9990403071017274
+          0.9988412514484357,
+          0.9990421455938697
         ]
       },
       "nf_bl": {
-        "saving": 0.10144597867113472,
-        "saving_reached_only": 0.10144597867113472,
+        "saving": 0.10074134371808124,
+        "saving_reached_only": 0.10074134371808124,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.037909836065573854,
-          0.21809744779582363
+          -0.03787103377686796,
+          0.21784472769409036
         ]
       },
-      "settled_spread": 9.224408806337856e-05,
+      "sequenced_bl": {
+        "saving": 0.5014285002672009,
+        "saving_reached_only": 0.5014285002672009,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          0.36111111111111116,
+          0.7717502558853634
+        ]
+      },
+      "sequenced": {
+        "saving": 0.3465956581193993,
+        "saving_reached_only": 0.3465956581193993,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          0.08729281767955799,
+          0.5087001023541453
+        ]
+      },
+      "settled_spread": 0.000776210786945462,
       "readable": true
     },
     "Cl_p@0.005": {
-      "cold_mean": 1102.5,
+      "cold_mean": 1117.25,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa4": {
-          "cold": 1009,
+          "cold": 1011,
           "oracle_mesh": 1,
-          "nf_bl": 912
+          "nf_bl": 914,
+          "sequenced_bl": 561,
+          "sequenced": 1250
         },
         "naca0015_aoa6": {
-          "cold": 1205,
+          "cold": 1207,
           "oracle_mesh": 1,
-          "nf_bl": 1240
+          "nf_bl": 1243,
+          "sequenced_bl": 733,
+          "sequenced": 753
         },
         "naca2412_aoa2": {
-          "cold": 1077,
+          "cold": 1130,
           "oracle_mesh": 1,
-          "nf_bl": 898
+          "nf_bl": 931,
+          "sequenced_bl": 1633,
+          "sequenced": 1847
         },
         "naca2415_aoa5": {
-          "cold": 1119,
+          "cold": 1121,
           "oracle_mesh": 1,
-          "nf_bl": 1225
+          "nf_bl": 1228,
+          "sequenced_bl": 1738,
+          "sequenced": 1122
         }
       },
       "values": {
         "oracle_mesh": [
-          0.9990089197224975,
-          0.9991701244813278,
-          0.9990714948932219,
-          0.9991063449508489
+          0.9990108803165183,
+          0.9991714995857498,
+          0.9991150442477876,
+          0.9991079393398751
         ],
         "nf_bl": [
-          0.09613478691774036,
-          -0.029045643153526868,
-          0.16620241411327763,
-          -0.09472743521000893
+          0.09594460929772497,
+          -0.029826014913007404,
+          0.17610619469026545,
+          -0.09545049063336308
+        ],
+        "sequenced_bl": [
+          0.4451038575667656,
+          0.3927091963545982,
+          -0.4451327433628318,
+          -0.5504014272970561
+        ],
+        "sequenced": [
+          -0.2363996043521266,
+          0.376139188069594,
+          -0.6345132743362831,
+          -0.000892060660124816
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9990892210119741,
-        "saving_reached_only": 0.9990892210119741,
+        "saving": 0.9991013408724828,
+        "saving_reached_only": 0.9991013408724828,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.9990089197224975,
-          0.9991701244813278
+          0.9990108803165183,
+          0.9991714995857498
         ]
       },
       "nf_bl": {
-        "saving": 0.03464103066687055,
-        "saving_reached_only": 0.03464103066687055,
+        "saving": 0.03669357461040498,
+        "saving_reached_only": 0.03669357461040498,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.09472743521000893,
-          0.16620241411327763
+          -0.09545049063336308,
+          0.17610619469026545
         ]
       },
-      "settled_spread": 9.224408806337856e-05,
+      "sequenced_bl": {
+        "saving": -0.03943027918463102,
+        "saving_reached_only": -0.03943027918463102,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -0.5504014272970561,
+          0.4451038575667656
+        ]
+      },
+      "sequenced": {
+        "saving": -0.12391643781973513,
+        "saving_reached_only": -0.12391643781973513,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -0.6345132743362831,
+          0.376139188069594
+        ]
+      },
+      "settled_spread": 0.000776210786945462,
       "readable": true
     },
     "Cl_p@0.002": {
-      "cold_mean": 1337.75,
+      "cold_mean": 1423.5,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa4": {
-          "cold": 1203,
+          "cold": 1207,
           "oracle_mesh": 1,
-          "nf_bl": 1173
+          "nf_bl": 1178,
+          "sequenced_bl": 2463,
+          "sequenced": 2741
         },
         "naca0015_aoa6": {
-          "cold": 1417,
+          "cold": 1422,
           "oracle_mesh": 1,
-          "nf_bl": 1602
+          "nf_bl": 1613,
+          "sequenced_bl": 1836,
+          "sequenced": 1813
         },
         "naca2412_aoa2": {
-          "cold": 1447,
-          "oracle_mesh": 1,
-          "nf_bl": 1104
+          "cold": 1777,
+          "oracle_mesh": 2,
+          "nf_bl": 1232,
+          "sequenced_bl": 2828,
+          "sequenced": 3256
         },
         "naca2415_aoa5": {
-          "cold": 1284,
+          "cold": 1288,
           "oracle_mesh": 1,
-          "nf_bl": 1550
+          "nf_bl": 1557,
+          "sequenced_bl": 3128,
+          "sequenced": 3107
         }
       },
       "values": {
         "oracle_mesh": [
-          0.999168744804655,
-          0.9992942836979535,
-          0.9993089149965446,
-          0.9992211838006231
+          0.9991714995857498,
+          0.9992967651195499,
+          0.9988745075970737,
+          0.9992236024844721
         ],
         "nf_bl": [
-          0.02493765586034913,
-          -0.13055751587861675,
-          0.23704215618521074,
-          -0.20716510903426788
+          0.024026512013256007,
+          -0.13431786216596353,
+          0.30669667979741133,
+          -0.20885093167701863
+        ],
+        "sequenced_bl": [
+          -1.0405965202982603,
+          -0.2911392405063291,
+          -0.5914462577377602,
+          -1.4285714285714284
+        ],
+        "sequenced": [
+          -1.2709196354598178,
+          -0.2749648382559775,
+          -0.8323016319639842,
+          -1.4122670807453415
         ]
       },
       "oracle_mesh": {
-        "saving": 0.999248281824944,
-        "saving_reached_only": 0.999248281824944,
+        "saving": 0.9991415936967114,
+        "saving_reached_only": 0.9991415936967114,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.999168744804655,
-          0.9993089149965446
+          0.9988745075970737,
+          0.9992967651195499
         ]
       },
       "nf_bl": {
-        "saving": -0.01893570321683119,
-        "saving_reached_only": -0.01893570321683119,
+        "saving": -0.0031114005080787044,
+        "saving_reached_only": -0.0031114005080787044,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.20716510903426788,
-          0.23704215618521074
+          -0.20885093167701863,
+          0.30669667979741133
         ]
       },
-      "settled_spread": 9.224408806337856e-05,
+      "sequenced_bl": {
+        "saving": -0.8379383617784445,
+        "saving_reached_only": -0.8379383617784445,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -1.4285714285714284,
+          -0.2911392405063291
+        ]
+      },
+      "sequenced": {
+        "saving": -0.9476132966062802,
+        "saving_reached_only": -0.9476132966062802,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -1.4122670807453415,
+          -0.2749648382559775
+        ]
+      },
+      "settled_spread": 0.000776210786945462,
       "readable": true
     }
   },
   "force_reference": {
     "naca0012_aoa0": {
       "Cd": 0.0091599099476,
-      "Cl": -3.9937767243e-08,
+      "Cl": -2.3158199833e-08,
       "Cd_p": 0.00150662844376,
-      "Cd_v": 0.0076528549502,
-      "Cl_p": -3.9877711506e-08
+      "Cd_v": 0.0076532569931999994,
+      "Cl_p": -2.3126728099999997e-08
     },
     "naca0012_aoa4": {
-      "Cd": 0.010404120978,
-      "Cl": 0.42834494346,
+      "Cd": 0.010405174815,
+      "Cl": 0.42835894556,
       "Cd_p": 0.0028770931285037075,
-      "Cd_v": 0.007527027851156784,
-      "Cl_p": 0.4283920927369976
+      "Cd_v": 0.007527192804698691,
+      "Cl_p": 0.4284060780217603
     },
     "naca0015_aoa6": {
-      "Cd": 0.012599808274,
-      "Cl": 0.62796835828,
-      "Cd_p": 0.005007916005890633,
-      "Cd_v": 0.007591892266605271,
-      "Cl_p": 0.6279445728890127
+      "Cd": 0.012600791735,
+      "Cl": 0.6279985653,
+      "Cd_p": 0.005008817913093886,
+      "Cd_v": 0.007591961761516269,
+      "Cl_p": 0.6279747692525408
     },
     "naca2412_aoa2": {
       "Cd": 0.010195667307,
-      "Cl": 0.42906176175,
-      "Cd_p": 0.0025290487759956526,
-      "Cd_v": 0.007669411884298693,
-      "Cl_p": 0.4289964446785624
+      "Cl": 0.42939496458,
+      "Cd_p": 0.002543669138161831,
+      "Cd_v": 0.007669947238544207,
+      "Cl_p": 0.42932969501899215
     },
     "naca2415_aoa5": {
-      "Cd": 0.013189797124,
-      "Cl": 0.73088168547,
+      "Cd": 0.013194250559,
+      "Cl": 0.7309101866,
       "Cd_p": 0.005443132175403085,
-      "Cd_v": 0.007745894385746584,
-      "Cl_p": 0.7307709379230368
+      "Cd_v": 0.007746451649323315,
+      "Cl_p": 0.7307993723406914
     }
   },
   "force_reference_spread": {
     "naca0012_aoa0": {
       "Cd": 0.0007075319885321899,
-      "Cl": 298.2832203481526,
+      "Cl": 515.1326735322328,
       "Cd_p": 0.00028311803203152756,
-      "Cd_v": 5.2535034652516016e-05,
-      "Cl_p": 298.65564204460594
+      "Cd_v": 0.00032937383420417616,
+      "Cl_p": 515.7000361196792
     },
     "naca0012_aoa4": {
-      "Cd": 0.00020258068936877422,
-      "Cl": 3.268884158375332e-05,
+      "Cd": 0.0012220669259366155,
+      "Cl": 0.00042825296845431593,
       "Cd_p": 0.0006752371692710329,
-      "Cd_v": 2.1914830816135223e-05,
-      "Cl_p": 3.2645991837420595e-05
+      "Cd_v": 0.00014674796866447531,
+      "Cl_p": 0.00042822867884924066
     },
     "naca0015_aoa6": {
-      "Cd": 9.235577039699618e-05,
-      "Cl": 4.810277397215162e-05,
-      "Cd_p": 0.0002239581314702389,
-      "Cd_v": 1.074233788885486e-05,
-      "Cl_p": 4.8087625615033346e-05
+      "Cd": 0.0003491172691777425,
+      "Cl": 0.00037247077131187224,
+      "Cd_p": 0.0008557627731662925,
+      "Cd_v": 1.644545790420078e-05,
+      "Cl_p": 0.00037233016024886445
     },
     "naca2412_aoa2": {
       "Cd": 0.0,
-      "Cl": 0.0,
-      "Cd_p": 0.005780972792991162,
-      "Cd_v": 6.980381984822526e-05,
-      "Cl_p": 0.0
+      "Cl": 0.0007759821550909489,
+      "Cd_p": 0.014883212838046648,
+      "Cd_v": 0.00040147268489935825,
+      "Cl_p": 0.000776210786945462
     },
     "naca2415_aoa5": {
-      "Cd": 0.0006752848369285015,
-      "Cl": 9.219065320628292e-05,
+      "Cd": 0.0019800456936282843,
+      "Cl": 0.0006677052925890591,
       "Cd_p": 0.00014156598466166518,
-      "Cd_v": 7.19430899751285e-05,
-      "Cl_p": 9.224408806337856e-05
+      "Cd_v": 0.00011203827338045692,
+      "Cl_p": 0.0006677378837471577
     }
   },
   "force_unsettled": {
     "naca0012_aoa0": {
-      "Cd": [],
+      "Cd": [
+        "sequenced",
+        "sequenced_bl"
+      ],
       "Cl": [],
       "Cd_p": [
-        "nf_bl"
+        "nf_bl",
+        "sequenced",
+        "sequenced_bl"
       ],
       "Cd_v": [],
       "Cl_p": []
     },
     "naca0012_aoa4": {
-      "Cd": [],
+      "Cd": [
+        "sequenced"
+      ],
       "Cl": [],
-      "Cd_p": [],
+      "Cd_p": [
+        "sequenced",
+        "sequenced_bl"
+      ],
       "Cd_v": [],
       "Cl_p": []
     },
@@ -1465,7 +2295,9 @@
     "naca2412_aoa2": {
       "Cd": [
         "nf_bl",
-        "oracle_mesh"
+        "oracle_mesh",
+        "sequenced",
+        "sequenced_bl"
       ],
       "Cl": [
         "nf_bl",
@@ -1479,10 +2311,14 @@
       ]
     },
     "naca2415_aoa5": {
-      "Cd": [],
+      "Cd": [
+        "sequenced_bl"
+      ],
       "Cl": [],
       "Cd_p": [
-        "cold"
+        "cold",
+        "sequenced",
+        "sequenced_bl"
       ],
       "Cd_v": [],
       "Cl_p": []
@@ -1492,17 +2328,27 @@
     "naca0012_aoa0_cold": 0.13502999999999998,
     "naca0012_aoa0_oracle_mesh": 0.14507833333333334,
     "naca0012_aoa0_nf_bl": 0.3603183333333333,
+    "naca0012_aoa0_sequenced_bl": 0.273555,
+    "naca0012_aoa0_sequenced": 0.284655,
     "naca0012_aoa4_cold": 0.08442666666666666,
     "naca0012_aoa4_oracle_mesh": 0.07857,
     "naca0012_aoa4_nf_bl": 0.12632333333333334,
+    "naca0012_aoa4_sequenced_bl": 0.265225,
+    "naca0012_aoa4_sequenced": 0.3085333333333333,
     "naca0015_aoa6_cold": 0.12616,
     "naca0015_aoa6_oracle_mesh": 0.08423666666666667,
     "naca0015_aoa6_nf_bl": 0.20888833333333331,
+    "naca0015_aoa6_sequenced_bl": 0.23308666666666666,
+    "naca0015_aoa6_sequenced": 0.29148833333333335,
     "naca2412_aoa2_cold": 0.16672333333333333,
     "naca2412_aoa2_oracle_mesh": 0.28905666666666663,
     "naca2412_aoa2_nf_bl": 0.35777,
+    "naca2412_aoa2_sequenced_bl": 0.28246166666666667,
+    "naca2412_aoa2_sequenced": 0.31364,
     "naca2415_aoa5_cold": 0.14067666666666664,
     "naca2415_aoa5_oracle_mesh": 0.12285666666666667,
-    "naca2415_aoa5_nf_bl": 0.27318333333333333
+    "naca2415_aoa5_nf_bl": 0.27318333333333333,
+    "naca2415_aoa5_sequenced_bl": 0.23084999999999997,
+    "naca2415_aoa5_sequenced": 0.35110833333333336
   }
 }
