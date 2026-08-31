@@ -43,16 +43,20 @@
   k-ω SST is the obvious next experiment.
 - **One solver and one mesh family.** OpenFOAM SIMPLEC on a C-grid we generate.
   Nothing here has been tried on an unstructured or commercial solver.
-- **One Reynolds number for the headline** (Re = 3·10⁶). Because the criterion
-  is expressed in wall units, a Reynolds sweep is the natural test of it and is
-  not done: the closed form predicts the damage *grows* at lower Reynolds on the
-  same mesh, since the first cell moves deeper into the linear sublayer while
-  the representation's station stays in the log layer. **That prediction is
-  stated here and untested.**
+- **One Reynolds number for the *solver* results** (Re = 3·10⁶). The
+  convergence savings, the conditions and the repair are all measured there and
+  nowhere else. The *mechanism* is checked across Re = 10³ to 3·10⁶ in §6.6,
+  but that check is on the seed's wall gradient, not on convergence: it does not
+  show that a warm start helps at another Reynolds number, only that the damage
+  a representation does behaves as the closed form says it will.
+- **The closed form is accurate only where the boundary layer is turbulent and
+  attached.** §6.6 measures agreement of 0.83–0.96 at Re ≥ 10⁶ and 0.32–0.35 at
+  Re ≤ 10⁵, where 42–62% of the surface carries near-zero wall shear. There it
+  is a lower bound rather than an estimate — conservative, but not quantitative.
 - **Bands below 1% need a longer budget.** At 0.5% and 0.2% the total-drag rows
   are unreadable at 6000 iterations on the corpus.
 - **`nuTilda` is floored at freestream on write**, a common-mode limitation
-  quantified in §5.6 — it removes 2.1–2.3% of the eddy-viscosity field's energy
+  quantified in §5.8 — it removes 2.1–2.3% of the eddy-viscosity field's energy
   in the boundary layer and applies identically to every arm including the
   oracle.
 - **Three cases have no unique steady drag at this budget**, and they share a
