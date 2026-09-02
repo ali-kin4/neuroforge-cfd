@@ -73,7 +73,7 @@ KNOWN_ARMS = ("oracle_mesh", "cartesian_128", "fitted_256x64", "fitted_outer",
               # solve's own directory is `<case>_coarse` and is deliberately
               # **not** listed: it lives on a different mesh and is a cost to be
               # charged, not an arm to be scored.
-              "sequenced_bl", "sequenced",
+              "sequenced_bl", "sequenced_vel", "sequenced_nut", "sequenced",
               "cold")
 
 # Relative bands for the force metric. Unlike a residual threshold this does not

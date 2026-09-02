@@ -67,7 +67,8 @@ from neuroforge.solver import surrogate_seed as ss
 CASES = [("naca0012", 4.0), ("naca2412", 2.0), ("naca0015", 6.0),
          ("naca0012", 0.0), ("naca2415", 5.0)]
 THRESHOLDS = (1e-3, 1e-4, 1e-5, 5e-6, 1e-6)
-NEW_ARMS = ("oracle_mesh", "nf_bl", "sequenced", "sequenced_bl")
+NEW_ARMS = ("oracle_mesh", "nf_bl", "sequenced", "sequenced_bl",
+            "sequenced_vel", "sequenced_nut")
 
 
 def coarsen(spec: cg.CGridSpec, factor: int = 2) -> cg.CGridSpec:
@@ -205,11 +206,26 @@ def main(argv: list[str] | None = None) -> int:
                                      nut_freestream=nut_fs)
             return seed
 
+        # The channel split, for a seed with no network in it. Section 5.4 says
+        # velocity and eddy viscosity must be handed over together, and explains
+        # it by Spalart-Allmaras' production term: a `nut` inconsistent with the
+        # strain that generated it is a wrong momentum sink. If that mechanism is
+        # about *consistency* rather than about surrogate error, it must bite a
+        # coarse-mesh solution too -- and a coarse mesh's turbulence field is
+        # under-resolved, so its `nut` is inconsistent with the fine mesh's
+        # strain in exactly the same way.
+        free_map = (np.full_like(mapped[0], u_inf), np.full_like(mapped[0], v_inf),
+                    np.zeros_like(mapped[0]), np.full_like(mapped[0], nut_fs))
+        mapped_vel = (mapped[0], mapped[1], free_map[2], free_map[3])
+        mapped_nut = (free_map[0], free_map[1], free_map[2], mapped[3])
+
         results = {
             "oracle_mesh": run("oracle_mesh", mesh_initial=truth),
             "nf_bl": run("nf_bl", mesh_initial=bl_only(pred)),
             "sequenced": run("sequenced", mesh_initial=mapped),
             "sequenced_bl": run("sequenced_bl", mesh_initial=bl_only(mapped)),
+            "sequenced_vel": run("sequenced_vel", mesh_initial=bl_only(mapped_vel)),
+            "sequenced_nut": run("sequenced_nut", mesh_initial=bl_only(mapped_nut)),
         }
 
         in_bl = distance <= delta

@@ -87,6 +87,29 @@ registered. **Add any new arm to `KNOWN_ARMS` before scoring it**, and check the
    exactly like `nf_bl_nut`, and a seeded region inconsistent with the rest
    destroys pressure drag.
 
+### The continuity explanation for condition 2 is FALSIFIED (2026-08-31)
+
+The obvious reason `sequenced_bl` beats `sequenced` would be that a mapped
+whole-field seed is not divergence-free on the fine mesh while a freestream outer
+field is, so the solver must repair the whole domain. **Measured from the solver
+logs' own first `sum local` continuity error, it is not that:**
+
+| arm | initial continuity error |
+|---|---:|
+| `oracle_mesh` | 8.5e-09 |
+| `cold` | 1.49e-06 |
+| `nf_bl` | 1.45e-06 |
+| `sequenced_bl` | 1.43e-06 |
+| **`sequenced`** | **1.19e-06** — *lower*, and it performs worse |
+
+Every seed but the oracle sits at the same ~1.4e-6, and the whole-field arm is
+if anything the cleanest. Divergence does not discriminate. The remaining
+candidate is §5.4's channel consistency — a coarse mesh's `nut` is inconsistent
+with the fine mesh's strain, exactly as `nf_bl_nut` is — and
+`sequenced_vel` / `sequenced_nut` were added to the sequencing tree to test it.
+⚠ Those two arms **re-score the whole tree** (rule 4); the numbers recorded above
+were taken over the six-arm set and must be re-read over the eight-arm one.
+
 ### Score them when they finish, each in its own tree
 
 ```bash
