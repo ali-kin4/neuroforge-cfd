@@ -8,6 +8,57 @@ Last updated: **2026-08-31** · branch `paper2/openfoam-warm-start` · pushed to
 
 ---
 
+## 0.03 THE SMOOTHED REPAIR CHANGES NOTHING — the last candidate is eliminated (2026-09-01)
+
+`results/depth_repair.json`, arm set declared (`--drop-arm or_proj_smooth`, still
+solving). Five cases.
+
+| arm | seed grad err | seed roughness (x conv) | Cd@1% | Cd_v@1% |
+|---|---:|---:|---:|---:|
+| `nf_bl` mesh-native | 53.7% | 4.2 | **+34.3%** | +14.6% |
+| `nf_proj` | 1254% | 7.2 | -32.1% | +14.5% |
+| `nf_proj_fix` | ~55% | 18.1 | -32.0% | +11.7% |
+| **`nf_proj_smooth`** | **~55%** | **3.9** | **-31.4%** | **+11.5%** |
+
+**Roughness was not the cause.** The smoothed repair matches the working seed on
+*both* diagnostics -- gradient error ~55% against its 53.7%, roughness 3.9x
+against its 4.2x -- and converges within 0.7 points of the unrepaired
+projection. Three arms spanning 1254% to 55% gradient error and 3.9x to 18.1x
+roughness all land at -31 to -32% on total drag, where the mesh-native seed
+reads +34.3%.
+
+### ⚠ What this does to the paper's mechanism
+
+**The first-cell wall gradient does not predict convergence in this
+configuration.** Both candidate mediators are now eliminated by direct
+measurement: magnitude (`*_fix`) and smoothness (`*_smooth`). And `nf_proj` at
+1254% error already matches `nf_bl` on viscous drag (+14.5% vs +14.6%).
+
+What survives, and it is still substantial:
+
+1. A perfect field, rasterised, is a worse start than freestream (-548%). Measured.
+2. The closed form describes and bounds what a representation does to the
+   near-wall state, across a 50x range of stations and 3.5 decades of Reynolds.
+   Measured.
+3. Placement, not budget, decides gradient retention: 14.5x -> 1.00x at half the
+   values. Measured.
+4. The recipe works: +18.4% on viscous drag, 13/13, p = 0.0002. Independent of
+   all the above.
+5. The three conditions, each with a controlled arm.
+6. Grid sequencing: better seed, loses on price.
+
+**What does NOT survive is the causal chain between 2/3 and 4** -- the claim that
+the wall gradient is *why* a seed helps. §6 must be narrowed to what it measures:
+a criterion for what a representation does to the near-wall state, not a
+predictor of the solve. §1, §5.2, §6 and §11 all currently overreach and must be
+rewritten.
+
+**`runs/openfoam/placement2` is the last word** and was at 28/40. If the
+correctly-placed arms go positive on total drag, placement matters for `C_d` by
+some route other than the wall gradient and the paper says that. If they stay
+negative, the projection damages something else entirely -- most likely the
+pressure field, since `C_d,v` is untouched and `C_d,p` is 16-40% of drag.
+
 ## 0.04 REPAIR RE-SCORED ON THE FIXED CODE — and it raises a problem (2026-09-01)
 
 `results/depth_repair.json`, arm set declared: the two `*_smooth` arms dropped
