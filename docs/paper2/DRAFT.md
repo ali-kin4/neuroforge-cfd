@@ -4,7 +4,7 @@
 
 - A perfect flow field, stored on a 128^2 grid, is a worse RANS start than freestream
 - 8,192 well-placed values beat 16,384 badly placed ones on convergence, 5 of 5 cases
-- Wall-gradient damage follows in closed form from y+ alone, to within 13 per cent
+- Wall-gradient damage is bounded above in closed form, from y+ alone, with no fitting
 - Restoring the wall gradient is necessary and measurably not sufficient
 - Grid sequencing makes the better seed; the learned seed's advantage is its price
 
@@ -25,8 +25,9 @@ slower than from uniform freestream. The mechanism is arithmetic. Every mesh cel
 nearer the wall than the representation's first station receives that station's
 velocity, so the first-cell tangential gradient, which viscous drag integrates,
 is overestimated by u+(y1+)/u+(yc+) -- a ratio fixed by the law of the wall with
-no free parameter, predicting 23.7x where 21.0x is measured across six cases
-(1.13 +- 0.02). This yields a criterion evaluable before any solve, and it
+no free parameter, which bounds the measured damage above across a fifty-fold
+range of first-station heights. This yields a criterion evaluable before any
+solve, and it
 indicts placement rather than budget: refining a raster 10.8-fold moves the
 predicted damage from 36.6x to 35.3x, while halving the stored values and moving
 the first station inside the first cell raises the measured saving from +7.7% to
@@ -94,8 +95,9 @@ gradient is not degraded but *replaced*, and overestimated by
 
 where `y₁⁺` and `y_c⁺` are the wall-unit positions of the representation's first
 station and the mesh's first cell centre. This is the law of the wall and nothing
-else; **it contains no fitted parameter**. Against six converged cases it predicts
-23.7× where 21.0× is measured, a ratio of 1.13 ± 0.02 (§6.2).
+else; **it contains no fitted parameter**. Measured over five cases at five
+first-station heights spanning a factor of fifty, it **bounds the damage above**
+in every row, by between 1.3× and 2.6× (§6.2).
 
 Two things follow immediately. `u⁺` grows *logarithmically*, so a 10.8-fold
 increase in stored values moves the predicted damage from 36.6× to 35.3× — which
@@ -114,8 +116,9 @@ Ordered by what we think survives, not by what is largest.
    stored as a raster, is a catastrophically bad initial condition, and refining
    the raster cannot fix it.
 2. **A closed-form criterion for it, with no fitted parameter**, computable from
-   a mesh and an output format before any solve is run, and accurate to 13% over
-   six cases (§6.2). We ship it as a command-line tool so it can be run on a mesh
+   a mesh and an output format before any solve is run, and a measured
+   *upper bound* on the damage across a fifty-fold range of first stations
+   (§6.2). We ship it as a command-line tool so it can be run on a mesh
    and a format that have nothing to do with this study (§6.4).
 3. **The criterion holds across Reynolds number**, checked from Re 10³ to 3·10⁶
    at no compute cost, including its counterintuitive prediction that the same
@@ -801,35 +804,41 @@ with `u⁺ = y⁺` in the viscous sublayer and `u⁺ = ln(y⁺)/κ + B` in the l
 **There is no fitted parameter in this expression.** `u_τ` comes from the
 converged solution's own wall gradient and `ν` from the case.
 
-### 6.2 It predicts the measured damage to 13%
+### 6.2 It is a parameter-free upper bound on the damage
 
-Table 5 tests the closed form against six converged cases, for the wall-fitted
-256×64 representation whose first station lies at `y⁺ = 36`. `u_τ` is taken from
-each case's own converged mean wall gradient; nothing is tuned.
+Table 5 tests the closed form against the measured first-cell gradient of a
+wall-fitted 256×64 projection of the **exact converged field**, over five cases,
+at five first-station heights spanning a factor of fifty. `u_τ` is taken from
+each case's own converged wall gradient; nothing is tuned.
 
-| case | `u_τ` | `y⁺` of first station | predicted `G` | measured `G` |
-|---|---:|---:|---:|---:|
-| naca0012@0° | 0.0477 | 35.8 | 24.0 | 21.4 |
-| naca0012@4° | 0.0485 | 36.4 | 23.7 | 20.5 |
-| naca0015@6° | 0.0490 | 36.7 | 23.5 | 21.2 |
-| naca2412@2° | 0.0479 | 35.9 | 23.9 | 21.3 |
-| naca2415@5° | 0.0486 | 36.5 | 23.6 | 20.5 |
-| naca4412@3° | 0.0481 | 36.1 | 23.8 | 20.9 |
-| **mean** | | | **23.7** | **21.0** |
+| first station | `y⁺` | predicted `G` | measured `G` | predicted/measured |
+|---:|---:|---:|---:|---:|
+| 2.5·10⁻⁴ | 38 | 23.3× | 14.4× | 1.63 ± 0.09 |
+| 1.0·10⁻⁴ | 15 | 16.9× | 7.8× | 2.17 ± 0.09 |
+| 2.5·10⁻⁵ | 3.8 | 6.25× | 2.50× | 2.55 ± 0.33 |
+| 1.0·10⁻⁵ | 1.5 | 2.50× | 1.00× | 2.50 |
+| 5.0·10⁻⁶ | 0.8 | 1.25× | 1.00× | 1.25 |
 
-Predicted/measured is **1.13 ± 0.02**. The closed form over-predicts by a
-systematic 13%, with almost no scatter, and the likely reason is that the round
-trip interpolates rather than purely clips, which softens the step. A
-parameter-free expression landing within 13% of six independent measurements is
-what licenses using it as a design rule rather than as a description.
+**The expression over-predicts in every row, by between 1.3× and 2.6×.** We
+report it as what it is: a *parameter-free upper bound*, correct in direction and
+in ordering, never optimistic. It is not a 13%-accurate estimate, and an earlier
+version of this work claimed that it was — that figure came from a projection
+whose wall-normal coordinate was measured to the nearest surface *vertex* rather
+than the nearest segment, mis-placing every near-wall cell by three orders of
+magnitude. The bug is fixed, the number is corrected, and the correction is
+recorded here rather than quietly absorbed.
 
-**Where it stops being quantitative, stated rather than discovered.** The
-expression assumes the first station lies in the sublayer, buffer or log region.
-For the uniform Cartesian 128² representation the first station sits at
-`y⁺ ≈ 1700` — outside the boundary layer, where the log law is not valid and the
-velocity has saturated at freestream. Capping `u⁺` at `u_∞/u_τ` there gives 29×
-against a measured 18.7×. In that regime the expression is an **upper bound**,
-not an estimate, and we report it as one.
+Why it over-predicts is visible in the last two rows. The implementation clips a
+query below its first station rather than extrapolating, so once `y₁⁺` approaches
+the mesh's own first cell the grid's first row is populated *from* that cell and
+the damage collapses to 1.00× — sooner than an idealised resampling would. A
+bound is the honest reading of an expression that assumes the worst about an
+implementation detail.
+
+**What the bound is for.** Ruling a format out. At `y⁺ = 38` it says "expect
+order 20×", and 14.4× is measured; at `y⁺ < 1` it says "expect nothing", and
+nothing is what happens. Between those, it orders representations correctly
+without a solve, which is the decision it exists to support.
 
 ### 6.3 Two consequences that decide how a surrogate should be built
 
@@ -1198,10 +1207,11 @@ seconds, on one machine, with the seed's own construction charged to it.
   check can be ruled out for free; one that passes still has to satisfy the
   region and channel conditions, and `nf_mesh` is the counterexample the study
   carries — perfect gradient retention, worst arm in the study.
-- **The 13% agreement is a systematic over-prediction, not scatter.** Six cases
-  give 1.13 ± 0.02. We report the bias rather than absorbing it into a fitted
-  coefficient, because a fitted coefficient would make the expression a
-  description of these six cases instead of a prediction.
+- **It is a bound, not an estimate, and it over-predicts by 1.3–2.6×** (§6.2).
+  We do not absorb that into a fitted coefficient: fitting it would turn a
+  prediction into a description of these five cases. An earlier version of this
+  work reported 13% agreement; that figure was measured against a projection
+  with a wall-distance bug and is withdrawn.
 
 ### On the repair, which did not work
 
@@ -1272,8 +1282,8 @@ The evidence is arithmetic before it is empirical. A resampled field hands every
 cell nearer the wall than the representation's first station the value belonging
 to that station, so the first-cell wall gradient — which viscous drag integrates,
 and which is 60–84% of drag here — is overestimated by `u⁺(y₁⁺)/u⁺(y_c⁺)`. That
-expression has no fitted parameter, predicts the measured damage to 13% over six
-cases, explains why refining a raster is flat to within a computable amount, and
+expression has no fitted parameter, bounds the measured damage above over a
+fifty-fold range of first stations, explains why refining a raster is flat, and
 holds across three and a half decades of Reynolds number, including in the
 direction most practitioners would guess wrong: on the same mesh, lower Reynolds
 is **worse**.

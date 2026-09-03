@@ -1,3 +1,14 @@
+> **SUPERSEDED 2026-09-01.** The measurements this file was validated against
+> were produced by a `clustered_seed` that measured wall distance to the
+> nearest surface *vertex*, overestimating the first ring by a median 1147x.
+> The 1.13 +- 0.02 agreement below is an artifact of that bug. With it fixed
+> the closed form is an **upper bound** over-predicting by 1.3-2.6x
+> (`results/closed_form_validation.json`). **The predictions in this file were
+> registered before the data existed and the file is kept unedited below as the
+> record of that, not as a statement of what is true.**
+
+---
+
 # Pre-registered prediction — the placement probe
 
 **Written 2026-08-31 at 11:58, while `scripts/placement_probe.py` was still on

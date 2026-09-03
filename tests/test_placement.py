@@ -94,36 +94,40 @@ def test_saturated_regime_is_flagged_when_the_station_leaves_the_layer():
     assert outside["regime"] == "saturated"
 
 
-@pytest.mark.skipif(not os.path.isfile(os.path.join("results", "seed_gradient.json")),
-                    reason="needs the committed gradient diagnostic")
-def test_predicts_the_measured_overestimate_on_the_repr3_cases():
-    """The claim the paper makes, against six solves that already exist.
+@pytest.mark.skipif(
+    not os.path.isfile(os.path.join("results", "closed_form_validation.json")),
+    reason="needs the committed closed-form validation")
+def test_the_closed_form_is_an_upper_bound_that_tracks_the_measurement():
+    """What the closed form actually does, measured against the *fixed* projection.
 
-    Parameter-free: `u_tau` comes from each case's own converged wall gradient.
-    The agreement is a systematic ~13% over-prediction with very little scatter,
-    and both halves of that sentence are asserted -- a drift in either direction
-    means the closed form no longer describes the measurement.
+    An earlier version of this test pinned agreement at 1.13 +- 0.02. That number
+    was measured against a ``clustered_seed`` that took its wall-normal
+    coordinate from ``surface_coords`` -- the nearest *vertex* -- and so
+    mis-placed every near-wall cell by three orders of magnitude. With that bug
+    fixed, the expression **over-predicts in every row**, by 1.3x to 2.6x across a
+    fifty-fold range of first-station heights.
+
+    That is a weaker claim than the one it replaces and it is the true one. What
+    the expression provides is a *parameter-free upper bound* on the damage,
+    correct in direction and ordering, never optimistic. Both halves are asserted:
+    it must never under-predict, and it must stay within a small factor.
     """
-    with open(os.path.join("results", "seed_gradient.json"), encoding="utf-8") as fh:
+    with open(os.path.join("results", "closed_form_validation.json"), encoding="utf-8") as fh:
         data = json.load(fh)
 
-    nu = 1.0 / data["re"]
-    probe = data["heights"][0]
-    ratios = []
-    for row in data["rows"]:
-        arm = row["arms"].get("fitted_256x64")
-        if not arm:
-            continue
-        u_tau = pl.friction_velocity(row["converged_mean_gradient"], nu)
-        predicted = pl.amplification(first_station=2.5e-4, cell_centre=probe,
-                                     u_tau=u_tau, nu=nu)["factor"]
-        measured = arm["mean_gradient"] / row["converged_mean_gradient"]
-        ratios.append(predicted / measured)
+    rows = data["rows"]
+    assert len(rows) >= 4
+    ratios = np.array([r["ratio"] for r in rows])
 
-    ratios = np.array(ratios)
-    assert len(ratios) >= 5
-    assert ratios.mean() == pytest.approx(1.13, abs=0.05)
-    assert ratios.std() < 0.05
+    # Never optimistic: a bound that under-predicts is not a bound.
+    assert ratios.min() >= 1.0
+    # And not vacuous.
+    assert ratios.max() <= 3.0
+
+    # Monotone in the right direction: a station further out does more damage.
+    by_first = sorted(rows, key=lambda r: r["first"])
+    measured = [r["measured"] for r in by_first]
+    assert measured == sorted(measured), "damage must grow with first-station height"
 
 
 # --------------------------------------------------------------------------- #
