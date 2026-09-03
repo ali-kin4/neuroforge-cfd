@@ -18,16 +18,16 @@
           "repaired_cells": 2422,
           "repaired_fraction": 0.07640378548895899,
           "first_station": 0.00025,
-          "u_tau_median": 0.033059942564409577,
-          "speed_scale_median": 0.5718722962655842
+          "u_tau_median": 0.017770776714141928,
+          "speed_scale_median": 0.4493866341214029
         },
         "or": {
           "mode": "wall_law_repair",
           "repaired_cells": 2422,
           "repaired_fraction": 0.07640378548895899,
           "first_station": 0.00025,
-          "u_tau_median": 0.04061703629971268,
-          "speed_scale_median": 0.6174771905168703
+          "u_tau_median": 0.027728662706242753,
+          "speed_scale_median": 0.5335740017220003
         }
       },
       "cold@1e-03": 74,
@@ -40,31 +40,31 @@
       "cold@1e-04": 198,
       "oracle_mesh@1e-04": 15,
       "nf_bl@1e-04": 188,
-      "nf_proj@1e-04": 193,
-      "nf_proj_fix@1e-04": 193,
-      "or_proj@1e-04": 195,
-      "or_proj_fix@1e-04": 195,
+      "nf_proj@1e-04": 196,
+      "nf_proj_fix@1e-04": 196,
+      "or_proj@1e-04": 197,
+      "or_proj_fix@1e-04": 197,
       "cold@1e-05": 404,
       "oracle_mesh@1e-05": 66,
       "nf_bl@1e-05": 695,
-      "nf_proj@1e-05": 381,
-      "nf_proj_fix@1e-05": 362,
-      "or_proj@1e-05": 389,
-      "or_proj_fix@1e-05": 371,
+      "nf_proj@1e-05": 344,
+      "nf_proj_fix@1e-05": 337,
+      "or_proj@1e-05": 369,
+      "or_proj_fix@1e-05": 359,
       "cold@5e-06": 1139,
       "oracle_mesh@5e-06": 80,
       "nf_bl@5e-06": 1172,
-      "nf_proj@5e-06": 1143,
-      "nf_proj_fix@5e-06": 1179,
-      "or_proj@5e-06": 700,
-      "or_proj_fix@5e-06": 425,
+      "nf_proj@5e-06": 386,
+      "nf_proj_fix@5e-06": 460,
+      "or_proj@5e-06": 413,
+      "or_proj_fix@5e-06": 398,
       "cold@1e-06": 2024,
       "oracle_mesh@1e-06": 129,
       "nf_bl@1e-06": 1573,
-      "nf_proj@1e-06": 1498,
-      "nf_proj_fix@1e-06": 1535,
-      "or_proj@1e-06": 1821,
-      "or_proj_fix@1e-06": 1814
+      "nf_proj@1e-06": 1426,
+      "nf_proj_fix@1e-06": 1454,
+      "or_proj@1e-06": 1830,
+      "or_proj_fix@1e-06": 1828
     }
   ]
 }

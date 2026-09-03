@@ -8,6 +8,48 @@ Last updated: **2026-08-31** · branch `paper2/openfoam-warm-start` · pushed to
 
 ---
 
+## 0.04 REPAIR RE-SCORED ON THE FIXED CODE — and it raises a problem (2026-09-01)
+
+`results/depth_repair.json`, arm set declared: the two `*_smooth` arms dropped
+(still solving). Five cases.
+
+| arm | seed wall-grad err | Cd@1% | Cd_v@1% |
+|---|---:|---:|---:|
+| `nf_bl` mesh-native | 53.7% | **+34.2%** | +14.6% |
+| `nf_proj` | **1254%** | -36.7% | **+14.5%** |
+| `nf_proj_fix` (repaired) | ~55% | -36.1% | +11.7% |
+| `or_proj` | ~1250% | -187.4% | **+86.1%** |
+| `or_proj_fix` (repaired) | ~55% | -186.3% | +56.6% |
+
+**The repair is neutral-to-harmful**, and more cleanly than before: -36.7% ->
+-36.1% on total drag is no change at all, and viscous drag gets *worse* in both
+families. The earlier apparent rescue of `or_proj` (-187% -> -74%) was an
+artifact of the pre-fix projection and is withdrawn.
+
+### ⚠ The problem this exposes, which placement2 must settle
+
+**`nf_proj` carries 1254% wall-gradient error and reads +14.5% on Cd_v --
+indistinguishable from `nf_bl`'s +14.6% at 53.7% error.** And repairing the
+gradient from 1254% to ~55% moves Cd_v the *wrong* way. So on viscous drag,
+wall-gradient fidelity does **not** predict convergence in this tree, which is
+what the paper's mechanism says it should.
+
+Two readings, and `runs/openfoam/placement2` discriminates:
+
+1. **If `*_fine` / `*_half` (gradient error 2.0%) beat `*_coarse` (1254%) on
+   convergence**, the gradient does drive it, and the repair fails for a
+   different reason -- most likely that it reconstructs the profile's *magnitude*
+   while getting its *shape* wrong, since it assumes an equilibrium law the
+   pressure-gradient flow does not follow.
+2. **If they do not**, then wall-gradient fidelity is not what makes a seed good,
+   the mechanism in §6 explains the *representation* damage but not the
+   *convergence* outcome, and §5.2 and §6 must be rewritten to claim only what
+   they can support: a criterion that predicts what a representation does to the
+   near-wall state, not one that predicts the solve.
+
+**Do not write either conclusion before placement2 lands.** It was at 25/40 when
+this was recorded.
+
 ## 0.05 RESULTS ARE IN — 2026-09-01. Two confirmed, one falsified.
 
 All three probes finished. Scored each in its own tree.

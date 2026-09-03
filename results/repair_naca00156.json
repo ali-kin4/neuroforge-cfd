@@ -18,16 +18,16 @@
           "repaired_cells": 2420,
           "repaired_fraction": 0.07634069400630915,
           "first_station": 0.00025,
-          "u_tau_median": 0.033739435315145914,
-          "speed_scale_median": 0.5820283750277531
+          "u_tau_median": 0.016295510002974294,
+          "speed_scale_median": 0.44897201268689324
         },
         "or": {
           "mode": "wall_law_repair",
           "repaired_cells": 2420,
           "repaired_fraction": 0.07634069400630915,
           "first_station": 0.00025,
-          "u_tau_median": 0.040839880699957753,
-          "speed_scale_median": 0.6239244403125555
+          "u_tau_median": 0.025849895390757292,
+          "speed_scale_median": 0.5195699090009807
         }
       },
       "cold@1e-03": 77,
@@ -40,31 +40,31 @@
       "cold@1e-04": 198,
       "oracle_mesh@1e-04": 14,
       "nf_bl@1e-04": 193,
-      "nf_proj@1e-04": 196,
-      "nf_proj_fix@1e-04": 196,
+      "nf_proj@1e-04": 198,
+      "nf_proj_fix@1e-04": 198,
       "or_proj@1e-04": 198,
       "or_proj_fix@1e-04": 198,
       "cold@1e-05": 966,
       "oracle_mesh@1e-05": 63,
       "nf_bl@1e-05": 393,
-      "nf_proj@1e-05": 497,
-      "nf_proj_fix@1e-05": 364,
-      "or_proj@1e-05": 376,
-      "or_proj_fix@1e-05": 340,
+      "nf_proj@1e-05": 360,
+      "nf_proj_fix@1e-05": 360,
+      "or_proj@1e-05": 335,
+      "or_proj_fix@1e-05": 341,
       "cold@5e-06": 1143,
       "oracle_mesh@5e-06": 78,
       "nf_bl@5e-06": 1042,
-      "nf_proj@5e-06": 565,
-      "nf_proj_fix@5e-06": 566,
-      "or_proj@5e-06": 480,
-      "or_proj_fix@5e-06": 457,
+      "nf_proj@5e-06": 548,
+      "nf_proj_fix@5e-06": 553,
+      "or_proj@5e-06": 389,
+      "or_proj_fix@5e-06": 404,
       "cold@1e-06": 1549,
       "oracle_mesh@1e-06": 133,
       "nf_bl@1e-06": 1513,
-      "nf_proj@1e-06": 1412,
-      "nf_proj_fix@1e-06": 1441,
-      "or_proj@1e-06": 970,
-      "or_proj_fix@1e-06": 1005
+      "nf_proj@1e-06": 1407,
+      "nf_proj_fix@1e-06": 1424,
+      "or_proj@1e-06": 969,
+      "or_proj_fix@1e-06": 992
     }
   ]
 }
