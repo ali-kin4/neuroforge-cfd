@@ -339,7 +339,15 @@ def clustered_seed(
     from scipy.spatial import cKDTree
 
     u, v, p, nut = (np.asarray(a, dtype=np.float64) for a in values)
-    s, d, s_max = surface_coords(centres, surface)
+    # Arclength may come from the nearest vertex, but the **wall distance must
+    # not**. `surface_coords` measures to the nearest surface *vertex*, which on
+    # this mesh overestimates the first cell ring's distance by a median 1147x
+    # (3.8e-6 read as ~4e-3) -- the same defect `wall_distance` exists to avoid.
+    # With it, every near-wall cell was mapped as though it sat a millimetre off
+    # the wall, so the grid's first station had nothing to do with where the
+    # representation actually sampled, and moving that station changed nothing.
+    s, _, s_max = surface_coords(centres, surface)
+    d = wall_distance(centres, surface)
 
     s_grid = np.linspace(0.0, s_max, n_s)
     n_grid = np.geomspace(first, n_max, n_n)

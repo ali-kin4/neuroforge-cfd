@@ -201,3 +201,38 @@ def test_hybrid_differs_from_plain_only_near_the_wall(domain, uniform_field, sur
                                  u_inf=U_INF, v_inf=0.0, nut_freestream=NUT_INF)
     assert hu[0] < 0.5 * pu[0]                       # deep in the layer: rebuilt
     np.testing.assert_allclose(hu[3:], pu[3:], rtol=1e-9)   # outside: identical
+
+
+def test_clustered_seed_measures_wall_distance_to_the_segment(surface):
+    """The bug that made the placement experiment measure nothing.
+
+    ``clustered_seed`` used to take its wall-normal coordinate from
+    ``surface_coords``, which measures to the nearest surface *vertex*. On a
+    body-fitted mesh whose first cell sits microns off a wall whose polyline
+    vertices are ~0.01 apart, that overestimates the first ring's distance by
+    three orders of magnitude -- so the grid's ``first`` station had no relation
+    to where the representation really sampled, and changing it did nothing.
+
+    A field that is a function of wall distance alone must therefore survive a
+    round trip whose grid resolves that distance.
+    """
+    import numpy as np
+    from neuroforge.solver import warmstart as ws
+
+    surf = np.asarray(surface)[:, :2]
+    # Cells on a fine wall-normal stack over one surface segment.
+    mid = 0.5 * (surf[0] + surf[1])
+    tangent = surf[1] - surf[0]
+    tangent = tangent / (np.linalg.norm(tangent) + 1e-30)
+    normal = np.array([-tangent[1], tangent[0]])
+    heights = np.geomspace(4e-6, 0.05, 40)
+    centres = mid[None, :] + heights[:, None] * normal[None, :]
+
+    d = ws.wall_distance(centres, surf)
+    values = (d.copy(), np.zeros_like(d), np.zeros_like(d), np.zeros_like(d))
+    out, _ = ws.clustered_seed(values, centres, surf, n_s=64, n_n=64, first=4e-6,
+                               u_inf=1.0, v_inf=0.0, nut_freestream=1e-5)
+
+    # The nearest cell to the wall must come back with roughly its own distance,
+    # not with a value belonging to a station a thousand times further out.
+    assert out[0][0] == pytest.approx(d[0], rel=0.5)

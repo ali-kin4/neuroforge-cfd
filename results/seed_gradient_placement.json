@@ -1,0 +1,420 @@
+{
+  "root": "runs/openfoam/placement",
+  "re": 3000000.0,
+  "heights": [
+    4e-06,
+    8.625049189613924e-06,
+    1.859786838081495e-05,
+    4.010188240162351e-05,
+    8.647017707752893e-05,
+    0.0001864523826820783,
+    0.0004020402430384107,
+    0.0008669042181026563,
+    0.0018692728809548017,
+    0.0040306426367616235,
+    0.008691122751956033,
+    0.018740340312148367
+  ],
+  "rows": [
+    {
+      "case": "naca0012_aoa0",
+      "converged_roughness": 0.08827203212445442,
+      "converged_mean_gradient": 6817.745400843203,
+      "arms": {
+        "cold": {
+          "grad_err": 31.269390342967718,
+          "roughness": 0.027131818763671878,
+          "profile_rough": 0.0,
+          "field_err_bl": 0.8948465762943942,
+          "mean_gradient": 237874.51376874416
+        },
+        "oracle_mesh": {
+          "grad_err": 8.919925736813349e-10,
+          "roughness": 0.08827203223280275,
+          "profile_rough": 0.10426507845541057,
+          "field_err_bl": 1.7683245034507977e-09,
+          "mean_gradient": 6817.745400615415
+        },
+        "nf_bl": {
+          "grad_err": 0.5452154548389555,
+          "roughness": 0.1650130987347908,
+          "profile_rough": 0.1252555610759205,
+          "field_err_bl": 0.12836764117161722,
+          "mean_gradient": 4680.135392963887
+        },
+        "nf_proj_coarse": {
+          "grad_err": 17.316935727370776,
+          "roughness": 0.45871604386585585,
+          "profile_rough": 0.15976728252895836,
+          "field_err_bl": 0.4564513390719633,
+          "mean_gradient": 123127.45132864245
+        },
+        "nf_proj_fine": {
+          "grad_err": 18.723358226484773,
+          "roughness": 0.37544797272470426,
+          "profile_rough": 0.1401166402657621,
+          "field_err_bl": 0.48473536409777734,
+          "mean_gradient": 134090.82205050046
+        },
+        "nf_proj_half": {
+          "grad_err": 19.19161744012796,
+          "roughness": 0.191254632569461,
+          "profile_rough": 0.11136009049762195,
+          "field_err_bl": 0.4873647531534097,
+          "mean_gradient": 139970.58459612736
+        },
+        "or_proj_coarse": {
+          "grad_err": 20.054945988197176,
+          "roughness": 0.36841075179402116,
+          "profile_rough": 0.12678502468659272,
+          "field_err_bl": 0.5099629211237172,
+          "mean_gradient": 145876.01658595874
+        },
+        "or_proj_fine": {
+          "grad_err": 21.399299977946136,
+          "roughness": 0.3218566544491314,
+          "profile_rough": 0.11475385331412269,
+          "field_err_bl": 0.5451410961597893,
+          "mean_gradient": 155549.29770400058
+        },
+        "or_proj_half": {
+          "grad_err": 21.978165211635847,
+          "roughness": 0.14512025890387356,
+          "profile_rough": 0.08708247432606601,
+          "field_err_bl": 0.5527552473328988,
+          "mean_gradient": 162360.64265582067
+        }
+      }
+    },
+    {
+      "case": "naca0012_aoa4",
+      "converged_roughness": 0.05973661699527744,
+      "converged_mean_gradient": 7047.42108241856,
+      "arms": {
+        "cold": {
+          "grad_err": 28.227238170704286,
+          "roughness": 0.01964897281498847,
+          "profile_rough": 0.0,
+          "field_err_bl": 0.9035469716838793,
+          "mean_gradient": 237382.69710785884
+        },
+        "oracle_mesh": {
+          "grad_err": 7.845218297941679e-10,
+          "roughness": 0.05973661703554845,
+          "profile_rough": 0.10833142668370592,
+          "field_err_bl": 1.631033506242845e-09,
+          "mean_gradient": 7047.421082396643
+        },
+        "nf_bl": {
+          "grad_err": 0.5081186189908198,
+          "roughness": 0.29019649180866963,
+          "profile_rough": 0.13507407047718897,
+          "field_err_bl": 0.14328352140671421,
+          "mean_gradient": 5502.1846065355285
+        },
+        "nf_proj_coarse": {
+          "grad_err": 15.575467713203338,
+          "roughness": 0.4758367348224475,
+          "profile_rough": 0.1758390171253096,
+          "field_err_bl": 0.4453122471384719,
+          "mean_gradient": 120742.03533909762
+        },
+        "nf_proj_fine": {
+          "grad_err": 16.871377072380394,
+          "roughness": 0.37891259100041064,
+          "profile_rough": 0.15128059142594225,
+          "field_err_bl": 0.4747936975352396,
+          "mean_gradient": 131476.61503167887
+        },
+        "nf_proj_half": {
+          "grad_err": 17.23360283920546,
+          "roughness": 0.1893531661328062,
+          "profile_rough": 0.12612813064300243,
+          "field_err_bl": 0.4753606305022486,
+          "mean_gradient": 136195.88422975875
+        },
+        "or_proj_coarse": {
+          "grad_err": 18.27621922239095,
+          "roughness": 0.3840465065107015,
+          "profile_rough": 0.1412397559528484,
+          "field_err_bl": 0.5030648109211219,
+          "mean_gradient": 144537.33062672903
+        },
+        "or_proj_fine": {
+          "grad_err": 19.445348107524964,
+          "roughness": 0.3265579331825351,
+          "profile_rough": 0.13109432542341437,
+          "field_err_bl": 0.5375738213703194,
+          "mean_gradient": 153563.02719178982
+        },
+        "or_proj_half": {
+          "grad_err": 19.969411668669256,
+          "roughness": 0.14968911336766105,
+          "profile_rough": 0.10186456867958366,
+          "field_err_bl": 0.5437931328963328,
+          "mean_gradient": 160431.91296792415
+        }
+      }
+    },
+    {
+      "case": "naca0015_aoa6",
+      "converged_roughness": 0.03660111168552043,
+      "converged_mean_gradient": 7190.649581665308,
+      "arms": {
+        "cold": {
+          "grad_err": 25.639433565358253,
+          "roughness": 0.01723886873180338,
+          "profile_rough": 0.0,
+          "field_err_bl": 0.9084673866469227,
+          "mean_gradient": 234015.95763345537
+        },
+        "oracle_mesh": {
+          "grad_err": 7.565524969520427e-10,
+          "roughness": 0.03660111165131742,
+          "profile_rough": 0.11679125717798897,
+          "field_err_bl": 1.5419255719716528e-09,
+          "mean_gradient": 7190.6495811331215
+        },
+        "nf_bl": {
+          "grad_err": 0.5119838888192555,
+          "roughness": 0.30588823155974076,
+          "profile_rough": 0.16095723346805335,
+          "field_err_bl": 0.17498254625335408,
+          "mean_gradient": 5942.3062629309625
+        },
+        "nf_proj_coarse": {
+          "grad_err": 14.842834518230484,
+          "roughness": 0.3001199585968909,
+          "profile_rough": 0.1848150110225965,
+          "field_err_bl": 0.4388809487712656,
+          "mean_gradient": 121441.08200359787
+        },
+        "nf_proj_fine": {
+          "grad_err": 14.026054012062454,
+          "roughness": 0.4624405841266417,
+          "profile_rough": 0.1863123334989647,
+          "field_err_bl": 0.44638412672352495,
+          "mean_gradient": 116388.58992734458
+        },
+        "nf_proj_half": {
+          "grad_err": 14.879130124012082,
+          "roughness": 0.2209124749650319,
+          "profile_rough": 0.16843040898576644,
+          "field_err_bl": 0.46099030222995363,
+          "mean_gradient": 124530.59963535117
+        },
+        "or_proj_coarse": {
+          "grad_err": 18.02842234378903,
+          "roughness": 0.24353083652450552,
+          "profile_rough": 0.140168621308833,
+          "field_err_bl": 0.5092395251258758,
+          "mean_gradient": 152366.68906177045
+        },
+        "or_proj_fine": {
+          "grad_err": 17.163728437937902,
+          "roughness": 0.3763844007719718,
+          "profile_rough": 0.15017711119130941,
+          "field_err_bl": 0.5177039324856147,
+          "mean_gradient": 144769.42333175938
+        },
+        "or_proj_half": {
+          "grad_err": 18.0386341386901,
+          "roughness": 0.19480460481398026,
+          "profile_rough": 0.12820116959749656,
+          "field_err_bl": 0.5354501510883143,
+          "mean_gradient": 154338.1221964879
+        }
+      }
+    },
+    {
+      "case": "naca2412_aoa2",
+      "converged_roughness": 0.0680755449441652,
+      "converged_mean_gradient": 6881.570269910074,
+      "arms": {
+        "cold": {
+          "grad_err": 30.26589438679245,
+          "roughness": 0.020037306332248324,
+          "profile_rough": 0.0,
+          "field_err_bl": 0.8999002269799953,
+          "mean_gradient": 237490.5966423956
+        },
+        "oracle_mesh": {
+          "grad_err": 8.851833691447076e-10,
+          "roughness": 0.06807554490092604,
+          "profile_rough": 0.10830991725971849,
+          "field_err_bl": 1.6308833249994922e-09,
+          "mean_gradient": 6881.570269948653
+        },
+        "nf_bl": {
+          "grad_err": 0.523454037417993,
+          "roughness": 0.1777393499826318,
+          "profile_rough": 0.12626596481959038,
+          "field_err_bl": 0.1383126542711407,
+          "mean_gradient": 5716.570991277692
+        },
+        "nf_proj_coarse": {
+          "grad_err": 16.725899827620932,
+          "roughness": 0.48624558723024025,
+          "profile_rough": 0.172228092658321,
+          "field_err_bl": 0.4488749913209025,
+          "mean_gradient": 122479.37232814424
+        },
+        "nf_proj_fine": {
+          "grad_err": 17.86333988832008,
+          "roughness": 0.3695728011607,
+          "profile_rough": 0.14339146586740695,
+          "field_err_bl": 0.47420675900219716,
+          "mean_gradient": 131828.33526695275
+        },
+        "nf_proj_half": {
+          "grad_err": 18.17459098447732,
+          "roughness": 0.21174664866716486,
+          "profile_rough": 0.13753929169806892,
+          "field_err_bl": 0.4797686241228463,
+          "mean_gradient": 135930.5001140743
+        },
+        "or_proj_coarse": {
+          "grad_err": 19.760988716526924,
+          "roughness": 0.4005116887859877,
+          "profile_rough": 0.14139495200547889,
+          "field_err_bl": 0.5114599537671547,
+          "mean_gradient": 146777.2556033894
+        },
+        "or_proj_fine": {
+          "grad_err": 20.769640389933468,
+          "roughness": 0.3021390691485134,
+          "profile_rough": 0.11617888672447843,
+          "field_err_bl": 0.5409221676461407,
+          "mean_gradient": 155038.70734617818
+        }
+      }
+    },
+    {
+      "case": "naca2415_aoa5",
+      "converged_roughness": 0.046107805220467216,
+      "converged_mean_gradient": 7087.369751833759,
+      "arms": {
+        "cold": {
+          "grad_err": 26.786493746769924,
+          "roughness": 0.02041540777145636,
+          "profile_rough": 0.0,
+          "field_err_bl": 0.9097639807475956,
+          "mean_gradient": 233976.36716443984
+        },
+        "oracle_mesh": {
+          "grad_err": 7.840999457139592e-10,
+          "roughness": 0.04610780521441468,
+          "profile_rough": 0.12216301464544539,
+          "field_err_bl": 1.4102789496850591e-09,
+          "mean_gradient": 7087.369751309731
+        },
+        "nf_bl": {
+          "grad_err": 0.5942652171521913,
+          "roughness": 0.3160582977477916,
+          "profile_rough": 0.16112039581349868,
+          "field_err_bl": 0.17580059153295768,
+          "mean_gradient": 6571.995134519671
+        },
+        "nf_proj_coarse": {
+          "grad_err": 14.69863453384323,
+          "roughness": 0.4382997672011888,
+          "profile_rough": 0.19363497334660393,
+          "field_err_bl": 0.4443037407959073,
+          "mean_gradient": 115318.14766302262
+        },
+        "nf_proj_fine": {
+          "grad_err": 14.70646425859008,
+          "roughness": 0.4313066200965014,
+          "profile_rough": 0.20034734958389336,
+          "field_err_bl": 0.44791905759192807,
+          "mean_gradient": 116950.3390737815
+        },
+        "nf_proj_half": {
+          "grad_err": 15.565885538314587,
+          "roughness": 0.23528761270858883,
+          "profile_rough": 0.1709936917810877,
+          "field_err_bl": 0.46454573190459514,
+          "mean_gradient": 124932.56310804893
+        },
+        "or_proj_coarse": {
+          "grad_err": 17.953579491113725,
+          "roughness": 0.3604717977353549,
+          "profile_rough": 0.16436344420769108,
+          "field_err_bl": 0.5071810527703036,
+          "mean_gradient": 145143.29996255456
+        },
+        "or_proj_fine": {
+          "grad_err": 17.952511848873407,
+          "roughness": 0.35823330994167246,
+          "profile_rough": 0.1685681846283189,
+          "field_err_bl": 0.5183336725039169,
+          "mean_gradient": 144421.4610254564
+        },
+        "or_proj_half": {
+          "grad_err": 18.80026261688548,
+          "roughness": 0.2046842918227066,
+          "profile_rough": 0.1403803505344009,
+          "field_err_bl": 0.5371326311969298,
+          "mean_gradient": 153580.19347178438
+        }
+      }
+    }
+  ],
+  "summary": {
+    "cold": {
+      "grad_err": 28.43769004251853,
+      "roughness": 0.02089447488283368,
+      "profile_rough": 0.0,
+      "field_err_bl": 0.9033050284705574
+    },
+    "oracle_mesh": {
+      "grad_err": 8.204700430572425e-10,
+      "roughness": 0.05975862220700188,
+      "profile_rough": 0.11197213884445387,
+      "field_err_bl": 1.5964891712699695e-09
+    },
+    "nf_bl": {
+      "grad_err": 0.5366074434438429,
+      "roughness": 0.25097909396672496,
+      "profile_rough": 0.14173464513085038,
+      "field_err_bl": 0.1521493909271568
+    },
+    "nf_proj_coarse": {
+      "grad_err": 15.831954464053752,
+      "roughness": 0.43184361834332463,
+      "profile_rough": 0.1772568753363579,
+      "field_err_bl": 0.4467646534197021
+    },
+    "nf_proj_fine": {
+      "grad_err": 16.438118691567556,
+      "roughness": 0.4035361138217916,
+      "profile_rough": 0.16428967612839387,
+      "field_err_bl": 0.4656078009901334
+    },
+    "nf_proj_half": {
+      "grad_err": 17.00896538522748,
+      "roughness": 0.20971090700861056,
+      "profile_rough": 0.1428903227211095,
+      "field_err_bl": 0.4736060083826107
+    },
+    "or_proj_coarse": {
+      "grad_err": 18.814831152403563,
+      "roughness": 0.35139431627011414,
+      "profile_rough": 0.14279035963228884,
+      "field_err_bl": 0.5081816527416347
+    },
+    "or_proj_fine": {
+      "grad_err": 19.346105752443172,
+      "roughness": 0.33703427349876486,
+      "profile_rough": 0.13615447225632876,
+      "field_err_bl": 0.5319349380331563
+    },
+    "or_proj_half": {
+      "grad_err": 19.69661840897017,
+      "roughness": 0.17357456722705536,
+      "profile_rough": 0.11438214078438678,
+      "field_err_bl": 0.542282790628619
+    }
+  },
+  "converged_roughness": 0.05975862219397694
+}
