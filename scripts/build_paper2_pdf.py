@@ -85,6 +85,20 @@ def protect_code(text: str, store: list[str]) -> str:
     return re.sub(r"`([^`]+)`", sub, text)
 
 
+# Transliteration used inside code spans only. Keys are the non-ASCII this
+# paper actually uses; anything unlisted would still reach pdflatex and stop it,
+# which is the loud failure we want rather than a silently mangled symbol.
+CODE_ASCII = str.maketrans({
+    "⁺": "+", "⁻": "-", "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4",
+    "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9",
+    "₀": "0", "₁": "1", "₂": "2", "₃": "3", "₄": "4", "₅": "5", "₆": "6",
+    "₇": "7", "₈": "8", "₉": "9", "₋": "-",
+    "τ": "tau", "ν": "nu", "κ": "kappa", "ω": "omega", "δ": "delta",
+    "α": "alpha", "×": "x", "·": ".", "−": "-", "≈": "~", "≤": "<=",
+    "≥": ">=", "±": "+/-", "—": "--", "–": "-", "°": "deg",
+})
+
+
 def restore_code(text: str, store: list[str]) -> str:
     def sub(m):
         body = store[int(m.group(1))]
@@ -93,6 +107,12 @@ def restore_code(text: str, store: list[str]) -> str:
         # build.
         if body.startswith(("http://", "https://", "www.")):
             return r"\url{" + body + "}"
+        # Inside monospace the maths-mode substitutions of `unicode_to_tex` are
+        # both ugly and wrong -- `\texttt{$y^{+}$}` is not what a reader wants
+        # from `y+` -- and a stray superscript byte stops pdflatex outright. So
+        # code spans get an ASCII transliteration instead, which is what a
+        # reader of monospace expects anyway.
+        body = body.translate(CODE_ASCII)
         for a, b in (("\\", r"\textbackslash{}"), ("{", r"\{"), ("}", r"\}"),
                      ("_", r"\_"), ("^", r"\^{}"), ("&", r"\&"), ("%", r"\%"),
                      ("$", r"\$"), ("#", r"\#"), ("~", r"\textasciitilde{}")):
@@ -104,20 +124,33 @@ def restore_code(text: str, store: list[str]) -> str:
 # The exact non-ASCII inventory of the draft, checked with a character census
 # rather than guessed. Superscript runs are handled before the singles so that
 # "10^-5" written as digits plus U+207B collapses into one math group.
-SUPERS = {"\u00b2": "2", "\u00b3": "3", "\u2075": "5", "\u2076": "6",
-          "\u207b": "-"}
+SUPERS = {"\u00b9": "1", "\u00b2": "2", "\u00b3": "3", "\u2070": "0",
+          "\u2074": "4", "\u2075": "5", "\u2076": "6", "\u2077": "7",
+          "\u2078": "8", "\u2079": "9", "\u207b": "-", "\u207a": "+"}
+SUBS = {"\u2080": "0", "\u2081": "1", "\u2082": "2", "\u2083": "3",
+        "\u2084": "4", "\u2085": "5", "\u2086": "6", "\u2087": "7",
+        "\u2088": "8", "\u2089": "9", "\u208b": "-"}
 SINGLES = [
     ("\u2014", "---"), ("\u2013", "--"), ("\u00a7", r"\S"),
     ("\u2212", "$-$"), ("\u00b0", r"\textdegree{}"), ("\u00d7", r"$\times$"),
     ("\u2192", r"$\rightarrow$"), ("\u2264", r"$\le$"), ("\u2265", r"$\ge$"),
-    ("\u2248", r"$\approx$"), ("\u00b7", r"$\cdot$"),
+    ("\u2248", r"$\approx$"), ("\u00b7", r"$\cdot$"), ("\u00b1", r"$\pm$"),
+    ("\u26a0", r"$\rightarrow$"),
+    # Greek from the wall-law expressions. `elsarticle` is not a maths package,
+    # so these must become maths mode or pdflatex stops on the byte.
+    ("\u03c4", r"$\tau$"), ("\u03bd", r"$\nu$"), ("\u03ba", r"$\kappa$"),
+    ("\u03c9", r"$\omega$"), ("\u03b4", r"$\delta$"), ("\u03b1", r"$\alpha$"),
 ]
 
 
 def unicode_to_tex(text: str) -> str:
     def sup(m):
         return "$^{" + "".join(SUPERS[c] for c in m.group(0)) + "}$"
+
+    def sub(m):
+        return "$_{" + "".join(SUBS[c] for c in m.group(0)) + "}$"
     text = re.sub("[" + "".join(SUPERS) + "]+", sup, text)
+    text = re.sub("[" + "".join(SUBS) + "]+", sub, text)
     for a, b in SINGLES:
         text = text.replace(a, b)
     return text
@@ -427,7 +460,11 @@ def main(argv=None) -> int:
         if proc.returncode != 0:
             tail = [l for l in proc.stdout.split("\n") if l.startswith("!")][:12]
             print(f"pdflatex failed on run {run}:")
-            print("\n".join(tail) or proc.stdout[-2500:])
+            # The log echoes the offending source bytes, so it is routinely
+            # non-ASCII -- and printing it under a redirected cp1252 stdout
+            # raises, hiding the real error behind a UnicodeEncodeError.
+            message = "\n".join(tail) or proc.stdout[-2500:]
+            print(message.encode("ascii", "backslashreplace").decode("ascii"))
             print(f"\nthe .tex is at {os.path.relpath(tex_path, HERE)}")
             return 1
 
