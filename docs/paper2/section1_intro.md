@@ -81,10 +81,15 @@ Ordered by what we think survives, not by what is largest.
    at no compute cost, including its counterintuitive prediction that the same
    representation on the same mesh does *more* damage at lower Reynolds — and a
    measured statement of the regime where it stops being quantitative (§6.6).
-4. **A repair.** Because the damage is known in closed form it can be removed:
-   inverting a wall function at the representation's own first station rebuilds
-   the near-wall profile using only what the representation already carries
-   (§5.5). `[PENDING: solver result]`
+4. **A demonstration that the criterion is necessary and not sufficient**, by
+   building the repair it implies and watching it fail (§5.5). Because the
+   damage is known in closed form it can be removed: inverting a wall function
+   at the representation's own first station restores the first-cell gradient
+   from 1583% error to 42.5% — better than the mesh-native prediction's 53.7% —
+   using only what the representation already carries. **The convergence saving
+   does not follow.** A seed with a better wall gradient than the recommended one
+   converges 79 points worse. We predicted otherwise, in writing, before running
+   it.
 5. **A recipe with three necessary conditions**, each isolated by a controlled
    arm changing one variable on one prediction, none sufficient alone
    (§5.2–§5.4), and **generality at n = 13** — +18.4% on viscous drag, 13/13
@@ -92,7 +97,11 @@ Ordered by what we think survives, not by what is largest.
    (§5.1).
 6. **A comparison with the classical warm start** the machine-learning
    initialisation literature does not make: grid sequencing, with its coarse
-   solve charged (§5.7). `[PENDING: final arm set]`
+   solve charged (§5.7). It makes a **better seed than ours** — +75.9% on viscous
+   drag against +14.6%, exactly as the criterion predicts for a coarsened
+   body-fitted mesh — and still loses, because the coarse solve costs 1486
+   fine-equivalent iterations against a cold run of 696. **The learned seed's
+   advantage is price, not quality.**
 7. **An acceptance certificate** bounding the worst case at (1 + K/N) × cold with
    a rule that never sees a cold run (§8), and **three falsified predictions** a
    reader would otherwise make (§7).

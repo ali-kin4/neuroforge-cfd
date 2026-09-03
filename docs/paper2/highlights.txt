@@ -1,5 +1,5 @@
 - A perfect flow field, stored on a 128^2 grid, is a worse RANS start than freestream
-- No 16,384-value grid resolves the first cell, so projection deletes the wall gradient
-- Wall-gradient retention rules a surrogate representation out before any solve is run
-- Mesh-native boundary-layer seeding: +18.4% viscous-drag convergence, 13/13 cases
-- Velocity and eddy viscosity must be handed over together or total drag is destroyed
+- 8,192 well-placed values beat 16,384 badly placed ones on convergence, 5 of 5 cases
+- Wall-gradient damage follows in closed form from y+ alone, to within 13 per cent
+- Restoring the wall gradient is necessary and measurably not sufficient
+- Grid sequencing makes the better seed; the learned seed's advantage is its price
