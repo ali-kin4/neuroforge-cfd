@@ -644,6 +644,13 @@ station to recover `u_τ`, using **only what the representation already carries*
 and re-evaluate the profile at each cell's own wall distance (§6, and
 `solver/placement.py`).
 
+> ⚠ **Re-measurement in progress.** The projections these arms repair were built
+> by the pre-fix `clustered_seed` described in §5.2, so the specific numbers in
+> this section are being re-measured on the corrected code. The *qualitative*
+> result — the repair restores the wall gradient to better than mesh-native and
+> the convergence saving does not follow — is what this section claims, and it is
+> the part that must survive re-measurement to be reported at all.
+
 **It works on the gradient.** Measured on the seeds exactly as the solver
 received them:
 
