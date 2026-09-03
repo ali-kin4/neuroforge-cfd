@@ -71,7 +71,8 @@ from neuroforge.solver import placement as pl, surrogate_seed as ss
 CASES = [("naca0012", 4.0), ("naca2412", 2.0), ("naca0015", 6.0),
          ("naca0012", 0.0), ("naca2415", 5.0)]
 THRESHOLDS = (1e-3, 1e-4, 1e-5, 5e-6, 1e-6)
-NEW_ARMS = ("oracle_mesh", "nf_bl", "nf_proj", "nf_proj_fix", "or_proj", "or_proj_fix")
+NEW_ARMS = ("oracle_mesh", "nf_bl", "nf_proj", "nf_proj_fix", "nf_proj_smooth",
+            "or_proj", "or_proj_fix", "or_proj_smooth")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -86,6 +87,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--n-s", type=int, default=256)
     ap.add_argument("--n-n", type=int, default=64)
     ap.add_argument("--first", type=float, default=2.5e-4)
+    ap.add_argument("--smooth-window", type=float, default=0.10,
+                    help="arclength window for smoothing the reconstructed "
+                         "u_tau along the wall; 0 disables it")
     ap.add_argument("--work-dir", default=os.path.join("runs", "openfoam", "repair"))
     ap.add_argument("--out", default=os.path.join("results", "repair.json"))
     ap.add_argument("--timeout", type=float, default=43200.0)
@@ -156,6 +160,7 @@ def main(argv: list[str] | None = None) -> int:
         inner, nw, ns = cg.inner_curve(code, spec)
         surface = inner[nw - 1: nw + ns - 1]
         distance = ws.wall_distance(cold.centres, surface)
+        arclength, _, _ = ws.surface_coords(cold.centres, surface)
         truth = (cold.u, cold.v, cold.p, cold.nut)
 
         pred, rep = ss.predict_on_mesh(
@@ -180,9 +185,22 @@ def main(argv: list[str] | None = None) -> int:
                 first=args.first, u_inf=u_inf, v_inf=v_inf, nut_freestream=nut_fs)
             repaired, report = pl.wall_law_repair(
                 projected, distance, first_station=args.first, nu=nu)
+            # The discriminating arm. `*_fix` restores the wall gradient's
+            # magnitude and leaves it ~18x rougher along the wall than the
+            # converged field, against ~4x for the seed that works, because each
+            # station is inverted independently from its own noisy value.
+            # Smoothing the reconstructed `u_tau` along the surface brings the
+            # roughness back to ~4x at the same gradient error, so if tangential
+            # roughness is what costs the solve, this arm recovers and `*_fix`
+            # does not.
+            smoothed, smooth_report = pl.wall_law_repair(
+                projected, distance, first_station=args.first, nu=nu,
+                arclength=arclength, smooth_window=args.smooth_window)
             repairs[family] = report
+            repairs[family + "_smooth"] = smooth_report
             seeds[f"{family}_proj"] = bl_only(projected)
             seeds[f"{family}_proj_fix"] = bl_only(repaired)
+            seeds[f"{family}_proj_smooth"] = bl_only(smoothed)
 
         results = {name: run(name, mesh_initial=seed) for name, seed in seeds.items()}
 

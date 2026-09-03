@@ -68,6 +68,7 @@ KNOWN_ARMS = ("oracle_mesh", "cartesian_128", "fitted_256x64", "fitted_outer",
               # Repair (`scripts/repair_probe.py`): the projection, and the same
               # projection with the wall-law reconstruction applied below the
               # representation's first station.
+              "nf_proj_smooth", "or_proj_smooth",
               "nf_proj_fix", "or_proj_fix", "nf_proj", "or_proj",
               # Grid sequencing (`scripts/sequencing_probe.py`). NB the coarse
               # solve's own directory is `<case>_coarse` and is deliberately

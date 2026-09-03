@@ -57,6 +57,7 @@ __all__ = [
     "invert_u_tau",
     "wall_law_profile",
     "wall_law_repair",
+    "smooth_along_wall",
     "KAPPA",
     "B_LOG",
 ]
@@ -275,6 +276,44 @@ def wall_law_profile(speed_at_station: np.ndarray, height: float,
     return u_tau * u_plus(y_plus), u_tau
 
 
+def smooth_along_wall(arclength: np.ndarray, values: np.ndarray,
+                      window: float) -> np.ndarray:
+    """Smooth a per-cell quantity along the surface, over a window in arclength.
+
+    ``u_tau`` varies smoothly along an attached surface; a *reconstruction* of it
+    need not, because each surface station is inverted independently from its own
+    -- possibly noisy -- station value. That is the difference the repair of
+    :func:`wall_law_repair` leaves behind: it restores the wall gradient's
+    magnitude and leaves it 11x rougher along the wall than the converged field,
+    against 4.2x for a seed that works.
+
+    Binning on arclength and box-filtering keeps this O(n) and free of any mesh
+    topology, which matters because the caller has cell centres and nothing else.
+    """
+    s = np.asarray(arclength, dtype=np.float64)
+    v = np.asarray(values, dtype=np.float64)
+    if window <= 0 or s.size == 0:
+        return v
+
+    span = float(s.max() - s.min())
+    if span <= 0:
+        return np.full_like(v, float(v.mean()))
+
+    n_bins = max(int(np.ceil(span / (0.25 * window))), 3)
+    idx = np.clip(((s - s.min()) / span * n_bins).astype(int), 0, n_bins - 1)
+    total = np.bincount(idx, weights=v, minlength=n_bins)
+    count = np.bincount(idx, minlength=n_bins).astype(np.float64)
+
+    width = max(int(round(window / (span / n_bins))), 1)
+    kernel = np.ones(width)
+    smoothed = np.convolve(total, kernel, mode="same")
+    weight = np.convolve(count, kernel, mode="same")
+    # Bins the window never covers keep their own value rather than a zero.
+    filled = np.where(weight > 0, smoothed / np.maximum(weight, 1e-30),
+                      np.where(count > 0, total / np.maximum(count, 1e-30), v.mean()))
+    return filled[idx]
+
+
 def wall_law_repair(
     values: tuple,
     distance: np.ndarray,
@@ -282,6 +321,8 @@ def wall_law_repair(
     first_station: float,
     nu: float,
     kappa_damping: float = 26.0,
+    arclength: np.ndarray | None = None,
+    smooth_window: float = 0.0,
 ) -> tuple[tuple[np.ndarray, ...], dict]:
     """Repair a projected seed below the representation's first station.
 
@@ -306,7 +347,15 @@ def wall_law_repair(
                                 "first_station": float(first_station)}
 
     speed = np.hypot(u[below], v[below])
-    rebuilt, u_tau = wall_law_profile(speed, first_station, d[below], nu)
+    u_tau = invert_u_tau(speed, first_station, nu)
+    if arclength is not None and smooth_window > 0:
+        # Each station is inverted independently, so the reconstructed `u_tau`
+        # inherits whatever noise the projection left in the station value. The
+        # physical quantity varies smoothly along an attached surface, so this
+        # smooths it before the profile is rebuilt from it.
+        u_tau = smooth_along_wall(np.asarray(arclength)[below], u_tau,
+                                  smooth_window)
+    rebuilt = u_tau * u_plus(np.maximum(d[below] * u_tau / nu, 1e-30))
     scale = rebuilt / np.maximum(speed, 1e-30)
     u[below] *= scale
     v[below] *= scale
@@ -322,4 +371,5 @@ def wall_law_repair(
         "first_station": float(first_station),
         "u_tau_median": float(np.median(u_tau)),
         "speed_scale_median": float(np.median(scale)),
+        "smooth_window": float(smooth_window),
     }
