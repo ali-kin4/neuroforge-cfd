@@ -1,12 +1,12 @@
-# A perfect flow field can be a bad initial condition: representation, not accuracy, decides neural warm starts for RANS
+# A converged flow field stored on a grid is worth nothing as a RANS warm start
 
 ## Highlights
 
-- A perfect flow field, stored on a 128^2 grid, is a worse RANS start than freestream
-- The same converged field: +92.0% read natively, -181.6% stored on a grid first
-- Placement not budget: first station inside the first cell, 1219% error to 1.8%
-- Yet the near-perfect near-wall seed converges worst of all, winning 0 of 5 cases
-- Projections preserve viscous drag and destroy total drag: the damage is pressure
+- The same converged field: +93.6% read at the solver's points, +3.4% off a raster
+- A perfect flow field on a 128^2 grid is statistically worth no initialisation
+- Body-fitted grids are not rasters: same value budget, +86.1% against +3.4%
+- Near-wall damage is bounded above in closed form from y+ alone, with no fitting
+- Three ways of restoring the near-wall state all fail to recover the solve
 
 ## Keywords
 
@@ -16,25 +16,25 @@ acceleration; boundary layer; OpenFOAM
 ## Abstract
 
 Neural surrogates for external aerodynamics are usually evaluated as predictors.
-Used instead as initial conditions for a production RANS solver they are
-routinely worse than no initialisation at all, and the cause is the surrogate's
-output representation rather than its accuracy. We show this on the exact
-converged flow field, so no property of any network enters. Read at the solver's
-own cell centres it saves 92.0% of a cold solve; stored first on an
-equal-budget wall-fitted grid it costs 181.6% (95% CI -318 to -45, winning 1 case
-of 5); stored on a uniform 128^2 raster, 548%. A 274-point swing from
-representation alone. The obvious explanation is that a grid cannot hold the
-near-wall state, and we quantify that damage in closed form -- every cell nearer
-the wall than the representation's first station receives that station's
-velocity, so the first-cell gradient is overestimated by u+(y1+)/u+(yc+), a ratio
-fixed by the law of the wall, which bounds the measurement above across a
-fifty-fold range of stations and from Re 1e3 to 3e6. Placement,
-not budget, controls it: moving the first station inside the first cell takes the
-gradient error from 1219% to 1.8% at half the stored values. **But that is not
-what costs the solve.** The arm reproducing the near-wall state to 1.8% converges
-at -266.8%, winning 0 of 5, worse than the arm at 1219%. Every projection
-preserves viscous drag (+69 to +86%) and destroys total drag, locating the damage
-in the pressure field.
+Used instead as initial conditions for a production RANS solver, what decides
+whether they help is the surrogate's output representation rather than its
+accuracy. We show this without a network. Take the exact converged flow field of
+a wall-resolved RANS solve and hand it back to simpleFoam two ways. Read at the
+solver's own cell centres it saves 93.6% of a cold solve (95% CI 92.9 to 94.3,
+winning 13 of 13 cases). Stored first on a 128^2 Cartesian raster -- the format
+in which grid-based neural operators emit fields -- the identical field saves
+3.4% (CI -2.4 to +8.7, p = 0.27): indistinguishable from no initialisation at
+all. A body-fitted grid of the same budget is not equivalent to a raster and
+loses far less (+86.1%). We give a parameter-free closed form for what a
+representation does to the near-wall state -- every cell nearer the wall than the
+representation's first station receives that station's velocity, so the
+first-cell gradient is overestimated by u+(y1+)/u+(yc+) -- which bounds the
+measurement above across a fifty-fold range of stations and from Re 1e3 to 3e6,
+and which separates the raster (first station at y+ 1700) from the body-fitted
+grid (y+ 38). We then report that this quantity is **not** the mediator: three
+independent ways of restoring the near-wall state leave convergence unchanged or
+worse. A trained mesh-native seed accelerates viscous-drag convergence by 18.4%,
+13 of 13 cases (p = 0.0002).
 
 ---
 
@@ -540,104 +540,45 @@ independent tree of §5.2; §5.1 is where that number meets a corpus.
 > §5.2 on the *exact converged field*, where it is clean, rather than on this
 > network prediction, where it is not.
 
-### 5.2 Condition 1 — the surrogate must be evaluated at the solver's own points
+### 5.2 Condition 1 — the representation must not be a uniform raster
 
 The controlled contrast is one field handed to the solver through different
-representations, with everything else held fixed. We make it on the **exact
-converged field**, so that no property of any network enters: the arms differ
-only in how that field was stored and read back.
+representations. We make it on the **exact converged field**, so no property of
+any network enters, and we make it on `C_d,v` at the **thirteen-case corpus**,
+which is the only force row that corpus can read (§5.1).
 
-| arm (exact converged field) | representation | `C_d`@1% | 95% CI | wins |
+| arm (exact converged field) | representation | `C_d,v`@1% | 95% CI | wins |
 |---|---|---:|---|---:|
-| `oracle_mesh` | the solver's own cell centres | **+92.0%** | | 5/5 |
-| `or_proj_coarse` | wall-fitted 256×64 from 2.5·10⁻⁴ | **−181.6%** | [−318.0, −45.2] | 1/5 |
-| `or_proj_fine` | wall-fitted 256×64 from 5·10⁻⁶ | **−266.8%** | [−419.5, −114.1] | 0/5 |
-| `or_proj_half` | wall-fitted 256×32 from 5·10⁻⁶ | −183.3% | [−333.0, −33.7] | 2/5 |
-| `cartesian_128` | uniform 128² raster | **−548.4%** | | |
+| `oracle_mesh` | the solver's own cell centres | **+93.6%** | [+92.9, +94.3] | **13/13** |
+| `cartesian_128` | uniform 128² raster, same 16,384 values | **+3.4%** | **[−2.4, +8.7]** | 9/13 |
 
-**A 274-point swing on one field, from representation alone**, and the intervals
-on the projected arms exclude zero. The same converged solution that saves 92% of
-a cold solve when the solver reads it at its own cell centres costs the solver
-two to five times a cold start when it is stored on a grid first.
+**The same converged solution is worth 93.6% of a cold solve read at the solver's
+own points and nothing at all off a raster.** The raster arm's interval spans
+zero (p = 0.27): as an initial condition it is statistically indistinguishable
+from uniform freestream. The intervals do not overlap and every case is paired,
+so this is not a spread artifact.
 
-> **On the network arms this contrast is not statistically resolvable, and we say
-> so.** `nf_bl` reads +34.1% [+14.1, +52.6], 4/5, and `nf_proj_coarse` reads
-> −32.1% [−144.1, +60.9], 3/5 — an interval spanning zero, with the mean set by a
-> single case at −231%. The network's own field is not accurate enough for the
-> representation damage to be visible against it. The claim is made on the oracle
-> arms, where it is clean, and the network arms are reported for completeness.
+This is the paper's central measurement, and three things about it matter. It
+uses the **exact answer**, so it cannot be explained by any surrogate's error. It
+is on the **readable** row of the **thirteen-case** corpus, so it is not an
+artifact of a five-case tree. And the raster holds the same 16,384 values as the
+wall-fitted grid below, so it is not a budget effect.
 
-> ![fig](results/placement.png)
->
-> **Figure 1. What a representation does to the near-wall state, and what that
-> does not explain.** All three panels are measured on the **exact converged
-> field**, so no property of any network enters. **(A)** The closed form of §6
-> against the measured first-cell gradient overestimate, at five first-station
-> heights spanning a factor of fifty. Nothing is fitted; every point lies *above*
-> the identity line, which is the claim — an upper bound that never flatters.
-> **(B)** The same measurement against where the representation's first station
-> sits, with marker area proportional to the number of stored values. Marker area
-> varies 32-fold while the points follow a curve set only by the first station:
-> placement, not budget, determines what a grid retains. **(C)** The paper's
-> negative result. Measured gradient error against convergence saving, one point
-> per arm: the mesh-native seed and a projection sixteen times worse on the
-> gradient reach the same viscous drag, and repairing the gradient by more than a
-> decade moves convergence by under a point. Near-wall fidelity does not predict
-> the solve (§5.2.1, §5.5, §6.7).
+**A body-fitted grid is not a raster.** On the five-case mechanism tree, the same
+exact field through a wall-fitted 256×64 grid reads **+86.1% [+84.2, +87.9], 5/5**
+on `C_d,v`, against the mesh-native oracle's +92.5%. That is a loss, but a small
+one, and it is nothing like the raster's collapse to nothing. §6 gives the
+quantity that separates them: the raster's first wall-normal station sits at
+`y⁺ ≈ 1700`, the wall-fitted grid's at `y⁺ ≈ 38`.
 
-### 5.2.1 It is **not** the near-wall state — a result we did not expect
-
-The obvious explanation is that a grid cannot hold the near-wall state. §6 shows
-that damage is real, computable and bounded. **It is not what costs the solve**,
-and the placement ladder shows it directly. All three projected arms below carry
-the same exact field through the same round trip; only the grading of the grid
-changes.
-
-| arm | values | first station | wall-gradient error | roughness (× conv.) | `C_d`@1% | `C_d,v`@1% |
-|---|---:|---:|---:|---:|---:|---:|
-| `or_proj_coarse` | 16,384 | 2.5·10⁻⁴ | **1218.8%** | 16.8× | **−181.6%** | **+86.1%** |
-| `or_proj_fine` | 16,384 | 5·10⁻⁶ | **1.8%** | **1.0×** | **−266.8%** | +69.1% |
-| `or_proj_half` | 8,192 | 5·10⁻⁶ | **1.8%** | **1.0×** | −183.3% | +71.0% |
-| `oracle_mesh` | — | native | 0.0% | 1.0× | +92.0% | +92.5% |
-
-Two things follow, and the second is the important one.
-
-**Placement, not budget, determines what a representation keeps.** Moving the
-first station inside the mesh's first cell takes the wall-gradient error from
-1218.8% to **1.8%** and the roughness to exactly the converged field's, and it
-does so at **half** the value budget as readily as at the full one. That is §6's
-criterion, confirmed: what a grid retains is set by where it samples, not by how
-much it stores.
-
-**And it does not help. It hurts.** The arm that reproduces the near-wall state
-to 1.8% and its roughness exactly converges at **−266.8%, winning 0 of 5 cases**
-— *worse* than the arm carrying 1218.8% gradient error at −181.6%. A seed can be
-a near-perfect reproduction of the converged boundary layer and be among the
-worst initial conditions in this study.
-
-**So the near-wall velocity field is not the mediator of the harm.** §5.5 and
-§6.7 close off the two remaining ways it might have been, and §5.2.2 reports
-where the damage actually is.
-
-### 5.2.2 The damage is to the pressure field
-
-The `C_d,v` column above is the tell. **Every projection preserves viscous drag**:
-the oracle through a grid reads +86.1% [+84.2, +87.9], +69.1% and +71.0%, all
-5/5, against the mesh-native oracle's +92.5%. Viscous drag is 60–84% of the drag
-here and it is the quantity the near-wall gradient integrates — and it survives
-the round trip essentially intact even when the gradient is 1219% wrong.
-
-What does not survive is total drag, and therefore the pressure component:
-`or_proj` reads **−183.9%** on `C_d,p`@0.5%. Pressure drag is 16–40% of the drag,
-converges three times slower than total drag from cold, and is the channel §5.4
-identifies as the one an inconsistent seed destroys.
-
-This is the mechanism the paper can support: **a projection preserves the
-near-wall velocity well enough for wall shear and corrupts the pressure field.**
-It explains why restoring the wall gradient — by placement (§5.2.1), by wall-law
-repair, or by smoothing that repair (§5.5) — never recovers the solve, and why
-the only arm in the study that is *positive* on pressure drag is the one that
-smoothed the reconstructed wall shear (§5.5).
+> **What we do not claim, and why.** On **total** drag the same arms read
+> +49.7%, −278.3% and −181.6%, which looks far more dramatic — and we do not
+> report it as a result. Every `C_d` row on the thirteen-case corpus is marked
+> unreadable by §4's rule (settled spread 1.27% against a 0.5% limit) and the
+> converged-field control itself swings +49.7% / −42.6% / +12.8% across bands. A
+> control that is not flat indicates a measurement that cannot be read, and an
+> earlier draft of this paper led with those numbers. `C_d,v` is 60–84% of the
+> drag here, it is monotone across bands, and it is the row we quote.
 
 ### 5.3 Condition 2 — hand over the boundary layer only
 

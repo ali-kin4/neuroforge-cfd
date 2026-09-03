@@ -63,10 +63,11 @@ Now cross them.
 **On viscous drag the representation effect nearly vanishes.** §5.2.1's own Cd_v column: the
 mesh-native oracle reads +92.5% and the three projected oracles read **+86.1%, +69.1%, +71.0%**, all
 5/5. That is a 6-to-23 point spread, not 274 — and the *worst-placed* arm (`or_proj_coarse`,
-1218.8% gradient error) is the **best** of the three. For the network arms the effect is not merely
-small but absent: §5.5 reports `nf_proj` at +14.5% against `nf_bl` at +14.6%. So on the metric the
-paper's own corpus can read, storing the field on a grid first costs essentially nothing, and the
-advice in §11 — "query your surrogate where the solver lives" — has no support.
+1218.8% gradient error) is the **best** of the three, which on the readable metric also inverts
+Highlight 4. For the network arms the effect is not merely small but absent: §5.5 reports `nf_proj`
+at +14.5% against `nf_bl` at +14.6%. So on the metric the paper's own corpus can read, storing the
+field on a grid first costs essentially nothing, and the advice in §11 — "query your surrogate where
+the solver lives" — has no support.
 
 **On total drag the corpus says the measurement cannot be read.** I checked `results/depth_corpus.json`:
 `Cd@0.01` carries `"settled_spread": 0.01274` and `"readable": false` (1.27% against a 0.5% limit),
@@ -91,9 +92,10 @@ Cd@1% at n = 5 as a quantity that does not survive its own study's expansion.
 **And the thesis is never tested at n = 13.** The corpus carries four arms — cold, `oracle_mesh`,
 `cartesian_128`, `nf_bl` (I checked the arm list in `depth_corpus.json`). There is **no wall-fitted
 projected arm anywhere in the thirteen-case study**. The one representation arm that is there reads
-**+3.4% (p = 0.27) on the readable row** — harmless, not catastrophic. The paper calls that a "null
-negative control" and treats it as evidence of pipeline hygiene; read the other way, it is the
-paper's central claim failing to replicate on the only case set with statistical power.
+**+3.4% (p = 0.27) on the readable row**: the only representation arm the corpus contains contradicts
+the abstract's -548% on the only row the corpus can read. The paper calls that a "null negative
+control" and treats it as evidence of pipeline hygiene; read the other way, it is the paper's central
+claim failing to replicate on the only case set with statistical power.
 
 *What would resolve it.* Run the wall-fitted oracle arms (`or_proj_coarse`, `or_proj_fine`) and
 `cartesian_128` on all thirteen corpus cases and report Cd_v (readable) and Cd (with its verdict).
@@ -194,9 +196,9 @@ In `results/depth_repair.json`, `Cd_p@0.005`:
 All three arms are `null` on `naca0012_aoa0`. For `nf_proj` and `nf_proj_fix` that null was bounded
 at the budget (-623.8%, per §4 rule 3); for `nf_proj_smooth` it was **dropped**. On the three cases
 all three arms actually reached, the unsmoothed repair reads **+19.78%** and the smoothed repair
-**+19.96%** — a **0.2-point** difference, presented in the paper (and in PLANS §0.02) as a 160-point
-one. The identical pattern holds at `Cd_p@0.002` (+0.1982 vs +0.1989), which additionally carries
-`"readable": false` in the same file — yet §5.5 and §11 quote a 0.2%-band pressure number from it.
+**+19.96%** — a **0.2-point** difference, presented in the paper as a 160-point one. The identical
+pattern holds at `Cd_p@0.002` (+0.1982 vs +0.1989), which additionally carries `"readable": false` in
+the same file — yet §5.5 and §11 quote a 0.2%-band pressure number from it.
 
 I am not asserting a scorer bug: either the scorer dropped a censored case for this arm alone, or
 that arm's run was incomplete when the tree was scored (`docs/PLANS.md` §0.03 records the tree being
@@ -267,9 +269,10 @@ The mechanism study carries every claim in the title. At n = 5:
   needed, or the censored cases must be reported separately as §5.1 does.
 - **No arm-vs-arm paired statistic appears anywhere.** Every CI is a saving against cold. The claims
   are *contrasts* (mesh-native vs projected; fine vs coarse placement). A paired per-case difference
-  with a sign or rank test on the five paired differences is the correct test and is absent. §5.2.1's
-  key assertion — that -266.8% is worse than -181.6% — is stated from two means with overlapping
-  intervals ([-419.5, -114.1] and [-318.0, -45.2]) and never tested.
+  with a sign or rank test on the five paired differences is the correct test and is absent. This
+  blocks §5.2.1 specifically: the sentence carrying Highlight 4 and the abstract — that -266.8%
+  (0/5) is worse than -181.6% (1/5) — is asserted from two means whose intervals overlap heavily
+  ([-419.5, -114.1] and [-318.0, -45.2]) and is never tested.
 - "Winning 1 case of 5" means one case improved under an arm described as catastrophic; per-case
   values for the oracle projection arms are never shown, though they are for the corpus (§5.1) and
   the wake bound (§7.3).
@@ -316,8 +319,8 @@ scorer amendment explicitly.
 
 §9 reports +34.0% iterations → +28.8% seconds for `nf_bl` on five cases, and its own readability box
 concedes two of those five cases exceed the 0.5% spread limit, leaving three readable cases
-(+29.7% → +25.0%). Which metric and tree does §9's "iterations" column use? If it is Cd@1% on the
-mechanism tree — as the numbers suggest — then the **+18.4% corpus headline has no wall-clock support
+(+29.7% → +25.0%). Which metric and tree does §9's "iterations" column use? If we read §9 correctly
+and it is Cd@1% on the mechanism tree, then the **+18.4% corpus headline has no wall-clock support
 anywhere in the paper**, and the only seconds reported ride the metric the corpus declares unreadable.
 §9 also reports that seed construction costs ~11 s against cold solves of 88–239 s, i.e. 5–12% of the
 solve, which is a large fraction of an 18.4% saving on a component quantity.
@@ -330,10 +333,11 @@ on Cd_v, with the 11 s construction charged.
 §5.6's table is unambiguous: `or_proj_coarse` is +40.6% on the residual and -181.6% on drag;
 `nf_bl` is **-80.5% on the residual** and +34.1% on drag. "A study that scored the residual alone
 would have selected exactly the wrong seed." §8 then builds the acceptance rule on "two scalars from
-the residual history — the level log10 r_K and the drop." I cannot reconcile these. Either the
-threshold operates in the counter-intuitive direction (a *worse* residual at K = 25 is evidence of a
-*good* seed), which needs to be stated and explained, or the gate is exploiting something other than
-what §5.6 describes.
+the residual history — the level log10 r_K and the drop." The manuscript never states the threshold's
+direction, and §5.6 implies the residual ranking is inverted relative to drag on exactly these arms.
+Either the threshold operates counter-intuitively (a *worse* residual at K = 25 is evidence of a
+*good* seed), which needs stating and explaining, or the gate is exploiting something other than what
+§5.6 describes.
 
 Further: the 70-seed population is 15 arms x 5 cases, so it is neither independent nor
 representative — it is a set of arms the authors constructed, two thirds of which they designed to
@@ -371,8 +375,8 @@ credibility rests on its corrections that matters.
    mesh's first-cell y+ is quoted as **0.8** (§6.2), **0.72** (§6.5) and **0.58** (§6.6). If u_tau
    differs between per-case and single-case evaluations, say so and pick one.
 6. **§5.2.1 vs §6.2.** A 1218.8% gradient error is G = 13.2x; §6.2 measures 14.4x at the same station.
-7. Tables are numbered from "Table 5" (§6.2) with no Tables 1–4; **Figure 1 is never referenced in
-   the text** though Appendix A lists it; §5.5's "+34.3%" table is captioned as if it were §5.2's.
+7. Tables are numbered from "Table 5" (§6.2) with no Tables 1–4, and **Figure 1 is never referenced
+   in the text** though Appendix A lists it.
 
 ---
 

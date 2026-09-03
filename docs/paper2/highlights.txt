@@ -1,5 +1,5 @@
-- A perfect flow field, stored on a 128^2 grid, is a worse RANS start than freestream
-- The same converged field: +92.0% read natively, -181.6% stored on a grid first
-- Placement not budget: first station inside the first cell, 1219% error to 1.8%
-- Yet the near-perfect near-wall seed converges worst of all, winning 0 of 5 cases
-- Projections preserve viscous drag and destroy total drag: the damage is pressure
+- The same converged field: +93.6% read at the solver's points, +3.4% off a raster
+- A perfect flow field on a 128^2 grid is statistically worth no initialisation
+- Body-fitted grids are not rasters: same value budget, +86.1% against +3.4%
+- Near-wall damage is bounded above in closed form from y+ alone, with no fitting
+- Three ways of restoring the near-wall state all fail to recover the solve
