@@ -931,13 +931,20 @@ of the measured resolution ladder in §7.1, which is flat from 128² to 421², a
 of the estimate that one cell across the inner layer would need N ≈ 11,800, some
 28× beyond what the standard datasets hold.
 
-**Placement is a grading choice, and it is nearly free.** The alternative to
-sixteen times the values is to move the first station inside the first cell. A
-64-level geometric stack from 5·10⁻⁶ to 1 chord has a growth ratio of 1.214; a
-32-level stack has 1.483. Both are ordinary meshes, and the second holds *half*
-the values of the 256×64 grid that fails. This is why the paper's claim is about
-where a representation puts its samples and not about how many it has, and §5.2
-is the controlled test of exactly that contrast.
+**Placement, not budget, is what a representation's retention depends on.** The
+alternative to sixteen times the values is to move the first station inside the
+first cell. A 64-level geometric stack from 5·10⁻⁶ to 1 chord has a growth ratio
+of 1.214; a 32-level stack has 1.483. Both are ordinary meshes, and the second
+holds *half* the values of the 256×64 grid that loses the gradient. §5.2.1
+confirms this directly: the move takes the measured gradient error from 1218.8%
+to 1.8% and does it as readily at 8,192 values as at 16,384.
+
+> **This is a statement about retention, and only about retention.** §5.2.1 also
+> shows that the correctly-graded grid **converges worse** than the badly-graded
+> one. Getting the near-wall state right is not what makes a warm start work, and
+> nothing in §6 should be read as advice to grade a surrogate's output for
+> speed. What §6 buys is a cheap, conservative way to know what a format keeps —
+> which is worth having, and is not the same thing.
 
 ### 6.4 The pre-flight check
 
@@ -1331,12 +1338,21 @@ seconds, on one machine, with the seed's own construction charged to it.
   number rather than leaving a reader to infer it.
 - **It measures representations; it does not forecast solves** (§6.7). This is
   the paper's largest limitation and it is a negative result rather than an
-  unexplored gap. We eliminated both candidate mediators by direct measurement:
-  restoring the first-cell gradient's magnitude leaves convergence unchanged, and
-  so does additionally restoring its smoothness. We do not have a third
-  candidate. So the pre-flight check of §6.4 reports how badly a format will
-  misreport the near-wall state, and **nothing follows from it about the
-  speedup**. A reader should use it to rule a format out, never to predict a gain.
+  unexplored gap. Three independent routes to a correct near-wall state — by
+  grading (§5.2.1), by wall-function repair and by smoothing that repair (§5.5) —
+  all leave convergence unchanged or worse. So the pre-flight check of §6.4
+  reports how badly a format will misreport the near-wall state, and **nothing
+  follows from it about the speedup**. Use it to rule a format out, never to
+  predict a gain.
+- **We locate the damage but cannot yet compute it in advance.** §5.2.2 shows a
+  projection preserves viscous drag and destroys the pressure field, which is
+  consistent across every projected arm and with §5.4's channel result. We have
+  no closed form for *that*, and no pre-flight test for it. Finding one is the
+  obvious continuation of this work and we do not claim to have done it.
+- **Pressure drag is a secondary quantity here and is treated as one.** It
+  converges three times slower than total drag from cold, its 1% row is
+  unreadable on these trees, and the smoothed-repair observation on it (§5.5) was
+  found after the fact. It is reported as an observation, not a result.
 - **It is necessary, not sufficient** (§7.4). `nf_mesh` retains the gradient
   perfectly and is the worst arm in the study, so even as a veto the check has to
   be read alongside the region and channel conditions.
