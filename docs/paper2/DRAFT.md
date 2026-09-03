@@ -3,10 +3,10 @@
 ## Highlights
 
 - A perfect flow field, stored on a 128^2 grid, is a worse RANS start than freestream
-- One prediction, resampled instead of evaluated natively: +34.3% becomes -32.1%
-- 8,192 well-placed values keep the wall gradient exactly; 16,384 badly placed lose it
-- Near-wall damage is bounded above in closed form from y+ alone, with no fitting
-- Repairing that gradient does not recover the solve, so it is not the mediator
+- The same converged field: +92.0% read natively, -181.6% stored on a grid first
+- Placement not budget: first station inside the first cell, 1219% error to 1.8%
+- Yet the near-perfect near-wall seed converges worst of all, winning 0 of 5 cases
+- Projections preserve viscous drag and destroy total drag: the damage is pressure
 
 ## Keywords
 
@@ -18,24 +18,23 @@ acceleration; boundary layer; OpenFOAM
 Neural surrogates for external aerodynamics are usually evaluated as predictors.
 Used instead as initial conditions for a production RANS solver they are
 routinely worse than no initialisation at all, and the cause is the surrogate's
-output representation rather than its accuracy. Take the exact converged flow
-field, store it as a 128^2 Cartesian raster, and hand it back to simpleFoam:
-total-drag convergence is 548% slower than from uniform freestream. One network
-prediction, restricted to the same boundary layer, differing only in whether it
-is evaluated at the solver's own cell centres or resampled through a grid, gives
-+34.3% against -32.1%. We quantify what a representation does to the near-wall
-state in closed form: every cell nearer the wall than the representation's first
-station receives that station's velocity, so the first-cell gradient viscous drag
-integrates is overestimated by u+(y1+)/u+(yc+), a ratio fixed by the law of the
-wall with no free parameter. It bounds the measured damage above across a
-fifty-fold range of first stations and from Re 1e3 to 3e6, and it indicts
-placement rather than budget: 8,192 well-placed values keep the gradient exactly
-where 16,384 badly placed ones lose it. We then report a negative result we
-could not avoid -- repairing that gradient, in magnitude and in smoothness,
-leaves convergence unchanged, so near-wall fidelity is not the mediator and the
-criterion must be read as measuring representations rather than forecasting
-solves. The recommended seed accelerates viscous-drag convergence by 18.4%,
-winning 13 of 13 cases (p = 0.0002).
+output representation rather than its accuracy. We show this on the exact
+converged flow field, so no property of any network enters. Read at the solver's
+own cell centres it saves 92.0% of a cold solve; stored first on an
+equal-budget wall-fitted grid it costs 181.6% (95% CI -318 to -45, winning 1 case
+of 5); stored on a uniform 128^2 raster, 548%. A 274-point swing from
+representation alone. The obvious explanation is that a grid cannot hold the
+near-wall state, and we quantify that damage in closed form -- every cell nearer
+the wall than the representation's first station receives that station's
+velocity, so the first-cell gradient is overestimated by u+(y1+)/u+(yc+), a ratio
+fixed by the law of the wall, which bounds the measurement above across a
+fifty-fold range of stations and from Re 1e3 to 3e6. Placement,
+not budget, controls it: moving the first station inside the first cell takes the
+gradient error from 1219% to 1.8% at half the stored values. **But that is not
+what costs the solve.** The arm reproducing the near-wall state to 1.8% converges
+at -266.8%, winning 0 of 5, worse than the arm at 1219%. Every projection
+preserves viscous drag (+69 to +86%) and destroys total drag, locating the damage
+in the pressure field.
 
 ---
 
@@ -124,17 +123,15 @@ Ordered by what we think survives, not by what is largest.
    at no compute cost, including its counterintuitive prediction that the same
    representation on the same mesh does *more* damage at lower Reynolds — and a
    measured statement of the regime where it stops being quantitative (§6.6).
-4. **A negative result that bounds how the criterion may be used** (§5.5,
-   §6.7). Because the damage is known in closed form it can be removed:
-   inverting a wall function at the representation's own first station restores
-   the first-cell gradient from 877.7% error to 69.4%, close to the mesh-native
-   prediction's 53.7%, using only what the representation already carries. **The
-   convergence saving does not follow**, and neither does it when the
-   reconstruction is additionally smoothed to the mesh-native seed's own
-   roughness. Both candidate mediators are eliminated by measurement. So
-   near-wall fidelity is **not** what makes a seed fast here, and the criterion
-   measures representations rather than forecasting solves. We predicted
-   otherwise, in writing, before running it.
+4. **Three independent demonstrations that the near-wall state is not the
+   mediator** (§5.2.1, §5.5, §6.7), and a located alternative (§5.2.2). Moving
+   the representation's first station inside the mesh's first cell takes the
+   gradient error to **1.8%** and the roughness to the converged field's own —
+   and convergence gets *worse*, winning 0 of 5. Repairing the gradient by wall
+   function moves convergence 0.1 points; smoothing that repair moves it 0.6
+   more. Meanwhile every projection preserves viscous drag and destroys total
+   drag, locating the damage in the **pressure** field. We predicted the
+   opposite, in writing, before running any of it.
 5. **A recipe with three necessary conditions**, each isolated by a controlled
    arm changing one variable on one prediction, none sufficient alone
    (§5.2–§5.4), and **generality at n = 13** — +18.4% on viscous drag, 13/13
@@ -525,60 +522,104 @@ more than 0.5 points.
 | arm | what it hands over | residual 5e-6 | **Cd@1%** | Cl@1% | Cd_v@1% |
 |---|---|---:|---:|---:|---:|
 | `nf_bl` | u, v, nut in the BL, mesh-native | < -80.5% | **+33.9%** | +10.1% | +14.6% |
-| `nf_bl_proj` | the same, resampled through 256x64 | +22.1% | **-58.8%** | +25.4% | +7.7% |
 | `nf_bl_nut` | eddy viscosity only | +1.2% | **-293.2%** | **+41.1%** | **+42.4%** |
 | `nf_bl_vel` | velocity only | -8.2% | -40.3% | -10.3% | -4.9% |
 
 The recommended arm in this table, `nf_bl`, is the one measured at thirteen cases
-in §5.1. Its Cd@1% here is +33.9%; §5.1 is where that number meets a corpus.
+in §5.1. Its Cd@1% here is +33.9%, and +34.1% when re-measured in the
+independent tree of §5.2; §5.1 is where that number meets a corpus.
 
-### 5.2 Condition 1 — the representation must resolve the first cell
-
-This is the condition the closed form of §6 predicts, and it is tested by moving
-one thing: **where the representation puts its first wall-normal station.** Every
-arm is the same field, restricted to the same boundary layer, sent through the
-same wall-fitted round trip. Only the grading of that grid changes.
-
-| arm | values | first station | `y⁺` | stations inside cell 1 |
-|---|---:|---:|---:|---:|
-| `*_proj_coarse` | 16,384 | 2.5·10⁻⁴ | 38 | 0 |
-| `*_proj_fine` | 16,384 | 5·10⁻⁶ | 0.8 | 1 |
-| **`*_proj_half`** | **8,192** | 5·10⁻⁶ | 0.8 | 1 |
-
-`*_proj_half` is the arm that decides it: correct placement at **half** the value
-budget, against wrong placement at double. If budget mattered it should lose.
-
-**At the level of the mechanism the answer is unambiguous.** Projecting the exact
-converged field and measuring the first-cell wall gradient the solver would
-receive, over five cases:
-
-| config | values | first-cell gradient error | overestimate |
-|---|---:|---:|---:|
-| coarse, first 2.5·10⁻⁴ | 16,384 | 1254% | 14.5× |
-| fine, first 5·10⁻⁶ | 16,384 | **2.0%** | **1.00×** |
-| **half, first 5·10⁻⁶** | **8,192** | **2.0%** | **1.00×** |
-
-**Halving the value budget while moving the first station inside the first cell
-takes the wall gradient from 14.5× wrong to exact.** Doubling the budget without
-moving the station does nothing. This is placement, not resolution, and it is
-measured on the exact converged field, so no property of any network enters it.
-
-> **A correction that changed this section.** An earlier version of this
-> experiment reported convergence savings for these three arms and found only a
-> modest ordering between them. That version was wrong: `clustered_seed` took its
+> **The resampled arm is not in this table, and the reason is a correction.**
+> This study originally carried a `nf_bl_proj` arm — the same prediction through a
+> 256×64 round trip — reported at −58.8% on `C_d`@1%. That round trip took its
 > wall-normal coordinate from the nearest surface *vertex* rather than the nearest
-> segment, which reads this mesh's first cell ring at ~4·10⁻³ instead of
-> 3.8·10⁻⁶ — a median overestimate of 1147×. Every near-wall cell was therefore
-> mapped as though it lay a millimetre off the wall, and moving the grid's first
-> station changed nothing the code could see: the three configurations returned
-> gradient errors of 1583%, 1644% and 1701%, which is what exposed the bug. It is
-> fixed, a regression test pins it, and the numbers above are from the fixed code.
+> segment, which reads this mesh's first cell ring three orders of magnitude too
+> far from the wall (§5.2.1). Re-measured with that fixed, the same arm reads
+> −32.1% with a 95% interval of [−144.1, +60.9] and 3 wins in 5 — **not
+> distinguishable from zero**. The representation contrast is therefore made in
+> §5.2 on the *exact converged field*, where it is clean, rather than on this
+> network prediction, where it is not.
 
-**The convergence measurement is re-running at the time of writing** and is
-reported in §5.2.1 when complete. What is already established, and does not
-depend on it, is that the wall gradient — the quantity §6 identifies and viscous
-drag integrates — is destroyed or preserved by the placement of a single station,
-independently of how many values the representation holds.
+### 5.2 Condition 1 — the surrogate must be evaluated at the solver's own points
+
+The controlled contrast is one field handed to the solver through different
+representations, with everything else held fixed. We make it on the **exact
+converged field**, so that no property of any network enters: the arms differ
+only in how that field was stored and read back.
+
+| arm (exact converged field) | representation | `C_d`@1% | 95% CI | wins |
+|---|---|---:|---|---:|
+| `oracle_mesh` | the solver's own cell centres | **+92.0%** | | 5/5 |
+| `or_proj_coarse` | wall-fitted 256×64 from 2.5·10⁻⁴ | **−181.6%** | [−318.0, −45.2] | 1/5 |
+| `or_proj_fine` | wall-fitted 256×64 from 5·10⁻⁶ | **−266.8%** | [−419.5, −114.1] | 0/5 |
+| `or_proj_half` | wall-fitted 256×32 from 5·10⁻⁶ | −183.3% | [−333.0, −33.7] | 2/5 |
+| `cartesian_128` | uniform 128² raster | **−548.4%** | | |
+
+**A 274-point swing on one field, from representation alone**, and the intervals
+on the projected arms exclude zero. The same converged solution that saves 92% of
+a cold solve when the solver reads it at its own cell centres costs the solver
+two to five times a cold start when it is stored on a grid first.
+
+> **On the network arms this contrast is not statistically resolvable, and we say
+> so.** `nf_bl` reads +34.1% [+14.1, +52.6], 4/5, and `nf_proj_coarse` reads
+> −32.1% [−144.1, +60.9], 3/5 — an interval spanning zero, with the mean set by a
+> single case at −231%. The network's own field is not accurate enough for the
+> representation damage to be visible against it. The claim is made on the oracle
+> arms, where it is clean, and the network arms are reported for completeness.
+
+### 5.2.1 It is **not** the near-wall state — a result we did not expect
+
+The obvious explanation is that a grid cannot hold the near-wall state. §6 shows
+that damage is real, computable and bounded. **It is not what costs the solve**,
+and the placement ladder shows it directly. All three projected arms below carry
+the same exact field through the same round trip; only the grading of the grid
+changes.
+
+| arm | values | first station | wall-gradient error | roughness (× conv.) | `C_d`@1% | `C_d,v`@1% |
+|---|---:|---:|---:|---:|---:|---:|
+| `or_proj_coarse` | 16,384 | 2.5·10⁻⁴ | **1218.8%** | 16.8× | **−181.6%** | **+86.1%** |
+| `or_proj_fine` | 16,384 | 5·10⁻⁶ | **1.8%** | **1.0×** | **−266.8%** | +69.1% |
+| `or_proj_half` | 8,192 | 5·10⁻⁶ | **1.8%** | **1.0×** | −183.3% | +71.0% |
+| `oracle_mesh` | — | native | 0.0% | 1.0× | +92.0% | +92.5% |
+
+Two things follow, and the second is the important one.
+
+**Placement, not budget, determines what a representation keeps.** Moving the
+first station inside the mesh's first cell takes the wall-gradient error from
+1218.8% to **1.8%** and the roughness to exactly the converged field's, and it
+does so at **half** the value budget as readily as at the full one. That is §6's
+criterion, confirmed: what a grid retains is set by where it samples, not by how
+much it stores.
+
+**And it does not help. It hurts.** The arm that reproduces the near-wall state
+to 1.8% and its roughness exactly converges at **−266.8%, winning 0 of 5 cases**
+— *worse* than the arm carrying 1218.8% gradient error at −181.6%. A seed can be
+a near-perfect reproduction of the converged boundary layer and be among the
+worst initial conditions in this study.
+
+**So the near-wall velocity field is not the mediator of the harm.** §5.5 and
+§6.7 close off the two remaining ways it might have been, and §5.2.2 reports
+where the damage actually is.
+
+### 5.2.2 The damage is to the pressure field
+
+The `C_d,v` column above is the tell. **Every projection preserves viscous drag**:
+the oracle through a grid reads +86.1% [+84.2, +87.9], +69.1% and +71.0%, all
+5/5, against the mesh-native oracle's +92.5%. Viscous drag is 60–84% of the drag
+here and it is the quantity the near-wall gradient integrates — and it survives
+the round trip essentially intact even when the gradient is 1219% wrong.
+
+What does not survive is total drag, and therefore the pressure component:
+`or_proj` reads **−183.9%** on `C_d,p`@0.5%. Pressure drag is 16–40% of the drag,
+converges three times slower than total drag from cold, and is the channel §5.4
+identifies as the one an inconsistent seed destroys.
+
+This is the mechanism the paper can support: **a projection preserves the
+near-wall velocity well enough for wall shear and corrupts the pressure field.**
+It explains why restoring the wall gradient — by placement (§5.2.1), by wall-law
+repair, or by smoothing that repair (§5.5) — never recovers the solve, and why
+the only arm in the study that is *positive* on pressure drag is the one that
+smoothed the reconstructed wall shear (§5.5).
 
 ### 5.3 Condition 2 — hand over the boundary layer only
 
@@ -717,19 +758,30 @@ study does not contain.
 
 ### 5.6 The residual objection
 
-`nf_bl` is **negative on the residual at every depth** and positive on drag;
-`nf_bl_proj` is the exact inverse. A reviewer is right to look hard at that. Our
-answer has three parts.
+`nf_bl` is **negative on the residual at every depth** and positive on drag; the
+projected arms are the exact inverse. A reviewer is right to look hard at that.
+Our answer has three parts.
 
 1. **The residual is not the objective.** Nobody runs a RANS solve to obtain a
    small residual; they run it to obtain a force coefficient that has stopped
-   moving. The residual is a proxy, and this study measures the proxy failing:
-   one seed is +22.1% on the proxy and -58.8% on what the proxy stands for. We
-   report both, always.
+   moving. The residual is a proxy, and this study measures the proxy failing —
+   on the *exact converged field*, so the disagreement cannot be blamed on our
+   network:
+
+   | arm (exact field) | residual 5·10⁻⁶ | `C_d`@1% | wins |
+   |---|---:|---:|---:|
+   | `or_proj_coarse` | **+40.6%** | **−181.6%** [−318, −45] | 1/5 |
+   | `or_proj_fine` | **+36.6%** | **−266.8%** [−419, −114] | 0/5 |
+   | `nf_bl` (recommended) | **−80.5%** | **+34.1%** [+14, +53] | 4/5 |
+
+   The two arms that look best on the residual are the two worst on drag, and the
+   arm we recommend is the worst on the residual. **A study that scored the
+   residual alone would have selected exactly the wrong seed**, and would have
+   done so with intervals excluding zero. We report both metrics, always.
 2. **We know what the residual is rewarding.** The `Ux` residual measures how
    much the field changes per iteration, so it rewards smoothness. A resampled
    field has had its near-wall structure interpolated away and therefore changes
-   less, while carrying 1583% error in the wall gradient. The residual is not
+   less, while carrying 877.7% error in the wall gradient. The residual is not
    being fooled at random — it is faithfully measuring something that is not drag.
 3. **The choice of metric was pre-committed and cuts against us.** The force
    metric replaced the residual metric for the reason in §4 rule 1, which
@@ -998,64 +1050,48 @@ and the ordering right, and it still errs conservatively.
 > artifact of that defect. The direction survived the correction; the magnitude
 > did not, and the corrected magnitude is what is reported.
 
-### 6.7 What the criterion does not do: it does not predict the solve
+### 6.7 What the criterion is for, and what it is not
 
 The sections above establish what a representation does to the near-wall state,
-and they establish it firmly: the damage is computable, bounded, ordered
+and they establish it firmly: the damage is computable, bounded above, ordered
 correctly across a fifty-fold range of first stations and three and a half
 decades of Reynolds number, and controlled by station placement rather than by
-value budget. **It does not follow, and we could not show, that this damage is
-what makes a seed slow.** This section reports the attempt and its failure,
-because the distinction decides how the criterion should be used.
+value budget. **It does not follow that this damage is what makes a seed slow,
+and §5.2.1 shows directly that it is not.**
 
-**The test.** Section 5.5 repairs a projected seed's first-cell wall gradient by
-inverting a wall function at the representation's own first station. It works on
-the gradient: 1254% error becomes ~55%, against 53.7% for the mesh-native seed
-that converges well. If the gradient were the mediator, the repaired seed should
-converge like the mesh-native one. It does not — it converges like the
-unrepaired projection, within 0.7 percentage points.
+Three independent attempts to make the near-wall state the mediator all fail:
 
-**The second test.** One difference survived: the repaired seed's wall gradient
-was 26.2× rougher along the surface than the converged field, against 4.2× for
-the mesh-native seed, because each station is inverted independently. Smoothing
-the reconstructed `u_τ` along the wall brings that to 5.7×, matching the working
-seed on *both* diagnostics. It changes the primary metric by 0.6 points.
+1. **By placement** (§5.2.1). Moving the first station inside the mesh's first
+   cell takes the wall-gradient error from 1218.8% to 1.8% and the roughness to
+   the converged field's own. Convergence gets *worse*: −266.8% against −181.6%,
+   winning 0 of 5 cases against 1 of 5.
+2. **By repair** (§5.5). Inverting a wall function restores a projected seed's
+   gradient from 877.7% to 69.4%. Convergence moves 0.1 points.
+3. **By smoothing that repair** (§5.5). Bringing the reconstruction's roughness
+   to 5.7× converged, against the working seed's 4.2×, moves convergence a
+   further 0.6 points.
 
-| arm | grad error | roughness | `C_d`@1% | `C_d,v`@1% |
-|---|---:|---:|---:|---:|
-| `nf_bl` mesh-native | 53.7% | 4.2× | **+34.3%** | +14.6% |
-| `nf_proj` | 877.7% | 20.6× | −32.1% | +14.5% |
-| `nf_proj_fix` | 69.4% | 26.2× | −32.0% | +11.7% |
-| `nf_proj_smooth` | 73.0% | **5.7×** | −31.4% | +11.5% |
+A seed can reproduce the converged boundary layer to 1.8% in gradient and
+exactly in roughness and still be among the worst initial conditions measured
+here. **The near-wall velocity field is not the mediator.**
 
-Three seeds spanning **877.7% to 69.4%** in gradient error and **26.2× to 5.7×**
-in roughness all land between −31.4% and −32.1% on total drag, where the
-mesh-native seed reads +34.3%. And `nf_proj` already matches `nf_bl` on viscous
-drag (+14.5% against +14.6%) while carrying sixteen times its gradient error.
+**Where the damage is instead** (§5.2.2). Every projection preserves *viscous*
+drag — the quantity the wall gradient integrates, and 60–84% of the drag — at
++69% to +86% against the mesh-native oracle's +92.5%, all 5 of 5 cases. What it
+destroys is total drag, and therefore pressure drag, at −183.9%. That is
+consistent with §5.4, where an inconsistently seeded channel destroys `C_d,p`
+while leaving the shear-driven quantities alone, and with the one arm in this
+study that is positive on pressure drag being the one whose reconstructed wall
+shear was smoothed.
 
-**The conclusion we are forced to.** In this configuration the first-cell wall
-gradient — in magnitude and in smoothness — does not predict convergence. Both
-candidate mediators are eliminated by direct measurement, and we do not have a
-third. Whatever the projection destroys that costs the solve, it is not the
-quantity §6.1 identifies.
-
-**So the criterion must be used for what it measures.** It is a statement about
-representations: it says, before any solve, how badly a given output format will
-misreport the near-wall state, and it is accurate enough to order formats and
-conservative enough never to flatter one. It is **not** a predictor of
-convergence, and §6.4's pre-flight tool should be read as reporting a
-representation's fidelity, not a forecast of a speedup.
-
-**One signal points at where to look next.** On *pressure* drag — a secondary
-quantity here, converging three times slower than total drag, and with its 1%
-row unreadable — the smoothed repair is the only seed in the study that is
-positive: +19.8% at the 0.5% band and +57.8% at 0.2%, against −115% for the
-recommended seed. A rough wall-shear distribution driving a spurious pressure
-response is a coherent reading of that, and it fits §5.4's finding that pressure
-is where inconsistent seeds do their damage. We report it as an observation on a
-secondary quantity rather than a result, because it was found after the fact and
-the protocol of §4 exists to stop us doing otherwise. The experiment that would
-settle it is a smoothed *mesh-native* seed, which this study does not contain.
+**So the criterion should be used for what it measures.** It says, before any
+solve, how badly a given output format will misreport the near-wall state, it is
+conservative, and it orders formats correctly. That is a genuine and cheap
+diagnostic of a representation. It is **not** a predictor of convergence, and
+§6.4's pre-flight tool must be read as reporting fidelity rather than forecasting
+a speedup. The property that does predict convergence here — whether the
+representation preserves a consistent pressure field — we can locate but not yet
+compute in advance, and §10 says so.
 
 ## 7. What does not work, and why that matters
 Three predictions a reader would reasonably make are false here, and each was
@@ -1313,7 +1349,7 @@ seconds, on one machine, with the seed's own construction charged to it.
 ### On the repair, which did not work
 
 - **We do not know why it failed**, and §5.5 says so. The repair restores the
-  first-cell gradient to 42.5% error — better than the mesh-native seed — and the
+  first-cell gradient to 69.4% error, close to the mesh-native seed's 53.7%, and the
   convergence saving does not follow. The one measurable difference we can point
   at is that the repaired seed is 11.1× rougher along the wall than the converged
   field against 4.2× for mesh-native, but **that is a candidate, not a finding**,
@@ -1372,64 +1408,59 @@ seconds, on one machine, with the seed's own construction charged to it.
 
 Whether a neural surrogate can accelerate a production RANS solve is decided by
 its **output representation**, not by its accuracy. The cleanest statement of
-that is a single prediction handed to the solver twice: evaluated at the
-solver's own cell centres it is worth +34.3% on total-drag convergence, and
-resampled through an equal-budget grid it is worth −32.1%. Same network, same
-weights, same case, same region — 66 percentage points of difference, and
-nothing between them but the representation. The exact converged field,
-rasterised, is worse than no initialisation at all.
+that needs no network at all: take the exact converged flow field and hand it to
+the solver three ways. Read at the solver's own cell centres it saves **92.0%**
+of a cold solve. Stored first on an equal-budget wall-fitted grid it costs
+**181.6%** (95% CI −318 to −45, winning 1 case of 5). Stored on a uniform 128²
+raster, **548%**. One field, three representations, a 274-point swing.
 
 *What* a representation does to the near-wall state we can state in closed form.
 A resampled field hands every cell nearer the wall than its first station that
-station's value, so the first-cell wall gradient — which viscous drag integrates,
-and which is 60–84% of drag here — is overestimated by `u⁺(y₁⁺)/u⁺(y_c⁺)`. The
-expression has no fitted parameter, bounds the measured damage above over a
-fifty-fold range of first stations, explains quantitatively why refining a
-raster is flat, and holds from Re = 10³ to 3·10⁶ — including in the direction
-most practitioners would guess wrong: on the same mesh, lower Reynolds is
-**worse**. It indicts placement rather than budget, and 8,192 correctly placed
-values keep the gradient exactly where 16,384 badly placed ones lose it.
+station's value, so the first-cell wall gradient is overestimated by
+`u⁺(y₁⁺)/u⁺(y_c⁺)` — no fitted parameter, an upper bound on the measurement
+across a fifty-fold range of stations and from Re = 10³ to 3·10⁶. It indicts
+placement rather than budget: moving the first station inside the mesh's first
+cell takes the gradient error from 1218.8% to **1.8%**, and does it at half the
+stored values as readily as at the full budget.
 
-*Why* that damage costs the solve, we could not establish, and §6.7 says so.
-Repairing the gradient — in magnitude, and then additionally in smoothness until
-it matched the working seed on both diagnostics — left convergence unchanged
-within a percentage point. Both candidate mediators are eliminated by direct
-measurement. The criterion therefore measures representations; it does not
-forecast solves, and the pre-flight tool of §6.4 should be read that way.
+**And that is not what costs the solve.** The seed reproducing the converged
+boundary layer to 1.8% in gradient, and exactly in roughness, converges at
+−266.8% and wins none of five cases — worse than the seed carrying 1218.8%
+error. Repairing the gradient by wall function moves convergence by a tenth of a
+point; smoothing that repair to the working seed's own roughness moves it by
+half a point more. Three independent routes to a correct near-wall state, and
+none of them recovers the solve.
+
+Where the damage is instead, the decomposition says plainly: every projection
+preserves **viscous** drag — 60–84% of the drag, and the quantity the wall
+gradient integrates — at +69% to +86% against the mesh-native oracle's +92.5%,
+five cases of five. What it destroys is the **pressure** field, at −183.9% on
+`C_d,p`. The near-wall velocity survives a round trip well enough for wall shear;
+the pressure field does not survive it at all.
 
 Read as advice rather than as a result, the paper is short:
 
-> **Check where your surrogate's output puts its first sample.** If nothing lands
-> inside the solver's first cell, the seed will misreport the wall gradient by
-> roughly `u⁺(y₁⁺)/u⁺(y_c⁺)`, and no amount of extra resolution will fix it — a
-> 512² raster holds 262,144 values and still fails, while a wall-fitted grid of
-> 8,192 passes. Fix it by grading, by predicting on the solver's own points, or
-> by repairing the profile below the first station from a wall function. Then
-> give the solver only the region your surrogate is trusted on, hand over whole
-> physics rather than single channels, and spend 3% of a solve checking before
-> you commit.
+> **Query your surrogate where the solver lives.** Not because a grid cannot hold
+> the boundary layer — with the right grading it can, to 1.8% — but because
+> storing the field on a grid at all corrupts something the boundary layer does
+> not contain. Give the solver only the region your surrogate is trusted on, hand
+> over whole physics rather than single channels, and spend 3% of a solve
+> checking before you commit.
 
 **The size of the effect is modest and we say so.** The recommended seed
 accelerates viscous-drag convergence by 18.4% across thirteen cases, winning
 every one of them (p = 0.0002), with a converged-field control at 93.6% and a
 null negative control. That is far short of the 26.3× reported elsewhere for a
-different regime, and short of the 11–16× reported for a mesh-native operator on
-a comparable configuration. What is durable here is not the number.
+different regime. What is durable here is not the number.
 
-What is durable is that the criterion **predicts things it was not derived from**:
-the flat resolution ladder, quantitatively; the ordering of the published
-warm-start literature by representation and seeded region; the behaviour of grid
-sequencing, a classical method with no network in it; and the Reynolds
-dependence, on data that already existed. And it is durable that the paper's own
-explanations were tested rather than asserted — three predictions a reader would
-make are falsified here, one of them our own account of why the boundary-layer
-restriction works.
-
-The practical consequence is a change in what a surrogate is optimised for. The
-field currently selects output representations for prediction accuracy and
-memory. If the surrogate is ever to be handed to a solver, there is a second
-criterion, it is cheap to evaluate, and it is not satisfied by any uniform raster
-at any resolution a dataset can hold.
+What is durable is that the representation result needs no network to state, and
+that the paper's own explanation of it was tested to destruction rather than
+asserted. We predicted the near-wall gradient was the mediator, registered the
+prediction before running it, built three separate ways to restore that gradient,
+and reported that all three failed. The criterion that survives is a diagnostic
+of what a representation keeps — cheap, conservative, and correct in its
+ordering — and not a forecast of a speedup. Naming the difference between those
+two is, we think, the more useful contribution.
 
 ## CRediT authorship contribution statement
 

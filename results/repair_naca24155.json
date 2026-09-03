@@ -19,7 +19,17 @@
           "repaired_fraction": 0.07640378548895899,
           "first_station": 0.00025,
           "u_tau_median": 0.017770776714141928,
-          "speed_scale_median": 0.4493866341214029
+          "speed_scale_median": 0.4493866341214029,
+          "smooth_window": 0.0
+        },
+        "nf_smooth": {
+          "mode": "wall_law_repair",
+          "repaired_cells": 2422,
+          "repaired_fraction": 0.07640378548895899,
+          "first_station": 0.00025,
+          "u_tau_median": 0.018232706490933677,
+          "speed_scale_median": 0.4655349046249776,
+          "smooth_window": 0.1
         },
         "or": {
           "mode": "wall_law_repair",
@@ -27,7 +37,17 @@
           "repaired_fraction": 0.07640378548895899,
           "first_station": 0.00025,
           "u_tau_median": 0.027728662706242753,
-          "speed_scale_median": 0.5335740017220003
+          "speed_scale_median": 0.5335740017220003,
+          "smooth_window": 0.0
+        },
+        "or_smooth": {
+          "mode": "wall_law_repair",
+          "repaired_cells": 2422,
+          "repaired_fraction": 0.07640378548895899,
+          "first_station": 0.00025,
+          "u_tau_median": 0.026125607552980087,
+          "speed_scale_median": 0.5286285636503187,
+          "smooth_window": 0.1
         }
       },
       "cold@1e-03": 74,
@@ -35,36 +55,46 @@
       "nf_bl@1e-03": 71,
       "nf_proj@1e-03": 73,
       "nf_proj_fix@1e-03": 73,
+      "nf_proj_smooth@1e-03": 73,
       "or_proj@1e-03": 74,
       "or_proj_fix@1e-03": 74,
+      "or_proj_smooth@1e-03": 74,
       "cold@1e-04": 198,
       "oracle_mesh@1e-04": 15,
       "nf_bl@1e-04": 188,
       "nf_proj@1e-04": 196,
       "nf_proj_fix@1e-04": 196,
+      "nf_proj_smooth@1e-04": 196,
       "or_proj@1e-04": 197,
       "or_proj_fix@1e-04": 197,
+      "or_proj_smooth@1e-04": 197,
       "cold@1e-05": 404,
       "oracle_mesh@1e-05": 66,
       "nf_bl@1e-05": 695,
       "nf_proj@1e-05": 344,
       "nf_proj_fix@1e-05": 337,
+      "nf_proj_smooth@1e-05": 336,
       "or_proj@1e-05": 369,
       "or_proj_fix@1e-05": 359,
+      "or_proj_smooth@1e-05": 359,
       "cold@5e-06": 1139,
       "oracle_mesh@5e-06": 80,
       "nf_bl@5e-06": 1172,
       "nf_proj@5e-06": 386,
       "nf_proj_fix@5e-06": 460,
+      "nf_proj_smooth@5e-06": 463,
       "or_proj@5e-06": 413,
       "or_proj_fix@5e-06": 398,
+      "or_proj_smooth@5e-06": 398,
       "cold@1e-06": 2024,
       "oracle_mesh@1e-06": 129,
       "nf_bl@1e-06": 1573,
       "nf_proj@1e-06": 1426,
       "nf_proj_fix@1e-06": 1454,
+      "nf_proj_smooth@1e-06": 1455,
       "or_proj@1e-06": 1830,
-      "or_proj_fix@1e-06": 1828
+      "or_proj_fix@1e-06": 1828,
+      "or_proj_smooth@1e-06": 1831
     }
   ]
 }

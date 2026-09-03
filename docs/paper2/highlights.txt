@@ -1,5 +1,5 @@
 - A perfect flow field, stored on a 128^2 grid, is a worse RANS start than freestream
-- One prediction, resampled instead of evaluated natively: +34.3% becomes -32.1%
-- 8,192 well-placed values keep the wall gradient exactly; 16,384 badly placed lose it
-- Near-wall damage is bounded above in closed form from y+ alone, with no fitting
-- Repairing that gradient does not recover the solve, so it is not the mediator
+- The same converged field: +92.0% read natively, -181.6% stored on a grid first
+- Placement not budget: first station inside the first cell, 1219% error to 1.8%
+- Yet the near-perfect near-wall seed converges worst of all, winning 0 of 5 cases
+- Projections preserve viscous drag and destroy total drag: the damage is pressure
