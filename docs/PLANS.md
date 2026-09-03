@@ -8,6 +8,60 @@ Last updated: **2026-08-31** · branch `paper2/openfoam-warm-start` · pushed to
 
 ---
 
+## 0.01 THE MECHANISM IS PRESSURE, NOT THE WALL GRADIENT (2026-09-01, final)
+
+Scored on the **fixed** projection, `runs/openfoam/placement2` and
+`runs/openfoam/repair`, five cases, bootstrap CI and win counts.
+
+### The claim must be made on the ORACLE arms, not the network arms
+
+| arm (exact converged field) | Cd@1% | 95% CI | wins | Cd_v@1% |
+|---|---:|---|---:|---:|
+| `oracle_mesh` mesh-native | **+92.0%** | | 5/5 | +92.5% |
+| `or_proj_coarse` wall-fitted 256x64 | **-202.0%** | **[-358.2, -45.9]** | **1/5** | **+86.1%** |
+| `cartesian_128` uniform 128^2 | **-548%** | (corpus) | | +10.0% |
+
+Same field, three representations, and the CI on the wall-fitted arm **excludes
+zero**. That is a 294-point swing from representation alone and it is solid.
+
+| arm (network prediction) | Cd@1% | 95% CI | wins |
+|---|---:|---|---:|
+| `nf_bl` mesh-native | +34.1% | [+14.0, +52.8] | 4/5 |
+| `nf_proj_coarse` projected | -43.8% | **[-171.2, +60.9]** | **3/5** |
+
+⚠ **The network contrast is NOT statistically supported.** `nf_proj`'s CI spans
+zero, it wins 3 of 5, and its mean is set by one case at -270%. **The
+"+34.3% vs -32.1%" figure currently in the title and abstract must be replaced
+by the oracle contrast.** The network's own field is not good enough for the
+representation damage to be visible against it.
+
+### And this identifies the mechanism the wall gradient could not
+
+**A projection preserves viscous drag and destroys total drag.**
+`or_proj_coarse` is **+86.1% [+84.1, +87.9], 5/5** on `C_d,v` -- nearly the
+mesh-native oracle's +92.5% -- and **-202%** on `C_d`. `nf_proj_coarse` is
++14.5% [+11.9, +16.9] 5/5 on `C_d,v`, indistinguishable from `nf_bl`'s +14.6%.
+
+So the near-wall velocity survives a projection *well enough for wall shear*.
+What breaks is the **pressure** field: `or_proj` reads -183.9% on `C_d,p`@0.5%.
+
+**This closes §6.7's open question.** The wall gradient is not the mediator
+because the quantity it controls -- viscous drag -- is not what a projection
+damages. The damage is to pressure, which is 16-40% of drag and converges 3x
+slower. It also explains why the smoothed repair was the only positive arm on
+`C_d,p` (+19.8%, +57.8%): smoothing removes a spurious pressure response.
+
+### What the paper becomes
+
+Thesis: **representation decides, the damage is to the pressure field, and the
+near-wall gradient -- which is computable in closed form -- is a diagnostic of
+the representation rather than the mediator of the harm.** Every claim above is
+on the exact converged field, so none of it depends on our network.
+
+Rewrite: title and abstract to the oracle contrast; §5.2 and §5.5 to report win
+counts and CIs rather than means; §6.7 to state the pressure finding instead of
+"no third candidate"; §5.4's consistency mechanism gains direct support.
+
 ## 0.02 THE SMOOTHING DOES MOVE SOMETHING — pressure drag, not the primary metric (2026-09-01)
 
 Full force table, `results/depth_repair.json`, five cases. Read §0.03 first: on
