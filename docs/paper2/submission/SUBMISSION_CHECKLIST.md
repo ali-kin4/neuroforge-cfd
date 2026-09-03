@@ -19,7 +19,7 @@ Status key: ✅ done · ⏳ in progress · ❌ not started · ⚠ needs the auth
 | Graphical abstract | ❌ | optional at C&F. **Decide: produce or drop.** Phase G's note claimed the audit was fully closed; it was not, and the note is corrected |
 | CRediT authorship statement | ✅ | both authors |
 | Declaration of competing interest | ✅ | |
-| Data availability statement | ⚠ | **see §C — currently false as written** |
+| Data availability statement | ⏳ | now names the `paper2-v1` tag; **DOI still to insert** (§C) |
 | Numbered Elsevier-style reference list | ⏳ | 11 → ~28 after the literature sweep; every arXiv id verified against the arXiv API 2026-08-31 (`docs/paper2/literature.md` §6) |
 | Figure captions numbered, self-contained, in order of first appearance | ⏳ | 2 figures now, 4 planned |
 | No internal working matter (`PLANS.md`, `[[B2]]`, `results/*.json` in prose) | ✅ | moved to the appendix / this repo |
