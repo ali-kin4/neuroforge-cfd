@@ -127,7 +127,7 @@ Ordered by what we think survives, not by what is largest.
 4. **A negative result that bounds how the criterion may be used** (§5.5,
    §6.7). Because the damage is known in closed form it can be removed:
    inverting a wall function at the representation's own first station restores
-   the first-cell gradient from 1254% error to ~55%, better than the mesh-native
+   the first-cell gradient from 877.7% error to 69.4%, close to the mesh-native
    prediction's 53.7%, using only what the representation already carries. **The
    convergence saving does not follow**, and neither does it when the
    reconstruction is additionally smoothed to the mesh-native seed's own
@@ -653,65 +653,67 @@ shear-driven quantities do not care, and speed up.
 most of it**, and §7.3 finds the same lesson again at a completely different
 length scale.
 
-### 5.5 Restoring the wall gradient is not sufficient — a falsified prediction
+### 5.5 Restoring the wall gradient does not recover the solve
 
 Section 6 shows the damage a projection does is available in closed form. A
 factor that is known can be divided back out, so we built the repair the
 mechanism implies: invert the law of the wall at the representation's own first
 station to recover `u_τ`, using **only what the representation already carries**,
-and re-evaluate the profile at each cell's own wall distance (§6, and
-`solver/placement.py`).
+and re-evaluate the profile at each cell's own wall distance (`solver/placement.py`).
 
-> ⚠ **Re-measurement in progress.** The projections these arms repair were built
-> by the pre-fix `clustered_seed` described in §5.2, so the specific numbers in
-> this section are being re-measured on the corrected code. The *qualitative*
-> result — the repair restores the wall gradient to better than mesh-native and
-> the convergence saving does not follow — is what this section claims, and it is
-> the part that must survive re-measurement to be reported at all.
+**It works on the gradient, and then on its smoothness too.** The first repair
+restored the magnitude but left the reconstruction rough along the surface,
+because every station is inverted independently from its own value. Smoothing
+the recovered `u_τ` over an arclength window fixes that. Measured on the seeds
+exactly as the solver received them, five cases:
 
-**It works on the gradient.** Measured on the seeds exactly as the solver
-received them:
-
-| arm | first-cell wall-gradient error | roughness (× converged) |
+| arm | first-cell gradient error | roughness (× converged) |
 |---|---:|---:|
-| `nf_bl` (mesh-native) | 53.7% | 4.2 |
-| `nf_proj` | 1583% | 7.2 |
-| **`nf_proj_fix`** | **42.5%** | **11.1** |
-| `or_proj` | 1881% | 5.9 |
-| `or_proj_fix` | 46.6% | 8.5 |
+| `nf_bl` (mesh-native, the seed that works) | 53.7% | 4.2× |
+| `nf_proj` | 877.7% | 20.6× |
+| `nf_proj_fix` (repaired) | **69.4%** | 26.2× |
+| **`nf_proj_smooth`** (repaired + smoothed) | **73.0%** | **5.7×** |
+| `or_proj` | 1218.8% | 16.8× |
+| `or_proj_fix` | 54.4% | 21.5× |
 
-The repair takes a projection from 1583% error to 42.5% — **better than the
-mesh-native prediction's 53.7%**, on the quantity viscous drag integrates.
+`nf_proj_smooth` matches the working seed on **both** diagnostics this study can
+measure: 73.0% gradient error against its 53.7%, and 5.7× roughness against its
+4.2×, where the unrepaired projection is at 877.7% and 20.6×.
 
-**And it does not recover the solve.**
+**And the solve does not care.**
 
-| arm | Cd_v@1% | Cd@1% |
+| arm | `C_d`@1% | `C_d,v`@1% |
 |---|---:|---:|
-| `nf_bl` (mesh-native) | +14.6% | **+34.2%** |
-| `nf_proj` | +7.7% | −47.5% |
-| **`nf_proj_fix`** | +4.9% | **−45.2%** |
-| `or_proj` | +41.7% | −187.4% |
-| `or_proj_fix` | +28.4% | −74.4% (3/3) |
+| `nf_bl` (mesh-native) | **+34.3%** | +14.6% |
+| `nf_proj` | −32.1% | +14.5% |
+| `nf_proj_fix` | −32.0% | +11.7% |
+| `nf_proj_smooth` | −31.4% | +11.5% |
+| `or_proj` | −182.1% | +86.1% |
+| `or_proj_fix` | −180.7% | +56.7% |
 
-`nf_proj_fix` carries a **better wall gradient than `nf_bl`** and converges 79
-percentage points worse on total drag. On viscous drag the repair is not merely
-neutral but slightly harmful (+4.9% against the unrepaired +7.7%). The one place
-it helps materially is the oracle projection's total drag, −187.4% → −74.4%, and
-that remains far worse than starting cold.
+Three seeds spanning **877.7% to 69.4%** in gradient error and **26.2× to 5.7×**
+in roughness all land between −31.4% and −32.1% on total drag, where the
+mesh-native seed reads +34.3%. On viscous drag the repair is not merely neutral
+but slightly harmful. And `nf_proj`, carrying sixteen times the mesh-native
+seed's gradient error, already matches it on viscous drag (+14.5% against
++14.6%).
 
 **We report this as a falsification, because that is what it is.** We predicted
-the repair would work, pre-registered the reasoning, built it, and it did not.
-What it establishes is stronger than what it was meant to show: **the first-cell
-wall gradient is necessary and demonstrably not sufficient.** No other arm in
-this study separates the two so cleanly, because no other arm has a correct wall
-gradient and a bad outcome at the same time.
+the repair would work, registered the reasoning before running it
+(`docs/protocols/placement_prediction.md`), built it, found the one measurable
+difference that remained, removed that too, and it still did not work. §6.7
+states what that costs the paper's mechanism, which is a great deal.
 
-One measurable difference survives and we name it without claiming it: the
-repaired seed's wall gradient is **11.1× rougher** along the surface than the
-converged field, against 4.2× for the mesh-native seed. The repair reconstructs
-the profile's magnitude station by station and does nothing to make neighbouring
-stations agree. Whether that tangential roughness is what costs the solve is
-**not established here**, and it is the obvious next experiment.
+One secondary observation, flagged rather than promoted. On *pressure* drag —
+which converges three times slower than total drag here and whose 1% row is
+unreadable — the smoothed repair is the only seed in this study that is positive:
+**+19.8%** at the 0.5% band and **+57.8%** at 0.2%, against −115.4% for the
+recommended seed. A rough wall-shear distribution driving a spurious pressure
+response is a coherent reading, and it fits §5.4's finding that pressure is where
+inconsistent seeds do their damage. It was found after the fact, on a secondary
+quantity, so §4's protocol says it is an observation and not a result. The
+experiment that would settle it is a smoothed *mesh-native* seed, which this
+study does not contain.
 
 ### 5.6 The residual objection
 
@@ -1014,22 +1016,22 @@ converge like the mesh-native one. It does not — it converges like the
 unrepaired projection, within 0.7 percentage points.
 
 **The second test.** One difference survived: the repaired seed's wall gradient
-was 18.1× rougher along the surface than the converged field, against 4.2× for
+was 26.2× rougher along the surface than the converged field, against 4.2× for
 the mesh-native seed, because each station is inverted independently. Smoothing
-the reconstructed `u_τ` along the wall brings that to 3.9×, matching the working
+the reconstructed `u_τ` along the wall brings that to 5.7×, matching the working
 seed on *both* diagnostics. It changes the primary metric by 0.6 points.
 
 | arm | grad error | roughness | `C_d`@1% | `C_d,v`@1% |
 |---|---:|---:|---:|---:|
 | `nf_bl` mesh-native | 53.7% | 4.2× | **+34.3%** | +14.6% |
-| `nf_proj` | 1254% | 7.2× | −32.1% | +14.5% |
-| `nf_proj_fix` | ~55% | 18.1× | −32.0% | +11.7% |
-| `nf_proj_smooth` | ~55% | **3.9×** | −31.4% | +11.5% |
+| `nf_proj` | 877.7% | 20.6× | −32.1% | +14.5% |
+| `nf_proj_fix` | 69.4% | 26.2× | −32.0% | +11.7% |
+| `nf_proj_smooth` | 73.0% | **5.7×** | −31.4% | +11.5% |
 
-Three seeds spanning **1254% to 55%** in gradient error and **18.1× to 3.9×** in
-roughness all land between −31% and −32% on total drag, where the mesh-native
-seed reads +34.3%. And `nf_proj` already matches `nf_bl` on viscous drag
-(+14.5% against +14.6%) while carrying twenty-three times its gradient error.
+Three seeds spanning **877.7% to 69.4%** in gradient error and **26.2× to 5.7×**
+in roughness all land between −31.4% and −32.1% on total drag, where the
+mesh-native seed reads +34.3%. And `nf_proj` already matches `nf_bl` on viscous
+drag (+14.5% against +14.6%) while carrying sixteen times its gradient error.
 
 **The conclusion we are forced to.** In this configuration the first-cell wall
 gradient — in magnitude and in smoothness — does not predict convergence. Both
