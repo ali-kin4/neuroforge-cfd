@@ -30,12 +30,13 @@ range of first-station heights. This yields a criterion evaluable before any
 solve, and it
 indicts placement rather than budget: refining a raster 10.8-fold moves the
 predicted damage from 36.6x to 35.3x, while halving the stored values and moving
-the first station inside the first cell raises the measured saving from +7.7% to
-+19.9% (95% CI [+16.1, +23.7], 5 of 5 cases). The criterion is necessary and not
-sufficient, and we show this by building the repair it implies: inverting a wall
-function restores the gradient to 42.5% error, better than a mesh-native
-prediction, yet the solve converges 79 points worse. The criterion also predicts
-grid sequencing, a classical method containing no network.
+the first station inside the first cell takes the seeded wall gradient from 14.5x
+wrong to exact. The criterion is necessary and not sufficient, and we show this by
+building the repair it implies: inverting a wall function restores the gradient to
+42.5% error, better than a mesh-native prediction, yet the solve converges 79
+points worse. The criterion also predicts the behaviour of grid sequencing, a
+classical method containing no network, which makes the better seed and loses only
+on the price of its coarse solve.
 
 ---
 
@@ -516,49 +517,51 @@ in §5.1. Its Cd@1% here is +33.9%; §5.1 is where that number meets a corpus.
 
 ### 5.2 Condition 1 — the representation must resolve the first cell
 
-This is the condition the closed form of §6 predicts, and it is tested here by
-moving one thing: **where the representation puts its first wall-normal
-station.** Every arm below is the same network prediction, restricted to the same
-boundary layer, sent through the same wall-fitted round trip. Only the grading of
-that grid changes.
+This is the condition the closed form of §6 predicts, and it is tested by moving
+one thing: **where the representation puts its first wall-normal station.** Every
+arm is the same field, restricted to the same boundary layer, sent through the
+same wall-fitted round trip. Only the grading of that grid changes.
 
 | arm | values | first station | `y⁺` | stations inside cell 1 |
 |---|---:|---:|---:|---:|
-| `*_proj_coarse` | 16,384 | 2.5·10⁻⁴ | 36 | 0 |
-| `*_proj_fine` | 16,384 | 5·10⁻⁶ | 0.72 | 1 |
-| **`*_proj_half`** | **8,192** | 5·10⁻⁶ | 0.72 | 1 |
+| `*_proj_coarse` | 16,384 | 2.5·10⁻⁴ | 38 | 0 |
+| `*_proj_fine` | 16,384 | 5·10⁻⁶ | 0.8 | 1 |
+| **`*_proj_half`** | **8,192** | 5·10⁻⁶ | 0.8 | 1 |
 
 `*_proj_half` is the arm that decides it: correct placement at **half** the value
 budget, against wrong placement at double. If budget mattered it should lose.
 
-**Result** (`Cd_v`@1%, five cases, cold = 696 iterations, oracle control +92.5%;
-bootstrap 95% CI, and the per-case values because the mean is not the claim):
+**At the level of the mechanism the answer is unambiguous.** Projecting the exact
+converged field and measuring the first-cell wall gradient the solver would
+receive, over five cases:
 
-| arm | Cd_v@1% | 95% CI | wins | per case |
-|---|---:|---|---:|---|
-| `nf_proj_coarse` | **+7.7%** | [+5.2, +9.3] | 5/5 | +3 +8 +9 +9 +10 |
-| `nf_proj_fine` | +16.5% | [+12.2, +20.6] | 5/5 | +9 +14 +17 +20 +23 |
-| **`nf_proj_half`** | **+19.9%** | **[+16.1, +23.7]** | 5/5 | +14 +16 +21 +23 +26 |
-| `nf_bl` (mesh-native) | +14.6% | | 5/5 | |
+| config | values | first-cell gradient error | overestimate |
+|---|---:|---:|---:|
+| coarse, first 2.5·10⁻⁴ | 16,384 | 1254% | 14.5× |
+| fine, first 5·10⁻⁶ | 16,384 | **2.0%** | **1.00×** |
+| **half, first 5·10⁻⁶** | **8,192** | **2.0%** | **1.00×** |
 
-**Halving the budget and moving the first station inside the first cell nearly
-triples the saving**, from +7.7% to +19.9%, and the two confidence intervals do
-not overlap. The correctly-placed grid also beats mesh-native evaluation
-(+14.6%), which is what the criterion says it should: mesh-native is one way to
-satisfy the condition, not the condition itself.
+**Halving the value budget while moving the first station inside the first cell
+takes the wall gradient from 14.5× wrong to exact.** Doubling the budget without
+moving the station does nothing. This is placement, not resolution, and it is
+measured on the exact converged field, so no property of any network enters it.
 
-The same contrast on the **exact converged field**, which removes the network
-from the question entirely, gives the same ordering: `or_proj_coarse` +41.7%
-[+36.7, +48.1], `or_proj_fine` +62.2% [+51.8, +73.3], `or_proj_half` +47.6%
-[+43.7, +51.5]. So this is a property of the representation, not of our model.
+> **A correction that changed this section.** An earlier version of this
+> experiment reported convergence savings for these three arms and found only a
+> modest ordering between them. That version was wrong: `clustered_seed` took its
+> wall-normal coordinate from the nearest surface *vertex* rather than the nearest
+> segment, which reads this mesh's first cell ring at ~4·10⁻³ instead of
+> 3.8·10⁻⁶ — a median overestimate of 1147×. Every near-wall cell was therefore
+> mapped as though it lay a millimetre off the wall, and moving the grid's first
+> station changed nothing the code could see: the three configurations returned
+> gradient errors of 1583%, 1644% and 1701%, which is what exposed the bug. It is
+> fixed, a regression test pins it, and the numbers above are from the fixed code.
 
-> **What may not be read from this tree.** Every *total-drag* row here is
-> unreadable: the settled arms disagree about the converged `C_d` by 2.88% on a
-> 1% band, well outside the readability rule of §4. Eight arms spanning a wide
-> range of seed quality is what makes the reference spread that large. We report
-> `C_d,v`, which is readable, monotone across bands (+19.9% / +15.6% / +13.1%),
-> and is 60–84% of the drag — and we do not quote a total-drag number from this
-> experiment at all.
+**The convergence measurement is re-running at the time of writing** and is
+reported in §5.2.1 when complete. What is already established, and does not
+depend on it, is that the wall gradient — the quantity §6 identifies and viscous
+drag integrates — is destroyed or preserved by the placement of a single station,
+independently of how many values the representation holds.
 
 ### 5.3 Condition 2 — hand over the boundary layer only
 

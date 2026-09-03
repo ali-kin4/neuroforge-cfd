@@ -16,16 +16,23 @@ that ratio is a property of the *law of the wall alone*:
 
     G = u+(y+ of the first station) / u+(y+ of the first cell centre)
 
-There is no fitted parameter in it. Against six converged cases at Re = 3e6 the
-closed form predicts 23.7x for a 256x64 wall-fitted grid whose first station
-sits at y+ = 36, where the measured overestimate is 21.0x -- accurate to 13%
-with 2% scatter (``docs/protocols/placement_prediction.md``).
+There is no fitted parameter in it. Measured against five cases at five
+first-station heights spanning a factor of fifty, it **over-predicts in every
+row, by 1.3x to 2.6x** (``results/closed_form_validation.json``). So it is an
+**upper bound** on the damage -- correct in direction and in ordering, and never
+optimistic -- rather than a point estimate.
+
+An earlier version of this docstring claimed agreement to 13%. That figure was
+measured before :func:`neuroforge.solver.warmstart.clustered_seed` was fixed to
+take its wall-normal coordinate from ``wall_distance`` (point-to-segment) rather
+than ``surface_coords`` (nearest vertex, which overestimated the first cell ring
+by a median 1147x). It is withdrawn.
 
 **Where it holds.** While the first station lies in the viscous sublayer, buffer
 or log region. Once the station is outside the boundary layer the log law is not
 valid there and the velocity has saturated at freestream; the formula then
-over-predicts and should be read as an upper bound. :func:`amplification`
-reports which regime it used rather than leaving the caller to guess.
+over-predicts further still. :func:`amplification` reports which regime it used
+rather than leaving the caller to guess.
 
 **What it is for.** Deciding, before committing to an output format, whether a
 surrogate can be used to warm start a solver at all -- and if not, what to
