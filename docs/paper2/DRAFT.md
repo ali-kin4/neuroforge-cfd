@@ -567,6 +567,24 @@ two to five times a cold start when it is stored on a grid first.
 > representation damage to be visible against it. The claim is made on the oracle
 > arms, where it is clean, and the network arms are reported for completeness.
 
+> ![fig](results/placement.png)
+>
+> **Figure 1. What a representation does to the near-wall state, and what that
+> does not explain.** All three panels are measured on the **exact converged
+> field**, so no property of any network enters. **(A)** The closed form of §6
+> against the measured first-cell gradient overestimate, at five first-station
+> heights spanning a factor of fifty. Nothing is fitted; every point lies *above*
+> the identity line, which is the claim — an upper bound that never flatters.
+> **(B)** The same measurement against where the representation's first station
+> sits, with marker area proportional to the number of stored values. Marker area
+> varies 32-fold while the points follow a curve set only by the first station:
+> placement, not budget, determines what a grid retains. **(C)** The paper's
+> negative result. Measured gradient error against convergence saving, one point
+> per arm: the mesh-native seed and a projection sixteen times worse on the
+> gradient reach the same viscous drag, and repairing the gradient by more than a
+> decade moves convergence by under a point. Near-wall fidelity does not predict
+> the solve (§5.2.1, §5.5, §6.7).
+
 ### 5.2.1 It is **not** the near-wall state — a result we did not expect
 
 The obvious explanation is that a grid cannot hold the near-wall state. §6 shows
