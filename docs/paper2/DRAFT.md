@@ -188,7 +188,8 @@ mesh-native seed retains the wall gradient. Their result is the largest
 near-wall warm-start gain in the literature and it is consistent with, not
 contrary to, what we measure.
 
-Fuchi et al. [8] report the largest number in this literature — **26.3× fewer
+Fuchi et al. [8], whose group also studies multi-fidelity learned flow models
+[22], report the largest number in this literature — **26.3× fewer
 iterations and 16.4× wall-clock** — from a convolutional wake-extension model.
 It is worth being precise about what that result contains, because at first
 reading it dwarfs everything here. Their method divides the domain into
@@ -212,6 +213,12 @@ and §5.6 is the reason we departed from it: on our configuration one seed is
 **+22.1% on the residual and −58.8% on total drag**. We are not claiming their
 result is wrong; we are reporting that on our cases the two metrics can disagree
 in sign, so we fixed a force metric before running the arms.
+
+A third line puts the surrogate *inside* the solver rather than ahead of it:
+Sousa et al. [19] embed one in the PISO pressure-velocity loop and, importantly
+for §9, introduce a solver-intrinsic, hardware-independent measure of effort that
+charges the surrogate's own overhead -- the same accounting concern that makes us
+report iterations and seconds separately.
 
 At the level of the linear algebra rather than the field, NOWS [4] supplies
 learned initial guesses to Krylov solvers and reports up to 90% time reduction;
@@ -237,6 +244,10 @@ the drag coefficient. §6 measures the same overestimate — a factor of ~20 —
 arising from the *representation alone*, with the exact converged field in place
 of any prediction.
 
+The field audits itself in the same direction: benchmark evaluations of current
+architectures for aerodynamic prediction [20] and the ML4CFD competition
+retrospective [21] both report near-wall quantities as the weak point.
+
 DD-RNO [14] argues that "a single neural architecture cannot simultaneously
 resolve sharp near-wall boundary layers and smooth far-field potential flow" and
 routes query points to separate inviscid, boundary-layer and wake decoders by
@@ -248,12 +259,17 @@ direction.
 
 ### 2.3 Mesh-native surrogates
 
-Transolver [2], PCNO [3] and their successors [16, 17] predict on native mesh
+Transolver [2], PCNO [3] and their successors [16, 17, 23] predict on native mesh
 points rather than on a raster, and the capability is presented as an accuracy or
 memory convenience. This paper's claim is that it is not a convenience: it is the
 difference between a seed that accelerates a solve and one that costs more than
 starting cold. A surrogate stored as a 128² image cannot be used for warm
 starting at all, and no amount of raster refinement recovers it (§7.1).
+
+The point sharpens as the field moves to pretrained, general-purpose aerodynamic
+models [24], where the output representation is a design decision taken once and
+inherited by every downstream user. If such a model is ever to be handed to a
+solver, the criterion of §6 is a constraint on that decision.
 
 ### 2.4 Classical initialisation, which is what a practitioner actually uses
 
@@ -261,7 +277,7 @@ The comparator that matters is not a uniform freestream. Production aerodynamics
 warm starts by **grid sequencing**: solve on a coarsened mesh, map the result up,
 continue on the fine mesh — shipped in OpenFOAM as `mapFields`, and closely
 related to full-multigrid initialisation, which is standard in structured
-compressible codes. A learned initialisation measured only against a cold start
+compressible codes and still an active line in its own right [26]. A learned initialisation measured only against a cold start
 has not answered the question a practitioner asks.
 
 We therefore run grid sequencing as an arm (§5.7), with the coarse solve charged
@@ -1038,8 +1054,8 @@ near-wall velocity — is what we pursued, and it is **false**:
 - The arm that wins hands over velocity and eddy viscosity inside the boundary
   layer and **no pressure at all**.
 
-The reason is SIMPLE's structure. Pressure is recomputed from continuity given
-the velocity field, so a pressure seed inconsistent with `U` is overwritten
+The reason is SIMPLE's structure [25]. Pressure is recomputed from continuity
+given the velocity field, so a pressure seed inconsistent with `U` is overwritten
 within a few iterations; only fields entering the momentum and turbulence
 transport carry information forward. We keep this section because a falsified
 prediction from a measured decomposition is stronger evidence than an
