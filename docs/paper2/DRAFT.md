@@ -1382,12 +1382,13 @@ seconds, on one machine, with the seed's own construction charged to it.
 
 ### On the repair, which did not work
 
-- **We do not know why it failed**, and §5.5 says so. The repair restores the
-  first-cell gradient to 69.4% error, close to the mesh-native seed's 53.7%, and the
-  convergence saving does not follow. The one measurable difference we can point
-  at is that the repaired seed is 11.1× rougher along the wall than the converged
-  field against 4.2× for mesh-native, but **that is a candidate, not a finding**,
-  and a tangentially-smoothed repair is the experiment that would settle it.
+- **The repair restores the gradient and the solve does not follow**, and the
+  one candidate explanation we had was tested and eliminated. The repaired seed
+  is 26.2× rougher along the wall than the converged field against 4.2× for the
+  mesh-native seed, so we smoothed the reconstruction to 5.7× — matching the
+  working seed on both diagnostics — and convergence moved 0.6 points (§5.5). We
+  therefore do not attribute the failure to roughness, or to anything else about
+  the near-wall velocity field.
 - **The repair assumes an equilibrium profile**, as the closed form does, and
   assumes the representation's first station carries a usable velocity. Where the
   layer separates the inverted `u_τ` is meaningless. Every case here is attached
