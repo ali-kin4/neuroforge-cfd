@@ -925,8 +925,7 @@ purely by the choice of first station. §5.2 measures that middle directly, and
 ### 6.6 The criterion across Reynolds number, at no compute cost
 
 Because the closed form is written in wall units it makes a prediction about a
-regime this study never set out to measure, and the prediction is not the
-obvious one:
+regime this study never set out to measure, and it is not the obvious one:
 
 > **On the same mesh, a lower Reynolds number makes the projection worse.**
 
@@ -940,34 +939,37 @@ This is testable with no new solves. Converged cold solves on the *same* C-grid
 already exist at Re = 10³ to 3·10⁶. Projecting each through the same wall-fitted
 grid gives Table 7 (`scripts/reynolds_transfer.py`):
 
-| Re | `y⁺` first cell | `y⁺` station | predicted `G` | measured `G` | ratio | weak-shear surface |
+| Re | `y⁺` first cell | `y⁺` station | predicted `G` | measured `G` | pred/meas | weak-shear surface |
 |---:|---:|---:|---:|---:|---:|---:|
-| 10³ | 0.001 | 0.1 | 62.5× | 179× | 0.35 | 61% |
-| 10⁴ | 0.004 | 0.3 | 62.5× | 185× | 0.34 | 62% |
-| 10⁵ | 0.027 | 1.7 | 62.5× | 195× | 0.32 | 42% |
-| **10⁶** | 0.21 | 13.3 | **44.9×** | **54.0×** | **0.83** | 11% |
-| **3·10⁶** | 0.58 | 36.1 | **23.8×** | **24.7×** | **0.96** | 6% |
+| 10³ | 0.001 | 0.1 | 62.5× | 21.7× | 2.88 | 61% |
+| 10⁴ | 0.004 | 0.3 | 62.5× | 21.6× | 2.90 | 62% |
+| 10⁵ | 0.027 | 1.7 | 62.5× | 23.2× | 2.69 | 42% |
+| 10⁶ | 0.21 | 13.3 | 44.9× | 20.8× | 2.16 | 11% |
+| **3·10⁶** | 0.58 | 36.1 | **23.8×** | **15.0×** | **1.62** | 6% |
 
-**The direction is confirmed across three and a half decades and is monotone**:
-the same representation on the same mesh costs 24.7× at Re = 3·10⁶ and 179× at
-Re = 10³. A practitioner's instinct — that a coarse representation is more
-forgiving at low Reynolds number, where the flow is smoother — is exactly wrong,
-and the reason is that the mesh's first cell has moved into the linear sublayer
-while the representation's has not.
+**The direction holds across three and a half decades**: the same representation
+on the same mesh costs 15.0× at Re = 3·10⁶ and 21.7× at Re = 10³. A
+practitioner's instinct — that a coarse representation is more forgiving at low
+Reynolds number, where the flow is smoother — is the wrong way round, and the
+reason is that the mesh's first cell has moved into the linear sublayer while the
+representation's has not.
 
-**The quantitative agreement holds only where the law of the wall does**, and
-the last column says where that is. It reports the fraction of surface stations
-carrying under a tenth of the peak wall shear — the signature of a laminar or
-separated layer. At Re ≥ 10⁶ it is 6–11% and the closed form is accurate to
-within 4–17%. At Re ≤ 10⁵ it is 42–62%: the boundary layer is laminar and
-largely separated, the law of the wall does not describe it, and the expression
-becomes a **lower bound**, under-predicting the true damage by about three-fold.
+**The effect is real but modest, and it saturates.** The measured damage rises by
+about 45% over that range rather than by the factor of three the unbounded
+expression suggests, and it is flat below Re = 10⁵. The bound loosens in the same
+direction: predicted/measured grows from 1.6 at Re = 3·10⁶ to 2.9 at Re = 10³.
+The last column says why. It reports the fraction of surface stations carrying
+under a tenth of the peak wall shear — the signature of a laminar or separated
+layer. At Re ≥ 10⁶ it is 6–11%; at Re ≤ 10⁵ it is 42–62%, the boundary layer is
+laminar and largely separated, and the law of the wall does not describe it at
+all. The expression is then a bound in the loosest sense: it still gets the sign
+and the ordering right, and it still errs conservatively.
 
-We regard this as the honest outcome rather than a weakness. The formula is
-derived from an equilibrium turbulent wall profile and it is accurate exactly
-where such a profile exists; outside that regime it still gets the sign and the
-ordering right, and it errs conservatively — it says a representation is worse
-than it looks, never better.
+> **These numbers were re-measured on 2026-09-01** after the wall-distance defect
+> described in §5.2 was fixed. The earlier version of this table read 24.7× at
+> Re = 3·10⁶ rising to 179× at Re = 10³, a far more dramatic trend, and it was an
+> artifact of that defect. The direction survived the correction; the magnitude
+> did not, and the corrected magnitude is what is reported.
 
 ## 7. What does not work, and why that matters
 Three predictions a reader would reasonably make are false here, and each was
