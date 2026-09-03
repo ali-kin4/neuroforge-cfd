@@ -8,6 +8,40 @@ Last updated: **2026-08-31** · branch `paper2/openfoam-warm-start` · pushed to
 
 ---
 
+## 0.02 THE SMOOTHING DOES MOVE SOMETHING — pressure drag, not the primary metric (2026-09-01)
+
+Full force table, `results/depth_repair.json`, five cases. Read §0.03 first: on
+the **pre-committed** metric the conclusion there is unchanged.
+
+| row | readable | oracle | `nf_bl` | `nf_proj` | `nf_proj_fix` | `nf_proj_smooth` |
+|---|---|---:|---:|---:|---:|---:|
+| Cd@1% | yes | +92.0% | **+34.3%** | -32.1% | -32.0% | -31.4% |
+| Cd@0.5% | no | +93.6% | +48.3% | -67.4% | -66.6% | -66.6% |
+| Cd_v@1% | yes | +92.5% | +14.6% | +14.5% | +11.7% | +11.5% |
+| **Cd_p@0.5%** | yes | +82.6% | **-115.4%** | -141.2% | -141.3% | **+19.8%** |
+| **Cd_p@0.2%** | yes | +79.1% | -119.5% | -128.5% | -128.6% | **+57.8%** |
+| Cl@1% | yes | +99.9% | +10.1% | +29.9% | +16.9% | +16.4% |
+
+**Smoothing the reconstructed `u_tau` moves pressure-drag convergence by 160-186
+points** and leaves `Cd`@1% and `Cd_v`@1% untouched. It is the only arm in the
+study that is *positive* on `Cd_p`, including against the recommended seed, which
+is -115%.
+
+**Discipline first.** The paper's pre-committed primary metric is the force band
+on `C_d` and `C_d,v` (§4). On those, §0.03 stands: the repair changes nothing.
+`Cd_p` is a **secondary** quantity here, it converges 3x slower than `C_d` (cold
+2070-3174 against 813), its 1% row is **unreadable**, and the bands are relative
+to each coefficient's own converged value so the rows are not additive. Reporting
+`Cd_p` as the headline after seeing it would be exactly the metric-shopping §3.7
+exists to prevent.
+
+**But it is a real signal and it belongs in the paper as one.** A physically
+coherent reading: a *rough* wall-shear distribution drives a spurious pressure
+response, and smoothing it removes that. It also fits §5.4 -- pressure is where
+inconsistent seeds do their damage. State it as an observation on a secondary
+quantity, with the readability caveat, and name the experiment that would settle
+it (a smoothed **mesh-native** seed, which the study does not have).
+
 ## 0.03 THE SMOOTHED REPAIR CHANGES NOTHING — the last candidate is eliminated (2026-09-01)
 
 `results/depth_repair.json`, arm set declared (`--drop-arm or_proj_smooth`, still
