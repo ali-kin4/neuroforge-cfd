@@ -78,7 +78,7 @@ PLACEMENTS = (
     ("half",   5.0e-6, 32),   # 8,192 values -- half the budget, still inside
 )
 
-NEW_ARMS = (("oracle_mesh", "nf_bl")
+NEW_ARMS = (("oracle_mesh", "oracle_bl", "nf_bl")
             + tuple(f"nf_proj_{s}" for s, _, _ in PLACEMENTS)
             + tuple(f"or_proj_{s}" for s, _, _ in PLACEMENTS))
 
@@ -216,7 +216,15 @@ def main(argv: list[str] | None = None) -> int:
         def err(a, b, m):
             return float(100 * np.linalg.norm(a[m] - b[m]) / max(np.linalg.norm(b[m]), 1e-30))
 
-        seeds: dict[str, tuple] = {"oracle_mesh": truth, "nf_bl": bl_only(pred)}
+        # `oracle_bl` is the control the representation contrast needs. Without
+        # it, `oracle_mesh` (whole field, all four channels including p) against
+        # `or_proj_*` (boundary layer only, three channels, p never seeded)
+        # spans representation AND region AND channel set. This arm holds region
+        # and channels fixed at the projected arms' values and changes only the
+        # representation, so it is the one-variable contrast the paper claims.
+        seeds: dict[str, tuple] = {"oracle_mesh": truth,
+                                   "oracle_bl": bl_only(truth),
+                                   "nf_bl": bl_only(pred)}
         damage: dict[str, dict] = {}
         for suffix, first, n_n in PLACEMENTS:
             geometry[suffix] = {

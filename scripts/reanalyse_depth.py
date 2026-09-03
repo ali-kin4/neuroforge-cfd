@@ -63,6 +63,7 @@ KNOWN_ARMS = ("oracle_mesh", "cartesian_128", "fitted_256x64", "fitted_outer",
               # `*_coarse`'s 16,384, so it is the arm that separates placement
               # from budget. `nf_*` is the network prediction, `or_*` the exact
               # converged field, so every statement has an accuracy-free twin.
+              "oracle_bl",
               "nf_proj_coarse", "nf_proj_fine", "nf_proj_half",
               "or_proj_coarse", "or_proj_fine", "or_proj_half",
               # Repair (`scripts/repair_probe.py`): the projection, and the same

@@ -138,12 +138,15 @@ Ordered by what we think survives, not by what is largest.
    cases, p = 0.0002, with a passing oracle control and a null negative control
    (§5.1).
 6. **A comparison with the classical warm start** the machine-learning
-   initialisation literature does not make: grid sequencing, with its coarse
-   solve charged (§5.7). It makes a **better seed than ours** — +75.9% on viscous
-   drag against +14.6%, exactly as the criterion predicts for a coarsened
-   body-fitted mesh — and still loses, because the coarse solve costs 1486
-   fine-equivalent iterations against a cold run of 696. **The learned seed's
-   advantage is price, not quality.**
+   initialisation literature does not make: grid sequencing, charged honestly
+   (§5.7). It is **better than the learned seed on both axes** — +75.9% on
+   viscous drag against +14.6%, and ≈68% end-to-end once its coarse solve is
+   charged at that solve's own convergence rather than at a full budget. The
+   criterion predicts this correctly for a method containing no network. We
+   report it because a paper that measures a learned seed only against a cold
+   start has not answered the question a practitioner asks, and because an
+   earlier draft of this work reached the opposite conclusion from a charge it
+   had set too high.
 7. **An acceptance certificate** bounding the worst case at (1 + K/N) × cold with
    a rule that never sees a cold run (§8), and **three falsified predictions** a
    reader would otherwise make (§7).
@@ -580,6 +583,76 @@ quantity that separates them: the raster's first wall-normal station sits at
 > earlier draft of this paper led with those numbers. `C_d,v` is 60–84% of the
 > drag here, it is monotone across bands, and it is the row we quote.
 
+### 5.2.1 It is not the near-wall state — a result we did not expect
+
+The obvious explanation is that a grid cannot hold the near-wall state. §6 shows
+that damage is real, computable and bounded. **It is not what costs the solve.**
+The placement ladder shows it directly: all three arms below carry the same exact
+field through the same round trip, and only the grading of the grid changes.
+
+| arm | values | first station | wall-gradient error | roughness (× conv.) | `C_d,v`@1% |
+|---|---:|---:|---:|---:|---:|
+| `or_proj_coarse` | 16,384 | 2.5·10⁻⁴ | **1218.8%** | 16.8× | **+86.1%** |
+| `or_proj_fine` | 16,384 | 5·10⁻⁶ | **1.8%** | **1.0×** | +69.1% |
+| `or_proj_half` | 8,192 | 5·10⁻⁶ | **1.8%** | **1.0×** | +71.0% |
+| `oracle_mesh` | — | native | 0.0% | 1.0× | +92.5% |
+
+**Placement, not budget, determines what a grid retains.** Moving the first
+station inside the mesh's first cell takes the wall-gradient error from 1218.8%
+to **1.8%** and the roughness to the converged field's own, at half the value
+budget as readily as at the full one. That is §6's criterion, confirmed.
+
+**And it does not help.** The arm carrying 1218.8% gradient error is the *best*
+of the three on the readable row (+86.1% against +69.1%), and on total drag the
+ordering is the same. Restoring the first-cell gradient does not recover the
+solve; here it costs.
+
+> **Two honest qualifications.** The 1.8% is a single scalar — the first-cell
+> wall-normal gradient — and not a statement about the near-wall *state*. The
+> same arm's boundary-layer field errors are 8.1% in `u` and **23.1% in `nut`**,
+> and its `nut` damage is *worse* than the coarse arm's 17.9%. §5.4 identifies
+> `nut` as the least forgiving channel, so that is a live alternative explanation
+> for the ordering, and we did not test it. Second, the grading change moves the
+> grid's growth ratio as well as its first station (1.141 → 1.214), so the ladder
+> is not a strictly one-variable contrast. What it supports is the null —
+> restoring the first-cell gradient does not recover the solve — and not a claim
+> about which other quantity does.
+
+### 5.2.2 Where the damage is: located only weakly, and reported as such
+
+An earlier version of this paper located the damage in the pressure field. That
+claim does not survive its own numbers and is **withdrawn** here.
+
+The reasoning was: every projection preserves viscous drag while total drag
+collapses, so the damage must be in `C_d,p`. Three objections defeat it.
+
+1. **It is an identity, not a measurement.** `C_d = C_d,p + C_d,v`. Showing
+   `C_d,v` preserved and `C_d` destroyed *entails* `C_d,p` destroyed; it locates
+   nothing. We report no field-level diagnostic of the seeded pressure, and
+   without one the claim is arithmetic.
+2. **The quoted number was censored.** `or_proj` reads −184.3% on `C_d,p`@0.5%
+   as a bounded mean over four cases of which one never reached the band; over
+   the three that did it is **−37.8%**. §4 rule 3 requires the bound *and* the
+   reached-only value.
+3. **The recommended seed has the same defect.** `nf_bl` reads **−116.1%** on
+   `C_d,p`@0.5% while winning the headline row 13/13. A quantity on which the
+   winning seed and the worst-losing seed are both strongly negative cannot be
+   what separates them.
+
+We also withdraw the supporting observation that smoothing the wall-law repair
+rescued pressure drag. On the three cases the repair arms actually reached the
+band, the unsmoothed repair reads **+19.8%** and the smoothed **+20.0%** — a
+0.2-point difference, not the 160 points an earlier draft reported. That gap was
+an artifact of the arms being scored over different case sets, one censored and
+one dropped: precisely the failure §4 rule 3 exists to prevent, applied to our
+own headline. The rule caught it, and the paper is the place to say so.
+
+**What can be said.** `C_d,v` is preserved by every projection we ran while
+`C_d` is not, so the damage falls outside the near-wall shear and pressure is
+the natural suspect. **We do not have the measurement that would establish it**,
+and §10 records this as the paper's principal open question rather than dressing
+a suspicion as a finding.
+
 ### 5.3 Condition 2 — hand over the boundary layer only
 
 The region axis is controlled the same way as the resampling axis: both arms are
@@ -753,55 +826,68 @@ bounds drag bounds the residual metric's worst case at -7.6%.
 
 ---
 
-### 5.7 The classical baseline: grid sequencing
+### 5.7 The classical baseline beats the learned seed on both axes
 
 The comparator that matters is not a uniform freestream. Production aerodynamics
-warm starts by **grid sequencing** — solve on a coarsened mesh, map the result up,
-continue on the fine one — and a learned initialisation measured only against a
-cold start has not answered the question a practitioner asks. We run it as an
-arm: the same C-grid family coarsened by two (7,850 cells against 31,700, first
-cell 2·10⁻⁵ against 10⁻⁵), mapped with a nearest-cell map in body-fitted
-coordinates, and its coarse solve **charged**.
+warm starts by **grid sequencing** — solve on a coarsened mesh, map the result
+up, continue on the fine one — and a learned initialisation measured only against
+a cold start has not answered the question a practitioner asks. We run it: the
+same C-grid family coarsened by two (7,850 cells against 31,700, first cell
+2·10⁻⁵ against 10⁻⁵), mapped with a nearest-cell map in body-fitted coordinates,
+and its coarse solve **charged**.
 
 | row | cold | oracle | `nf_bl` | `sequenced_bl` | `sequenced_vel` | `sequenced_nut` | `sequenced` |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Cd@1% | 802 | +92.1% | +33.9% | −302.4% | −4.2% | — | −375.4% |
-| Cd_v@1% | 696 | +92.4% | +14.6% | **+75.9%** | +2.2% | +34.9% | +63.1% |
-| Cl@1% | 944 | +99.9% | +10.1% | +49.4% | −0.1% | −59.7% | +33.1% |
+| `C_d,v`@1% | 696 | +92.4% | +14.6% | **+75.9%** | +2.2% | +34.9% | +63.1% |
+| `C_d`@1% | 802 | +92.1% | +33.9% | −302.4% | −4.2% | — | −375.4% |
+| `C_l`@1% | 944 | +99.9% | +10.1% | +49.4% | −0.1% | −59.7% | +33.1% |
 
-**Three things follow, and none of them is "ours is better".**
+**It makes a far better seed.** On the readable row grid sequencing reads +75.9%
+against our +14.6% — five times the saving — which is what §6 predicts for it: a
+coarsened body-fitted mesh keeps its wall-normal stations clustered at the wall,
+so it satisfies the placement criterion by construction. **The criterion
+correctly predicts the behaviour of a method containing no network, no training
+data and no surrogate, and from which it was not derived.**
 
-**The classical seed is the better seed.** On viscous drag grid sequencing reads
-+75.9% against our +14.6% — five times the saving. That is exactly what §6
-predicts for it: a coarsened body-fitted mesh keeps its stations clustered at the
-wall, so it satisfies condition 1 by construction. **The criterion correctly
-predicts the behaviour of a method that contains no network, no training data and
-no surrogate, and from which it was not derived.**
+**And it is also cheaper, which an earlier draft of this paper got wrong.** The
+coarse solve is a real cost and must be charged. We first charged it at its full
+6000-iteration budget — 1486 fine-mesh-equivalent iterations at the cell-count
+ratio — and concluded that grid sequencing lost on price. That is not what a
+practitioner does. A coarse level is run until its own forces settle. Charging it
+at the iteration where the *coarse* solve's `C_d,v` enters and stays in its own
+1% band:
 
-**And it still is not worth running here.** The coarse solve is a real cost.
-Converted at the cell-count ratio — the conservative direction, since a coarse
-cell is cheaper — it charges **1486 fine-equivalent iterations against a cold run
-of 696**. The saving cannot pay for that. Our seed's advantage is therefore not
-quality but **price**: ~11 s of inference against a second solve. That is the
-honest comparison, and it is a different claim from the one the warm-start
-literature usually makes.
+| case | coarse iterations to its own 1% band | fine-equivalent charge |
+|---|---:|---:|
+| naca0012@0° | 186 | 46 |
+| naca0012@4° | 206 | 51 |
+| naca0015@6° | 246 | 61 |
+| naca2412@2° | 193 | 48 |
+| naca2415@5° | 240 | 59 |
+| **mean** | **214** | **53** |
 
-**The channel condition holds for it too, and total drag is destroyed.** The
-split mirrors §5.4's exactly: the saving rides on the eddy viscosity (+34.9%
-alone) while velocity alone is inert (+2.2%). Unlike `nf_bl`, however, handing
-both channels over does **not** rescue total drag (−302.4%). The consistency
-condition of §5.4 is evidently about consistency *at the fine mesh's resolution*,
-which a coarse velocity field does not have — it carries a `nut` generated by a
-strain field the fine mesh does not reproduce.
+The charge is **53 fine-equivalent iterations, not 1486**. `sequenced_bl` then
+reaches the band at ≈168 fine iterations, so the total is ≈221 against a cold
+696 — a **≈68% end-to-end saving**, against the learned seed's +14.6%.
 
-> **Caveats, stated rather than buried.** The coarse solve ran its full 6000
-> iterations, so the charge above is pessimistic; a practitioner would stop it
-> earlier. And the mapper is ours, not a production `mapFields`: it leaves a
-> first-cell gradient overestimate of order 6–10× where the coarse mesh's
-> placement alone would permit about 2×, so this arm is a **lower bound** on what
-> grid sequencing can do. Both caveats point the same way — grid sequencing
-> would look better, not worse, with more care — and neither changes the
-> conclusion that its seed is good and its price is a second solve.
+**We therefore withdraw the claim that the learned seed's advantage is price.**
+On this configuration classical grid sequencing is better on both axes, by a
+factor of roughly four. Two caveats both point the same way — the mapper is ours
+rather than a production `mapFields`, and §5.7's own diagnostic puts it at a
+6–10× first-cell gradient overestimate where the coarse mesh's placement would
+permit about 2×, so this is a **lower bound** on grid sequencing.
+
+What remains for the learned seed is a workflow argument, not a performance one:
+it needs no second mesh, no second solver configuration and no coarse solve, and
+it produces its seed in ~11 s of inference. That is worth something in an
+automated design loop. It is not a speed record, and §11 says so.
+
+> **The one thing grid sequencing does not fix.** Both `sequenced` arms are
+> strongly negative on *total* drag (−302%, −375%), as our own projections are.
+> The channel split is the same as §5.4's: the saving rides on `nut` (+34.9%
+> alone) while velocity alone is inert (+2.2%). So the classical method inherits
+> the same total-drag pathology, which is further evidence that it belongs to the
+> solver and the metric rather than to any particular seed.
 
 ### 5.8 A common-mode limitation, checked rather than assumed
 
