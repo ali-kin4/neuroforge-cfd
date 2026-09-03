@@ -11,6 +11,8 @@
     "oracle_mesh",
     "nf_bl",
     "sequenced_bl",
+    "sequenced_vel",
+    "sequenced_nut",
     "sequenced"
   ],
   "cold_floor": {
@@ -30,6 +32,8 @@
           "oracle_mesh": 1,
           "nf_bl": 9,
           "sequenced_bl": 17,
+          "sequenced_vel": 18,
+          "sequenced_nut": 20,
           "sequenced": 23
         },
         "naca0012_aoa4": {
@@ -37,6 +41,8 @@
           "oracle_mesh": 1,
           "nf_bl": 7,
           "sequenced_bl": 8,
+          "sequenced_vel": 9,
+          "sequenced_nut": 10,
           "sequenced": 21
         },
         "naca0015_aoa6": {
@@ -44,6 +50,8 @@
           "oracle_mesh": 1,
           "nf_bl": 7,
           "sequenced_bl": 8,
+          "sequenced_vel": 8,
+          "sequenced_nut": 10,
           "sequenced": 21
         },
         "naca2412_aoa2": {
@@ -51,6 +59,8 @@
           "oracle_mesh": 1,
           "nf_bl": 8,
           "sequenced_bl": 9,
+          "sequenced_vel": 9,
+          "sequenced_nut": 11,
           "sequenced": 23
         },
         "naca2415_aoa5": {
@@ -58,6 +68,8 @@
           "oracle_mesh": 1,
           "nf_bl": 7,
           "sequenced_bl": 8,
+          "sequenced_vel": 8,
+          "sequenced_nut": 10,
           "sequenced": 22
         }
       },
@@ -92,6 +104,26 @@
           0.26086956521739135
         ]
       },
+      "sequenced_vel": {
+        "saving": 0.08792270531400967,
+        "saving_reached_only": 0.08792270531400967,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          0.0,
+          0.21739130434782605
+        ]
+      },
+      "sequenced_nut": {
+        "saving": -0.08502415458937203,
+        "saving_reached_only": -0.08502415458937203,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.22222222222222232,
+          0.13043478260869568
+        ]
+      },
       "sequenced": {
         "saving": -1.1333333333333333,
         "saving_reached_only": -1.1333333333333333,
@@ -112,6 +144,8 @@
           "oracle_mesh": 1,
           "nf_bl": 112,
           "sequenced_bl": 85,
+          "sequenced_vel": 87,
+          "sequenced_nut": 84,
           "sequenced": 59
         },
         "naca0012_aoa4": {
@@ -119,6 +153,8 @@
           "oracle_mesh": 5,
           "nf_bl": 64,
           "sequenced_bl": 67,
+          "sequenced_vel": 74,
+          "sequenced_nut": 65,
           "sequenced": 33
         },
         "naca0015_aoa6": {
@@ -126,6 +162,8 @@
           "oracle_mesh": 5,
           "nf_bl": 67,
           "sequenced_bl": 72,
+          "sequenced_vel": 86,
+          "sequenced_nut": 70,
           "sequenced": 32
         },
         "naca2412_aoa2": {
@@ -133,6 +171,8 @@
           "oracle_mesh": 6,
           "nf_bl": 72,
           "sequenced_bl": 71,
+          "sequenced_vel": 126,
+          "sequenced_nut": 60,
           "sequenced": 38
         },
         "naca2415_aoa5": {
@@ -140,6 +180,8 @@
           "oracle_mesh": 6,
           "nf_bl": 71,
           "sequenced_bl": 72,
+          "sequenced_vel": 111,
+          "sequenced_nut": 69,
           "sequenced": 34
         }
       },
@@ -174,6 +216,26 @@
           0.06493506493506496
         ]
       },
+      "sequenced_vel": {
+        "saving": -0.31835139177309846,
+        "saving_reached_only": -0.31835139177309846,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.9090909090909092,
+          -0.0235294117647058
+        ]
+      },
+      "sequenced_nut": {
+        "saving": 0.06913149950432469,
+        "saving_reached_only": 0.06913149950432469,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          0.0117647058823529,
+          0.09090909090909094
+        ]
+      },
       "sequenced": {
         "saving": 0.47805843394907194,
         "saving_reached_only": 0.47805843394907194,
@@ -194,6 +256,8 @@
           "oracle_mesh": 6,
           "nf_bl": 408,
           "sequenced_bl": 372,
+          "sequenced_vel": 242,
+          "sequenced_nut": 157,
           "sequenced": 565
         },
         "naca0012_aoa4": {
@@ -201,6 +265,8 @@
           "oracle_mesh": 14,
           "nf_bl": 175,
           "sequenced_bl": 188,
+          "sequenced_vel": 193,
+          "sequenced_nut": 210,
           "sequenced": 174
         },
         "naca0015_aoa6": {
@@ -208,6 +274,8 @@
           "oracle_mesh": 14,
           "nf_bl": 193,
           "sequenced_bl": 201,
+          "sequenced_vel": 205,
+          "sequenced_nut": 218,
           "sequenced": 227
         },
         "naca2412_aoa2": {
@@ -215,6 +283,8 @@
           "oracle_mesh": 16,
           "nf_bl": 202,
           "sequenced_bl": 193,
+          "sequenced_vel": 247,
+          "sequenced_nut": 223,
           "sequenced": 175
         },
         "naca2415_aoa5": {
@@ -222,6 +292,8 @@
           "oracle_mesh": 15,
           "nf_bl": 188,
           "sequenced_bl": 200,
+          "sequenced_vel": 221,
+          "sequenced_nut": 217,
           "sequenced": 159
         }
       },
@@ -256,6 +328,26 @@
           -0.010101010101010166
         ]
       },
+      "sequenced_vel": {
+        "saving": -0.10930684262312448,
+        "saving_reached_only": -0.10930684262312448,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.3798882681564246,
+          0.028112449799196804
+        ]
+      },
+      "sequenced_nut": {
+        "saving": -0.04168739526483349,
+        "saving_reached_only": -0.04168739526483349,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.24581005586592175,
+          0.3694779116465864
+        ]
+      },
       "sequenced": {
         "saving": -0.22735308530825793,
         "saving_reached_only": -0.22735308530825793,
@@ -276,6 +368,8 @@
           "oracle_mesh": 55,
           "nf_bl": 1788,
           "sequenced_bl": 995,
+          "sequenced_vel": 812,
+          "sequenced_nut": 961,
           "sequenced": 1173
         },
         "naca0012_aoa4": {
@@ -283,6 +377,8 @@
           "oracle_mesh": 62,
           "nf_bl": 407,
           "sequenced_bl": 634,
+          "sequenced_vel": 748,
+          "sequenced_nut": 567,
           "sequenced": 575
         },
         "naca0015_aoa6": {
@@ -290,6 +386,8 @@
           "oracle_mesh": 63,
           "nf_bl": 393,
           "sequenced_bl": 462,
+          "sequenced_vel": 952,
+          "sequenced_nut": 640,
           "sequenced": 879
         },
         "naca2412_aoa2": {
@@ -297,6 +395,8 @@
           "oracle_mesh": 67,
           "nf_bl": 572,
           "sequenced_bl": 430,
+          "sequenced_vel": 828,
+          "sequenced_nut": 578,
           "sequenced": 560
         },
         "naca2415_aoa5": {
@@ -304,6 +404,8 @@
           "oracle_mesh": 66,
           "nf_bl": 695,
           "sequenced_bl": 333,
+          "sequenced_vel": 966,
+          "sequenced_nut": 559,
           "sequenced": 826
         }
       },
@@ -338,6 +440,26 @@
           0.5217391304347826
         ]
       },
+      "sequenced_vel": {
+        "saving": -0.6121155168093514,
+        "saving_reached_only": -0.6121155168093514,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -1.391089108910891,
+          0.07411630558722915
+        ]
+      },
+      "sequenced_nut": {
+        "saving": -0.1767404379241749,
+        "saving_reached_only": -0.1767404379241749,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.49604221635883916,
+          0.33747412008281574
+        ]
+      },
       "sequenced": {
         "saving": -0.4032107088564988,
         "saving_reached_only": -0.4032107088564988,
@@ -358,6 +480,8 @@
           "oracle_mesh": 80,
           "nf_bl": null,
           "sequenced_bl": 1362,
+          "sequenced_vel": 934,
+          "sequenced_nut": null,
           "sequenced": 1387
         },
         "naca0012_aoa4": {
@@ -365,6 +489,8 @@
           "oracle_mesh": 77,
           "nf_bl": 515,
           "sequenced_bl": 727,
+          "sequenced_vel": 960,
+          "sequenced_nut": 732,
           "sequenced": 838
         },
         "naca0015_aoa6": {
@@ -372,6 +498,8 @@
           "oracle_mesh": 78,
           "nf_bl": 1042,
           "sequenced_bl": 918,
+          "sequenced_vel": 1137,
+          "sequenced_nut": 755,
           "sequenced": 1196
         },
         "naca2412_aoa2": {
@@ -379,6 +507,8 @@
           "oracle_mesh": 82,
           "nf_bl": 608,
           "sequenced_bl": 651,
+          "sequenced_vel": 1031,
+          "sequenced_nut": null,
           "sequenced": 771
         },
         "naca2415_aoa5": {
@@ -386,6 +516,8 @@
           "oracle_mesh": 80,
           "nf_bl": 1172,
           "sequenced_bl": 374,
+          "sequenced_vel": 1146,
+          "sequenced_nut": 896,
           "sequenced": 1145
         }
       },
@@ -420,6 +552,26 @@
           0.6716417910447761
         ]
       },
+      "sequenced_vel": {
+        "saving": 0.011133123960873048,
+        "saving_reached_only": 0.011133123960873048,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.017769002961500524,
+          0.07433102081268583
+        ]
+      },
+      "sequenced_nut": {
+        "saving": 0.263434202437455,
+        "saving_reached_only": 0.263434202437455,
+        "n_reached": 3,
+        "n_censored": 0,
+        "spread": [
+          0.2133450395083406,
+          0.3394575678040245
+        ]
+      },
       "sequenced": {
         "saving": -0.012057524203270465,
         "saving_reached_only": -0.012057524203270465,
@@ -440,6 +592,8 @@
           "oracle_mesh": 126,
           "nf_bl": 1195,
           "sequenced_bl": 1700,
+          "sequenced_vel": 1319,
+          "sequenced_nut": null,
           "sequenced": 2685
         },
         "naca0015_aoa6": {
@@ -447,6 +601,8 @@
           "oracle_mesh": 133,
           "nf_bl": 1513,
           "sequenced_bl": 1859,
+          "sequenced_vel": 1538,
+          "sequenced_nut": null,
           "sequenced": 2165
         },
         "naca2412_aoa2": {
@@ -454,6 +610,8 @@
           "oracle_mesh": 420,
           "nf_bl": null,
           "sequenced_bl": 5632,
+          "sequenced_vel": 3176,
+          "sequenced_nut": null,
           "sequenced": null
         },
         "naca2415_aoa5": {
@@ -461,6 +619,8 @@
           "oracle_mesh": 129,
           "nf_bl": 1573,
           "sequenced_bl": 2492,
+          "sequenced_vel": 2183,
+          "sequenced_nut": null,
           "sequenced": 4167
         }
       },
@@ -495,6 +655,23 @@
           -0.20012911555842483
         ]
       },
+      "sequenced_vel": {
+        "saving": -0.09959695536348645,
+        "saving_reached_only": -0.09959695536348645,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -0.31620389556568584,
+          0.007101355713363455
+        ]
+      },
+      "sequenced_nut": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
       "sequenced": {
         "saving": -1.0001182348928457,
         "saving_reached_only": -0.8379805502397772,
@@ -515,6 +692,8 @@
           "oracle_mesh": 190,
           "nf_bl": 1412,
           "sequenced_bl": 3411,
+          "sequenced_vel": 1551,
+          "sequenced_nut": null,
           "sequenced": 4430
         },
         "naca0015_aoa6": {
@@ -522,6 +701,8 @@
           "oracle_mesh": 183,
           "nf_bl": 1786,
           "sequenced_bl": 2137,
+          "sequenced_vel": 1701,
+          "sequenced_nut": null,
           "sequenced": 2999
         },
         "naca2415_aoa5": {
@@ -529,6 +710,8 @@
           "oracle_mesh": 153,
           "nf_bl": 2506,
           "sequenced_bl": 4641,
+          "sequenced_vel": 4086,
+          "sequenced_nut": null,
           "sequenced": null
         }
       },
@@ -563,6 +746,23 @@
           -0.18999999999999995
         ]
       },
+      "sequenced_vel": {
+        "saving": -0.0022677012039294584,
+        "saving_reached_only": -0.0022677012039294584,
+        "n_reached": 3,
+        "n_censored": 0,
+        "spread": [
+          -0.0476923076923077,
+          0.026976160602258492
+        ]
+      },
+      "sequenced_nut": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
       "sequenced": {
         "saving": -1.0187280525679958,
         "saving_reached_only": -1.2588613096212247,
@@ -577,652 +777,860 @@
   },
   "by_force": {
     "Cd@0.01": {
-      "cold_mean": 808.4,
+      "cold_mean": 802.0,
       "cold_n": 5,
       "per_case": {
         "naca0012_aoa0": {
-          "cold": 479,
+          "cold": 478,
           "oracle_mesh": 51,
           "nf_bl": 288,
-          "sequenced_bl": 3183,
-          "sequenced": 3762
+          "sequenced_bl": 3199,
+          "sequenced_vel": 654,
+          "sequenced_nut": null,
+          "sequenced": 3780
         },
         "naca0012_aoa4": {
           "cold": 430,
           "oracle_mesh": 50,
           "nf_bl": 444,
-          "sequenced_bl": 2020,
-          "sequenced": 2428
+          "sequenced_bl": 2005,
+          "sequenced_vel": 386,
+          "sequenced_nut": null,
+          "sequenced": 2414
         },
         "naca0015_aoa6": {
           "cold": 1138,
           "oracle_mesh": 46,
-          "nf_bl": 825,
+          "nf_bl": 824,
           "sequenced_bl": 948,
+          "sequenced_vel": 1151,
+          "sequenced_nut": null,
           "sequenced": 864
         },
         "naca2412_aoa2": {
-          "cold": 491,
+          "cold": 490,
           "oracle_mesh": 49,
-          "nf_bl": 293,
-          "sequenced_bl": 3097,
-          "sequenced": 4003
+          "nf_bl": 292,
+          "sequenced_bl": 3137,
+          "sequenced_vel": 428,
+          "sequenced_nut": null,
+          "sequenced": 4051
         },
         "naca2415_aoa5": {
-          "cold": 1504,
-          "oracle_mesh": 44,
-          "nf_bl": 517,
-          "sequenced_bl": 2315,
-          "sequenced": 2093
+          "cold": 1474,
+          "oracle_mesh": 45,
+          "nf_bl": 518,
+          "sequenced_bl": 2257,
+          "sequenced_vel": 1563,
+          "sequenced_nut": null,
+          "sequenced": 1804
         }
       },
       "values": {
         "oracle_mesh": [
-          0.8935281837160751,
+          0.893305439330544,
           0.8837209302325582,
           0.9595782073813708,
-          0.90020366598778,
-          0.9707446808510638
+          0.9,
+          0.9694708276797829
         ],
         "nf_bl": [
-          0.39874739039665974,
+          0.39748953974895396,
           -0.032558139534883734,
-          0.27504393673110716,
-          0.4032586558044806,
-          0.65625
+          0.2759226713532513,
+          0.4040816326530612,
+          0.6485753052917231
         ],
         "sequenced_bl": [
-          -5.645093945720251,
-          -3.6976744186046515,
+          -5.692468619246862,
+          -3.662790697674419,
           0.1669595782073814,
-          -5.307535641547862,
-          -0.5392287234042554
+          -5.40204081632653,
+          -0.5312075983717774
         ],
+        "sequenced_vel": [
+          -0.36820083682008375,
+          0.10232558139534886,
+          -0.011423550087873435,
+          0.12653061224489792,
+          -0.060379918588873815
+        ],
+        "sequenced_nut": [],
         "sequenced": [
-          -6.853862212943633,
-          -4.6465116279069765,
+          -6.907949790794979,
+          -4.613953488372093,
           0.24077328646748686,
-          -7.152749490835031,
-          -0.3916223404255319
+          -7.2673469387755105,
+          -0.22388059701492535
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9215551336337697,
-        "saving_reached_only": 0.9215551336337697,
+        "saving": 0.9212150809248512,
+        "saving_reached_only": 0.9212150809248512,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
           0.8837209302325582,
-          0.9707446808510638
+          0.9694708276797829
         ]
       },
       "nf_bl": {
-        "saving": 0.34014836867947273,
-        "saving_reached_only": 0.34014836867947273,
+        "saving": 0.3387022019024212,
+        "saving_reached_only": 0.3387022019024212,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
           -0.032558139534883734,
-          0.65625
+          0.6485753052917231
         ]
       },
       "sequenced_bl": {
-        "saving": -3.0045146302139276,
-        "saving_reached_only": -3.0045146302139276,
+        "saving": -3.0243096306824415,
+        "saving_reached_only": -3.0243096306824415,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          -5.645093945720251,
+          -5.692468619246862,
           0.1669595782073814
         ]
       },
-      "sequenced": {
-        "saving": -3.760794477128737,
-        "saving_reached_only": -3.760794477128737,
+      "sequenced_vel": {
+        "saving": -0.04222962237131685,
+        "saving_reached_only": -0.04222962237131685,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          -7.152749490835031,
+          -0.36820083682008375,
+          0.12653061224489792
+        ]
+      },
+      "sequenced_nut": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
+      "sequenced": {
+        "saving": -3.7544715056980045,
+        "saving_reached_only": -3.7544715056980045,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -7.2673469387755105,
           0.24077328646748686
         ]
       },
-      "settled_spread": 0.0019800456936282843,
+      "settled_spread": 0.0016419630298439149,
       "readable": true
     },
     "Cd@0.005": {
-      "cold_mean": 1203.6,
+      "cold_mean": 1182.8,
       "cold_n": 5,
       "per_case": {
         "naca0012_aoa0": {
-          "cold": 578,
+          "cold": 576,
           "oracle_mesh": 67,
-          "nf_bl": 1065,
-          "sequenced_bl": 5030,
-          "sequenced": 5840
+          "nf_bl": 1097,
+          "sequenced_bl": 5068,
+          "sequenced_vel": 1086,
+          "sequenced_nut": null,
+          "sequenced": 5882
         },
         "naca0012_aoa4": {
-          "cold": 1054,
+          "cold": 1044,
           "oracle_mesh": 68,
-          "nf_bl": 642,
-          "sequenced_bl": 3239,
-          "sequenced": 3860
+          "nf_bl": 643,
+          "sequenced_bl": 3211,
+          "sequenced_vel": 924,
+          "sequenced_nut": null,
+          "sequenced": 3827
         },
         "naca0015_aoa6": {
           "cold": 1524,
           "oracle_mesh": 65,
           "nf_bl": 1175,
           "sequenced_bl": 1632,
+          "sequenced_vel": 1555,
+          "sequenced_nut": null,
           "sequenced": 950
         },
         "naca2412_aoa2": {
-          "cold": 556,
-          "oracle_mesh": 66,
-          "nf_bl": 954,
-          "sequenced_bl": 5293,
+          "cold": 554,
+          "oracle_mesh": 65,
+          "nf_bl": 961,
+          "sequenced_bl": 5407,
+          "sequenced_vel": 524,
+          "sequenced_nut": null,
           "sequenced": null
         },
         "naca2415_aoa5": {
-          "cold": 2306,
-          "oracle_mesh": 59,
-          "nf_bl": 950,
-          "sequenced_bl": 3583,
-          "sequenced": 3581
+          "cold": 2216,
+          "oracle_mesh": 61,
+          "nf_bl": 943,
+          "sequenced_bl": 3458,
+          "sequenced_vel": 2361,
+          "sequenced_nut": null,
+          "sequenced": 3416
         }
       },
       "values": {
         "oracle_mesh": [
-          0.884083044982699,
-          0.935483870967742,
+          0.8836805555555556,
+          0.9348659003831418,
           0.9573490813648294,
-          0.8812949640287769,
-          0.9744145706851691
+          0.8826714801444043,
+          0.9724729241877257
         ],
         "nf_bl": [
-          -0.8425605536332179,
-          0.3908918406072106,
+          -0.9045138888888888,
+          0.38409961685823757,
           0.229002624671916,
-          -0.7158273381294964,
-          0.588031222896791
+          -0.7346570397111913,
+          0.5744584837545126
         ],
         "sequenced_bl": [
-          -7.70242214532872,
-          -2.0730550284629983,
+          -7.798611111111111,
+          -2.0756704980842913,
           -0.07086614173228356,
-          -8.51978417266187,
-          -0.5537727666955767
+          -8.759927797833935,
+          -0.5604693140794224
         ],
+        "sequenced_vel": [
+          -0.8854166666666667,
+          0.11494252873563215,
+          -0.020341207349081403,
+          0.054151624548736454,
+          -0.06543321299638993
+        ],
+        "sequenced_nut": [],
         "sequenced": [
-          -9.103806228373703,
-          -2.6622390891840606,
+          -9.211805555555555,
+          -2.6657088122605366,
           0.3766404199475065,
-          -0.5529054640069384,
-          -9.79136690647482
+          -0.5415162454873645,
+          -9.830324909747292
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9265251064058433,
-        "saving_reached_only": 0.9265251064058433,
+        "saving": 0.9262079883271314,
+        "saving_reached_only": 0.9262079883271314,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          0.8812949640287769,
-          0.9744145706851691
+          0.8826714801444043,
+          0.9724729241877257
         ]
       },
       "nf_bl": {
-        "saving": -0.07009244071735934,
-        "saving_reached_only": -0.07009244071735934,
+        "saving": -0.09032204066308283,
+        "saving_reached_only": -0.09032204066308283,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          -0.8425605536332179,
-          0.588031222896791
+          -0.9045138888888888,
+          0.5744584837545126
         ]
       },
       "sequenced_bl": {
-        "saving": -3.7839800509762895,
-        "saving_reached_only": -3.7839800509762895,
+        "saving": -3.853108972568209,
+        "saving_reached_only": -3.853108972568209,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          -8.51978417266187,
+          -8.759927797833935,
           -0.07086614173228356
         ]
       },
+      "sequenced_vel": {
+        "saving": -0.1604193867455539,
+        "saving_reached_only": -0.1604193867455539,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.8854166666666667,
+          0.11494252873563215
+        ]
+      },
+      "sequenced_nut": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
       "sequenced": {
-        "saving": -4.346735453618403,
-        "saving_reached_only": -2.985577590404299,
+        "saving": -4.374543020620648,
+        "saving_reached_only": -3.0105975483389877,
         "n_reached": 4,
         "n_censored": 1,
         "spread": [
-          -9.79136690647482,
+          -9.830324909747292,
           0.3766404199475065
         ]
       },
-      "settled_spread": 0.0019800456936282843,
+      "settled_spread": 0.0016419630298439149,
       "readable": true
     },
     "Cd@0.002": {
-      "cold_mean": 2094.8,
+      "cold_mean": 2008.8,
       "cold_n": 5,
       "per_case": {
         "naca0012_aoa0": {
-          "cold": 728,
-          "oracle_mesh": 102,
-          "nf_bl": 3210,
+          "cold": 722,
+          "oracle_mesh": 100,
+          "nf_bl": 3293,
           "sequenced_bl": null,
+          "sequenced_vel": 2371,
+          "sequenced_nut": null,
           "sequenced": null
         },
         "naca0012_aoa4": {
-          "cold": 1977,
-          "oracle_mesh": 108,
-          "nf_bl": 1099,
-          "sequenced_bl": 5002,
-          "sequenced": 5887
+          "cold": 1927,
+          "oracle_mesh": 111,
+          "nf_bl": 1250,
+          "sequenced_bl": 4928,
+          "sequenced_vel": 1746,
+          "sequenced_nut": null,
+          "sequenced": 5801
         },
         "naca0015_aoa6": {
-          "cold": 2209,
+          "cold": 2210,
           "oracle_mesh": 135,
           "nf_bl": 2042,
-          "sequenced_bl": 2947,
+          "sequenced_bl": 2948,
+          "sequenced_vel": 2250,
+          "sequenced_nut": null,
           "sequenced": 1704
         },
         "naca2412_aoa2": {
-          "cold": 1862,
-          "oracle_mesh": 109,
-          "nf_bl": 5885,
+          "cold": 1731,
+          "oracle_mesh": 105,
+          "nf_bl": 5897,
           "sequenced_bl": null,
+          "sequenced_vel": 2240,
+          "sequenced_nut": null,
           "sequenced": null
         },
         "naca2415_aoa5": {
-          "cold": 3698,
-          "oracle_mesh": 109,
-          "nf_bl": 1267,
-          "sequenced_bl": 5374,
-          "sequenced": 5973
+          "cold": 3454,
+          "oracle_mesh": 124,
+          "nf_bl": 1246,
+          "sequenced_bl": 5067,
+          "sequenced_vel": 3649,
+          "sequenced_nut": null,
+          "sequenced": 5545
         }
       },
       "values": {
         "oracle_mesh": [
-          0.8598901098901099,
-          0.9453717754172989,
-          0.9388863739248529,
-          0.9414607948442535,
-          0.9705246078961601
+          0.8614958448753463,
+          0.9423975090814738,
+          0.9389140271493213,
+          0.9393414211438474,
+          0.9640995946728431
         ],
         "nf_bl": [
-          -3.4093406593406597,
-          0.4441072331815883,
-          0.07559981892258938,
-          -2.1605800214822772,
-          0.657382368848026
+          -3.5609418282548475,
+          0.3513233004670472,
+          0.07601809954751126,
+          -2.406701328711727,
+          0.6392588303416329
         ],
         "sequenced_bl": [
-          -1.530096105209914,
-          -0.3340878225441377,
-          -0.45321795565170353,
-          -7.241758241758241,
-          -2.2223415682062297
+          -1.5573430202387128,
+          -0.33393665158371033,
+          -0.46699478865083965,
+          -7.310249307479225,
+          -2.466204506065858
         ],
+        "sequenced_vel": [
+          -2.28393351800554,
+          0.09392838609237153,
+          -0.018099547511312153,
+          -0.29404968226458705,
+          -0.05645628257093227
+        ],
+        "sequenced_nut": [],
         "sequenced": [
-          -1.9777440566514923,
-          0.22861023087369847,
-          -0.6151974040021633,
-          -7.241758241758241,
-          -2.2223415682062297
+          -2.010378827192527,
+          0.2289592760180995,
+          -0.6053850607990736,
+          -7.310249307479225,
+          -2.466204506065858
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9312267323945351,
-        "saving_reached_only": 0.9312267323945351,
+        "saving": 0.9292496793845665,
+        "saving_reached_only": 0.9292496793845665,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          0.8598901098901099,
-          0.9705246078961601
+          0.8614958448753463,
+          0.9640995946728431
         ]
       },
       "nf_bl": {
-        "saving": -0.8785662519741466,
-        "saving_reached_only": -0.8785662519741466,
+        "saving": -0.9802085853220767,
+        "saving_reached_only": -0.9802085853220767,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          -3.4093406593406597,
-          0.657382368848026
+          -3.5609418282548475,
+          0.6392588303416329
         ]
       },
       "sequenced_bl": {
-        "saving": -2.356300338674045,
-        "saving_reached_only": -0.772467294468585,
+        "saving": -2.4269456548036694,
+        "saving_reached_only": -0.786091486824421,
         "n_reached": 3,
         "n_censored": 2,
         "spread": [
-          -7.241758241758241,
-          -0.3340878225441377
+          -7.310249307479225,
+          -0.33393665158371033
         ]
+      },
+      "sequenced_vel": {
+        "saving": -0.5117221288520001,
+        "saving_reached_only": -0.5117221288520001,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -2.28393351800554,
+          0.09392838609237153
+        ]
+      },
+      "sequenced_nut": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
       },
       "sequenced": {
-        "saving": -2.3656862079488854,
-        "saving_reached_only": -0.7881104099266523,
+        "saving": -2.4326516851037168,
+        "saving_reached_only": -0.7956015373245003,
         "n_reached": 3,
         "n_censored": 2,
         "spread": [
-          -7.241758241758241,
-          0.22861023087369847
+          -7.310249307479225,
+          0.2289592760180995
         ]
       },
-      "settled_spread": 0.0019800456936282843,
+      "settled_spread": 0.0016419630298439149,
       "readable": false
     },
     "Cl@0.01": {
-      "cold_mean": 947.25,
+      "cold_mean": 944.0,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa4": {
-          "cold": 863,
+          "cold": 862,
           "oracle_mesh": 1,
-          "nf_bl": 675,
-          "sequenced_bl": 474,
+          "nf_bl": 674,
+          "sequenced_bl": 473,
+          "sequenced_vel": 864,
+          "sequenced_nut": 1242,
           "sequenced": 476
         },
         "naca0015_aoa6": {
-          "cold": 1044,
+          "cold": 1043,
           "oracle_mesh": 1,
           "nf_bl": 1005,
           "sequenced_bl": 667,
+          "sequenced_vel": 1029,
+          "sequenced_nut": 1665,
           "sequenced": 687
         },
         "naca2412_aoa2": {
-          "cold": 905,
+          "cold": 894,
           "oracle_mesh": 1,
-          "nf_bl": 737,
-          "sequenced_bl": 524,
-          "sequenced": 826
+          "nf_bl": 726,
+          "sequenced_bl": 541,
+          "sequenced_vel": 917,
+          "sequenced_nut": null,
+          "sequenced": 871
         },
         "naca2415_aoa5": {
           "cold": 977,
           "oracle_mesh": 1,
           "nf_bl": 1014,
           "sequenced_bl": 224,
+          "sequenced_vel": 968,
+          "sequenced_nut": 1713,
           "sequenced": 480
         }
       },
       "values": {
         "oracle_mesh": [
-          0.9988412514484357,
-          0.9990421455938697,
-          0.9988950276243094,
+          0.9988399071925754,
+          0.9990412272291467,
+          0.9988814317673378,
           0.9989764585465711
         ],
         "nf_bl": [
-          0.21784472769409036,
-          0.03735632183908044,
-          0.18563535911602214,
+          0.21809744779582363,
+          0.03643336529242569,
+          0.18791946308724827,
           -0.03787103377686796
         ],
         "sequenced_bl": [
-          0.4507531865585168,
-          0.36111111111111116,
-          0.4209944751381215,
+          0.45127610208816704,
+          0.3604985618408437,
+          0.3948545861297539,
           0.7707267144319345
         ],
+        "sequenced_vel": [
+          -0.002320185614849146,
+          0.01342281879194629,
+          -0.02572706935123037,
+          0.0092118730808598
+        ],
+        "sequenced_nut": [
+          -0.4408352668213458,
+          -0.5963566634707573,
+          -0.7533265097236439
+        ],
         "sequenced": [
-          0.44843568945538814,
-          0.34195402298850575,
-          0.08729281767955799,
+          0.4477958236658933,
+          0.3413231064237776,
+          0.02572706935123048,
           0.5087001023541453
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9989387208032965,
-        "saving_reached_only": 0.9989387208032965,
+        "saving": 0.9989347561839078,
+        "saving_reached_only": 0.9989347561839078,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.9988412514484357,
-          0.9990421455938697
+          0.9988399071925754,
+          0.9990412272291467
         ]
       },
       "nf_bl": {
-        "saving": 0.10074134371808124,
-        "saving_reached_only": 0.10074134371808124,
+        "saving": 0.10114481059965741,
+        "saving_reached_only": 0.10114481059965741,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
           -0.03787103377686796,
-          0.21784472769409036
+          0.21809744779582363
         ]
       },
       "sequenced_bl": {
-        "saving": 0.5008963718099211,
-        "saving_reached_only": 0.5008963718099211,
+        "saving": 0.4943389911226748,
+        "saving_reached_only": 0.4943389911226748,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.36111111111111116,
+          0.3604985618408437,
           0.7707267144319345
         ]
       },
-      "sequenced": {
-        "saving": 0.3465956581193993,
-        "saving_reached_only": 0.3465956581193993,
+      "sequenced_vel": {
+        "saving": -0.0013531407733183565,
+        "saving_reached_only": -0.0013531407733183565,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.08729281767955799,
+          -0.02572706935123037,
+          0.01342281879194629
+        ]
+      },
+      "sequenced_nut": {
+        "saving": -0.596839480005249,
+        "saving_reached_only": -0.596839480005249,
+        "n_reached": 3,
+        "n_censored": 0,
+        "spread": [
+          -0.7533265097236439,
+          -0.4408352668213458
+        ]
+      },
+      "sequenced": {
+        "saving": 0.3308865254487617,
+        "saving_reached_only": 0.3308865254487617,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          0.02572706935123048,
           0.5087001023541453
         ]
       },
-      "settled_spread": 0.0007759821550909489,
+      "settled_spread": 0.0006726845384343128,
       "readable": true
     },
     "Cl@0.005": {
-      "cold_mean": 1117.25,
+      "cold_mean": 1109.5,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa4": {
-          "cold": 1011,
+          "cold": 1010,
           "oracle_mesh": 1,
-          "nf_bl": 914,
+          "nf_bl": 913,
           "sequenced_bl": 561,
-          "sequenced": 1251
+          "sequenced_vel": 1017,
+          "sequenced_nut": null,
+          "sequenced": 1261
         },
         "naca0015_aoa6": {
-          "cold": 1207,
+          "cold": 1206,
           "oracle_mesh": 1,
-          "nf_bl": 1243,
+          "nf_bl": 1241,
           "sequenced_bl": 733,
-          "sequenced": 753
+          "sequenced_vel": 1189,
+          "sequenced_nut": null,
+          "sequenced": 752
         },
         "naca2412_aoa2": {
-          "cold": 1130,
+          "cold": 1102,
           "oracle_mesh": 1,
-          "nf_bl": 931,
-          "sequenced_bl": 1633,
-          "sequenced": 1847
+          "nf_bl": 914,
+          "sequenced_bl": 1735,
+          "sequenced_vel": 1134,
+          "sequenced_nut": null,
+          "sequenced": 1966
         },
         "naca2415_aoa5": {
-          "cold": 1121,
+          "cold": 1120,
           "oracle_mesh": 1,
-          "nf_bl": 1228,
-          "sequenced_bl": 1738,
-          "sequenced": 1122
+          "nf_bl": 1227,
+          "sequenced_bl": 1739,
+          "sequenced_vel": 1106,
+          "sequenced_nut": null,
+          "sequenced": 1123
         }
       },
       "values": {
         "oracle_mesh": [
-          0.9990108803165183,
-          0.9991714995857498,
-          0.9991150442477876,
-          0.9991079393398751
+          0.999009900990099,
+          0.9991708126036484,
+          0.9990925589836661,
+          0.9991071428571429
         ],
         "nf_bl": [
-          0.09594460929772497,
-          -0.029826014913007404,
-          0.17610619469026545,
-          -0.09545049063336308
+          0.09603960396039601,
+          -0.029021558872305064,
+          0.1705989110707804,
+          -0.09553571428571428
         ],
         "sequenced_bl": [
-          0.4451038575667656,
-          0.3927091963545982,
-          -0.4451327433628318,
-          -0.5504014272970561
+          0.4445544554455445,
+          0.39220563847429524,
+          -0.574410163339383,
+          -0.5526785714285714
         ],
+        "sequenced_vel": [
+          -0.006930693069306937,
+          0.014096185737976774,
+          -0.029038112522685955,
+          0.012499999999999956
+        ],
+        "sequenced_nut": [],
         "sequenced": [
-          -0.2373887240356083,
-          0.376139188069594,
-          -0.6345132743362831,
-          -0.000892060660124816
+          -0.2485148514851485,
+          0.3764510779436152,
+          -0.7840290381125228,
+          -0.00267857142857153
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9991013408724828,
-        "saving_reached_only": 0.9991013408724828,
+        "saving": 0.9990951038586391,
+        "saving_reached_only": 0.9990951038586391,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.9990108803165183,
-          0.9991714995857498
+          0.999009900990099,
+          0.9991708126036484
         ]
       },
       "nf_bl": {
-        "saving": 0.03669357461040498,
-        "saving_reached_only": 0.03669357461040498,
+        "saving": 0.03552031046828927,
+        "saving_reached_only": 0.03552031046828927,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.09545049063336308,
-          0.17610619469026545
+          -0.09553571428571428,
+          0.1705989110707804
         ]
       },
       "sequenced_bl": {
-        "saving": -0.03943027918463102,
-        "saving_reached_only": -0.03943027918463102,
+        "saving": -0.07258216021202865,
+        "saving_reached_only": -0.07258216021202865,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.5504014272970561,
-          0.4451038575667656
+          -0.574410163339383,
+          0.4445544554455445
         ]
+      },
+      "sequenced_vel": {
+        "saving": -0.0023431549635040405,
+        "saving_reached_only": -0.0023431549635040405,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -0.029038112522685955,
+          0.014096185737976774
+        ]
+      },
+      "sequenced_nut": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
       },
       "sequenced": {
-        "saving": -0.12416371774060556,
-        "saving_reached_only": -0.12416371774060556,
+        "saving": -0.1646928457706569,
+        "saving_reached_only": -0.1646928457706569,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.6345132743362831,
-          0.376139188069594
+          -0.7840290381125228,
+          0.3764510779436152
         ]
       },
-      "settled_spread": 0.0007759821550909489,
+      "settled_spread": 0.0006726845384343128,
       "readable": true
     },
     "Cl@0.002": {
-      "cold_mean": 1423.25,
+      "cold_mean": 1372.0,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa4": {
-          "cold": 1207,
+          "cold": 1205,
           "oracle_mesh": 1,
-          "nf_bl": 1178,
-          "sequenced_bl": 2463,
-          "sequenced": 2741
+          "nf_bl": 1175,
+          "sequenced_bl": 2475,
+          "sequenced_vel": 1214,
+          "sequenced_nut": null,
+          "sequenced": 2757
         },
         "naca0015_aoa6": {
-          "cold": 1422,
+          "cold": 1420,
           "oracle_mesh": 1,
-          "nf_bl": 1613,
-          "sequenced_bl": 1837,
-          "sequenced": 1814
+          "nf_bl": 1608,
+          "sequenced_bl": 1844,
+          "sequenced_vel": 1388,
+          "sequenced_nut": null,
+          "sequenced": 1820
         },
         "naca2412_aoa2": {
-          "cold": 1777,
-          "oracle_mesh": 2,
-          "nf_bl": 1232,
-          "sequenced_bl": 2828,
-          "sequenced": 3255
+          "cold": 1576,
+          "oracle_mesh": 1,
+          "nf_bl": 1146,
+          "sequenced_bl": 3113,
+          "sequenced_vel": 1615,
+          "sequenced_nut": null,
+          "sequenced": 3595
         },
         "naca2415_aoa5": {
           "cold": 1287,
           "oracle_mesh": 1,
-          "nf_bl": 1557,
-          "sequenced_bl": 3128,
-          "sequenced": 3107
+          "nf_bl": 1556,
+          "sequenced_bl": 3132,
+          "sequenced_vel": 1256,
+          "sequenced_nut": null,
+          "sequenced": 3112
         }
       },
       "values": {
         "oracle_mesh": [
-          0.9991714995857498,
-          0.9992967651195499,
-          0.9988745075970737,
+          0.9991701244813278,
+          0.9992957746478873,
+          0.9993654822335025,
           0.9992229992229992
         ],
         "nf_bl": [
-          0.024026512013256007,
-          -0.13431786216596353,
-          0.30669667979741133,
-          -0.2097902097902098
+          0.024896265560165998,
+          -0.13239436619718314,
+          0.27284263959390864,
+          -0.20901320901320908
         ],
         "sequenced_bl": [
-          -1.0405965202982603,
-          -0.2918424753867792,
-          -0.5914462577377602,
-          -1.4304584304584305
+          -1.0539419087136928,
+          -0.2985915492957747,
+          -0.975253807106599,
+          -1.4335664335664338
         ],
+        "sequenced_vel": [
+          -0.007468879668049766,
+          0.022535211267605604,
+          -0.024746192893400965,
+          0.024087024087024123
+        ],
+        "sequenced_nut": [],
         "sequenced": [
-          -1.2709196354598178,
-          -0.2756680731364276,
-          -0.8317388857625212,
-          -1.414141414141414
+          -1.287966804979253,
+          -0.2816901408450705,
+          -1.2810913705583755,
+          -1.4180264180264182
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9991414428813432,
-        "saving_reached_only": 0.9991414428813432,
+        "saving": 0.9992635951464292,
+        "saving_reached_only": 0.9992635951464292,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.9988745075970737,
-          0.9992967651195499
+          0.9991701244813278,
+          0.9993654822335025
         ]
       },
       "nf_bl": {
-        "saving": -0.003346220036376496,
-        "saving_reached_only": -0.003346220036376496,
+        "saving": -0.010917167514079396,
+        "saving_reached_only": -0.010917167514079396,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.2097902097902098,
-          0.30669667979741133
+          -0.20901320901320908,
+          0.27284263959390864
         ]
       },
       "sequenced_bl": {
-        "saving": -0.8385859209703075,
-        "saving_reached_only": -0.8385859209703075,
+        "saving": -0.9403384246706251,
+        "saving_reached_only": -0.9403384246706251,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -1.4304584304584305,
-          -0.2918424753867792
+          -1.4335664335664338,
+          -0.2985915492957747
         ]
+      },
+      "sequenced_vel": {
+        "saving": 0.003601790698294749,
+        "saving_reached_only": 0.003601790698294749,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -0.024746192893400965,
+          0.024087024087024123
+        ]
+      },
+      "sequenced_nut": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
       },
       "sequenced": {
-        "saving": -0.9481170021250451,
-        "saving_reached_only": -0.9481170021250451,
+        "saving": -1.0671936836022793,
+        "saving_reached_only": -1.0671936836022793,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -1.414141414141414,
-          -0.2756680731364276
+          -1.4180264180264182,
+          -0.2816901408450705
         ]
       },
-      "settled_spread": 0.0007759821550909489,
+      "settled_spread": 0.0006726845384343128,
       "readable": true
     },
     "Cd_p@0.01": {
-      "cold_mean": 1996.0,
+      "cold_mean": 1989.8,
       "cold_n": 5,
       "per_case": {
         "naca0012_aoa0": {
@@ -1230,20 +1638,26 @@
           "oracle_mesh": 235,
           "nf_bl": 3593,
           "sequenced_bl": null,
+          "sequenced_vel": 2677,
+          "sequenced_nut": null,
           "sequenced": null
         },
         "naca0012_aoa4": {
-          "cold": 1555,
+          "cold": 1524,
           "oracle_mesh": 1,
-          "nf_bl": 525,
-          "sequenced_bl": 4307,
-          "sequenced": 5093
+          "nf_bl": 524,
+          "sequenced_bl": 4251,
+          "sequenced_vel": 1402,
+          "sequenced_nut": null,
+          "sequenced": 5025
         },
         "naca0015_aoa6": {
           "cold": 1664,
           "oracle_mesh": 2,
           "nf_bl": 1214,
-          "sequenced_bl": 2119,
+          "sequenced_bl": 2120,
+          "sequenced_vel": 1689,
+          "sequenced_nut": null,
           "sequenced": 1527
         },
         "naca2412_aoa2": {
@@ -1251,6 +1665,8 @@
           "oracle_mesh": 268,
           "nf_bl": 1123,
           "sequenced_bl": 5737,
+          "sequenced_vel": 3966,
+          "sequenced_nut": null,
           "sequenced": null
         },
         "naca2415_aoa5": {
@@ -1258,33 +1674,43 @@
           "oracle_mesh": 2,
           "nf_bl": 1186,
           "sequenced_bl": 4039,
+          "sequenced_vel": 2805,
+          "sequenced_nut": null,
           "sequenced": 4181
         }
       },
       "values": {
         "oracle_mesh": [
           0.6948051948051948,
-          0.9993569131832798,
+          0.9993438320209974,
           0.9987980769230769,
           0.9200715776916194,
           0.9992418498862775
         ],
         "nf_bl": [
           -3.6662337662337663,
-          0.662379421221865,
+          0.6561679790026247,
           0.2704326923076923,
           0.6650760512973457,
           0.5504169825625473
         ],
         "sequenced_bl": [
-          -1.769774919614148,
-          -0.2734375,
+          -1.7893700787401574,
+          -0.27403846153846145,
           -0.7110050700864896,
           -0.5310841546626233,
           -6.792207792207792
         ],
+        "sequenced_vel": [
+          -2.4766233766233765,
+          0.08005249343832022,
+          -0.015024038461538547,
+          -0.18282135401133304,
+          -0.0633055344958302
+        ],
+        "sequenced_nut": [],
         "sequenced": [
-          -2.27524115755627,
+          -2.297244094488189,
           0.08233173076923073,
           -0.5849128127369219,
           -6.792207792207792,
@@ -1292,18 +1718,18 @@
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9224547224978897,
-        "saving_reached_only": 0.9224547224978897,
+        "saving": 0.9224521062654333,
+        "saving_reached_only": 0.9224521062654333,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
           0.6948051948051948,
-          0.9993569131832798
+          0.9993438320209974
         ]
       },
       "nf_bl": {
-        "saving": -0.3035857237688631,
-        "saving_reached_only": -0.3035857237688631,
+        "saving": -0.30482801221271116,
+        "saving_reached_only": -0.30482801221271116,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -1312,18 +1738,35 @@
         ]
       },
       "sequenced_bl": {
-        "saving": -2.0155018873142105,
-        "saving_reached_only": -0.8213254110908152,
+        "saving": -2.019541111447105,
+        "saving_reached_only": -0.8263744412569329,
         "n_reached": 4,
         "n_censored": 1,
         "spread": [
           -6.792207792207792,
-          -0.2734375
+          -0.27403846153846145
         ]
       },
+      "sequenced_vel": {
+        "saving": -0.5315443620307516,
+        "saving_reached_only": -0.5315443620307516,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -2.4766233766233765,
+          0.08005249343832022
+        ]
+      },
+      "sequenced_nut": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
       "sequenced": {
-        "saving": -2.0718944644435773,
-        "saving_reached_only": -0.9259407465079871,
+        "saving": -2.0762950518299608,
+        "saving_reached_only": -0.9332750588186266,
         "n_reached": 3,
         "n_censored": 2,
         "spread": [
@@ -1331,11 +1774,11 @@
           0.08233173076923073
         ]
       },
-      "settled_spread": 0.014883212838046648,
+      "settled_spread": 0.19274894084706695,
       "readable": false
     },
     "Cd_p@0.005": {
-      "cold_mean": 2342.75,
+      "cold_mean": 2320.25,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa0": {
@@ -1343,20 +1786,26 @@
           "oracle_mesh": 389,
           "nf_bl": 5565,
           "sequenced_bl": null,
+          "sequenced_vel": 4488,
+          "sequenced_nut": null,
           "sequenced": null
         },
         "naca0012_aoa4": {
-          "cold": 2500,
-          "oracle_mesh": 250,
-          "nf_bl": 1342,
-          "sequenced_bl": 5764,
+          "cold": 2409,
+          "oracle_mesh": 263,
+          "nf_bl": 1483,
+          "sequenced_bl": 5638,
+          "sequenced_vel": 2209,
+          "sequenced_nut": null,
           "sequenced": null
         },
         "naca0015_aoa6": {
-          "cold": 2171,
+          "cold": 2172,
           "oracle_mesh": 244,
           "nf_bl": 1971,
-          "sequenced_bl": 2913,
+          "sequenced_bl": 2914,
+          "sequenced_vel": 2210,
+          "sequenced_nut": null,
           "sequenced": 1705
         },
         "naca2415_aoa5": {
@@ -1364,38 +1813,47 @@
           "oracle_mesh": 4,
           "nf_bl": 1337,
           "sequenced_bl": 5606,
+          "sequenced_vel": 4078,
+          "sequenced_nut": null,
           "sequenced": null
         }
       },
       "values": {
         "oracle_mesh": [
           0.5307599517490953,
-          0.9,
-          0.8876093965914326,
+          0.8908260689082607,
+          0.8876611418047882,
           0.998966675277706
         ],
         "nf_bl": [
           -5.712907117008444,
-          0.46319999999999995,
-          0.09212344541685857,
+          0.38439186384391866,
+          0.09254143646408841,
           0.6546112115732369
         ],
         "sequenced_bl": [
-          -1.3056,
-          -0.34177798249654545,
+          -1.340390203403902,
+          -0.34162062615101285,
           -0.44820459829501424,
           -6.237635705669481
         ],
+        "sequenced_vel": [
+          -4.413751507840772,
+          0.08302200083022004,
+          -0.017495395948434522,
+          -0.0534745543787134
+        ],
+        "sequenced_nut": [],
         "sequenced": [
-          0.21464762782128055,
+          0.21500920810313073,
           -6.237635705669481,
-          -1.4,
+          -1.4906600249066004,
           -0.5499870834409712
         ]
       },
       "oracle_mesh": {
-        "saving": 0.8293340059045584,
-        "saving_reached_only": 0.8293340059045584,
+        "saving": 0.8270534594349626,
+        "saving_reached_only": 0.8270534594349626,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
@@ -1404,8 +1862,8 @@
         ]
       },
       "nf_bl": {
-        "saving": -1.1257431150045871,
-        "saving_reached_only": -1.1257431150045871,
+        "saving": -1.1453406512817998,
+        "saving_reached_only": -1.1453406512817998,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
@@ -1414,30 +1872,47 @@
         ]
       },
       "sequenced_bl": {
-        "saving": -2.08330457161526,
-        "saving_reached_only": -0.69852752693052,
+        "saving": -2.0919627833798526,
+        "saving_reached_only": -0.7100718092833097,
         "n_reached": 3,
         "n_censored": 1,
         "spread": [
           -6.237635705669481,
-          -0.34177798249654545
+          -0.34162062615101285
         ]
       },
+      "sequenced_vel": {
+        "saving": -1.1004248643344248,
+        "saving_reached_only": -1.1004248643344248,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -4.413751507840772,
+          0.08302200083022004
+        ]
+      },
+      "sequenced_nut": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
       "sequenced": {
-        "saving": -1.993243790322293,
-        "saving_reached_only": 0.21464762782128055,
+        "saving": -2.0158184014784806,
+        "saving_reached_only": 0.21500920810313073,
         "n_reached": 1,
         "n_censored": 3,
         "spread": [
           -6.237635705669481,
-          0.21464762782128055
+          0.21500920810313073
         ]
       },
-      "settled_spread": 0.0008557627731662925,
+      "settled_spread": 0.0008573222984767625,
       "readable": true
     },
     "Cd_p@0.002": {
-      "cold_mean": 3411.0,
+      "cold_mean": 3350.25,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa0": {
@@ -1445,20 +1920,26 @@
           "oracle_mesh": 490,
           "nf_bl": null,
           "sequenced_bl": null,
+          "sequenced_vel": null,
+          "sequenced_nut": null,
           "sequenced": null
         },
         "naca0012_aoa4": {
-          "cold": 4055,
-          "oracle_mesh": 377,
-          "nf_bl": 2328,
+          "cold": 3811,
+          "oracle_mesh": 397,
+          "nf_bl": 2497,
           "sequenced_bl": null,
+          "sequenced_vel": 3590,
+          "sequenced_nut": null,
           "sequenced": null
         },
         "naca0015_aoa6": {
-          "cold": 3046,
+          "cold": 3047,
           "oracle_mesh": 373,
-          "nf_bl": 3047,
-          "sequenced_bl": 4379,
+          "nf_bl": 3046,
+          "sequenced_bl": 4381,
+          "sequenced_vel": 3081,
+          "sequenced_nut": null,
           "sequenced": 2467
         },
         "naca2415_aoa5": {
@@ -1466,38 +1947,47 @@
           "oracle_mesh": 229,
           "nf_bl": 1917,
           "sequenced_bl": null,
+          "sequenced_vel": 5908,
+          "sequenced_nut": null,
           "sequenced": null
         }
       },
       "values": {
         "oracle_mesh": [
           0.4506726457399103,
-          0.9070283600493219,
-          0.8775443204202232,
+          0.8958278667016532,
+          0.8775845093534624,
           0.9594761989028491
         ],
         "nf_bl": [
-          0.4258939580764488,
-          -0.00032829940906098365,
+          0.3447913933350827,
+          0.0003281916639317206,
           0.6607680056627145,
           -5.726457399103139
         ],
         "sequenced_bl": [
-          -0.437623112278398,
+          -0.43780767968493595,
           -5.726457399103139,
-          -0.4796547472256474,
+          -0.574389923904487,
           -0.06175898071137853
         ],
+        "sequenced_vel": [
+          0.057990028863815324,
+          -0.011158516573678945,
+          -0.04547867634047065,
+          -5.726457399103139
+        ],
+        "sequenced_nut": [],
         "sequenced": [
-          0.19008535784635583,
+          0.19035116508040695,
           -5.726457399103139,
-          -0.4796547472256474,
+          -0.574389923904487,
           -0.06175898071137853
         ]
       },
       "oracle_mesh": {
-        "saving": 0.7986803812780761,
-        "saving_reached_only": 0.7986803812780761,
+        "saving": 0.7958903051744688,
+        "saving_reached_only": 0.7958903051744688,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
@@ -1506,8 +1996,8 @@
         ]
       },
       "nf_bl": {
-        "saving": -1.160030933693259,
-        "saving_reached_only": 0.36211122144336744,
+        "saving": -1.1801424521103525,
+        "saving_reached_only": 0.3352958635539096,
         "n_reached": 3,
         "n_censored": 1,
         "spread": [
@@ -1516,8 +2006,8 @@
         ]
       },
       "sequenced_bl": {
-        "saving": -1.6763735598296408,
-        "saving_reached_only": -0.437623112278398,
+        "saving": -1.700103495850985,
+        "saving_reached_only": -0.43780767968493595,
         "n_reached": 1,
         "n_censored": 3,
         "spread": [
@@ -1525,17 +2015,34 @@
           -0.06175898071137853
         ]
       },
+      "sequenced_vel": {
+        "saving": -1.4312761407883683,
+        "saving_reached_only": 0.0004509453165552439,
+        "n_reached": 3,
+        "n_censored": 1,
+        "spread": [
+          -5.726457399103139,
+          0.057990028863815324
+        ]
+      },
+      "sequenced_nut": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
+      },
       "sequenced": {
-        "saving": -1.5194464422984524,
-        "saving_reached_only": 0.19008535784635583,
+        "saving": -1.5430637846596493,
+        "saving_reached_only": 0.19035116508040695,
         "n_reached": 1,
         "n_censored": 3,
         "spread": [
           -5.726457399103139,
-          0.19008535784635583
+          0.19035116508040695
         ]
       },
-      "settled_spread": 0.0008557627731662925,
+      "settled_spread": 0.0008573222984767625,
       "readable": true
     },
     "Cd_v@0.01": {
@@ -1547,6 +2054,8 @@
           "oracle_mesh": 51,
           "nf_bl": 519,
           "sequenced_bl": 25,
+          "sequenced_vel": 634,
+          "sequenced_nut": 498,
           "sequenced": 114
         },
         "naca0012_aoa4": {
@@ -1554,6 +2063,8 @@
           "oracle_mesh": 53,
           "nf_bl": 580,
           "sequenced_bl": 292,
+          "sequenced_vel": 664,
+          "sequenced_nut": 466,
           "sequenced": 327
         },
         "naca0015_aoa6": {
@@ -1561,6 +2072,8 @@
           "oracle_mesh": 53,
           "nf_bl": 664,
           "sequenced_bl": 387,
+          "sequenced_vel": 744,
+          "sequenced_nut": 398,
           "sequenced": 418
         },
         "naca2412_aoa2": {
@@ -1568,6 +2081,8 @@
           "oracle_mesh": 52,
           "nf_bl": 551,
           "sequenced_bl": 62,
+          "sequenced_vel": 648,
+          "sequenced_nut": 493,
           "sequenced": 164
         },
         "naca2415_aoa5": {
@@ -1575,6 +2090,8 @@
           "oracle_mesh": 53,
           "nf_bl": 665,
           "sequenced_bl": 100,
+          "sequenced_vel": 712,
+          "sequenced_nut": 388,
           "sequenced": 286
         }
       },
@@ -1599,6 +2116,20 @@
           0.49078947368421055,
           0.9062027231467473,
           0.8637602179836512
+        ],
+        "sequenced_vel": [
+          0.010920436817472678,
+          0.0292397660818714,
+          0.021052631578947323,
+          0.01966717095310133,
+          0.02997275204359673
+        ],
+        "sequenced_nut": [
+          0.22308892355694232,
+          0.3187134502923976,
+          0.47631578947368425,
+          0.254160363086233,
+          0.4713896457765667
         ],
         "sequenced": [
           0.8221528861154446,
@@ -1638,6 +2169,26 @@
           0.9609984399375975
         ]
       },
+      "sequenced_vel": {
+        "saving": 0.022170551494997894,
+        "saving_reached_only": 0.022170551494997894,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          0.010920436817472678,
+          0.02997275204359673
+        ]
+      },
+      "sequenced_nut": {
+        "saving": 0.3487336344371648,
+        "saving_reached_only": 0.3487336344371648,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          0.22308892355694232,
+          0.47631578947368425
+        ]
+      },
       "sequenced": {
         "saving": 0.6312656016480392,
         "saving_reached_only": 0.6312656016480392,
@@ -1648,11 +2199,11 @@
           0.8221528861154446
         ]
       },
-      "settled_spread": 0.00040147268489935825,
+      "settled_spread": 0.004418261574403436,
       "readable": true
     },
     "Cd_v@0.005": {
-      "cold_mean": 801.6,
+      "cold_mean": 801.8,
       "cold_n": 5,
       "per_case": {
         "naca0012_aoa0": {
@@ -1660,6 +2211,8 @@
           "oracle_mesh": 62,
           "nf_bl": 599,
           "sequenced_bl": 78,
+          "sequenced_vel": 730,
+          "sequenced_nut": 609,
           "sequenced": 179
         },
         "naca0012_aoa4": {
@@ -1667,6 +2220,8 @@
           "oracle_mesh": 66,
           "nf_bl": 670,
           "sequenced_bl": 384,
+          "sequenced_vel": 761,
+          "sequenced_nut": 545,
           "sequenced": 399
         },
         "naca0015_aoa6": {
@@ -1674,6 +2229,8 @@
           "oracle_mesh": 66,
           "nf_bl": 780,
           "sequenced_bl": 507,
+          "sequenced_vel": 866,
+          "sequenced_nut": 434,
           "sequenced": 516
         },
         "naca2412_aoa2": {
@@ -1681,13 +2238,17 @@
           "oracle_mesh": 64,
           "nf_bl": 635,
           "sequenced_bl": 113,
+          "sequenced_vel": 753,
+          "sequenced_nut": 617,
           "sequenced": 224
         },
         "naca2415_aoa5": {
-          "cold": 847,
+          "cold": 848,
           "oracle_mesh": 65,
-          "nf_bl": 786,
+          "nf_bl": 787,
           "sequenced_bl": 330,
+          "sequenced_vel": 832,
+          "sequenced_nut": 428,
           "sequenced": 379
         }
       },
@@ -1697,33 +2258,47 @@
           0.9154929577464789,
           0.9246575342465754,
           0.9165580182529335,
-          0.9232585596221959
+          0.9233490566037736
         ],
         "nf_bl": [
           0.1872455902306649,
           0.14212548015364912,
           0.1095890410958904,
           0.1720990873533247,
-          0.0720188902007084
+          0.07193396226415094
         ],
         "sequenced_bl": [
           0.8941655359565808,
           0.5083226632522407,
           0.4212328767123288,
           0.8526727509778358,
-          0.6103896103896104
+          0.6108490566037736
+        ],
+        "sequenced_vel": [
+          0.009497964721845276,
+          0.025608194622279146,
+          0.011415525114155223,
+          0.018252933507170832,
+          0.018867924528301883
+        ],
+        "sequenced_nut": [
+          0.17367706919945725,
+          0.3021766965428937,
+          0.504566210045662,
+          0.19556714471968706,
+          0.4952830188679245
         ],
         "sequenced": [
           0.757123473541384,
           0.4891165172855314,
           0.410958904109589,
           0.7079530638852674,
-          0.552538370720189
+          0.5530660377358491
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9191684478949392,
-        "saving_reached_only": 0.9191684478949392,
+        "saving": 0.9191865472912548,
+        "saving_reached_only": 0.9191865472912548,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -1732,18 +2307,18 @@
         ]
       },
       "nf_bl": {
-        "saving": 0.1366156178068475,
-        "saving_reached_only": 0.1366156178068475,
+        "saving": 0.136598632219536,
+        "saving_reached_only": 0.136598632219536,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          0.0720188902007084,
+          0.07193396226415094,
           0.1872455902306649
         ]
       },
       "sequenced_bl": {
-        "saving": 0.6573566874577192,
-        "saving_reached_only": 0.6573566874577192,
+        "saving": 0.6574485767005519,
+        "saving_reached_only": 0.6574485767005519,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -1751,9 +2326,29 @@
           0.8941655359565808
         ]
       },
+      "sequenced_vel": {
+        "saving": 0.01672850849875047,
+        "saving_reached_only": 0.01672850849875047,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          0.009497964721845276,
+          0.025608194622279146
+        ]
+      },
+      "sequenced_nut": {
+        "saving": 0.33425402787512487,
+        "saving_reached_only": 0.33425402787512487,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          0.17367706919945725,
+          0.504566210045662
+        ]
+      },
       "sequenced": {
-        "saving": 0.5835380659083921,
-        "saving_reached_only": 0.5835380659083921,
+        "saving": 0.5836435993115241,
+        "saving_reached_only": 0.5836435993115241,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -1761,11 +2356,11 @@
           0.757123473541384
         ]
       },
-      "settled_spread": 0.00040147268489935825,
-      "readable": true
+      "settled_spread": 0.004418261574403436,
+      "readable": false
     },
     "Cd_v@0.002": {
-      "cold_mean": 931.8,
+      "cold_mean": 932.0,
       "cold_n": 5,
       "per_case": {
         "naca0012_aoa0": {
@@ -1773,6 +2368,8 @@
           "oracle_mesh": 78,
           "nf_bl": 686,
           "sequenced_bl": 1136,
+          "sequenced_vel": 852,
+          "sequenced_nut": null,
           "sequenced": 1282
         },
         "naca0012_aoa4": {
@@ -1780,13 +2377,17 @@
           "oracle_mesh": 82,
           "nf_bl": 785,
           "sequenced_bl": 464,
+          "sequenced_vel": 879,
+          "sequenced_nut": null,
           "sequenced": 873
         },
         "naca0015_aoa6": {
-          "cold": 1024,
+          "cold": 1025,
           "oracle_mesh": 82,
           "nf_bl": 982,
           "sequenced_bl": 628,
+          "sequenced_vel": 1021,
+          "sequenced_nut": 2030,
           "sequenced": 630
         },
         "naca2412_aoa2": {
@@ -1794,13 +2395,17 @@
           "oracle_mesh": 81,
           "nf_bl": 731,
           "sequenced_bl": 1117,
+          "sequenced_vel": 897,
+          "sequenced_nut": null,
           "sequenced": 1496
         },
         "naca2415_aoa5": {
           "cold": 987,
           "oracle_mesh": 82,
-          "nf_bl": 989,
+          "nf_bl": 990,
           "sequenced_bl": 448,
+          "sequenced_vel": 980,
+          "sequenced_nut": null,
           "sequenced": 471
         }
       },
@@ -1808,55 +2413,65 @@
         "oracle_mesh": [
           0.9081272084805654,
           0.9082774049217002,
-          0.919921875,
+          0.92,
           0.9104972375690608,
           0.916919959473151
         ],
         "nf_bl": [
           0.19199057714958778,
           0.12192393736017892,
-          0.041015625,
+          0.04195121951219516,
           0.1922651933701658,
-          -0.0020263424518742745
+          -0.003039513677811634
         ],
         "sequenced_bl": [
           -0.33804475853945815,
           0.4809843400447428,
-          0.38671875,
+          0.3873170731707317,
           -0.23425414364640873,
           0.5460992907801419
+        ],
+        "sequenced_vel": [
+          -0.0035335689045936647,
+          0.016778523489932917,
+          0.0039024390243902474,
+          0.008839779005524906,
+          0.007092198581560294
+        ],
+        "sequenced_nut": [
+          -0.9804878048780488
         ],
         "sequenced": [
           -0.5100117785630154,
           0.023489932885906062,
-          0.384765625,
+          0.3853658536585366,
           -0.6530386740331491,
           0.5227963525835866
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9127487370888954,
-        "saving_reached_only": 0.9127487370888954,
+        "saving": 0.9127643620888956,
+        "saving_reached_only": 0.9127643620888956,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
           0.9081272084805654,
-          0.919921875
+          0.92
         ]
       },
       "nf_bl": {
-        "saving": 0.10903379808561164,
-        "saving_reached_only": 0.10903379808561164,
+        "saving": 0.10901828274286321,
+        "saving_reached_only": 0.10901828274286321,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
-          -0.0020263424518742745,
+          -0.003039513677811634,
           0.1922651933701658
         ]
       },
       "sequenced_bl": {
-        "saving": 0.16830069572780354,
-        "saving_reached_only": 0.16830069572780354,
+        "saving": 0.1684203603619499,
+        "saving_reached_only": 0.1684203603619499,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -1864,9 +2479,29 @@
           0.5460992907801419
         ]
       },
+      "sequenced_vel": {
+        "saving": 0.00661587423936294,
+        "saving_reached_only": 0.00661587423936294,
+        "n_reached": 5,
+        "n_censored": 0,
+        "spread": [
+          -0.0035335689045936647,
+          0.016778523489932917
+        ]
+      },
+      "sequenced_nut": {
+        "saving": -0.9804878048780488,
+        "saving_reached_only": -0.9804878048780488,
+        "n_reached": 1,
+        "n_censored": 0,
+        "spread": [
+          -0.9804878048780488,
+          -0.9804878048780488
+        ]
+      },
       "sequenced": {
-        "saving": -0.04639970842533436,
-        "saving_reached_only": -0.04639970842533436,
+        "saving": -0.046279662693627044,
+        "saving_reached_only": -0.046279662693627044,
         "n_reached": 5,
         "n_censored": 0,
         "spread": [
@@ -1874,454 +2509,584 @@
           0.5227963525835866
         ]
       },
-      "settled_spread": 0.00040147268489935825,
-      "readable": true
+      "settled_spread": 0.004418261574403436,
+      "readable": false
     },
     "Cl_p@0.01": {
-      "cold_mean": 947.25,
+      "cold_mean": 944.0,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa4": {
-          "cold": 863,
+          "cold": 862,
           "oracle_mesh": 1,
-          "nf_bl": 675,
+          "nf_bl": 674,
           "sequenced_bl": 474,
+          "sequenced_vel": 864,
+          "sequenced_nut": 1242,
           "sequenced": 476
         },
         "naca0015_aoa6": {
-          "cold": 1044,
+          "cold": 1043,
           "oracle_mesh": 1,
           "nf_bl": 1005,
           "sequenced_bl": 667,
+          "sequenced_vel": 1030,
+          "sequenced_nut": 1665,
           "sequenced": 687
         },
         "naca2412_aoa2": {
-          "cold": 905,
+          "cold": 894,
           "oracle_mesh": 1,
-          "nf_bl": 737,
-          "sequenced_bl": 523,
-          "sequenced": 826
+          "nf_bl": 726,
+          "sequenced_bl": 541,
+          "sequenced_vel": 917,
+          "sequenced_nut": null,
+          "sequenced": 872
         },
         "naca2415_aoa5": {
           "cold": 977,
           "oracle_mesh": 1,
           "nf_bl": 1014,
           "sequenced_bl": 223,
+          "sequenced_vel": 968,
+          "sequenced_nut": 1713,
           "sequenced": 480
         }
       },
       "values": {
         "oracle_mesh": [
-          0.9988412514484357,
-          0.9990421455938697,
-          0.9988950276243094,
+          0.9988399071925754,
+          0.9990412272291467,
+          0.9988814317673378,
           0.9989764585465711
         ],
         "nf_bl": [
-          0.21784472769409036,
-          0.03735632183908044,
-          0.18563535911602214,
+          0.21809744779582363,
+          0.03643336529242569,
+          0.18791946308724827,
           -0.03787103377686796
         ],
         "sequenced_bl": [
-          0.4507531865585168,
-          0.36111111111111116,
-          0.4220994475138121,
+          0.45011600928074247,
+          0.3604985618408437,
+          0.3948545861297539,
           0.7717502558853634
         ],
+        "sequenced_vel": [
+          -0.002320185614849146,
+          0.012464046021092967,
+          -0.02572706935123037,
+          0.0092118730808598
+        ],
+        "sequenced_nut": [
+          -0.4408352668213458,
+          -0.5963566634707573,
+          -0.7533265097236439
+        ],
         "sequenced": [
-          0.44843568945538814,
-          0.34195402298850575,
-          0.08729281767955799,
+          0.4477958236658933,
+          0.3413231064237776,
+          0.02460850111856827,
           0.5087001023541453
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9989387208032965,
-        "saving_reached_only": 0.9989387208032965,
+        "saving": 0.9989347561839078,
+        "saving_reached_only": 0.9989347561839078,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.9988412514484357,
-          0.9990421455938697
+          0.9988399071925754,
+          0.9990412272291467
         ]
       },
       "nf_bl": {
-        "saving": 0.10074134371808124,
-        "saving_reached_only": 0.10074134371808124,
+        "saving": 0.10114481059965741,
+        "saving_reached_only": 0.10114481059965741,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
           -0.03787103377686796,
-          0.21784472769409036
+          0.21809744779582363
         ]
       },
       "sequenced_bl": {
-        "saving": 0.5014285002672009,
-        "saving_reached_only": 0.5014285002672009,
+        "saving": 0.49430485328417584,
+        "saving_reached_only": 0.49430485328417584,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.36111111111111116,
+          0.3604985618408437,
           0.7717502558853634
         ]
       },
-      "sequenced": {
-        "saving": 0.3465956581193993,
-        "saving_reached_only": 0.3465956581193993,
+      "sequenced_vel": {
+        "saving": -0.001592833966031687,
+        "saving_reached_only": -0.001592833966031687,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.08729281767955799,
+          -0.02572706935123037,
+          0.012464046021092967
+        ]
+      },
+      "sequenced_nut": {
+        "saving": -0.596839480005249,
+        "saving_reached_only": -0.596839480005249,
+        "n_reached": 3,
+        "n_censored": 0,
+        "spread": [
+          -0.7533265097236439,
+          -0.4408352668213458
+        ]
+      },
+      "sequenced": {
+        "saving": 0.33060688339059613,
+        "saving_reached_only": 0.33060688339059613,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          0.02460850111856827,
           0.5087001023541453
         ]
       },
-      "settled_spread": 0.000776210786945462,
+      "settled_spread": 0.0006726734505162765,
       "readable": true
     },
     "Cl_p@0.005": {
-      "cold_mean": 1117.25,
+      "cold_mean": 1109.5,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa4": {
-          "cold": 1011,
+          "cold": 1010,
           "oracle_mesh": 1,
-          "nf_bl": 914,
+          "nf_bl": 913,
           "sequenced_bl": 561,
-          "sequenced": 1250
+          "sequenced_vel": 1017,
+          "sequenced_nut": null,
+          "sequenced": 1260
         },
         "naca0015_aoa6": {
-          "cold": 1207,
+          "cold": 1206,
           "oracle_mesh": 1,
-          "nf_bl": 1243,
+          "nf_bl": 1241,
           "sequenced_bl": 733,
-          "sequenced": 753
+          "sequenced_vel": 1189,
+          "sequenced_nut": null,
+          "sequenced": 752
         },
         "naca2412_aoa2": {
-          "cold": 1130,
+          "cold": 1102,
           "oracle_mesh": 1,
-          "nf_bl": 931,
-          "sequenced_bl": 1633,
-          "sequenced": 1847
+          "nf_bl": 914,
+          "sequenced_bl": 1736,
+          "sequenced_vel": 1134,
+          "sequenced_nut": null,
+          "sequenced": 1967
         },
         "naca2415_aoa5": {
-          "cold": 1121,
+          "cold": 1120,
           "oracle_mesh": 1,
-          "nf_bl": 1228,
-          "sequenced_bl": 1738,
-          "sequenced": 1122
+          "nf_bl": 1227,
+          "sequenced_bl": 1739,
+          "sequenced_vel": 1106,
+          "sequenced_nut": null,
+          "sequenced": 1123
         }
       },
       "values": {
         "oracle_mesh": [
-          0.9990108803165183,
-          0.9991714995857498,
-          0.9991150442477876,
-          0.9991079393398751
+          0.999009900990099,
+          0.9991708126036484,
+          0.9990925589836661,
+          0.9991071428571429
         ],
         "nf_bl": [
-          0.09594460929772497,
-          -0.029826014913007404,
-          0.17610619469026545,
-          -0.09545049063336308
+          0.09603960396039601,
+          -0.029021558872305064,
+          0.1705989110707804,
+          -0.09553571428571428
         ],
         "sequenced_bl": [
-          0.4451038575667656,
-          0.3927091963545982,
-          -0.4451327433628318,
-          -0.5504014272970561
+          0.4445544554455445,
+          0.39220563847429524,
+          -0.5753176043557169,
+          -0.5526785714285714
         ],
+        "sequenced_vel": [
+          -0.006930693069306937,
+          0.014096185737976774,
+          -0.029038112522685955,
+          0.012499999999999956
+        ],
+        "sequenced_nut": [],
         "sequenced": [
-          -0.2363996043521266,
-          0.376139188069594,
-          -0.6345132743362831,
-          -0.000892060660124816
+          -0.24752475247524752,
+          0.3764510779436152,
+          -0.7849364791288567,
+          -0.00267857142857153
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9991013408724828,
-        "saving_reached_only": 0.9991013408724828,
+        "saving": 0.9990951038586391,
+        "saving_reached_only": 0.9990951038586391,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.9990108803165183,
-          0.9991714995857498
+          0.999009900990099,
+          0.9991708126036484
         ]
       },
       "nf_bl": {
-        "saving": 0.03669357461040498,
-        "saving_reached_only": 0.03669357461040498,
+        "saving": 0.03552031046828927,
+        "saving_reached_only": 0.03552031046828927,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.09545049063336308,
-          0.17610619469026545
+          -0.09553571428571428,
+          0.1705989110707804
         ]
       },
       "sequenced_bl": {
-        "saving": -0.03943027918463102,
-        "saving_reached_only": -0.03943027918463102,
+        "saving": -0.07280902046611212,
+        "saving_reached_only": -0.07280902046611212,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.5504014272970561,
-          0.4451038575667656
+          -0.5753176043557169,
+          0.4445544554455445
         ]
+      },
+      "sequenced_vel": {
+        "saving": -0.0023431549635040405,
+        "saving_reached_only": -0.0023431549635040405,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -0.029038112522685955,
+          0.014096185737976774
+        ]
+      },
+      "sequenced_nut": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
       },
       "sequenced": {
-        "saving": -0.12391643781973513,
-        "saving_reached_only": -0.12391643781973513,
+        "saving": -0.16467218127226513,
+        "saving_reached_only": -0.16467218127226513,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.6345132743362831,
-          0.376139188069594
+          -0.7849364791288567,
+          0.3764510779436152
         ]
       },
-      "settled_spread": 0.000776210786945462,
+      "settled_spread": 0.0006726734505162765,
       "readable": true
     },
     "Cl_p@0.002": {
-      "cold_mean": 1423.5,
+      "cold_mean": 1372.0,
       "cold_n": 4,
       "per_case": {
         "naca0012_aoa4": {
-          "cold": 1207,
+          "cold": 1205,
           "oracle_mesh": 1,
-          "nf_bl": 1178,
-          "sequenced_bl": 2463,
-          "sequenced": 2741
+          "nf_bl": 1175,
+          "sequenced_bl": 2475,
+          "sequenced_vel": 1214,
+          "sequenced_nut": null,
+          "sequenced": 2757
         },
         "naca0015_aoa6": {
-          "cold": 1422,
+          "cold": 1420,
           "oracle_mesh": 1,
-          "nf_bl": 1613,
-          "sequenced_bl": 1836,
-          "sequenced": 1813
+          "nf_bl": 1608,
+          "sequenced_bl": 1844,
+          "sequenced_vel": 1388,
+          "sequenced_nut": null,
+          "sequenced": 1820
         },
         "naca2412_aoa2": {
-          "cold": 1777,
-          "oracle_mesh": 2,
-          "nf_bl": 1232,
-          "sequenced_bl": 2828,
-          "sequenced": 3256
+          "cold": 1576,
+          "oracle_mesh": 1,
+          "nf_bl": 1145,
+          "sequenced_bl": 3114,
+          "sequenced_vel": 1615,
+          "sequenced_nut": null,
+          "sequenced": 3596
         },
         "naca2415_aoa5": {
-          "cold": 1288,
+          "cold": 1287,
           "oracle_mesh": 1,
-          "nf_bl": 1557,
-          "sequenced_bl": 3128,
-          "sequenced": 3107
+          "nf_bl": 1556,
+          "sequenced_bl": 3132,
+          "sequenced_vel": 1256,
+          "sequenced_nut": null,
+          "sequenced": 3112
         }
       },
       "values": {
         "oracle_mesh": [
-          0.9991714995857498,
-          0.9992967651195499,
-          0.9988745075970737,
-          0.9992236024844721
+          0.9991701244813278,
+          0.9992957746478873,
+          0.9993654822335025,
+          0.9992229992229992
         ],
         "nf_bl": [
-          0.024026512013256007,
-          -0.13431786216596353,
-          0.30669667979741133,
-          -0.20885093167701863
+          0.024896265560165998,
+          -0.13239436619718314,
+          0.2734771573604061,
+          -0.20901320901320908
         ],
         "sequenced_bl": [
-          -1.0405965202982603,
-          -0.2911392405063291,
-          -0.5914462577377602,
-          -1.4285714285714284
+          -1.0539419087136928,
+          -0.2985915492957747,
+          -0.9758883248730965,
+          -1.4335664335664338
         ],
+        "sequenced_vel": [
+          -0.007468879668049766,
+          0.022535211267605604,
+          -0.024746192893400965,
+          0.024087024087024123
+        ],
+        "sequenced_nut": [],
         "sequenced": [
-          -1.2709196354598178,
-          -0.2749648382559775,
-          -0.8323016319639842,
-          -1.4122670807453415
+          -1.287966804979253,
+          -0.2816901408450705,
+          -1.281725888324873,
+          -1.4180264180264182
         ]
       },
       "oracle_mesh": {
-        "saving": 0.9991415936967114,
-        "saving_reached_only": 0.9991415936967114,
+        "saving": 0.9992635951464292,
+        "saving_reached_only": 0.9992635951464292,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          0.9988745075970737,
-          0.9992967651195499
+          0.9991701244813278,
+          0.9993654822335025
         ]
       },
       "nf_bl": {
-        "saving": -0.0031114005080787044,
-        "saving_reached_only": -0.0031114005080787044,
+        "saving": -0.010758538072455026,
+        "saving_reached_only": -0.010758538072455026,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -0.20885093167701863,
-          0.30669667979741133
+          -0.20901320901320908,
+          0.2734771573604061
         ]
       },
       "sequenced_bl": {
-        "saving": -0.8379383617784445,
-        "saving_reached_only": -0.8379383617784445,
+        "saving": -0.9404970541122494,
+        "saving_reached_only": -0.9404970541122494,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -1.4285714285714284,
-          -0.2911392405063291
+          -1.4335664335664338,
+          -0.2985915492957747
         ]
+      },
+      "sequenced_vel": {
+        "saving": 0.003601790698294749,
+        "saving_reached_only": 0.003601790698294749,
+        "n_reached": 4,
+        "n_censored": 0,
+        "spread": [
+          -0.024746192893400965,
+          0.024087024087024123
+        ]
+      },
+      "sequenced_nut": {
+        "saving": null,
+        "saving_reached_only": null,
+        "n_reached": 0,
+        "n_censored": 0,
+        "spread": null
       },
       "sequenced": {
-        "saving": -0.9476132966062802,
-        "saving_reached_only": -0.9476132966062802,
+        "saving": -1.0673523130439038,
+        "saving_reached_only": -1.0673523130439038,
         "n_reached": 4,
         "n_censored": 0,
         "spread": [
-          -1.4122670807453415,
-          -0.2749648382559775
+          -1.4180264180264182,
+          -0.2816901408450705
         ]
       },
-      "settled_spread": 0.000776210786945462,
+      "settled_spread": 0.0006726734505162765,
       "readable": true
     }
   },
   "force_reference": {
     "naca0012_aoa0": {
-      "Cd": 0.0091599099476,
+      "Cd": 0.0091593231004,
       "Cl": -2.3158199833e-08,
       "Cd_p": 0.00150662844376,
       "Cd_v": 0.0076532569931999994,
       "Cl_p": -2.3126728099999997e-08
     },
     "naca0012_aoa4": {
-      "Cd": 0.010405174815,
-      "Cl": 0.42835894556,
-      "Cd_p": 0.0028770931285037075,
+      "Cd": 0.010405971094,
+      "Cl": 0.42835194451,
+      "Cd_p": 0.002877944456378201,
       "Cd_v": 0.007527192804698691,
-      "Cl_p": 0.4284060780217603
+      "Cl_p": 0.42839908537937893
     },
     "naca0015_aoa6": {
-      "Cd": 0.012600791735,
-      "Cl": 0.6279985653,
-      "Cd_p": 0.005008817913093886,
-      "Cd_v": 0.007591961761516269,
-      "Cl_p": 0.6279747692525408
+      "Cd": 0.01260078298,
+      "Cl": 0.62798346179,
+      "Cd_p": 0.005008810108406707,
+      "Cd_v": 0.007591971919767048,
+      "Cl_p": 0.6279596710707768
     },
     "naca2412_aoa2": {
-      "Cd": 0.010195667307,
-      "Cl": 0.42939496458,
+      "Cd": 0.010194180803999999,
+      "Cl": 0.429228363165,
       "Cd_p": 0.002543669138161831,
       "Cd_v": 0.007669947238544207,
-      "Cl_p": 0.42932969501899215
+      "Cl_p": 0.4291630698487773
     },
     "naca2415_aoa5": {
-      "Cd": 0.013194250559,
-      "Cl": 0.7309101866,
+      "Cd": 0.013198703994,
+      "Cl": 0.730906549665,
       "Cd_p": 0.005443132175403085,
-      "Cd_v": 0.007746451649323315,
-      "Cl_p": 0.7307993723406914
+      "Cd_v": 0.007746520598070365,
+      "Cl_p": 0.7307957678562353
     }
   },
   "force_reference_spread": {
     "naca0012_aoa0": {
-      "Cd": 0.0007075319885321899,
+      "Cd": 0.0007716483437179198,
       "Cl": 515.1326735322328,
       "Cd_p": 0.00028311803203152756,
-      "Cd_v": 0.00032937383420417616,
+      "Cd_v": 0.002774404259371721,
       "Cl_p": 515.7000361196792
     },
     "naca0012_aoa4": {
-      "Cd": 0.0012220669259366155,
-      "Cl": 0.00042825296845431593,
-      "Cd_p": 0.0006752371692710329,
-      "Cd_v": 0.00014674796866447531,
-      "Cl_p": 0.00042822867884924066
+      "Cd": 0.0011454520575087744,
+      "Cl": 0.000444604121542723,
+      "Cd_p": 0.0004631209483303411,
+      "Cd_v": 0.0021670692810699887,
+      "Cl_p": 0.0004445583981929859
     },
     "naca0015_aoa6": {
-      "Cd": 0.0003491172691777425,
-      "Cl": 0.00037247077131187224,
-      "Cd_p": 0.0008557627731662925,
-      "Cd_v": 1.644545790420078e-05,
-      "Cl_p": 0.00037233016024886445
+      "Cd": 0.0003498123098380416,
+      "Cl": 0.0003965305380658489,
+      "Cd_p": 0.0008573222984767625,
+      "Cd_v": 0.0014814411393965722,
+      "Cl_p": 0.00039638234698678124
     },
     "naca2412_aoa2": {
-      "Cd": 0.0,
-      "Cl": 0.0007759821550909489,
-      "Cd_p": 0.014883212838046648,
-      "Cd_v": 0.00040147268489935825,
-      "Cl_p": 0.000776210786945462
+      "Cd": 0.0001458187792213717,
+      "Cl": 0.0006365698272715556,
+      "Cd_p": 0.19274894084706695,
+      "Cd_v": 0.004418261574403436,
+      "Cl_p": 0.000636783306178589
     },
     "naca2415_aoa5": {
-      "Cd": 0.0019800456936282843,
-      "Cl": 0.0006677052925890591,
+      "Cd": 0.0016419630298439149,
+      "Cl": 0.0006726845384343128,
       "Cd_p": 0.00014156598466166518,
-      "Cd_v": 0.00011203827338045692,
-      "Cl_p": 0.0006677378837471577
+      "Cd_v": 0.0022661846977290183,
+      "Cl_p": 0.0006726734505162765
     }
   },
   "force_unsettled": {
     "naca0012_aoa0": {
       "Cd": [
         "sequenced",
-        "sequenced_bl"
+        "sequenced_bl",
+        "sequenced_nut"
       ],
       "Cl": [],
       "Cd_p": [
         "nf_bl",
         "sequenced",
-        "sequenced_bl"
+        "sequenced_bl",
+        "sequenced_nut",
+        "sequenced_vel"
       ],
       "Cd_v": [],
       "Cl_p": []
     },
     "naca0012_aoa4": {
       "Cd": [
-        "sequenced"
+        "sequenced",
+        "sequenced_nut"
       ],
-      "Cl": [],
+      "Cl": [
+        "sequenced_nut"
+      ],
       "Cd_p": [
         "sequenced",
-        "sequenced_bl"
+        "sequenced_bl",
+        "sequenced_nut"
       ],
       "Cd_v": [],
-      "Cl_p": []
+      "Cl_p": [
+        "sequenced_nut"
+      ]
     },
     "naca0015_aoa6": {
-      "Cd": [],
-      "Cl": [],
-      "Cd_p": [],
+      "Cd": [
+        "sequenced_nut"
+      ],
+      "Cl": [
+        "sequenced_nut"
+      ],
+      "Cd_p": [
+        "sequenced_nut"
+      ],
       "Cd_v": [],
-      "Cl_p": []
+      "Cl_p": [
+        "sequenced_nut"
+      ]
     },
     "naca2412_aoa2": {
       "Cd": [
         "nf_bl",
         "oracle_mesh",
         "sequenced",
-        "sequenced_bl"
+        "sequenced_bl",
+        "sequenced_nut"
       ],
       "Cl": [
         "nf_bl",
-        "oracle_mesh"
+        "oracle_mesh",
+        "sequenced_nut"
       ],
       "Cd_p": [],
       "Cd_v": [],
       "Cl_p": [
         "nf_bl",
-        "oracle_mesh"
+        "oracle_mesh",
+        "sequenced_nut"
       ]
     },
     "naca2415_aoa5": {
       "Cd": [
-        "sequenced_bl"
+        "sequenced_bl",
+        "sequenced_nut"
       ],
-      "Cl": [],
+      "Cl": [
+        "sequenced_nut"
+      ],
       "Cd_p": [
         "cold",
         "sequenced",
-        "sequenced_bl"
+        "sequenced_bl",
+        "sequenced_nut",
+        "sequenced_vel"
       ],
       "Cd_v": [],
-      "Cl_p": []
+      "Cl_p": [
+        "sequenced_nut"
+      ]
     }
   },
   "seconds_per_iteration": {
@@ -2329,26 +3094,31 @@
     "naca0012_aoa0_oracle_mesh": 0.14507833333333334,
     "naca0012_aoa0_nf_bl": 0.3603183333333333,
     "naca0012_aoa0_sequenced_bl": 0.273555,
+    "naca0012_aoa0_sequenced_vel": 0.17456,
     "naca0012_aoa0_sequenced": 0.284655,
     "naca0012_aoa4_cold": 0.08442666666666666,
     "naca0012_aoa4_oracle_mesh": 0.07857,
     "naca0012_aoa4_nf_bl": 0.12632333333333334,
     "naca0012_aoa4_sequenced_bl": 0.265225,
+    "naca0012_aoa4_sequenced_vel": 0.17304999999999998,
     "naca0012_aoa4_sequenced": 0.3085333333333333,
     "naca0015_aoa6_cold": 0.12616,
     "naca0015_aoa6_oracle_mesh": 0.08423666666666667,
     "naca0015_aoa6_nf_bl": 0.20888833333333331,
     "naca0015_aoa6_sequenced_bl": 0.23308666666666666,
+    "naca0015_aoa6_sequenced_vel": 0.16860333333333333,
     "naca0015_aoa6_sequenced": 0.29148833333333335,
     "naca2412_aoa2_cold": 0.16672333333333333,
     "naca2412_aoa2_oracle_mesh": 0.28905666666666663,
     "naca2412_aoa2_nf_bl": 0.35777,
     "naca2412_aoa2_sequenced_bl": 0.28246166666666667,
+    "naca2412_aoa2_sequenced_vel": 0.209805,
     "naca2412_aoa2_sequenced": 0.31364,
     "naca2415_aoa5_cold": 0.14067666666666664,
     "naca2415_aoa5_oracle_mesh": 0.12285666666666667,
     "naca2415_aoa5_nf_bl": 0.27318333333333333,
     "naca2415_aoa5_sequenced_bl": 0.23084999999999997,
+    "naca2415_aoa5_sequenced_vel": 0.18440166666666669,
     "naca2415_aoa5_sequenced": 0.35110833333333336
   }
 }

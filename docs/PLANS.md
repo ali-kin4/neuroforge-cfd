@@ -8,6 +8,77 @@ Last updated: **2026-08-31** · branch `paper2/openfoam-warm-start` · pushed to
 
 ---
 
+## 0.05 RESULTS ARE IN — 2026-09-01. Two confirmed, one falsified.
+
+All three probes finished. Scored each in its own tree.
+
+### 1. PLACEMENT — confirmed, exactly as pre-registered
+
+`results/depth_placement.json`, 5 cases, 8 arms. **Cd_v@1% is the readable row;
+every total-drag row on this tree is unreadable (settled arms disagree by 2.88%
+on a 1% band) and must not be quoted.**
+
+| arm | values | `y+` first station | Cd_v@1% | 95% CI | per case |
+|---|---:|---:|---:|---|---|
+| `nf_proj_coarse` | 16,384 | 36 | **+7.7%** | [+5.2, +9.3] | +3 +8 +9 +9 +10 |
+| `nf_proj_fine` | 16,384 | 0.72 | +16.5% | [+12.2, +20.6] | |
+| **`nf_proj_half`** | **8,192** | 0.72 | **+19.9%** | **[+16.1, +23.7]** | +14 +16 +21 +23 +26 |
+| `nf_bl` (mesh-native) | native | 0.72 | +14.6% | | |
+| `or_proj_coarse` | 16,384 | 36 | +41.7% | [+36.7, +48.1] | |
+| `or_proj_fine` | 16,384 | 0.72 | +62.2% | [+51.8, +73.3] | |
+| `or_proj_half` | 8,192 | 0.72 | +47.6% | [+43.7, +51.5] | 4/4 |
+
+**Half the budget with the station inside the first cell beats double the budget
+with it outside, by 2.6x, and the CIs do not overlap.** Same on the oracle arms,
+so it is not a fact about our network. p = 0.062 is the *floor* at n = 5; the CIs
+carry the discrimination, not the sign test.
+
+### 2. THE REPAIR — FALSIFIED, and this is the sharpest result in the paper
+
+`results/depth_repair.json` + `results/seed_gradient_repair.json`. The wall-law
+repair **does restore the gradient** and **does not recover the solve**:
+
+| arm | wall-grad error | roughness (x converged) | Cd_v@1% | Cd@1% |
+|---|---:|---:|---:|---:|
+| `nf_bl` mesh-native | 53.7% | 4.2 | +14.6% | **+34.2%** |
+| `nf_proj` | 1583% | 7.2 | +7.7% | -47.5% |
+| **`nf_proj_fix`** | **42.5%** | **11.1** | +4.9% | **-45.2%** |
+| `or_proj` | 1881% | 5.9 | +41.7% | -187.4% |
+| `or_proj_fix` | 46.6% | 8.5 | +28.4% | -74.4% (3/3) |
+
+`nf_proj_fix` has a **better wall gradient than the mesh-native arm** (42.5% vs
+53.7%) and still reads -45.2% against its +34.2%. **So the first-cell wall
+gradient is necessary and demonstrably not sufficient**, and the repair is the
+cleanest demonstration of it. The one measurable difference left: the repaired
+seed is 11.1x rougher along the wall than converged, against 4.2x for
+mesh-native — the repair fixes the magnitude and leaves tangential noise. That
+is a candidate explanation, **not an established one**.
+
+⚠ **Contribution 4 and every "and a repair" in the title/abstract must go.**
+
+### 3. GRID SEQUENCING — a real baseline, and it fails too
+
+`results/depth_sequencing.json`, 8 arms (the channel split re-scored the tree;
+these numbers supersede the six-arm ones in §0.1).
+
+| row | cold | oracle | `nf_bl` | `sequenced_bl` | `sequenced_vel` | `sequenced_nut` | `sequenced` |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Cd@1% | 802 | +92.1% | +33.9% | -302.4% | -4.2% | -- | -375.4% |
+| Cd_v@1% | 696 | +92.4% | +14.6% | **+75.9%** | +2.2% | +34.9% | +63.1% |
+| Cl@1% | 944 | +99.9% | +10.1% | +49.4% | -0.1% | -59.7% | +33.1% |
+
+- Grid sequencing makes a **better seed** than the network on viscous drag
+  (+75.9% vs +14.6%) — the placement criterion predicts this — but **destroys
+  total drag** and, once its coarse solve is charged at **1486 fine-equivalent
+  iterations against a cold run of 696**, is net negative anyway.
+- The channel split mirrors the network's: the saving rides on **`nut`**
+  (+34.9% alone) and velocity alone is inert (+2.2%). Unlike `nf_bl`, handing
+  both over does *not* rescue total drag — a coarse velocity field is not
+  consistent with its own `nut` at the fine mesh's resolution.
+- **Condition 2 holds with no network in it** (`sequenced_bl` beats `sequenced`
+  on every row), so the draft's extrapolation explanation is wrong. The
+  divergence explanation was tested and falsified too (§0.1).
+
 ## 0.1 SHUT-DOWN HANDOFF — 2026-08-31 14:00, power warning given mid-run
 
 **Everything is committed and pushed.** `runs/` is gitignored, so an interrupted
