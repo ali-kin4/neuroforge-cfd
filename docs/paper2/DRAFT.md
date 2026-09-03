@@ -1293,10 +1293,17 @@ seconds, on one machine, with the seed's own construction charged to it.
   the boundary layer.** Above that the velocity has saturated at freestream and
   the expression becomes an upper bound; we report the regime alongside every
   number rather than leaving a reader to infer it.
-- **It is necessary, not sufficient** (§7.4). A representation that fails the
-  check can be ruled out for free; one that passes still has to satisfy the
-  region and channel conditions, and `nf_mesh` is the counterexample the study
-  carries — perfect gradient retention, worst arm in the study.
+- **It measures representations; it does not forecast solves** (§6.7). This is
+  the paper's largest limitation and it is a negative result rather than an
+  unexplored gap. We eliminated both candidate mediators by direct measurement:
+  restoring the first-cell gradient's magnitude leaves convergence unchanged, and
+  so does additionally restoring its smoothness. We do not have a third
+  candidate. So the pre-flight check of §6.4 reports how badly a format will
+  misreport the near-wall state, and **nothing follows from it about the
+  speedup**. A reader should use it to rule a format out, never to predict a gain.
+- **It is necessary, not sufficient** (§7.4). `nf_mesh` retains the gradient
+  perfectly and is the worst arm in the study, so even as a veto the check has to
+  be read alongside the region and channel conditions.
 - **It is a bound, not an estimate, and it over-predicts by 1.3–2.6×** (§6.2).
   We do not absorb that into a fitted coefficient: fitting it would turn a
   prediction into a description of these five cases. An earlier version of this
