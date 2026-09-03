@@ -1,5 +1,5 @@
 - A perfect flow field, stored on a 128^2 grid, is a worse RANS start than freestream
-- 8,192 well-placed values beat 16,384 badly placed ones on convergence, 5 of 5 cases
-- Wall-gradient damage follows in closed form from y+ alone, to within 13 per cent
+- 8,192 well-placed values keep the wall gradient exactly; 16,384 badly placed lose it
+- Wall-gradient damage is bounded above in closed form, from y+ alone, with no fitting
 - Restoring the wall gradient is necessary and measurably not sufficient
 - Grid sequencing makes the better seed; the learned seed's advantage is its price

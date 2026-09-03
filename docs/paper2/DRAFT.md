@@ -3,7 +3,7 @@
 ## Highlights
 
 - A perfect flow field, stored on a 128^2 grid, is a worse RANS start than freestream
-- 8,192 well-placed values beat 16,384 badly placed ones on convergence, 5 of 5 cases
+- 8,192 well-placed values keep the wall gradient exactly; 16,384 badly placed lose it
 - Wall-gradient damage is bounded above in closed form, from y+ alone, with no fitting
 - Restoring the wall gradient is necessary and measurably not sufficient
 - Grid sequencing makes the better seed; the learned seed's advantage is its price
@@ -19,9 +19,8 @@ Neural surrogates for external aerodynamics are usually evaluated as predictors.
 Used instead as initial conditions for a production RANS solver they are
 routinely worse than no initialisation at all, and the cause is neither accuracy
 nor resolution but where a representation places its samples. Store the exact
-converged flow field as a 128^2 Cartesian raster or an equal-budget wall-fitted
-grid and hand it back to simpleFoam: total-drag convergence is 548% and 173%
-slower than from uniform freestream. The mechanism is arithmetic. Every mesh cell
+converged flow field as a 128^2 Cartesian raster and hand it back to simpleFoam:
+total-drag convergence is 548% slower than from uniform freestream. The mechanism is arithmetic. Every mesh cell
 nearer the wall than the representation's first station receives that station's
 velocity, so the first-cell tangential gradient, which viscous drag integrates,
 is overestimated by u+(y1+)/u+(yc+) -- a ratio fixed by the law of the wall with
