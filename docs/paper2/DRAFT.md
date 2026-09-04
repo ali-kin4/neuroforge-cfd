@@ -389,6 +389,27 @@ nu = 1.56e-5, Re from |u_in|). It is queried directly at the C-grid cell centres
 training `sdf` distribution is centred on 0.23 chords, which is why seeds are cut
 off at 3.5 chords and why the outer field is left cold.
 
+**Trees, and why the same arm reads two numbers.** The study is seven separate
+solve trees, each with its own case set and its own arm set:
+
+| tree | cases | arms | used in |
+|---|---:|---:|---|
+| `repr3` | 6 | 15 | §5.3, §5.4, §5.6, §8 |
+| `placement2` | 5 | 9 | §5.2.1, §5.2.3 |
+| `repair` | 5 | 8 | §5.5 |
+| `sequencing` | 5 | 7 | §5.7 |
+| `corpus` | 13 | 5 | §5.1, §5.2 |
+| `wallclock2` | 5 | 4 | §9 |
+| Reynolds ladder | 2 × 5 Re | — | §6.6 (no solves; re-uses cold runs) |
+
+A saving depends on the arm set, because §4's settled reference is a median over
+the arms that settled — so **the same arm reads slightly differently in different
+trees**, and `nf_bl` on `C_d`@1% is +33.9% in `repr3` and +34.1% in the
+placement tree. That is not noise being reported twice; it is the reference
+moving, and §4's rule is that a number must name the arm set it was computed
+over. Every table below states its tree. Cross-tree comparisons of the *same*
+arm are not made anywhere in this paper; comparisons are always within a tree.
+
 **Arms.** Every experiment carries a **converged-field oracle** as a control. The
 oracle is the cold run's own converged solution, re-injected as an initial
 condition, and it must post a large positive saving before any other arm in that
@@ -644,6 +665,8 @@ that damage is real, computable and bounded. **It is not what costs the solve.**
 The placement ladder shows it directly: all three arms below carry the same exact
 field through the same round trip, and only the grading of the grid changes.
 
+**Tree: `placement2`** (5 cases, 9 arms).
+
 | arm | values | first station | wall-gradient error | roughness (× conv.) | `C_d,v`@1% |
 |---|---:|---:|---:|---:|---:|
 | `or_proj_coarse` | 16,384 | 2.5·10⁻⁴ | **1218.8%** | 18.68× | **+86.1%** |
@@ -725,7 +748,10 @@ mesh-native, masked to the boundary layer — which turns the study into a chain
 in which **each link moves exactly one property**.
 
 Everything below is `C_d,v`@1%, paired within case before averaging, with a
-bootstrap CI and an exact sign test (`scripts/decompose.py`).
+bootstrap CI and an exact sign test (`scripts/decompose.py`). **Tree:
+`placement2`** (5 cases, 9 arms) except the raster row, which is **`corpus`**
+(13 cases, 5 arms) — the two are marked, and no number is compared across
+them.
 
 | arm | field | region | delivered as | `C_d,v`@1% |
 |---|---|---|---|---:|
@@ -882,6 +908,8 @@ restored the magnitude but left the reconstruction rough along the surface,
 because every station is inverted independently from its own value. Smoothing
 the recovered `u_τ` over an arclength window fixes that. Measured on the seeds
 exactly as the solver received them, five cases:
+
+**Tree: `repair`** (5 cases, 8 arms).
 
 | arm | first-cell gradient error | roughness (× converged) |
 |---|---:|---:|
@@ -1641,6 +1669,8 @@ same runs on **`C_d,v`@1%** — the row §4's readability rule admits and the ro
 the headline is reported on. Every one of the five cases is readable there
 (settled spread 0.005–0.069% against a 0.5% limit), which the `C_d` version of
 this table cannot say of two of them.
+
+**Tree: `wallclock2`** (5 cases, 4 arms, `exclusive: true`).
 
 | arm | iterations | solver seconds | **end-to-end seconds** |
 |---|---:|---:|---:|
