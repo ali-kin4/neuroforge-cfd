@@ -167,7 +167,14 @@ Ordered by what we think survives, not by what is largest.
    start has not answered the question a practitioner asks, and because an
    earlier draft of this work reached the opposite conclusion from a charge it
    had set too high.
-8. **An acceptance certificate** bounding the worst case at (1 + K/N) × cold with
+8. **The control for the objection this design invites** (§5.9). An oracle seed
+   is a fixed point of the discrete operator, so any contrast against it might be
+   measuring distance from that fixed point rather than representation. A smooth
+   perturbation carrying the raster's *own* whole-field error norm, ramped to
+   zero inside the boundary layer, costs **12.2 points** where the raster costs
+   **82.4** — so roughly six sevenths of the raster's harm is attributable to
+   where its error sits rather than how large it is.
+9. **An acceptance certificate** bounding the worst case at (1 + K/N) × cold with
    a rule that never sees a cold run (§8), and **three falsified predictions** a
    reader would otherwise make (§7).
 
@@ -847,7 +854,9 @@ measurable — and not a claim that a lossy round trip improves a seed.
 > raster row in particular changes region and channel coverage in no way — it is
 > the same whole field, all four channels — but it changes sampling position,
 > resolution and interpolation together, and §6 identifies only the first of
-> those as the one it can compute. §5.9 tests the remaining alternative directly.
+> those as the one it can compute. §5.9 tests the leading alternative directly —
+> that any departure from the solver's own fixed point would do the same — and
+> rules it out for six sevenths of the effect.
 
 ### 5.3 Condition 2 — hand over the boundary layer only
 
@@ -1100,6 +1109,61 @@ the clipped cells hold values ~88x below the peak, so the floor removes only
 **2.1–2.3%** of the eddy-viscosity field's energy, and it applies identically to
 every arm including the oracle. It is a common-mode limitation of the study, not
 a differential effect that could move an arm from +33.9% to -293.2%.
+
+### 5.9 Is it the representation, or any departure from the solver's fixed point?
+
+This is the strongest objection to §5.2 and it needs answering directly. The
+oracle seed is the cold run's own converged solution re-injected: to solver
+tolerance it is a **fixed point of the discrete operator**, so it converges in
+~52 iterations because its residual is already at the floor, not because it is
+physically excellent. Every other arm is a perturbation of that fixed point, and
+any perturbation restarts a transient. Read that way, "storing the field on a
+raster is catastrophic" and "moving away from the discrete fixed point at all is
+catastrophic" fit §5.2 equally well — and the second is a much weaker paper.
+
+**The control** (`scripts/perturbation_probe.py`, tree `perturb`, 5 cases).
+Perturb the exact converged field by a *smooth* field carrying the **same
+per-channel L2 norm** as the 128² raster round trip's error, and hand it over
+mesh-native. Two properties make it a control rather than another bad seed:
+
+- it is six Fourier modes whose shortest wavelength is a third of a chord
+  against a boundary layer 0.0187 chords thick, so it carries no structure on
+  the scale the near-wall state lives at; and
+- it is **ramped to zero inside the boundary layer** by a smoothstep, so the
+  near-wall field the solver receives is the converged one exactly.
+
+Measured on the seeds as the solver received them, the two arms carry the
+identical whole-field error and could not differ more in where it sits:
+
+| seed | whole-field `u` error | `u` error in the layer | `u` error in the first ring |
+|---|---:|---:|---:|
+| `cartesian_128` | 21.51% | 45.46% | **1974.90%** |
+| `smooth_perturb` | **21.51%** | **0.00%** | **0.00%** |
+
+**The result**, `C_d,v`@1%, paired within case, all 5 of 5:
+
+| arm | saving | paired against `oracle_mesh` |
+|---|---:|---:|
+| `oracle_mesh` | +92.4% [+92.1, +92.8] | — |
+| `smooth_perturb` | **+80.2%** [+77.1, +84.6] | **−12.2** points [−15.2, −8.1] |
+| `cartesian_128` | +10.0% [+3.8, +16.0] | **−82.4** points [−88.9, −76.1] |
+
+**The same error magnitude costs 12.2 points spread smoothly and 82.4 points
+delivered by a raster** — 6.8 times more, with intervals that do not overlap.
+
+**What this establishes, and what it does not.** It establishes that the raster's
+harm is **not attributable to the size of the error it introduces**, and
+therefore not to mere distance from the discrete fixed point. Roughly six
+sevenths of it is attributable to *where* the error sits rather than how large it
+is, which is what §5.2 claims and what §6 computes.
+
+It does **not** establish that distance from the fixed point is irrelevant:
+`smooth_perturb` costs a real and consistent 12.2 points, so departing from the
+solver's own fixed point is not free, and any study using a converged-field
+oracle should expect that floor. Nor could this arm have shown otherwise —
+it is zero exactly where the raster does its worst damage, by construction. The
+claim available from it is the one made above, and we do not make the stronger
+one.
 
 ## 6. The mechanism, in closed form
 Everything in §5 follows from one quantity, and that quantity can be computed
@@ -1467,7 +1531,10 @@ high-wavenumber error fast and smooth global error slowly, which is a property
 of SIMPLE and not of any seed here.
 
 The experiment that would settle it is a seed perturbed only in its smooth,
-outer, elliptic content at matched norm. §5.9 runs exactly that.
+outer, elliptic content at matched norm. §5.9 runs exactly that, and its answer
+is consistent with the reading without establishing it: such a seed costs 12.2
+points where a raster of the same error norm costs 82.4, so smooth outer error
+is *cheap* rather than free.
 
 **So the criterion should be used for what it measures.** It says, before any
 solve, how badly a given output format will misreport the near-wall state, it is
