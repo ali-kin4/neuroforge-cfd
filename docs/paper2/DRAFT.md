@@ -27,18 +27,18 @@ Read at the solver's own cell centres, the exact field saves 93.6% of a cold
 solve (95% CI 92.9 to 94.3, 13 of 13). Stored first on a 128^2 Cartesian raster
 -- the format grid-based neural operators emit -- it saves 3.4% (CI -2.3 to
 +8.8, p = 0.27): indistinguishable from no initialisation. **A body-fitted grid
-holding the same 16,384 values costs nothing measurable** (+6.7, CI -2.6 to
-+14.8). What costs is where a format puts its samples, not how many it stores.
-Restricting the field to the boundary layer costs 20.7 points, and a surrogate's
-prediction in place of the exact field a further 54.5: **accuracy matters, and
-more than region does**, contradicting an earlier form of this claim that we
-withdraw.
+holding the same 16,384 values costs nothing measurable.** Restricting the field
+to the boundary layer costs 20.7 points and using a surrogate's prediction a
+further 54.5, so **accuracy matters, and more than region does** -- contradicting
+an earlier form of this claim, which we withdraw.
 
-A parameter-free closed form predicts what a representation does to the
-near-wall state and separates the two formats by y+ alone, before any solve. It
-is **not** the mediator: three ways of restoring that state leave convergence
-unchanged, and a seed worse on every local measure we can make converges no
-worse. Classical grid sequencing beats the learned seed on both axes.
+Nor is it the size of the error: a smooth perturbation carrying the raster's own
+error norm costs 12.2 points where the raster costs 82.4. What costs is **where**
+a format's error sits, and a parameter-free closed form separates the two formats
+by y+ alone before any solve. That quantity is **not** the mediator: three ways
+of restoring the near-wall state leave convergence unchanged, and a seed worse on
+every local measure we can make converges no worse. Classical grid sequencing
+beats the learned seed on both axes.
 
 ---
 
@@ -1946,6 +1946,15 @@ Every row is the same thirteen cases and the same tree, paired within case.
 flow field on a body-fitted grid of identical budget is worth nearly everything.
 So the property that matters is not "a grid" and not the number of values: it is
 whether the format places a sample where the solver keeps its state.
+
+It is not the *size* of the error either, and that is worth stating separately
+because it is the objection this design invites. An oracle seed is a fixed point
+of the discrete operator, so a contrast against it could be measuring distance
+from that fixed point rather than representation. §5.9 perturbs the converged
+field by a smooth error carrying the raster's **own** whole-field norm, ramped
+to zero inside the boundary layer. It costs **12.2 points**; the raster, with the
+identical error norm, costs **82.4**. Six sevenths of the harm is in *where* the
+error sits.
 
 *What* a representation does to the near-wall state we can state in closed form.
 A resampled field hands every cell nearer the wall than its first station that
