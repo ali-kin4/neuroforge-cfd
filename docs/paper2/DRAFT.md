@@ -1540,9 +1540,12 @@ ruled out for free; one that passes it still has to satisfy conditions 2 and 3.
 ## 8. An acceptance test that bounds the worst case
 
 Warm starting is only adoptable if a bad seed cannot cost more than not seeding.
-Ours can: ungated across 5 cases x 15 strategies (70 seeds, every arm in the
-tree, not a favourable subset), the mean is -163.6% on Cd@1% and the worst single
-seed is -1169.6%. Only 24 of the 70 seeds help at all.
+Ours can: ungated across the `repr3` tree's 15 strategies (73 seeds, every arm,
+not a favourable subset), the mean is −189.0% on `C_d`@1% and the worst single
+seed is −1200.0%. Only 24 of the 73 seeds help at all on that metric — though on
+`C_d,v`@1%, the row §4 admits, 58 of 73 do, and the ungated mean is already
++20.1%. Which of those two pictures a gate is protecting against is the whole
+question, and §8's answer is below.
 
 **The rule.** Run K probe iterations from the seed. Read two scalars from the
 residual history — the level log10 r_K and the drop log10 r_K - log10 r_0. Either
@@ -1560,17 +1563,45 @@ arm in the `repr3` tree:
 
 | metric | seeds | ungated mean | ungated worst | **gated mean** | **gated worst** | harmful admitted |
 |---|---:|---:|---:|---:|---:|---:|
-| Cd@1% | 70 | -163.6% | -1169.6% | **+1.5%** | **-5.8%** | **0 / 46** |
+| **`C_d,v`@1%** (readable; the recommendation) | 73 | +20.1% | -8.6% | **+21.1%** | **-8.6%** | 14 / 15 |
+| Cd@1% | 73 | -189.0% | -1200.0% | **+1.2%** | **-5.8%** | **0 / 49** |
 | residual 5e-6 | 70 | -161.9% | -1449.3% | -0.5% | **-7.6%** | **0 / 53** |
-| Cd_v@1% | 70 | +20.1% | -8.6% | +20.1% | -8.6% | 14 / 15 |
 | Cl@1% | 56 | +1.1% | -672.6% | **-8.2%** | **-672.6%** | 5 / 18 |
 
 **Read the two columns that matter as a pair.** The gated mean is small — the
 gate is insurance, not a profit centre, and selling it as a mean saving would be
 selling the wrong product. What it does is convert a −1169.6% tail into a −5.8%
 one on drag, and a −1449.3% tail into −7.6% on the residual, while admitting
-**none** of the harmful seeds in either case. On viscous drag, where 55 of 70
-seeds already help, it is a near no-op at 96% capture.
+**none** of the harmful seeds in either case.
+
+**Does the gate admit the seed this paper recommends?** It is the first question
+to ask of an acceptance rule that sits in a paper making a recommendation, and
+the answer is different on the two rows, in a way that matters.
+
+| metric | `nf_bl` admitted | on cases where `nf_bl` helps | capture |
+|---|---|---|---:|
+| `C_d,v`@1% (the readable row) | **5 of 5** | 5 of 5 | 96.5% |
+| `C_d`@1% | **0 of 5** | 0 of 4 | 10.4% |
+
+On the row §4's readability rule admits, the gate admits the recommended seed on
+every case — its residual level at K = 25 is −3.29 to −3.80 against a
+leave-one-case-out threshold of −2.08 to −2.26, so it is admitted with a wide
+margin, and the rule's direction is the intuitive one (a *lower* residual is
+accepted). On total drag the same gate **rejects `nf_bl` on all five cases**,
+four of which it would have helped by +27.6% to +64.1%.
+
+We report the second row rather than only the first because it is the sharpest
+version of §5.6's finding and because a reader is entitled to it. The residual
+is a good proxy for viscous-drag convergence and a poor one for total-drag
+convergence; a gate reading the residual therefore works on the first and
+misfires on the second. That is the same split as §3's grid-convergence check
+(`C_d,v` moves 6.9% under a fourfold cell-count change, `C_d,p` 49.8%), the same
+split as §4's readability rule, and the same split as §5.6's inversion. **§8's
+recommendation is therefore the `C_d,v` gate**, and the `C_d` row is reported as
+a limit of the method, not as a second offering. On viscous drag, where 55 of 70
+seeds already help, the gate is close to a no-op — it admits 72 of 73 seeds and
+catches 1 of 15 harmful ones — but the harm it lets through is bounded at −8.6%,
+which is what makes the no-op acceptable rather than negligent.
 
 **Where the gate fails, stated rather than buried.** On lift it admits 5 of 18
 harmful seeds, and its gated worst case is −672.6% — the *same* as the ungated
@@ -1584,10 +1615,11 @@ worst-case bound of (1 + K/N) x cold survives regardless, because that bound is
 arithmetic, not statistical: it holds for any seed, any metric, and any threshold,
 including a threshold that admits every seed.
 
-The gate is not what makes warm starting fast; it is what makes it deployable. It
-is conservative by construction, capturing only 12% of what a gatekeeper with
-foreknowledge would achieve on total drag — the metric where two thirds of the
-seeds are harmful. Longer probes are monotonically worse, and not marginally:
+The gate is not what makes warm starting fast; it is what makes it deployable.
+On the readable metric it captures 96.5% of what a gatekeeper with foreknowledge
+would achieve; on total drag, where two thirds of the seeds are harmful and the
+residual does not track the quantity, it captures 10.4%. Longer probes are
+monotonically worse, and not marginally:
 at K = 400 on drag the rule admits 13 harmful seeds it rejected at K = 25 and
 returns −43.9%, because the probe cost alone (bound −49.8%) exceeds anything the
 decision can recover. **A short probe is not a compromise forced by cost; it is

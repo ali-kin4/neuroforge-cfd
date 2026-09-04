@@ -206,7 +206,7 @@ def main(argv: list[str] | None = None) -> int:
 
             # Leave-one-case-out: the threshold is chosen on the other cases, so
             # what is reported is not the rule fitting the data it is scored on.
-            costs, admitted_harm = [], 0
+            costs, admitted_harm, verdicts = [], 0, []
             for r in keep:
                 others = [q for q in keep if q["case"] != r["case"]]
                 grid = sorted({feats[(q["case"], q["arm"])] for q in others})
@@ -225,6 +225,16 @@ def main(argv: list[str] | None = None) -> int:
                 cost = r["warm"] if accept else k + r["cold"]
                 costs.append(1 - cost / r["cold"])
                 admitted_harm += int(accept and not r["helpful"])
+                # Per-record verdicts, so the paper can answer directly whether
+                # the gate admits the seed it recommends rather than reporting
+                # only an aggregate. `tau` is the leave-one-case-out threshold
+                # this record was judged against; the test is `feature <= tau`,
+                # so a *lower* residual level at K is what gets admitted.
+                verdicts.append({"case": r["case"], "arm": r["arm"],
+                                 "feature": float(feats[(r["case"], r["arm"])]),
+                                 "tau": float(tau), "accepted": bool(accept),
+                                 "helpful": bool(r["helpful"]),
+                                 "saving": float(1 - r["warm"] / r["cold"])})
 
             if not costs:
                 continue
@@ -233,7 +243,8 @@ def main(argv: list[str] | None = None) -> int:
                    "capture": saving / oracle_saving if oracle_saving else float("nan"),
                    "worst": float(min(costs)), "admitted_harm": admitted_harm,
                    "n": len(costs),
-                   "bound": -k / float(np.mean([r["cold"] for r in keep]))}
+                   "bound": -k / float(np.mean([r["cold"] for r in keep])),
+                   "verdicts": verdicts}
             out["rules"].append(row)
             print(f"{k:>5} {name:>8} {100 * row['capture']:8.1f}% "
                   f"{100 * saving:+7.1f}% {100 * row['worst']:+7.1f}% "
