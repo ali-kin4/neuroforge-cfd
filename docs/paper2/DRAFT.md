@@ -127,7 +127,7 @@ place the five claims this project made and then withdrew.
    stored as a raster, is a catastrophically bad initial condition, and refining
    the raster cannot fix it. A body-fitted grid of the *same* budget is not,
    which is what makes this a statement about placement rather than about grids.
-2. **A decomposition into properties that can be set independently** (§5.2.3),
+2. **A decomposition into properties that can be set independently** (§5.1),
    each priced by a control that moves one variable on `C_d,v`@1%: region costs
    20.7 points, a raster representation 90.2, a body-fitted one nothing
    measurable, and accuracy 54.5 — all on the thirteen-case corpus, from one
@@ -405,7 +405,7 @@ solve trees, each with its own case set and its own arm set:
 
 | tree | cases | arms | used in |
 |---|---:|---:|---|
-| `corpus` | 13 | 5 | §5.1, §5.2, **§5.2.3** — the headline and the decomposition |
+| `corpus` | 13 | 5 | §5.1, §5.2, **§5.1** — the headline and the decomposition |
 | `repr3` | 6 | 15 | §5.3, §5.4, §5.6, §8 |
 | `placement2` | 5 | 9 | §5.2.1 (the placement ladder) |
 | `repair` | 5 | 8 | §5.5 |
@@ -570,266 +570,18 @@ the headline and answers *does this generalise*. The **mechanism study** — fiv
 cases, fifteen arms — carries the controlled contrasts and answers *why, and
 under what conditions*. §5.1 is the first; §5.2–§5.4 are the second.
 
-### 5.1 The headline, at thirteen cases
+### 5.1 What each property of a warm start is worth
 
-`scripts/corpus_probe.py`. Thirteen cases — five NACA sections, 2° to 12°, from
-attached flow into incipient separation — each admitted under a gate declared
-before the sweep ran (residual floor ≤ 1e-5, arms agreeing on final Cd to within
-2%). **All thirteen were admitted**, so nothing here rests on a discretionary
-exclusion.
+This is the paper's central measurement, and it is a *decomposition* rather than
+a single number. The recommended learned seed's +18.4% is one row of it, and the
+smallest.
 
-| row | `nf_bl` | 95% CI | wins | sign test | oracle control | Cartesian control |
-|---|---:|---|---:|---:|---:|---:|
-| **Cd_v@1%** | **+18.4%** | [+12.4, +25.3] | **13/13** | **p = 0.0002** | +93.6% (13/13) | +3.4% (p = 0.27) |
-| Cd_v@0.5% | +15.7% | [+10.6, +21.8] | 13/13 | p = 0.0002 | +93.2% | +4.9% (p = 0.27) |
-| Cd_v@0.2% | +8.8% | [+4.3, +13.5] | 11/13 | p = 0.022 | +92.8% | −43.6% (p = 0.58) |
-
-Per case at the 1% band: **+3, +9, +9, +10, +11, +11, +16, +17, +19, +25, +28,
-+35, +47**. There is no losing case and no case carrying the mean.
-
-Three properties make this a rate measurement rather than a crossing artifact:
-it is **monotone** across every band, the **oracle control** is flat at +93% and
-wins 13/13, and the **negative control** — the exact converged field resampled
-onto a 128² Cartesian grid — is statistically indistinguishable from no seed at
-all (+3.4%, p = 0.27). A pipeline that manufactured savings would not produce a
-null there.
-
-Reported as a *paired* contrast rather than as two independent savings, which is
-the form the comparison is actually made in: the raster costs **−90.2 points
-[−96.3, −84.7], 0 of 13 cases improve, p = 0.0002** against the same field read
-at the cell centres. §5.2.3 gives the other three contrasts on the same tree and
-the same row.
-
-> **Does the headline survive a stopping rule a practitioner could run?** The
-> metric above centres its band on the *converged* value, which in production
-> nobody has. That is the right choice for measuring a mechanism and the wrong
-> one for measuring a workflow, so `scripts/causal_stopping.py` re-scores every
-> arm under a **causal** rule that uses only the history so far: stop at the
-> first iteration whose trailing 50-iteration window is flat to 1%. It needs no
-> converged answer and no cold run.
->
-> | arm | the paper's metric | causal rule |
-> |---|---:|---:|
-> | `oracle_mesh` | +93.6% 13/13 | **+80.0%** [+77.6, +82.4] 13/13 |
-> | `oracle_bl` | +72.9% 13/13 | **+77.8%** [+74.9, +80.8] 13/13 |
-> | `or_proj_coarse` | +79.6% 13/13 | **+72.9%** [+69.0, +76.9] 13/13 |
-> | **`nf_bl`** | **+18.4%** 13/13 | **+7.0%** [−5.1, +20.0] **6/13** |
-> | `cartesian_128` | +3.4% 9/13 | −3.0% [−20.5, +18.1] 5/13 |
->
-> **The decomposition survives the change of rule and the recommendation does
-> not.** Every exact-field arm keeps essentially all of its advantage and all
-> thirteen cases; §5.2.3's contrasts are therefore not artifacts of a
-> converged-answer-centred band. But `nf_bl`'s +18.4% becomes **+7.0% with an
-> interval spanning zero**. We report that rather than only the metric that
-> flatters us, and §11 draws the consequence: what this paper contributes is the
-> criterion and the controls, not a warm-start recommendation.
->
-> **Why it changes, and it is not noise.** Under the causal rule `nf_bl` stops
-> at 425–561 iterations on every case, almost independently of the case, while
-> `cold` ranges 397–831. So the seed helps where the cold solve is slow and costs
-> where it is fast, and the association is strong: Spearman **0.874** between a
-> case's cold cost and the seed's benefit on it. Split at the median (a *post
-> hoc* split, and labelled as one) the seven slow cases give **+26.0% [+14.6,
-> +36.8], 6 of 7** and the six fast cases **−15.1% [−17.3, −12.9], 0 of 6**.
-> That is more useful to a practitioner than the mean: **seed the solves that are
-> expensive.**
-
-**Total drag, lift and pressure drag are unreadable over the thirteen**, and two
-cases carry all of it. `naca4415` at 2° and 4° have arms that settle on drag
-values **1.04% and 1.27% apart**, against ≤0.113% for every other case in the
-corpus. No arm is *unsettled* on those two — they settle in different places,
-which is the signature of a case without a unique steady fixed point, and the
-same signature `naca4412@3` showed. All three are thick cambered sections at low
-incidence, and all three have the corpus's worst residual floors (8.75e-6 and
-1.22e-6, against ~1e-7 elsewhere).
-
-> **Sensitivity analysis, and it is post hoc.** Dropping those two cases leaves
-> eleven, on which Cd@1% becomes readable and reads **+30.0% [+5.3, +47.0],
-> 10/11 wins, p = 0.012**, with the oracle control at +95.4% (11/11) and the
-> Cartesian control at −262.5%. We report it because withholding it would be
-> hiding a result, and we label it because the exclusion was chosen after seeing
-> the data. It is not the headline. We do **not** carry the Cd@0.5% row from that
-> subset: the oracle control there reads −13.9% with one case at −1112%, so by
-> our own rule the row is unreadable regardless of what `nf_bl` does.
-
-**The size of the effect, stated plainly.** +18.4% is a modest acceleration, and
-we do not present it as more than that. What the thirteen cases establish is not
-a large saving but a *reliable* one: every case positive, a converged-field
-control at +93.6%, a negative control indistinguishable from no seed, and a
-monotone response across convergence bands. On a quantity that is 60–84% of the
-drag, obtained from a trained model on airfoils and incidences it had not seen.
-
-### The three conditions, and the study that isolates them
-
-Everything from here to §5.6 is the **mechanism study**:
-`scripts/mesh_native_probe.py`, five cases, **one prediction**, one variable
-changed per arm, all twenty solves complete. Scored over the thirteen-arm
-`repr3` set with `oracle_wake` dropped (§4); including it moves no entry below by
-more than 0.5 points.
-
-| arm | what it hands over | residual 5e-6 | **Cd@1%** | Cl@1% | Cd_v@1% |
-|---|---|---:|---:|---:|---:|
-| `nf_bl` | u, v, nut in the BL, mesh-native | < -80.5% | **+33.9%** | +10.1% | +14.6% |
-| `nf_bl_nut` | eddy viscosity only | +1.2% | **-293.2%** | **+41.1%** | **+42.4%** |
-| `nf_bl_vel` | velocity only | -8.2% | -40.3% | -10.3% | -4.9% |
-
-The recommended arm in this table, `nf_bl`, is the one measured at thirteen cases
-in §5.1. Its Cd@1% here is +33.9%, and +34.1% when re-measured in the
-independent tree of §5.2; §5.1 is where that number meets a corpus.
-
-> **The resampled arm is not in this table, and the reason is a correction.**
-> This study originally carried a `nf_bl_proj` arm — the same prediction through a
-> 256×64 round trip — reported at −58.8% on `C_d`@1%. That round trip took its
-> wall-normal coordinate from the nearest surface *vertex* rather than the nearest
-> segment, which reads this mesh's first cell ring three orders of magnitude too
-> far from the wall (§5.2.1). Re-measured with that fixed, the same arm reads
-> −32.1% with a 95% interval of [−144.1, +60.9] and 3 wins in 5 — **not
-> distinguishable from zero**. The representation contrast is therefore made in
-> §5.2 on the *exact converged field*, where it is clean, rather than on this
-> network prediction, where it is not.
-
-### 5.2 Condition 1 — the representation must not be a uniform raster
-
-The controlled contrast is one field handed to the solver through different
-representations. We make it on the **exact converged field**, so no property of
-any network enters, and we make it on `C_d,v` at the **thirteen-case corpus**,
-which is the only force row that corpus can read (§5.1).
-
-| arm (exact converged field) | representation | `C_d,v`@1% | 95% CI | wins |
-|---|---|---:|---|---:|
-| `oracle_mesh` | the solver's own cell centres | **+93.6%** | [+92.9, +94.3] | **13/13** |
-| `cartesian_128` | uniform 128² raster, same 16,384 values | **+3.4%** | **[−2.4, +8.7]** | 9/13 |
-
-**The same converged solution is worth 93.6% of a cold solve read at the solver's
-own points and nothing at all off a raster.** The raster arm's interval spans
-zero (p = 0.27): as an initial condition it is statistically indistinguishable
-from uniform freestream. The intervals do not overlap and every case is paired,
-so this is not a spread artifact.
-
-This is the paper's central measurement, and three things about it matter. It
-uses the **exact answer**, so it cannot be explained by any surrogate's error. It
-is on the **readable** row of the **thirteen-case** corpus, so it is not an
-artifact of a five-case tree. And the raster holds the same 16,384 values as the
-wall-fitted grid below, so it is not a budget effect.
-
-**A body-fitted grid is not a raster.** On the same thirteen cases, the same
-exact field through a wall-fitted 256×64 grid — holding the *same* 16,384 values
-as the raster — reads **+79.6% [+72.8, +85.3], 13/13** on `C_d,v`. Against the
-boundary-layer-matched mesh-native control that is a difference of +6.7 points
-with an interval spanning zero (§5.2.3): **no measurable cost**, where the raster
-costs 90.2. §6 gives the quantity that separates them, and it is neither budget
-nor accuracy: the raster's first wall-normal station sits at `y⁺ ≈ 1725`, the
-wall-fitted grid's at `y⁺ ≈ 37`.
-
-> **What we do not claim, and why.** On **total** drag the same arms read
-> +49.7%, −278.3% and −181.6%, which looks far more dramatic — and we do not
-> report it as a result. Every `C_d` row on the thirteen-case corpus is marked
-> unreadable by §4's rule (settled spread 1.27% against a 0.5% limit) and the
-> converged-field control itself swings +49.7% / −42.6% / +12.8% across bands. A
-> control that is not flat indicates a measurement that cannot be read, and an
-> earlier draft of this paper led with those numbers. `C_d,v` is 60–84% of the
-> drag here, it is monotone across bands, and it is the row we quote.
-
-### 5.2.1 It is not the near-wall state — a result we did not expect
-
-The obvious explanation is that a grid cannot hold the near-wall state. §6 shows
-that damage is real, computable and bounded. **It is not what costs the solve.**
-The placement ladder shows it directly: all three arms below carry the same exact
-field through the same round trip, and only the grading of the grid changes.
-
-**Tree: `placement2`** (5 cases, 9 arms). The whole ladder is reported, both
-families, because a ladder with half its rungs removed is not a ladder:
-
-| arm | source | values | first station | wall-gradient error | `C_d,v`@1% |
-|---|---|---:|---:|---:|---:|
-| `oracle_mesh` | exact | — | native | 0.0% | +92.5% |
-| `or_proj_coarse` | exact | 16,384 | 2.5·10⁻⁴ | **1218.8%** | **+86.1%** |
-| `or_proj_half` | exact | **8,192** | 5·10⁻⁶ | **1.8%** | +71.0% |
-| `or_proj_fine` | exact | 16,384 | 5·10⁻⁶ | **1.8%** | +69.0% |
-| `nf_proj_fine` | network | 16,384 | 5·10⁻⁶ | 53.1% | +17.7% |
-| `nf_proj_half` | network | **8,192** | 5·10⁻⁶ | 53.1% | +15.7% |
-| `nf_bl` | network | — | native | 53.7% | +14.6% |
-| `nf_proj_coarse` | network | 16,384 | 2.5·10⁻⁴ | **877.7%** | +14.5% |
-
-**The network family makes the same point a second time, and more cleanly.**
-Its four arms span **16.5× in wall-gradient error** — 53.1% to 877.7% — and
-**3.2 points in convergence**, from +14.5% to +17.7%, all 5 of 5. Whatever the
-first station does to the near-wall state, it does not reach the solve. The
-oracle family spans a wider range in convergence (69.0% to 86.1%) and orders it
-*against* the gradient: the arm carrying 1218.8% error is the best of the three.
-Neither family supports the near-wall state as the mediator, and they fail to
-support it in different directions.
-
-**Placement, not budget, determines what a grid retains.** Moving the first
-station inside the mesh's first cell takes the wall-gradient error from 1218.8%
-to **1.8%** and the roughness to the converged field's own, at half the value
-budget as readily as at the full one. That is §6's criterion, confirmed.
-
-**And it does not help.** The arm carrying 1218.8% gradient error is the *best*
-of the three exact-field arms on the readable row (+86.1% against +69.0%), and on
-total drag the ordering is the same. Restoring the first-cell gradient does not
-recover the solve; here it costs.
-
-> **Three honest qualifications.** The 1.8% is a single scalar — the first-cell
-> wall-normal gradient — and not a statement about the near-wall *state*. The
-> same arm's boundary-layer field errors are 8.1% in `u` and **23.1% in `nut`**,
-> and its `nut` damage is *worse* than the coarse arm's 17.9%. §5.4 identifies
-> `nut` as the least forgiving channel, so that is a live alternative explanation
-> for the ordering, and we did not test it. Second, the grading change moves the
-> grid's growth ratio as well as its first station (1.141 → 1.214), so the ladder
-> is not a strictly one-variable contrast. Third, and most limiting: §6.2 shows
-> that at a 5·10⁻⁶ first station the round trip is a structural **no-op** at the
-> wall — fewer than two mesh rings lie below that station, so `clustered_seed`
-> populates it from the first ring by nearest-neighbour donor and hands the ring
-> back its own value. The 1.8% is therefore substantially the statement that a
-> grid finer than the mesh reproduces the mesh, and these two arms are *not*
-> evidence that a real surrogate emitting `u(y₁)` at `y₁` would carry the
-> near-wall state. What this ladder supports is the null — restoring the
-> first-cell gradient does not recover the solve — and not a claim about which
-> other quantity does.
-
-### 5.2.2 Where the damage is: located only weakly, and reported as such
-
-An earlier version of this paper located the damage in the pressure field. That
-claim does not survive its own numbers and is **withdrawn** here.
-
-The reasoning was: every projection preserves viscous drag while total drag
-collapses, so the damage must be in `C_d,p`. Three objections defeat it.
-
-1. **It is an identity, not a measurement.** `C_d = C_d,p + C_d,v`. Showing
-   `C_d,v` preserved and `C_d` destroyed *entails* `C_d,p` destroyed; it locates
-   nothing. We report no field-level diagnostic of the seeded pressure, and
-   without one the claim is arithmetic.
-2. **The quoted number was censored.** `or_proj` reads −184.3% on `C_d,p`@0.5%
-   as a bounded mean over four cases of which one never reached the band; over
-   the three that did it is **−37.8%**. §4 rule 3 requires the bound *and* the
-   reached-only value.
-3. **The recommended seed has the same defect.** `nf_bl` reads **−116.1%** on
-   `C_d,p`@0.5% while winning the headline row 13/13. A quantity on which the
-   winning seed and the worst-losing seed are both strongly negative cannot be
-   what separates them.
-
-We also withdraw the supporting observation that smoothing the wall-law repair
-rescued pressure drag. On the three cases the repair arms actually reached the
-band, the unsmoothed repair reads **+19.8%** and the smoothed **+20.0%** — a
-0.2-point difference, not the 160 points an earlier draft reported. That gap was
-an artifact of the arms being scored over different case sets, one censored and
-one dropped: precisely the failure §4 rule 3 exists to prevent, applied to our
-own headline. The rule caught it, and the paper is the place to say so.
-
-**What can be said.** `C_d,v` is preserved by every projection we ran while
-`C_d` is not, so the damage falls outside the near-wall shear and pressure is
-the natural suspect. **We do not have the measurement that would establish it**,
-and §10 records this as the paper's principal open question rather than dressing
-a suspicion as a finding.
-
-### 5.2.3 Pricing each property: four contrasts that move one variable
-
-The arms compared so far differ in more than one way at a time. `oracle_mesh`
-carries the whole field, all four channels, at the solver's own points;
-`or_proj_coarse` carries the boundary layer only, three channels, through a
-grid. A difference between them is not attributable to any one of those. So we
-added the missing control — `oracle_bl`, the exact field, all four channels,
+The obvious way to run this study — hand the solver a converged field, then hand
+it a stored one, and compare — does not isolate anything, because the two arms
+differ in more than one way at a time. `oracle_mesh` carries the whole field, all
+four channels, at the solver's own points; `or_proj_coarse` carries the boundary
+layer only, three channels, through a grid. A difference between them is not
+attributable to any one of those. So we added the missing control — `oracle_bl`, the exact field, all four channels,
 mesh-native, masked to the boundary layer — and ran the whole set on the
 **thirteen-case corpus**, so that every link moves exactly one property *and*
 every number comes from one tree at the study's full statistical power.
@@ -940,6 +692,260 @@ measurable — and not a claim that a lossy round trip improves a seed.
 > resolution in the streamwise direction is not what separates them. §5.9 rules
 > out the remaining leading alternative — that any departure from the solver's own
 > fixed point would do the same — for six sevenths of the effect.
+
+### 5.1.1 The learned seed, and the corpus it was measured on
+
+
+`scripts/corpus_probe.py`. Thirteen cases — five NACA sections, 2° to 12°, from
+attached flow into incipient separation — each admitted under a gate declared
+before the sweep ran (residual floor ≤ 1e-5, arms agreeing on final Cd to within
+2%). **All thirteen were admitted**, so nothing here rests on a discretionary
+exclusion.
+
+| row | `nf_bl` | 95% CI | wins | sign test | oracle control | Cartesian control |
+|---|---:|---|---:|---:|---:|---:|
+| **Cd_v@1%** | **+18.4%** | [+12.4, +25.3] | **13/13** | **p = 0.0002** | +93.6% (13/13) | +3.4% (p = 0.27) |
+| Cd_v@0.5% | +15.7% | [+10.6, +21.8] | 13/13 | p = 0.0002 | +93.2% | +4.9% (p = 0.27) |
+| Cd_v@0.2% | +8.8% | [+4.3, +13.5] | 11/13 | p = 0.022 | +92.8% | −43.6% (p = 0.58) |
+
+Per case at the 1% band: **+3, +9, +9, +10, +11, +11, +16, +17, +19, +25, +28,
++35, +47**. There is no losing case and no case carrying the mean.
+
+Three properties make this a rate measurement rather than a crossing artifact:
+it is **monotone** across every band, the **oracle control** is flat at +93% and
+wins 13/13, and the **negative control** — the exact converged field resampled
+onto a 128² Cartesian grid — is statistically indistinguishable from no seed at
+all (+3.4%, p = 0.27). A pipeline that manufactured savings would not produce a
+null there.
+
+Reported as a *paired* contrast rather than as two independent savings, which is
+the form the comparison is actually made in: the raster costs **−90.2 points
+[−96.3, −84.7], 0 of 13 cases improve, p = 0.0002** against the same field read
+at the cell centres. The other three contrasts are above, on the same tree and
+the same row.
+
+> **Does the headline survive a stopping rule a practitioner could run?** The
+> metric above centres its band on the *converged* value, which in production
+> nobody has. That is the right choice for measuring a mechanism and the wrong
+> one for measuring a workflow, so `scripts/causal_stopping.py` re-scores every
+> arm under a **causal** rule that uses only the history so far: stop at the
+> first iteration whose trailing 50-iteration window is flat to 1%. It needs no
+> converged answer and no cold run.
+>
+> | arm | the paper's metric | causal rule |
+> |---|---:|---:|
+> | `oracle_mesh` | +93.6% 13/13 | **+80.0%** [+77.6, +82.4] 13/13 |
+> | `oracle_bl` | +72.9% 13/13 | **+77.8%** [+74.9, +80.8] 13/13 |
+> | `or_proj_coarse` | +79.6% 13/13 | **+72.9%** [+69.0, +76.9] 13/13 |
+> | **`nf_bl`** | **+18.4%** 13/13 | **+7.0%** [−5.1, +20.0] **6/13** |
+> | `cartesian_128` | +3.4% 9/13 | −3.0% [−20.5, +18.1] 5/13 |
+>
+> **The decomposition survives the change of rule and the recommendation does
+> not.** Every exact-field arm keeps essentially all of its advantage and all
+> thirteen cases; §5.1's contrasts are therefore not artifacts of a
+> converged-answer-centred band. But `nf_bl`'s +18.4% becomes **+7.0% with an
+> interval spanning zero**. We report that rather than only the metric that
+> flatters us, and §11 draws the consequence: what this paper contributes is the
+> criterion and the controls, not a warm-start recommendation.
+>
+> **Why it changes, and it is not noise.** Under the causal rule `nf_bl` stops
+> at 425–561 iterations on every case, almost independently of the case, while
+> `cold` ranges 397–831. So the seed helps where the cold solve is slow and costs
+> where it is fast, and the association is strong: Spearman **0.874** between a
+> case's cold cost and the seed's benefit on it. Split at the median (a *post
+> hoc* split, and labelled as one) the seven slow cases give **+26.0% [+14.6,
+> +36.8], 6 of 7** and the six fast cases **−15.1% [−17.3, −12.9], 0 of 6**.
+> That is more useful to a practitioner than the mean: **seed the solves that are
+> expensive.**
+
+**Total drag, lift and pressure drag are unreadable over the thirteen**, and two
+cases carry all of it. `naca4415` at 2° and 4° have arms that settle on drag
+values **1.04% and 1.27% apart**, against ≤0.113% for every other case in the
+corpus. No arm is *unsettled* on those two — they settle in different places,
+which is the signature of a case without a unique steady fixed point, and the
+same signature `naca4412@3` showed. All three are thick cambered sections at low
+incidence, and all three have the corpus's worst residual floors (8.75e-6 and
+1.22e-6, against ~1e-7 elsewhere).
+
+> **Sensitivity analysis, and it is post hoc.** Dropping those two cases leaves
+> eleven, on which Cd@1% becomes readable and reads **+30.0% [+5.3, +47.0],
+> 10/11 wins, p = 0.012**, with the oracle control at +95.4% (11/11) and the
+> Cartesian control at −262.5%. We report it because withholding it would be
+> hiding a result, and we label it because the exclusion was chosen after seeing
+> the data. It is not the headline. We do **not** carry the Cd@0.5% row from that
+> subset: the oracle control there reads −13.9% with one case at −1112%, so by
+> our own rule the row is unreadable regardless of what `nf_bl` does.
+
+**The size of the effect, stated plainly.** +18.4% is a modest acceleration, and
+we do not present it as more than that. What the thirteen cases establish is not
+a large saving but a *reliable* one: every case positive, a converged-field
+control at +93.6%, a negative control indistinguishable from no seed, and a
+monotone response across convergence bands. On a quantity that is 60–84% of the
+drag, obtained from a trained model on airfoils and incidences it had not seen.
+
+### The three conditions, and the study that isolates them
+
+Everything from here to §5.6 is the **mechanism study**:
+`scripts/mesh_native_probe.py`, five cases, **one prediction**, one variable
+changed per arm, all twenty solves complete. Scored over the thirteen-arm
+`repr3` set with `oracle_wake` dropped (§4); including it moves no entry below by
+more than 0.5 points.
+
+| arm | what it hands over | residual 5e-6 | **Cd@1%** | Cl@1% | Cd_v@1% |
+|---|---|---:|---:|---:|---:|
+| `nf_bl` | u, v, nut in the BL, mesh-native | < -80.5% | **+33.9%** | +10.1% | +14.6% |
+| `nf_bl_nut` | eddy viscosity only | +1.2% | **-293.2%** | **+41.1%** | **+42.4%** |
+| `nf_bl_vel` | velocity only | -8.2% | -40.3% | -10.3% | -4.9% |
+
+The recommended arm in this table, `nf_bl`, is the one measured at thirteen cases
+in §5.1. Its Cd@1% here is +33.9%, and +34.1% when re-measured in the
+independent tree of §5.2; §5.1 is where that number meets a corpus.
+
+> **The resampled arm is not in this table, and the reason is a correction.**
+> This study originally carried a `nf_bl_proj` arm — the same prediction through a
+> 256×64 round trip — reported at −58.8% on `C_d`@1%. That round trip took its
+> wall-normal coordinate from the nearest surface *vertex* rather than the nearest
+> segment, which reads this mesh's first cell ring three orders of magnitude too
+> far from the wall (§5.2.1). Re-measured with that fixed, the same arm reads
+> −32.1% with a 95% interval of [−144.1, +60.9] and 3 wins in 5 — **not
+> distinguishable from zero**. The representation contrast is therefore made in
+> §5.2 on the *exact converged field*, where it is clean, rather than on this
+> network prediction, where it is not.
+
+### 5.2 Condition 1 — the representation must not be a uniform raster
+
+The controlled contrast is one field handed to the solver through different
+representations. We make it on the **exact converged field**, so no property of
+any network enters, and we make it on `C_d,v` at the **thirteen-case corpus**,
+which is the only force row that corpus can read (§5.1).
+
+| arm (exact converged field) | representation | `C_d,v`@1% | 95% CI | wins |
+|---|---|---:|---|---:|
+| `oracle_mesh` | the solver's own cell centres | **+93.6%** | [+92.9, +94.3] | **13/13** |
+| `cartesian_128` | uniform 128² raster, same 16,384 values | **+3.4%** | **[−2.4, +8.7]** | 9/13 |
+
+**The same converged solution is worth 93.6% of a cold solve read at the solver's
+own points and nothing at all off a raster.** The raster arm's interval spans
+zero (p = 0.27): as an initial condition it is statistically indistinguishable
+from uniform freestream. The intervals do not overlap and every case is paired,
+so this is not a spread artifact.
+
+This is the paper's central measurement, and three things about it matter. It
+uses the **exact answer**, so it cannot be explained by any surrogate's error. It
+is on the **readable** row of the **thirteen-case** corpus, so it is not an
+artifact of a five-case tree. And the raster holds the same 16,384 values as the
+wall-fitted grid below, so it is not a budget effect.
+
+**A body-fitted grid is not a raster.** On the same thirteen cases, the same
+exact field through a wall-fitted 256×64 grid — holding the *same* 16,384 values
+as the raster — reads **+79.6% [+72.8, +85.3], 13/13** on `C_d,v`. Against the
+boundary-layer-matched mesh-native control that is a difference of +6.7 points
+with an interval spanning zero (§5.1): **no measurable cost**, where the raster
+costs 90.2. §6 gives the quantity that separates them, and it is neither budget
+nor accuracy: the raster's first wall-normal station sits at `y⁺ ≈ 1725`, the
+wall-fitted grid's at `y⁺ ≈ 37`.
+
+> **What we do not claim, and why.** On **total** drag the same arms read
+> +49.7%, −278.3% and −181.6%, which looks far more dramatic — and we do not
+> report it as a result. Every `C_d` row on the thirteen-case corpus is marked
+> unreadable by §4's rule (settled spread 1.27% against a 0.5% limit) and the
+> converged-field control itself swings +49.7% / −42.6% / +12.8% across bands. A
+> control that is not flat indicates a measurement that cannot be read, and an
+> earlier draft of this paper led with those numbers. `C_d,v` is 60–84% of the
+> drag here, it is monotone across bands, and it is the row we quote.
+
+### 5.2.1 It is not the near-wall state — a result we did not expect
+
+The obvious explanation is that a grid cannot hold the near-wall state. §6 shows
+that damage is real, computable and bounded. **It is not what costs the solve.**
+The placement ladder shows it directly: all three arms below carry the same exact
+field through the same round trip, and only the grading of the grid changes.
+
+**Tree: `placement2`** (5 cases, 9 arms). The whole ladder is reported, both
+families, because a ladder with half its rungs removed is not a ladder:
+
+| arm | source | values | first station | wall-gradient error | `C_d,v`@1% |
+|---|---|---:|---:|---:|---:|
+| `oracle_mesh` | exact | — | native | 0.0% | +92.5% |
+| `or_proj_coarse` | exact | 16,384 | 2.5·10⁻⁴ | **1218.8%** | **+86.1%** |
+| `or_proj_half` | exact | **8,192** | 5·10⁻⁶ | **1.8%** | +71.0% |
+| `or_proj_fine` | exact | 16,384 | 5·10⁻⁶ | **1.8%** | +69.0% |
+| `nf_proj_fine` | network | 16,384 | 5·10⁻⁶ | 53.1% | +17.7% |
+| `nf_proj_half` | network | **8,192** | 5·10⁻⁶ | 53.1% | +15.7% |
+| `nf_bl` | network | — | native | 53.7% | +14.6% |
+| `nf_proj_coarse` | network | 16,384 | 2.5·10⁻⁴ | **877.7%** | +14.5% |
+
+**The network family makes the same point a second time, and more cleanly.**
+Its four arms span **16.5× in wall-gradient error** — 53.1% to 877.7% — and
+**3.2 points in convergence**, from +14.5% to +17.7%, all 5 of 5. Whatever the
+first station does to the near-wall state, it does not reach the solve. The
+oracle family spans a wider range in convergence (69.0% to 86.1%) and orders it
+*against* the gradient: the arm carrying 1218.8% error is the best of the three.
+Neither family supports the near-wall state as the mediator, and they fail to
+support it in different directions.
+
+**Placement, not budget, determines what a grid retains.** Moving the first
+station inside the mesh's first cell takes the wall-gradient error from 1218.8%
+to **1.8%** and the roughness to the converged field's own, at half the value
+budget as readily as at the full one. That is §6's criterion, confirmed.
+
+**And it does not help.** The arm carrying 1218.8% gradient error is the *best*
+of the three exact-field arms on the readable row (+86.1% against +69.0%), and on
+total drag the ordering is the same. Restoring the first-cell gradient does not
+recover the solve; here it costs.
+
+> **Three honest qualifications.** The 1.8% is a single scalar — the first-cell
+> wall-normal gradient — and not a statement about the near-wall *state*. The
+> same arm's boundary-layer field errors are 8.1% in `u` and **23.1% in `nut`**,
+> and its `nut` damage is *worse* than the coarse arm's 17.9%. §5.4 identifies
+> `nut` as the least forgiving channel, so that is a live alternative explanation
+> for the ordering, and we did not test it. Second, the grading change moves the
+> grid's growth ratio as well as its first station (1.141 → 1.214), so the ladder
+> is not a strictly one-variable contrast. Third, and most limiting: §6.2 shows
+> that at a 5·10⁻⁶ first station the round trip is a structural **no-op** at the
+> wall — fewer than two mesh rings lie below that station, so `clustered_seed`
+> populates it from the first ring by nearest-neighbour donor and hands the ring
+> back its own value. The 1.8% is therefore substantially the statement that a
+> grid finer than the mesh reproduces the mesh, and these two arms are *not*
+> evidence that a real surrogate emitting `u(y₁)` at `y₁` would carry the
+> near-wall state. What this ladder supports is the null — restoring the
+> first-cell gradient does not recover the solve — and not a claim about which
+> other quantity does.
+
+### 5.2.2 Where the damage is: located only weakly, and reported as such
+
+An earlier version of this paper located the damage in the pressure field. That
+claim does not survive its own numbers and is **withdrawn** here.
+
+The reasoning was: every projection preserves viscous drag while total drag
+collapses, so the damage must be in `C_d,p`. Three objections defeat it.
+
+1. **It is an identity, not a measurement.** `C_d = C_d,p + C_d,v`. Showing
+   `C_d,v` preserved and `C_d` destroyed *entails* `C_d,p` destroyed; it locates
+   nothing. We report no field-level diagnostic of the seeded pressure, and
+   without one the claim is arithmetic.
+2. **The quoted number was censored.** `or_proj` reads −184.3% on `C_d,p`@0.5%
+   as a bounded mean over four cases of which one never reached the band; over
+   the three that did it is **−37.8%**. §4 rule 3 requires the bound *and* the
+   reached-only value.
+3. **The recommended seed has the same defect.** `nf_bl` reads **−116.1%** on
+   `C_d,p`@0.5% while winning the headline row 13/13. A quantity on which the
+   winning seed and the worst-losing seed are both strongly negative cannot be
+   what separates them.
+
+We also withdraw the supporting observation that smoothing the wall-law repair
+rescued pressure drag. On the three cases the repair arms actually reached the
+band, the unsmoothed repair reads **+19.8%** and the smoothed **+20.0%** — a
+0.2-point difference, not the 160 points an earlier draft reported. That gap was
+an artifact of the arms being scored over different case sets, one censored and
+one dropped: precisely the failure §4 rule 3 exists to prevent, applied to our
+own headline. The rule caught it, and the paper is the place to say so.
+
+**What can be said.** `C_d,v` is preserved by every projection we ran while
+`C_d` is not, so the damage falls outside the near-wall shear and pressure is
+the natural suspect. **We do not have the measurement that would establish it**,
+and §10 records this as the paper's principal open question rather than dressing
+a suspicion as a finding.
 
 ### 5.3 Condition 2 — hand over the boundary layer only
 
@@ -1645,7 +1651,7 @@ shows. We still state the reading as an interpretation rather than a result,
 because one crossover on five cases is evidence and not proof, because §5.9
 perturbs a field rather than decomposing one, and because this paper has already
 withdrawn two mechanisms that were argued rather than measured — the pressure localisation of §5.2.2, and the
-low-pass-filtering reading of §5.2.3, which `scripts/mask_edge_probe.py`
+low-pass-filtering reading of §5.1, which `scripts/mask_edge_probe.py`
 falsified by showing the round trip makes every seed *rougher*. Nothing in the
 multigrid reading survives if it is taken to mean "the projection smooths the
 seed": it does not. What it claims is only that the solver removes
@@ -1958,8 +1964,8 @@ and the paper's positive contributions are the ones that survived that.**
 | *No 16,384-value grid has a station near the first cell* | arithmetic: a 64-level stack from 5·10⁻⁶ needs growth 1.214, an ordinary mesh | §6.3 |
 | *The near-wall gradient is the mediator* | three independent restorations — grading, wall-function repair, smoothing that repair — leave convergence unchanged or worse | §5.2.1, §5.5, §6.7 |
 | *The damage is in the pressure field* | an identity (`C_d = C_d,p + C_d,v`) resting on a censored mean; the winning seed is itself −116.1% on `C_d,p` | §5.2.2 |
-| *Representation, not accuracy* | the control that isolates accuracy prices it at −54.5 points, more than region | §5.2.3 |
-| *A body-fitted round trip helps* (+16.2, 5/5 at n = 5) | did not survive expansion to n = 13 (+6.7, CI spans zero); its proposed low-pass explanation was falsified directly — the round trip makes every seed *rougher* | §5.2.3 |
+| *Representation, not accuracy* | the control that isolates accuracy prices it at −54.5 points, more than region | §5.1 |
+| *A body-fitted round trip helps* (+16.2, 5/5 at n = 5) | did not survive expansion to n = 13 (+6.7, CI spans zero); its proposed low-pass explanation was falsified directly — the round trip makes every seed *rougher* | §5.1 |
 
 Two of these were killed by experiments we ran specifically to test our own
 position, and one by expanding the case set that our own protocol demanded. We
