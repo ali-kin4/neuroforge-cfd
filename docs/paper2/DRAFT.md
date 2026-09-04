@@ -635,10 +635,10 @@ field through the same round trip, and only the grading of the grid changes.
 
 | arm | values | first station | wall-gradient error | roughness (× conv.) | `C_d,v`@1% |
 |---|---:|---:|---:|---:|---:|
-| `or_proj_coarse` | 16,384 | 2.5·10⁻⁴ | **1218.8%** | 16.8× | **+86.1%** |
-| `or_proj_fine` | 16,384 | 5·10⁻⁶ | **1.8%** | **1.0×** | +69.1% |
-| `or_proj_half` | 8,192 | 5·10⁻⁶ | **1.8%** | **1.0×** | +71.0% |
-| `oracle_mesh` | — | native | 0.0% | 1.0× | +92.5% |
+| `or_proj_coarse` | 16,384 | 2.5·10⁻⁴ | **1218.8%** | 18.68× | **+86.1%** |
+| `or_proj_fine` | 16,384 | 5·10⁻⁶ | **1.8%** | **1.05×** | +69.0% |
+| `or_proj_half` | 8,192 | 5·10⁻⁶ | **1.8%** | **1.05×** | +71.0% |
+| `oracle_mesh` | — | native | 0.0% | 1.00× | +92.5% |
 
 **Placement, not budget, determines what a grid retains.** Moving the first
 station inside the mesh's first cell takes the wall-gradient error from 1218.8%
@@ -650,16 +650,23 @@ of the three on the readable row (+86.1% against +69.1%), and on total drag the
 ordering is the same. Restoring the first-cell gradient does not recover the
 solve; here it costs.
 
-> **Two honest qualifications.** The 1.8% is a single scalar — the first-cell
+> **Three honest qualifications.** The 1.8% is a single scalar — the first-cell
 > wall-normal gradient — and not a statement about the near-wall *state*. The
 > same arm's boundary-layer field errors are 8.1% in `u` and **23.1% in `nut`**,
 > and its `nut` damage is *worse* than the coarse arm's 17.9%. §5.4 identifies
 > `nut` as the least forgiving channel, so that is a live alternative explanation
 > for the ordering, and we did not test it. Second, the grading change moves the
 > grid's growth ratio as well as its first station (1.141 → 1.214), so the ladder
-> is not a strictly one-variable contrast. What it supports is the null —
-> restoring the first-cell gradient does not recover the solve — and not a claim
-> about which other quantity does.
+> is not a strictly one-variable contrast. Third, and most limiting: §6.2 shows
+> that at a 5·10⁻⁶ first station the round trip is a structural **no-op** at the
+> wall — fewer than two mesh rings lie below that station, so `clustered_seed`
+> populates it from the first ring by nearest-neighbour donor and hands the ring
+> back its own value. The 1.8% is therefore substantially the statement that a
+> grid finer than the mesh reproduces the mesh, and these two arms are *not*
+> evidence that a real surrogate emitting `u(y₁)` at `y₁` would carry the
+> near-wall state. What this ladder supports is the null — restoring the
+> first-cell gradient does not recover the solve — and not a claim about which
+> other quantity does.
 
 ### 5.2.2 Where the damage is: located only weakly, and reported as such
 
@@ -785,16 +792,19 @@ exactly as the solver received them, five cases:
 
 | arm | first-cell gradient error | roughness (× converged) |
 |---|---:|---:|
-| `nf_bl` (mesh-native, the seed that works) | 53.7% | 4.2× |
-| `nf_proj` | 877.7% | 20.6× |
-| `nf_proj_fix` (repaired) | **69.4%** | 26.2× |
-| **`nf_proj_smooth`** (repaired + smoothed) | **73.0%** | **5.7×** |
-| `or_proj` | 1218.8% | 16.8× |
-| `or_proj_fix` | 54.4% | 21.5× |
+| `nf_bl` (mesh-native, the seed that works) | 53.7% | 4.91× |
+| `nf_proj` | 877.7% | 22.95× |
+| `nf_proj_fix` (repaired) | **69.4%** | 29.50× |
+| **`nf_proj_smooth`** (repaired + smoothed) | **73.0%** | **6.36×** |
+| `or_proj` | 1218.8% | 18.68× |
+| `or_proj_fix` | 54.4% | 24.10× |
 
 `nf_proj_smooth` matches the working seed on **both** diagnostics this study can
-measure: 73.0% gradient error against its 53.7%, and 5.7× roughness against its
-4.2×, where the unrepaired projection is at 877.7% and 20.6×.
+measure: 73.0% gradient error against its 53.7%, and 6.36× roughness against its
+4.91×, where the unrepaired projection is at 877.7% and 22.95×. Note that the
+repair *alone* makes the wall shear rougher, not smoother — 29.50× against the
+projection's 22.95× — because each station is inverted independently; smoothing
+is what brings it back.
 
 **And the solve does not care.**
 
@@ -807,8 +817,8 @@ measure: 73.0% gradient error against its 53.7%, and 5.7× roughness against its
 | `or_proj` | −182.1% | +86.1% |
 | `or_proj_fix` | −180.7% | +56.7% |
 
-Three seeds spanning **877.7% to 69.4%** in gradient error and **26.2× to 5.7×**
-in roughness all land between −31.4% and −32.1% on total drag, where the
+Three seeds spanning **877.7% to 69.4%** in gradient error and **29.50× to
+6.36×** in roughness all land between −31.4% and −32.1% on total drag, where the
 mesh-native seed reads +34.3%. On viscous drag the repair is not merely neutral
 but slightly harmful. And `nf_proj`, carrying sixteen times the mesh-native
 seed's gradient error, already matches it on viscous drag (+14.5% against
@@ -975,7 +985,7 @@ converged solution's own wall gradient and `ν` from the case.
 
 ### 6.2 It is a parameter-free upper bound on the damage
 
-Table 5 tests the closed form against the measured first-cell gradient of a
+Table 2 tests the closed form against the measured first-cell gradient of a
 wall-fitted 256×64 projection of the **exact converged field**, over five cases,
 at five first-station heights spanning a factor of fifty. `u_τ` is taken from
 each case's own converged wall gradient and `y_c` from that case's own first
@@ -1032,8 +1042,10 @@ without a solve, which is the decision it exists to support.
 
 **Where the law of the wall is doing the work, and where it is not.** The
 `u⁺` cap of §6.1 — no station can carry more than freestream — binds for every
-uniform-raster format in Table 6, whose first stations sit at `y⁺` = 420–1700,
-far outside the boundary layer. Where it binds, `G` reduces to
+uniform-raster format in Table 3, whose first stations sit at `y⁺` = 430–1725 —
+out in the wake region of the layer, at 19% to 63% of its thickness, where the
+log law extrapolated that far returns a velocity above freestream. Where the cap
+binds, `G` reduces to
 `(u_∞/u_τ)/u⁺(y_c⁺)`, an expression containing no `κ`, no `B` and no logarithm:
 it says only *"the seed puts freestream velocity in the first cell"*. The
 law-of-the-wall content of the criterion is therefore active in the wall-fitted
@@ -1078,7 +1090,7 @@ sits, and only the first one is in front of the mesh's first cell.
 > **This measurement replaces an earlier one that could not have shown an
 > effect.** The five-case solve tree tests budget by comparing `or_proj_fine`
 > (16,384 values) against `or_proj_half` (8,192) — but both place their first
-> station at 5·10⁻⁶, which Table 5 marks as a no-op, so the comparison was
+> station at 5·10⁻⁶, which Table 2 marks as a no-op, so the comparison was
 > between two round trips that were already the identity at the wall. The
 > conclusion survives; the test that had been offered for it did not.
 
@@ -1088,6 +1100,23 @@ sits, and only the first one is in front of the mesh's first cell.
 > nothing in §6 should be read as advice to grade a surrogate's output for
 > speed. What §6 buys is a cheap, conservative way to know what a format keeps —
 > which is worth having, and is not the same thing.
+
+> ![fig](results/placement.png)
+>
+> **Figure 3. The criterion, what it controls, and what it fails to predict.**
+> **(A)** Predicted first-cell gradient overestimate against the measured one, at
+> five first-station heights spanning a factor of fifty, with the identity line
+> drawn. Every point sits above it — the expression is an upper bound and never
+> flatters. The two hollow points are the rows where the round trip is a
+> structural no-op (§6.2) and carry no information about the mechanism; the bound
+> of 1.9–2.8× is claimed over the three filled ones. **(B)** The same measured
+> damage against the first station's height, one line per value budget. Cutting
+> the budget fourfold, from 16,384 stored values to 4,096, leaves the three
+> curves lying exactly on top of one another, while moving the station along the
+> axis moves the damage 12.7×. Placement, not budget. **(C)** And none of it
+> predicts the solve. Measured gradient error against `C_d,v` convergence saving,
+> one point per arm: 32× in gradient error, 3.1 points in convergence. This panel
+> is the paper's negative result drawn, and §6.7 is what it means.
 
 ### 6.4 The pre-flight check
 
@@ -1118,7 +1147,7 @@ endorsement.
 
 ### 6.5 The criterion applied to the formats the field actually ships
 
-Table 6 evaluates the closed form for the output formats a surrogate might emit,
+Table 3 evaluates the closed form for the output formats a surrogate might emit,
 against the mesh used throughout this paper. It costs no solve and no network,
 and it is the whole argument in one place.
 
@@ -1184,7 +1213,7 @@ ratio — the damage — therefore grows.
 
 This is testable with no new solves. Converged cold solves on the *same* C-grid
 already exist at Re = 10³ to 3·10⁶. Projecting each through the same wall-fitted
-grid gives Table 7 (`scripts/reynolds_transfer.py`):
+grid gives Table 4 (`scripts/reynolds_transfer.py`):
 
 | Re | `y⁺` first cell | `y⁺` station | predicted `G` | measured `G` | pred/meas | weak-shear surface |
 |---:|---:|---:|---:|---:|---:|---:|
@@ -1196,7 +1225,7 @@ grid gives Table 7 (`scripts/reynolds_transfer.py`):
 
 Every row is measured at each case's own first cell centre and aggregated as a
 *ratio of surface integrals*, matching §6.2 exactly — the bottom row's 24.5× and
-13.0× are Table 5's 2.5·10⁻⁴ row (24.2×, 12.7×) measured on two of the same
+13.0× are Table 2's 2.5·10⁻⁴ row (24.2×, 12.7×) measured on two of the same
 cases, which is the consistency check this table exists to survive. An earlier
 version probed at a fixed 4·10⁻⁶ and averaged *pointwise ratios*, which reads
 high because stations near stagnation carry a vanishing true gradient and
@@ -1245,7 +1274,7 @@ Three independent attempts to make the near-wall state the mediator all fail:
 2. **By repair** (§5.5). Inverting a wall function restores a projected seed's
    gradient from 877.7% to 69.4%. Convergence moves 0.1 points.
 3. **By smoothing that repair** (§5.5). Bringing the reconstruction's roughness
-   to 5.7× converged, against the working seed's 4.2×, moves convergence a
+   to 6.36× converged, against the working seed's 4.91×, moves convergence a
    further 0.6 points.
 
 A seed can reproduce the converged boundary layer to 1.8% in gradient and
@@ -1403,11 +1432,17 @@ the recipe — it is most of it.
 It is necessary, not sufficient, and the study contains its own counterexample.
 `nf_mesh` hands over the network's whole-field prediction at the solver's cell
 centres: it satisfies the placement criterion perfectly, retains the wall
-gradient, and is the **worst arm in the study** at below −568% on total drag,
-because the model's training `sdf` distribution is centred on 0.23 chords while
-the C-grid reaches 20, so the outer field is extrapolation. A representation
-that fails the criterion can be ruled out for free; one that passes it still has
-to satisfy conditions 2 and 3.
+gradient, and is the **worst arm in the study** at below −568% on total drag.
+
+We do **not** attribute that to the model extrapolating outside its trust region,
+which is the natural reading and the one an earlier version of this paper gave.
+§5.3 falsifies it: grid sequencing hands over a coarse-mesh solution, which
+extrapolates nowhere, and its boundary-layer-restricted arm still beats its
+whole-field arm on every readable row. Whatever makes a whole-field seed worse
+than a boundary-layer-only seed is a property of seeding the outer field at all,
+not of the surrogate's accuracy out there — which is condition 2, measured in
+§5.3 and not explained by §6. A representation that fails the criterion can be
+ruled out for free; one that passes it still has to satisfy conditions 2 and 3.
 
 ## 8. An acceptance test that bounds the worst case
 
@@ -1565,8 +1600,8 @@ seconds, on one machine, with the seed's own construction charged to it.
 
 - **The repair restores the gradient and the solve does not follow**, and the
   one candidate explanation we had was tested and eliminated. The repaired seed
-  is 26.2× rougher along the wall than the converged field against 4.2× for the
-  mesh-native seed, so we smoothed the reconstruction to 5.7× — matching the
+  is 29.50× rougher along the wall than the converged field against 4.91× for the
+  mesh-native seed, so we smoothed the reconstruction to 6.36× — matching the
   working seed on both diagnostics — and convergence moved 0.6 points (§5.5). We
   therefore do not attribute the failure to roughness, or to anything else about
   the near-wall velocity field.
@@ -1709,13 +1744,23 @@ Each result maps to one script and one committed result file.
 
 | result | script | result file |
 |---|---|---|
-| Wall-gradient diagnostic (§6) | `seed_gradient_diagnostic.py` | `seed_gradient.json` |
+| Mesh and solver verification (§3, Table 1) | `verify_mesh.py` | `mesh_verification.json` |
+| Wall-gradient diagnostic (§5.2.1, §5.5) | `seed_gradient_diagnostic.py` | `seed_gradient_placement.json`, `seed_gradient_repair.json` |
 | Three conditions (§5.2--§5.4) | `mesh_native_probe.py` | `depth_repr3_nowake.json` |
-| Thirteen-case corpus (§5.1) | `corpus_probe.py` | `depth_corpus.json` |
+| Placement ladder (§5.2.1) | `placement_probe.py` | `depth_placement.json`, `depth_placement2.json` |
+| Repair tree (§5.5) | `repair_probe.py` | `depth_repair.json` |
+| Grid sequencing (§5.7) | `sequencing_probe.py` | `depth_sequencing.json` |
+| Thirteen-case corpus (§5.1, §5.2) | `corpus_probe.py` | `depth_corpus.json` |
+| Closed-form validation (§6.2, Table 2) | `validate_closed_form.py` | `closed_form_validation.json` |
+| Criterion tables (§6.5, §7.1; Tables 3--4) | `criterion_tables.py` | `criterion_tables.json` |
+| Reynolds transfer (§6.6) | `reynolds_transfer.py` | `reynolds_transfer.json` |
+| Pre-flight check (§6.4) | `preflight.py` | -- (a CLI; no stored result) |
 | Acceptance certificate (§8) | `certificate.py` | `cert_all13_*.json` |
 | Wall-clock (§9) | `wallclock_control.py` | `wallclock_control.json` |
 | Wake bound (§7.3) | `wake_probe.py` | `wake_probe_*.json` |
-| Figures 1--2 | `plot_mechanism.py`, `plot_bands.py` | `mechanism.png`, `bands.png` |
+| Figure 1 | `plot_mechanism.py` | `mechanism.png` |
+| Figure 2 | `plot_bands.py` | `bands.png` |
+| Figure 3 | `plot_placement.py` | `placement.png` |
 
 Re-scoring any finished tree at every convergence depth and force band is a
 single command, `reanalyse_depth.py`, which also declares the arm set it scored
