@@ -39,7 +39,11 @@ import numpy as np
 from neuroforge.solver import cgrid as cg, openfoam as of, warmstart as ws
 from neuroforge.solver import placement as pl
 
-PROBE = 4e-6          # matches scripts/seed_gradient_diagnostic.py
+# The gradient is probed at each case's OWN first cell centre (the minimum wall
+# distance on that mesh), not at a height shared across cases. It cancels from
+# the measured ratio -- both gradients are sampled at the same place -- but it
+# enters the prediction through u+(y_c+), and a fixed 4e-6 made this table
+# disagree with Table 5's 2.5e-4 row for the same grid on the same mesh.
 FIRST_STATION = 2.5e-4
 
 
@@ -98,8 +102,11 @@ def main(argv=None):
                                          first=FIRST_STATION, u_inf=u_inf,
                                          v_inf=v_inf, nut_freestream=nut_fs)
 
+        cell_centre = float(np.min(ws.wall_distance(C, surface)))
+
         def gradient(fields):
-            return tangential_profile(fields[0], fields[1], C, mid, normal, [PROBE])[:, 0] / PROBE
+            return tangential_profile(fields[0], fields[1], C, mid, normal,
+                                      [cell_centre])[:, 0] / cell_centre
 
         g_true = gradient(truth)
         g_proj = gradient(projected)
@@ -112,10 +119,19 @@ def main(argv=None):
         # regime where the law of the wall does not apply at all.
         weak = float((g_true[ok] < 0.1 * g_true[ok].max()).mean())
         u_tau = pl.friction_velocity(float(np.mean(g_true[ok])), nu)
-        predicted = pl.amplification(first_station=FIRST_STATION, cell_centre=PROBE,
+        predicted = pl.amplification(first_station=FIRST_STATION,
+                                     cell_centre=cell_centre,
                                      u_tau=u_tau, nu=nu, u_inf=float(np.hypot(u_inf, v_inf)))
+        # Ratio of integrals, not mean of pointwise ratios. G is defined as the
+        # overestimate of the gradient that *viscous drag integrates*, so the
+        # aggregate that matches the definition is the ratio of the two surface
+        # means. The mean of per-station ratios is kept alongside it because it
+        # is what an earlier version of this table reported, and it runs high:
+        # stations near stagnation carry a vanishing true gradient and dominate
+        # an average of ratios while contributing nothing to the integral.
+        measured = float(np.mean(g_proj[ok])) / float(np.mean(g_true[ok]))
         ratios = g_proj[ok] / g_true[ok]
-        measured = float(np.mean(ratios))
+        measured_mean_of_ratios = float(np.mean(ratios))
         measured_median = float(np.median(ratios))
 
         rows.append({
@@ -127,7 +143,9 @@ def main(argv=None):
             "regime": predicted["regime"],
             "predicted": predicted["factor"],
             "measured": measured,
+            "measured_mean_of_ratios": measured_mean_of_ratios,
             "measured_median": measured_median,
+            "first_cell_centre": cell_centre,
             "weak_shear_fraction": weak,
             "ratio": predicted["factor"] / measured if measured else None,
         })
@@ -148,9 +166,14 @@ def main(argv=None):
           " the peak wall shear -- the signature of a laminar or separated layer,"
           " and so of the regime where the law of the wall does not apply at all.")
 
+    # Group by decade, not by the raw value: Re is recomputed per case as
+    # |u_inf| / nu and two cases nominally at 3e6 can differ in the last digits,
+    # which `round(_, -2)` does not merge -- it split the 3e6 group into two
+    # rows of n = 1 and made the table look like it had a case it does not.
     by_re: dict[float, list] = {}
     for r in rows:
-        by_re.setdefault(round(r["reynolds"], -2), []).append(r)
+        key = float(f"{r['reynolds']:.2e}")
+        by_re.setdefault(key, []).append(r)
     print("\nmean over cases at each Reynolds number")
     for re_val in sorted(by_re):
         group = by_re[re_val]
@@ -160,7 +183,7 @@ def main(argv=None):
               f"   (n={len(group)})")
 
     with open(args.out, "w", encoding="utf-8", newline="\n") as fh:
-        json.dump({"probe": PROBE, "first_station": FIRST_STATION, "rows": rows},
+        json.dump({"probe": "each case's own first cell centre", "first_station": FIRST_STATION, "rows": rows},
                   fh, indent=2)
     print(f"\nwrote {os.path.relpath(args.out)}")
     return 0

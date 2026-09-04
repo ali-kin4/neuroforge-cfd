@@ -1188,23 +1188,32 @@ grid gives Table 7 (`scripts/reynolds_transfer.py`):
 
 | Re | `y⁺` first cell | `y⁺` station | predicted `G` | measured `G` | pred/meas | weak-shear surface |
 |---:|---:|---:|---:|---:|---:|---:|
-| 10³ | 0.001 | 0.1 | 62.5× | 21.7× | 2.88 | 61% |
-| 10⁴ | 0.004 | 0.3 | 62.5× | 21.6× | 2.90 | 62% |
-| 10⁵ | 0.027 | 1.7 | 62.5× | 23.2× | 2.69 | 42% |
-| 10⁶ | 0.21 | 13.3 | 44.9× | 20.8× | 2.16 | 11% |
-| **3·10⁶** | 0.58 | 36.1 | **23.8×** | **15.0×** | **1.62** | 6% |
+| 10³ | 0.001 | 0.1 | 65.9× | 21.7× | 3.04 | 60% |
+| 10⁴ | 0.004 | 0.3 | 65.9× | 21.5× | 3.08 | 62% |
+| 10⁵ | 0.027 | 1.8 | 65.9× | 21.1× | 3.13 | 42% |
+| 10⁶ | 0.21 | 13.6 | 46.7× | 19.1× | 2.45 | 11% |
+| **3·10⁶** | 0.56 | 37.1 | **24.5×** | **13.0×** | **1.89** | 6% |
+
+Every row is measured at each case's own first cell centre and aggregated as a
+*ratio of surface integrals*, matching §6.2 exactly — the bottom row's 24.5× and
+13.0× are Table 5's 2.5·10⁻⁴ row (24.2×, 12.7×) measured on two of the same
+cases, which is the consistency check this table exists to survive. An earlier
+version probed at a fixed 4·10⁻⁶ and averaged *pointwise ratios*, which reads
+high because stations near stagnation carry a vanishing true gradient and
+dominate an average of ratios while contributing nothing to the integral; it
+reported 15.0× here against 12.7× there for the same configuration.
 
 **The direction holds across three and a half decades**: the same representation
-on the same mesh costs 15.0× at Re = 3·10⁶ and 21.7× at Re = 10³. A
+on the same mesh costs 13.0× at Re = 3·10⁶ and 21.7× at Re = 10³. A
 practitioner's instinct — that a coarse representation is more forgiving at low
 Reynolds number, where the flow is smoother — is the wrong way round, and the
 reason is that the mesh's first cell has moved into the linear sublayer while the
 representation's has not.
 
 **The effect is real but modest, and it saturates.** The measured damage rises by
-about 45% over that range rather than by the factor of three the unbounded
+about 67% over that range rather than by the factor of 2.7 the unbounded
 expression suggests, and it is flat below Re = 10⁵. The bound loosens in the same
-direction: predicted/measured grows from 1.6 at Re = 3·10⁶ to 2.9 at Re = 10³.
+direction: predicted/measured grows from 1.9 at Re = 3·10⁶ to 3.0 at Re = 10³.
 The last column says why. It reports the fraction of surface stations carrying
 under a tenth of the peak wall shear — the signature of a laminar or separated
 layer. At Re ≥ 10⁶ it is 6–11%; at Re ≤ 10⁵ it is 42–62%, the boundary layer is
@@ -1246,20 +1255,42 @@ here. **The near-wall velocity field is not the mediator.**
 **Where the damage is instead** (§5.2.2). Every projection preserves *viscous*
 drag — the quantity the wall gradient integrates, and 60–84% of the drag — at
 +69% to +86% against the mesh-native oracle's +92.5%, all 5 of 5 cases. What it
-destroys is total drag, and therefore pressure drag, at −183.9%. That is
-consistent with §5.4, where an inconsistently seeded channel destroys `C_d,p`
-while leaving the shear-driven quantities alone, and with the one arm in this
-study that is positive on pressure drag being the one whose reconstructed wall
-shear was smoothed.
+costs is total drag, and therefore pressure drag. We can say that much and no
+more: on this five-case tree the `C_d,p` rows are censored — between one and
+three arms never reach the band inside the budget — and §4 rule 3 forbids
+reading a mean across arms scored on different case sets. On the three cases
+that *do* reach, the arms we had proposed as a contrast read +19.8% and +20.0%,
+which is no contrast at all. **An earlier version of this paper built a pressure
+mechanism on those rows and it is withdrawn**; §5.2.2 records what it was and
+why it does not stand.
+
+**One reading fits everything here, and we offer it as a reading.** In a
+SIMPLE-family solver, error in the near-wall velocity is high-wavenumber and is
+annihilated by a few under-relaxed momentum sweeps, whereas an error in
+displacement thickness or circulation is the smooth, globally elliptic mode that
+the pressure correction removes slowest. That is the classical multigrid
+smoothing argument, and it predicts the pattern this paper keeps measuring:
+`C_d,v` recovers almost regardless of what was done to the wall gradient (§5.2.1,
+§5.5), `C_d,p` is the laggard in every arm, refining a raster changes nothing
+because it does not change the smooth mode (§7.1), and a coarse-mesh solve —
+which attacks exactly that mode — beats every learned seed (§5.7). The §3
+verification is consistent with it from a third direction: `C_d,p` moves 49.8%
+under a fourfold change in cell count while `C_d,v` moves 6.9%.
+
+We state it as an interpretation and not a result, because we have not measured
+the mode decomposition and this paper has already withdrawn one mechanism that
+was argued rather than measured. The experiment that would settle it is a seed
+perturbed only in its smooth, outer, elliptic content at matched norm; §11 lists
+it as the first thing we would run next.
 
 **So the criterion should be used for what it measures.** It says, before any
 solve, how badly a given output format will misreport the near-wall state, it is
 conservative, and it orders formats correctly. That is a genuine and cheap
 diagnostic of a representation. It is **not** a predictor of convergence, and
 §6.4's pre-flight tool must be read as reporting fidelity rather than forecasting
-a speedup. The property that does predict convergence here — whether the
-representation preserves a consistent pressure field — we can locate but not yet
-compute in advance, and §10 says so.
+a speedup. What *does* predict convergence here we have narrowed to the smooth,
+outer, elliptic content of the seed rather than its near-wall state, but we have
+not isolated it and we do not have a closed form for it. §10 says so.
 
 ## 7. What does not work, and why that matters
 Three predictions a reader would reasonably make are false here, and each was
