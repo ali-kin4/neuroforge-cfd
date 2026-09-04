@@ -119,7 +119,8 @@ grid of 8,192 values passes** (§6.5).
 
 ### Contributions
 
-Ordered by what we think survives, not by what is largest.
+Ordered by what we think survives, not by what is largest. §10 collects in one
+place the five claims this project made and then withdrew.
 
 1. **A representational failure of the field's standard output format, measured
    with the accuracy confound removed** (§1, §7.1). The exact converged answer,
@@ -149,9 +150,8 @@ Ordered by what we think survives, not by what is largest.
    winning 0 of 5. Repairing the gradient by wall function moves convergence 0.1
    points; smoothing that repair moves it 0.6 more. We predicted the opposite,
    in writing, before running any of it. What the damage *is* instead we have
-   narrowed to the seed's smooth outer content and not isolated; an earlier
-   version of this paper located it in the pressure field and that claim is
-   withdrawn in §5.2.2, with the reasoning that defeated it.
+   narrowed to the seed's smooth, outer, globally elliptic content and not
+   isolated (§5.9).
 6. **A recipe with three necessary conditions**, each isolated by a controlled
    arm changing one variable on one prediction, none sufficient alone
    (§5.2–§5.4), and **generality at n = 13** — +18.4% on viscous drag, 13/13
@@ -159,14 +159,16 @@ Ordered by what we think survives, not by what is largest.
    (§5.1).
 7. **A comparison with the classical warm start** the machine-learning
    initialisation literature does not make: grid sequencing, charged honestly
-   (§5.7). It is **better than the learned seed on both axes** — +75.9% on
-   viscous drag against +14.6%, and ≈68% end-to-end once its coarse solve is
-   charged at that solve's own convergence rather than at a full budget. The
-   criterion predicts this correctly for a method containing no network. We
-   report it because a paper that measures a learned seed only against a cold
-   start has not answered the question a practitioner asks, and because an
-   earlier draft of this work reached the opposite conclusion from a charge it
-   had set too high.
+   (§5.7). It is better than the learned seed **on both quality and price, in
+   fine-mesh-equivalent iterations**: +75.9% on viscous drag against +14.6%, and
+   ≈68% end-to-end once its coarse solve is charged at that solve's own
+   convergence (~53 fine-equivalent) rather than at a full budget. Both figures
+   are iteration counts; we do not have matched wall-clock for grid sequencing
+   and do not claim it. The criterion predicts this correctly for a method
+   containing no network. We report it because a paper that measures a learned
+   seed only against a cold start has not answered the question a practitioner
+   asks, and because an earlier draft of this work reached the opposite
+   conclusion from a charge it had set too high.
 8. **The control for the objection this design invites** (§5.9). An oracle seed
    is a fixed point of the discrete operator, so any contrast against it might be
    measuring distance from that fixed point rather than representation. A smooth
@@ -1942,6 +1944,30 @@ metric the paper is entitled to read.
 ---
 
 ## 10. Limitations
+
+### What we claimed, tested, and withdrew
+
+Five claims in this project's history did not survive contact with a
+measurement. They are collected here rather than left scattered, because
+together they say something the individual retractions do not: **the quantity
+that decides a warm start here has resisted every mechanism we proposed for it,
+and the paper's positive contributions are the ones that survived that.**
+
+| claim | how it died | where |
+|---|---|---|
+| *No 16,384-value grid has a station near the first cell* | arithmetic: a 64-level stack from 5·10⁻⁶ needs growth 1.214, an ordinary mesh | §6.3 |
+| *The near-wall gradient is the mediator* | three independent restorations — grading, wall-function repair, smoothing that repair — leave convergence unchanged or worse | §5.2.1, §5.5, §6.7 |
+| *The damage is in the pressure field* | an identity (`C_d = C_d,p + C_d,v`) resting on a censored mean; the winning seed is itself −116.1% on `C_d,p` | §5.2.2 |
+| *Representation, not accuracy* | the control that isolates accuracy prices it at −54.5 points, more than region | §5.2.3 |
+| *A body-fitted round trip helps* (+16.2, 5/5 at n = 5) | did not survive expansion to n = 13 (+6.7, CI spans zero); its proposed low-pass explanation was falsified directly — the round trip makes every seed *rougher* | §5.2.3 |
+
+Two of these were killed by experiments we ran specifically to test our own
+position, and one by expanding the case set that our own protocol demanded. We
+report them because a paper that only published the claims that survived would
+be a less reliable guide to this problem than one that shows which did not — and
+because §4's rules were written from exactly these failures.
+
+
 ### On the criterion and the closed form
 
 - **The closed form assumes an equilibrium wall profile.** It uses the law of
