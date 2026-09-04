@@ -5,13 +5,20 @@ Three panels, in the order the argument runs.
 **(A) The closed form bounds the measurement.** Predicted first-cell gradient
 overestimate against the measured one, at five first-station heights spanning a
 factor of fifty. Nothing is fitted. The identity line is drawn: every point sits
-*above* it, which is the claim -- an upper bound, never optimistic.
+*above* it, which is the claim -- an upper bound, never optimistic. Two of the
+five rows are drawn hollow: there the representation's first station sits inside
+the mesh's first ring, `clustered_seed` populates it from that ring by
+nearest-neighbour donor and maps it straight back, and the round trip is a
+structural no-op. Those rows cannot exercise the clipping the closed form
+models, so the bound is claimed over the three filled points only.
 
-**(B) Placement decides it, budget does not.** The same measured overestimate
-against the first station's `y+`, with marker area proportional to the number of
-values the representation holds. The panel makes its own argument: marker area
-varies by 32x while the points fall on a curve that depends only on where the
-first station sits.
+**(B) Placement decides it, budget does not.** The measured overestimate against
+the first station's height, one line per value budget. The budget is cut 4x
+(16,384 -> 4,096 values) and the three lines lie exactly on top of one another,
+while moving the station along the axis moves the damage by 12.7x. Measured at
+the live stations rather than only at the finest one: at `first = 5e-6` the
+round trip is the no-op of panel A, so a budget test there compares two no-ops
+and could not have shown an effect if one existed.
 
 **(C) And none of it predicts the solve.** Measured gradient error against
 convergence saving, one point per arm. The mesh-native seed and a projection
@@ -117,8 +124,12 @@ def main(argv=None):
     meas = np.array([r["measured"] for r in rows])
     lim = [0.8 * min(pred.min(), meas.min()), 1.3 * max(pred.max(), meas.max())]
     ax.plot(lim, lim, color=INK_3, lw=1.0, ls="--", zorder=1, label="identity")
-    ax.scatter(meas, pred, s=70, color=BLUE, edgecolor="white", lw=0.9, zorder=3)
+    live = [r for r in rows if not r.get("degenerate")]
     for r in rows:
+        dead = r.get("degenerate")
+        ax.scatter([r["measured"]], [r["predicted"]], s=70,
+                   color="white" if dead else BLUE, edgecolor=INK_3 if dead else "white",
+                   lw=1.1 if dead else 0.9, zorder=3)
         ax.annotate(f"  {r['first']:.0e}", (r["measured"], r["predicted"]),
                     fontsize=8, color=INK_3, va="center")
     ax.set_xscale("log"); ax.set_yscale("log")
@@ -127,42 +138,64 @@ def main(argv=None):
     ax.set_ylabel("predicted  $u^+(y_1^+)/u^+(y_c^+)$", color=INK_2)
     ax.set_title("A  the closed form bounds it, and never flatters",
                  color=INK, loc="left", fontsize=11, fontweight="bold")
-    ax.text(0.05, 0.93, "every point above identity\n"
-                        f"ratio {np.mean(pred / meas):.2f}, n = {len(rows)}",
-            transform=ax.transAxes, fontsize=9, color=INK_2, va="top")
+    lp = np.array([r["predicted"] for r in live])
+    lm = np.array([r["measured"] for r in live])
+    ax.text(0.04, 0.96,
+            f"over-predicts by {np.min(lp / lm):.1f}-{np.max(lp / lm):.1f}x\n"
+            f"n = {len(live)} live rows; hollow = round\ntrip is a no-op there",
+            transform=ax.transAxes, fontsize=8.5, color=INK_2, va="top")
 
     # ---------------------------------------------------------------- panel B
     ax = axes[1]
-    for r in rows:
-        first = r["first"]
-        values = 256 * 32 if abs(first - 5e-6) < 1e-12 else 256 * 64
-        ax.scatter([first], [r["measured"]], s=24 + 300 * values / 16384.0,
-                   color=BLUE, alpha=0.8, edgecolor="white", lw=0.9, zorder=3)
-    ax.axhline(1.0, color=GOOD, lw=1.2, ls=":", zorder=2)
-    ax.text(rows[0]["first"], 1.05, "  gradient preserved", color=GOOD, fontsize=9)
+    budgets = sorted((rows[0].get("values_by_n_n") or {}).items(),
+                     key=lambda kv: -kv[1])
+    styles = [(BLUE, "o", 8.0, 1.8), (WARM, "s", 6.0, 1.2), (GOOD, "^", 4.5, 0.9)]
+    for (key, values), (colour, marker, size, lw) in zip(budgets, styles):
+        first = [r["first"] for r in rows]
+        meas = [r["measured_by_n_n"][key] for r in rows]
+        ax.plot(first, meas, marker=marker, ms=size, lw=lw, color=colour,
+                mec="white", mew=0.8, zorder=3, label=f"{values:,} values")
+    ax.axhline(1.0, color=INK_3, lw=1.0, ls=":", zorder=2)
+    ax.text(rows[0]["first"], 1.06, "  gradient preserved", color=INK_3, fontsize=8.5)
     ax.set_xscale("log"); ax.set_yscale("log")
     ax.set_xlabel("first station of the representation  [chord]", color=INK_2)
     ax.set_ylabel("measured gradient overestimate", color=INK_2)
-    ax.set_title("B  placement decides; marker area is the value budget",
+    ax.set_title("B  placement decides; budget does not",
                  color=INK, loc="left", fontsize=11, fontweight="bold")
+    ax.legend(frameon=False, fontsize=8.5, loc="upper left", labelcolor=INK_2)
+    if budgets:
+        ratio = max(v for _, v in budgets) / min(v for _, v in budgets)
+        ax.text(0.97, 0.06, f"budget cut {ratio:.0f}x; curves coincide",
+                transform=ax.transAxes, fontsize=8.5, color=INK_2, ha="right")
 
     # ---------------------------------------------------------------- panel C
     ax = axes[2]
     grads = gradient_errors(args.gradient_repair)
     depth = load(args.depth_repair)
     key = f"{args.coeff}@{args.band:g}"
-    plotted = 0
+    points = []
     for arm, (label, values, colour) in PANEL_C.items():
         g, sv = grads.get(arm), saving(depth, arm, key)
-        if g is None or sv is None:
-            continue
-        ax.scatter([g], [100 * sv], s=110, color=colour, edgecolor="white",
-                   lw=0.9, zorder=3)
-        ax.annotate("  " + label, (g, 100 * sv), fontsize=9, color=INK_2,
-                    va="center")
-        plotted += 1
+        if g is not None and sv is not None:
+            points.append((g, 100 * sv, label, colour))
+    # Label above or below alternately, ordered along x, so the two repair arms
+    # -- which land on top of each other by design -- stay readable.
+    points.sort()
+    for k, (g, y, label, colour) in enumerate(points):
+        ax.scatter([g], [y], s=110, color=colour, edgecolor="white", lw=0.9, zorder=3)
+        ax.annotate(label, (g, y), xytext=(0, 13 if k % 2 else -20),
+                    textcoords="offset points", fontsize=9, color=INK_2,
+                    ha="center")
+    plotted = len(points)
     ax.axhline(0, color=INK_3, lw=1.0, zorder=2)
     ax.set_xscale("log")
+    ax.margins(x=0.28, y=0.22)
+    if points:
+        span = max(p[0] for p in points) / min(p[0] for p in points)
+        ax.text(0.5, 0.04, f"{span:.0f}x in gradient error, "
+                           f"{max(p[1] for p in points) - min(p[1] for p in points):.1f} "
+                           "points in convergence",
+                transform=ax.transAxes, fontsize=8.5, color=INK_2, ha="center")
     ax.set_xlabel("measured first-cell gradient overestimate", color=INK_2)
     ax.set_ylabel(f"{args.coeff} saving at {100 * args.band:g}% band  [%]", color=INK_2)
     ax.set_title("C  and it does not predict the solve", color=INK, loc="left",

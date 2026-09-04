@@ -25,6 +25,19 @@ Four arms per case, the deployed set:
   handed over inside the boundary layer only.
 * ``cartesian_128`` -- the comparator at equal output budget, and the arm the
   representation claim is *against*.
+* ``oracle_bl``     -- the exact field, mesh-native, handed over inside the
+  boundary layer only. Against ``oracle_mesh`` it prices the *region*
+  restriction; against ``nf_bl`` it prices *accuracy* with everything else held
+  fixed (same mask, same channels, same mesh-native delivery).
+* ``or_proj_coarse``-- the same exact field, same mask, sent through a 256x64
+  body-fitted grid (16,384 values, first station 2.5e-4). Against ``oracle_bl``
+  it prices the *representation* with region, channels and accuracy all fixed --
+  and it is the wall-fitted projected arm the five-case tree has and the corpus
+  did not, which is what stopped the representation claim from being tested at
+  the corpus's statistical power.
+
+Those five arms plus ``cold`` make every step of the decomposition a
+one-variable contrast on the one row this corpus can read (``Cd_v@1%``).
 
 Ten new cases at Re 3e6: an incidence ladder to 12 degrees on two sections, two
 thicker/cambered families the model has not been asked about here, and two
@@ -69,7 +82,12 @@ CASES = [
     ("naca0015", 4.0),
 ]
 THRESHOLDS = (1e-3, 1e-4, 1e-5, 5e-6, 1e-6)
-NEW_ARMS = ("oracle_mesh", "nf_bl", "cartesian_128")
+NEW_ARMS = ("oracle_mesh", "oracle_bl", "nf_bl", "cartesian_128", "or_proj_coarse")
+
+# The wall-fitted projection, at the five-case tree's `coarse` placement so the
+# two studies are comparable arm-for-arm. Kept as constants rather than flags:
+# the corpus is the powered study and its arms should not be tunable per run.
+PROJ_FIRST, PROJ_N_N, PROJ_N_S, PROJ_N_MAX = 2.5e-4, 64, 256, 1.0
 
 # --- the exclusion rule, fixed before the sweep runs ------------------------- #
 #
@@ -181,9 +199,22 @@ def main(argv: list[str] | None = None) -> int:
 
         free = (np.full_like(pred[0], u_inf), np.full_like(pred[0], v_inf),
                 np.zeros_like(pred[0]), np.full_like(pred[0], nut_fs))
-        bl_only, _ = ws.masked_seed(free, cold.centres, surface, background=pred,
-                                    free_within=delta, ramp=args.ramp, u_inf=u_inf,
-                                    v_inf=v_inf, nut_freestream=nut_fs)
+        def bl_only(background):
+            """Hand `background` over inside the boundary layer, cold outside."""
+            seed, _ = ws.masked_seed(free, cold.centres, surface,
+                                     background=background, free_within=delta,
+                                     ramp=args.ramp, u_inf=u_inf, v_inf=v_inf,
+                                     nut_freestream=nut_fs)
+            return seed
+
+        # The exact field through the 256x64 body-fitted grid, then masked to the
+        # boundary layer exactly as every other `_bl` arm is. `or_proj_coarse`
+        # differs from `oracle_bl` in the representation and in nothing else.
+        projected, _ = ws.clustered_seed(truth, cold.centres, surface,
+                                         n_s=PROJ_N_S, n_n=PROJ_N_N,
+                                         first=PROJ_FIRST, n_max=PROJ_N_MAX,
+                                         u_inf=u_inf, v_inf=v_inf,
+                                         nut_freestream=nut_fs)
         # The comparator: the same converged field, but seen only through a
         # `resolution`^2 uniform Cartesian grid. `to_grid` rasterises at the
         # case's own resolution, so 128 here is 16,384 values -- matched to the
@@ -193,8 +224,11 @@ def main(argv: list[str] | None = None) -> int:
                                      nut_freestream=nut_fs)
 
         results = {"oracle_mesh": run("oracle_mesh", mesh_initial=truth),
-                   "nf_bl": run("nf_bl", mesh_initial=bl_only),
-                   "cartesian_128": run("cartesian_128", mesh_initial=cartesian)}
+                   "oracle_bl": run("oracle_bl", mesh_initial=bl_only(truth)),
+                   "nf_bl": run("nf_bl", mesh_initial=bl_only(pred)),
+                   "cartesian_128": run("cartesian_128", mesh_initial=cartesian),
+                   "or_proj_coarse": run("or_proj_coarse",
+                                         mesh_initial=bl_only(projected))}
 
         in_bl = distance <= delta
         covered = distance <= args.max_sdf
@@ -202,6 +236,11 @@ def main(argv: list[str] | None = None) -> int:
             return float(100 * np.linalg.norm(a[m] - b[m]) / max(np.linalg.norm(b[m]), 1e-30))
         field_err = {n: err(pred[i], truth[i], covered) for i, n in enumerate(ws.FIELDS)}
         field_err["u_in_bl"] = err(pred[0], truth[0], in_bl)
+        # What the round trip did to the exact field it was handed, in the
+        # boundary layer. Reported next to the solve because `or_proj_coarse`'s
+        # convergence is only interpretable against how much it changed.
+        proj_err = {n: err(projected[i], truth[i], in_bl)
+                    for i, n in enumerate(ws.FIELDS)}
 
         # The pre-registered admission test, applied and recorded per case.
         finals = {}
@@ -226,7 +265,8 @@ def main(argv: list[str] | None = None) -> int:
                "final_Cd_by_arm": finals,
                "arm_Cd_spread": spread,
                "admitted": bool(admitted),
-               "field_error_pct": field_err}
+               "field_error_pct": field_err,
+               "or_proj_coarse_round_trip_pct": proj_err}
         print(f"   admission: floor {floor:.2e} (limit {MAX_RESIDUAL_FLOOR:.0e})  "
               f"arm Cd spread {100 * spread:.2f}% (limit "
               f"{100 * MAX_ARM_CD_SPREAD:g}%)  ->  "

@@ -111,23 +111,42 @@ def test_the_closed_form_is_an_upper_bound_that_tracks_the_measurement():
     the expression provides is a *parameter-free upper bound* on the damage,
     correct in direction and ordering, never optimistic. Both halves are asserted:
     it must never under-predict, and it must stay within a small factor.
+
+    The bound is claimed over the **non-degenerate** rows only. Where fewer than
+    two mesh rings lie below the representation's first station, the round trip
+    is a structural no-op -- ``clustered_seed`` populates the station from the
+    first ring by nearest-neighbour donor and maps it straight back -- so the
+    measurement cannot exercise the clipping the closed form models. Those rows
+    are labelled by ``scripts/validate_closed_form.py`` from the mesh alone,
+    before any measurement, and are excluded here too.
     """
     with open(os.path.join("results", "closed_form_validation.json"), encoding="utf-8") as fh:
         data = json.load(fh)
 
     rows = data["rows"]
     assert len(rows) >= 4
-    ratios = np.array([r["ratio"] for r in rows])
+    live = [r for r in rows if not r["degenerate"]]
+    assert len(live) >= 3, "the bound needs rows in which the mechanism is active"
+    ratios = np.array([r["ratio"] for r in live])
 
     # Never optimistic: a bound that under-predicts is not a bound.
     assert ratios.min() >= 1.0
     # And not vacuous.
     assert ratios.max() <= 3.0
 
+    # The degenerate rows must be exactly the ones the mesh criterion picks out,
+    # and they must in fact be no-ops -- that is what makes them uninformative.
+    for row in rows:
+        if row["degenerate"]:
+            assert row["rings_below_station"] < data["min_rings_below_station"]
+            assert abs(row["measured"] - 1.0) < 0.05
+
     # Monotone in the right direction: a station further out does more damage.
-    by_first = sorted(rows, key=lambda r: r["first"])
-    measured = [r["measured"] for r in by_first]
+    # Over the live rows only -- the no-op rows all sit on 1.0 and their order
+    # among themselves is numerical noise (they differ in the sixth decimal).
+    measured = [r["measured"] for r in sorted(live, key=lambda r: r["first"])]
     assert measured == sorted(measured), "damage must grow with first-station height"
+    assert min(measured) > 1.0 + 1e-3, "a live row must show real damage"
 
 
 # --------------------------------------------------------------------------- #
