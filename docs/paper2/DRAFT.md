@@ -744,6 +744,18 @@ And the differences, paired:
 | **representation**, raster | `oracle_mesh` → `cartesian_128` | **−90.2** points | 0/13 improve |
 | **accuracy** | `oracle_bl` → `nf_bl` | **−55.4** points [−58.4, −52.7] | 0/5 improve |
 
+> ![fig](results/mechanism.png)
+>
+> **Figure 1. What a warm start is worth, decomposed.** **(A)** Convergence
+> saving on `C_d,v`@1% for five ways of handing the solver the same field, with
+> paired 95% bootstrap intervals and cases won. The pair to read is the exact
+> converged field at the solver's own cell centres against the identical field
+> stored on a 128² raster: +93.6% against +3.4%, an interval spanning zero. The
+> body-fitted grid of *identical budget* sits with the mesh-native arms, which is
+> what makes this a statement about placement rather than about grids. **(B)**
+> The same data as differences, each bar moving exactly one property. Accuracy
+> costs more than region; a body-fitted representation costs nothing.
+
 Three readings follow, and the second is not the one we expected.
 
 **Storage format can cost everything or nothing, depending which format.** A
