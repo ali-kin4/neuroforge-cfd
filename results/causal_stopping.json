@@ -1,0 +1,641 @@
+{
+  "root": "runs/openfoam/corpus",
+  "coeff": "Cd_v",
+  "tol": 0.01,
+  "window": 50,
+  "rows": [
+    {
+      "case": "naca0012_aoa10",
+      "reference": 0.0068043337600080965,
+      "spread": 3.170505346281016e-05,
+      "arms": {
+        "cold": {
+          "first_entry": 43,
+          "last_exit": 1108,
+          "causal": 704
+        },
+        "cartesian_128": {
+          "first_entry": 58,
+          "last_exit": 1074,
+          "causal": 163
+        },
+        "nf_bl": {
+          "first_entry": 720,
+          "last_exit": 720,
+          "causal": 436
+        },
+        "or_proj_coarse": {
+          "first_entry": 15,
+          "last_exit": 181,
+          "causal": 131
+        },
+        "oracle_bl": {
+          "first_entry": 3,
+          "last_exit": 243,
+          "causal": 114
+        },
+        "oracle_mesh": {
+          "first_entry": 3,
+          "last_exit": 55,
+          "causal": 105
+        }
+      }
+    },
+    {
+      "case": "naca0012_aoa12",
+      "reference": 0.006395343417215392,
+      "spread": 8.439791576130591e-05,
+      "arms": {
+        "cold": {
+          "first_entry": 44,
+          "last_exit": 1486,
+          "causal": 831
+        },
+        "cartesian_128": {
+          "first_entry": 59,
+          "last_exit": 1732,
+          "causal": 237
+        },
+        "nf_bl": {
+          "first_entry": 782,
+          "last_exit": 782,
+          "causal": 425
+        },
+        "or_proj_coarse": {
+          "first_entry": 16,
+          "last_exit": 599,
+          "causal": 128
+        },
+        "oracle_bl": {
+          "first_entry": 3,
+          "last_exit": 249,
+          "causal": 113
+        },
+        "oracle_mesh": {
+          "first_entry": 56,
+          "last_exit": 56,
+          "causal": 105
+        }
+      }
+    },
+    {
+      "case": "naca0012_aoa8",
+      "reference": 0.00712493855818944,
+      "spread": 8.052630562104991e-06,
+      "arms": {
+        "cold": {
+          "first_entry": 42,
+          "last_exit": 886,
+          "causal": 635
+        },
+        "cartesian_128": {
+          "first_entry": 57,
+          "last_exit": 799,
+          "causal": 619
+        },
+        "nf_bl": {
+          "first_entry": 663,
+          "last_exit": 663,
+          "causal": 443
+        },
+        "or_proj_coarse": {
+          "first_entry": 15,
+          "last_exit": 150,
+          "causal": 133
+        },
+        "oracle_bl": {
+          "first_entry": 3,
+          "last_exit": 236,
+          "causal": 114
+        },
+        "oracle_mesh": {
+          "first_entry": 3,
+          "last_exit": 54,
+          "causal": 104
+        }
+      }
+    },
+    {
+      "case": "naca0015_aoa2",
+      "reference": 0.007770559970781114,
+      "spread": 0.0004350599909760536,
+      "arms": {
+        "cold": {
+          "first_entry": 39,
+          "last_exit": 654,
+          "causal": 397
+        },
+        "cartesian_128": {
+          "first_entry": 43,
+          "last_exit": 628,
+          "causal": 522
+        },
+        "nf_bl": {
+          "first_entry": 588,
+          "last_exit": 588,
+          "causal": 451
+        },
+        "or_proj_coarse": {
+          "first_entry": 113,
+          "last_exit": 113,
+          "causal": 149
+        },
+        "oracle_bl": {
+          "first_entry": 46,
+          "last_exit": 243,
+          "causal": 118
+        },
+        "oracle_mesh": {
+          "first_entry": 3,
+          "last_exit": 51,
+          "causal": 101
+        }
+      }
+    },
+    {
+      "case": "naca0015_aoa4",
+      "reference": 0.007704754000418579,
+      "spread": 0.00019097854360968492,
+      "arms": {
+        "cold": {
+          "first_entry": 39,
+          "last_exit": 687,
+          "causal": 432
+        },
+        "cartesian_128": {
+          "first_entry": 43,
+          "last_exit": 671,
+          "causal": 548
+        },
+        "nf_bl": {
+          "first_entry": 626,
+          "last_exit": 626,
+          "causal": 479
+        },
+        "or_proj_coarse": {
+          "first_entry": 107,
+          "last_exit": 107,
+          "causal": 147
+        },
+        "oracle_bl": {
+          "first_entry": 44,
+          "last_exit": 250,
+          "causal": 118
+        },
+        "oracle_mesh": {
+          "first_entry": 3,
+          "last_exit": 53,
+          "causal": 103
+        }
+      }
+    },
+    {
+      "case": "naca0018_aoa4",
+      "reference": 0.007862775880089197,
+      "spread": 0.00013636391598994247,
+      "arms": {
+        "cold": {
+          "first_entry": 37,
+          "last_exit": 693,
+          "causal": 436
+        },
+        "cartesian_128": {
+          "first_entry": 46,
+          "last_exit": 723,
+          "causal": 588
+        },
+        "nf_bl": {
+          "first_entry": 674,
+          "last_exit": 674,
+          "causal": 522
+        },
+        "or_proj_coarse": {
+          "first_entry": 107,
+          "last_exit": 107,
+          "causal": 148
+        },
+        "oracle_bl": {
+          "first_entry": 44,
+          "last_exit": 279,
+          "causal": 120
+        },
+        "oracle_mesh": {
+          "first_entry": 3,
+          "last_exit": 52,
+          "causal": 102
+        }
+      }
+    },
+    {
+      "case": "naca0018_aoa8",
+      "reference": 0.007661047821933671,
+      "spread": 1.620388592977822e-05,
+      "arms": {
+        "cold": {
+          "first_entry": 37,
+          "last_exit": 975,
+          "causal": 553
+        },
+        "cartesian_128": {
+          "first_entry": 46,
+          "last_exit": 1049,
+          "causal": 695
+        },
+        "nf_bl": {
+          "first_entry": 789,
+          "last_exit": 789,
+          "causal": 561
+        },
+        "or_proj_coarse": {
+          "first_entry": 89,
+          "last_exit": 89,
+          "causal": 140
+        },
+        "oracle_bl": {
+          "first_entry": 3,
+          "last_exit": 267,
+          "causal": 117
+        },
+        "oracle_mesh": {
+          "first_entry": 3,
+          "last_exit": 53,
+          "causal": 102
+        }
+      }
+    },
+    {
+      "case": "naca2412_aoa10",
+      "reference": 0.0070348100626695925,
+      "spread": 9.836867071735895e-05,
+      "arms": {
+        "cold": {
+          "first_entry": 42,
+          "last_exit": 1078,
+          "causal": 660
+        },
+        "cartesian_128": {
+          "first_entry": 62,
+          "last_exit": 886,
+          "causal": 635
+        },
+        "nf_bl": {
+          "first_entry": 774,
+          "last_exit": 774,
+          "causal": 467
+        },
+        "or_proj_coarse": {
+          "first_entry": 76,
+          "last_exit": 500,
+          "causal": 132
+        },
+        "oracle_bl": {
+          "first_entry": 3,
+          "last_exit": 215,
+          "causal": 106
+        },
+        "oracle_mesh": {
+          "first_entry": 3,
+          "last_exit": 55,
+          "causal": 104
+        }
+      }
+    },
+    {
+      "case": "naca2412_aoa8",
+      "reference": 0.007303775449485492,
+      "spread": 5.372897592413262e-05,
+      "arms": {
+        "cold": {
+          "first_entry": 41,
+          "last_exit": 861,
+          "causal": 612
+        },
+        "cartesian_128": {
+          "first_entry": 60,
+          "last_exit": 682,
+          "causal": 539
+        },
+        "nf_bl": {
+          "first_entry": 715,
+          "last_exit": 715,
+          "causal": 463
+        },
+        "or_proj_coarse": {
+          "first_entry": 86,
+          "last_exit": 305,
+          "causal": 135
+        },
+        "oracle_bl": {
+          "first_entry": 3,
+          "last_exit": 209,
+          "causal": 107
+        },
+        "oracle_mesh": {
+          "first_entry": 3,
+          "last_exit": 54,
+          "causal": 104
+        }
+      }
+    },
+    {
+      "case": "naca2415_aoa2",
+      "reference": 0.007812406009405108,
+      "spread": 0.0006417984745281065,
+      "arms": {
+        "cold": {
+          "first_entry": 38,
+          "last_exit": 667,
+          "causal": 400
+        },
+        "cartesian_128": {
+          "first_entry": 52,
+          "last_exit": 607,
+          "causal": 436
+        },
+        "nf_bl": {
+          "first_entry": 595,
+          "last_exit": 595,
+          "causal": 456
+        },
+        "or_proj_coarse": {
+          "first_entry": 13,
+          "last_exit": 92,
+          "causal": 141
+        },
+        "oracle_bl": {
+          "first_entry": 46,
+          "last_exit": 220,
+          "causal": 115
+        },
+        "oracle_mesh": {
+          "first_entry": 3,
+          "last_exit": 52,
+          "causal": 101
+        }
+      }
+    },
+    {
+      "case": "naca2415_aoa8",
+      "reference": 0.0075725062672239146,
+      "spread": 2.7186598471864853e-05,
+      "arms": {
+        "cold": {
+          "first_entry": 38,
+          "last_exit": 922,
+          "causal": 582
+        },
+        "cartesian_128": {
+          "first_entry": 47,
+          "last_exit": 999,
+          "causal": 644
+        },
+        "nf_bl": {
+          "first_entry": 778,
+          "last_exit": 778,
+          "causal": 510
+        },
+        "or_proj_coarse": {
+          "first_entry": 70,
+          "last_exit": 70,
+          "causal": 127
+        },
+        "oracle_bl": {
+          "first_entry": 3,
+          "last_exit": 214,
+          "causal": 109
+        },
+        "oracle_mesh": {
+          "first_entry": 3,
+          "last_exit": 54,
+          "causal": 103
+        }
+      }
+    },
+    {
+      "case": "naca4415_aoa2",
+      "reference": 0.007868606939774234,
+      "spread": 0.0007196430478606054,
+      "arms": {
+        "cold": {
+          "first_entry": 38,
+          "last_exit": 681,
+          "causal": 399
+        },
+        "cartesian_128": {
+          "first_entry": 46,
+          "last_exit": 636,
+          "causal": 540
+        },
+        "nf_bl": {
+          "first_entry": 623,
+          "last_exit": 623,
+          "causal": 465
+        },
+        "or_proj_coarse": {
+          "first_entry": 12,
+          "last_exit": 112,
+          "causal": 140
+        },
+        "oracle_bl": {
+          "first_entry": 3,
+          "last_exit": 162,
+          "causal": 111
+        },
+        "oracle_mesh": {
+          "first_entry": 3,
+          "last_exit": 52,
+          "causal": 101
+        }
+      }
+    },
+    {
+      "case": "naca4415_aoa4",
+      "reference": 0.007867057960186805,
+      "spread": 0.0008596169165598493,
+      "arms": {
+        "cold": {
+          "first_entry": 38,
+          "last_exit": 745,
+          "causal": 419
+        },
+        "cartesian_128": {
+          "first_entry": 46,
+          "last_exit": 687,
+          "causal": 554
+        },
+        "nf_bl": {
+          "first_entry": 665,
+          "last_exit": 665,
+          "causal": 485
+        },
+        "or_proj_coarse": {
+          "first_entry": 12,
+          "last_exit": 110,
+          "causal": 134
+        },
+        "oracle_bl": {
+          "first_entry": 3,
+          "last_exit": 162,
+          "causal": 108
+        },
+        "oracle_mesh": {
+          "first_entry": 3,
+          "last_exit": 54,
+          "causal": 103
+        }
+      }
+    }
+  ],
+  "summary": {
+    "cartesian_128": {
+      "last_exit": {
+        "mean": 0.03412080527087081,
+        "ci": [
+          -0.023360211423864633,
+          0.0881783258551556
+        ],
+        "wins": 9,
+        "n": 13
+      },
+      "first_entry": {
+        "mean": -0.2849557499061129,
+        "ci": [
+          -0.3457644946011441,
+          -0.223561251568266
+        ],
+        "wins": 0,
+        "n": 13
+      },
+      "causal": {
+        "mean": -0.03040533548802283,
+        "ci": [
+          -0.20487629442324726,
+          0.18109179715951895
+        ],
+        "wins": 5,
+        "n": 13
+      }
+    },
+    "nf_bl": {
+      "last_exit": {
+        "mean": 0.18398290228419706,
+        "ci": [
+          0.12393782052518063,
+          0.2534433307495407
+        ],
+        "wins": 13,
+        "n": 13
+      },
+      "first_entry": {
+        "mean": -16.451175760152914,
+        "ci": [
+          -17.471847199342946,
+          -15.534771820037694
+        ],
+        "wins": 0,
+        "n": 13
+      },
+      "causal": {
+        "mean": 0.07013457804903286,
+        "ci": [
+          -0.05125533009299181,
+          0.19978121900096205
+        ],
+        "wins": 6,
+        "n": 13
+      }
+    },
+    "or_proj_coarse": {
+      "last_exit": {
+        "mean": 0.795846305841819,
+        "ci": [
+          0.7275777659283866,
+          0.8526462213963163
+        ],
+        "wins": 13,
+        "n": 13
+      },
+      "first_entry": {
+        "mean": -0.4408318174786355,
+        "ci": [
+          -1.0208768936501726,
+          0.13997920627208324
+        ],
+        "wins": 6,
+        "n": 13
+      },
+      "causal": {
+        "mean": 0.7292496965114714,
+        "ci": [
+          0.689857707280089,
+          0.768984953925218
+        ],
+        "wins": 13,
+        "n": 13
+      }
+    },
+    "oracle_bl": {
+      "last_exit": {
+        "mean": 0.7288764115535794,
+        "ci": [
+          0.6894894267076634,
+          0.7654905454582662
+        ],
+        "wins": 13,
+        "n": 13
+      },
+      "first_entry": {
+        "mean": 0.5862070666444651,
+        "ci": [
+          0.323103491015586,
+          0.8412243700818193
+        ],
+        "wins": 9,
+        "n": 13
+      },
+      "causal": {
+        "mean": 0.7783999982650658,
+        "ci": [
+          0.7488925791406559,
+          0.808028941013238
+        ],
+        "wins": 13,
+        "n": 13
+      }
+    },
+    "oracle_mesh": {
+      "last_exit": {
+        "mean": 0.9360073159009696,
+        "ci": [
+          0.9294023166163711,
+          0.943117522756719
+        ],
+        "wins": 13,
+        "n": 13
+      },
+      "first_entry": {
+        "mean": 0.8315138170119442,
+        "ci": [
+          0.646542862869124,
+          0.9251115358332768
+        ],
+        "wins": 12,
+        "n": 13
+      },
+      "causal": {
+        "mean": 0.7995037682230586,
+        "ci": [
+          0.7757502387057095,
+          0.8236472323913326
+        ],
+        "wins": 13,
+        "n": 13
+      }
+    }
+  },
+  "gap_iterations": {
+    "median": 185.5,
+    "mean": 340.8205128205128,
+    "max": 1673.0
+  }
+}

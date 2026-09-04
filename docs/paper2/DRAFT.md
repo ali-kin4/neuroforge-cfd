@@ -473,6 +473,24 @@ which a coefficient stays within +/-b of the reference for the rest of the run.
 Saving is 1 - warm/cold, bounded at the budget. We report b = 1%, 0.5%, 0.2%
 and state which bands are readable.
 
+**It is a last-exit statistic and that is deliberate, but a reader is entitled to
+the alternative.** *First entry* — the first iteration at which the coefficient
+touches the band at all — is the natural competitor, and on this data it is
+useless in a way worth showing rather than asserting. A cold start sweeps from
+freestream to converged and passes *through* the band on the way, so its first
+entry is artifactually early: scored that way, `nf_bl` reads **-1645%** against
+cold, and every warm arm looks catastrophic. The two statistics differ by a
+median of 186 iterations and by as much as 1673 (78 case-arm pairs,
+`scripts/causal_stopping.py`), which is the size of the wandering that last-exit
+exists to charge and first entry ignores. Both are recorded per arm in
+`results/causal_stopping.json` so the choice can be audited.
+
+**It also needs the converged answer, which production does not have.** That is
+acceptable for measuring a mechanism and not for measuring a workflow, so §5.1
+re-scores every arm under a *causal* stopping rule — a flat trailing window,
+no reference and no cold run — and reports what changes. What changes is the
+recommendation, not the decomposition.
+
 **Readability.** A band is readable only if the settled arms agree about the
 converged value to well inside it (rule 5) — concretely, to within half the band.
 On the core study the largest disagreement is 0.232% of Cd, so b = 1% and
@@ -579,6 +597,40 @@ the form the comparison is actually made in: the raster costs **−90.2 points
 [−96.3, −84.7], 0 of 13 cases improve, p = 0.0002** against the same field read
 at the cell centres. §5.2.3 gives the other three contrasts on the same tree and
 the same row.
+
+> **Does the headline survive a stopping rule a practitioner could run?** The
+> metric above centres its band on the *converged* value, which in production
+> nobody has. That is the right choice for measuring a mechanism and the wrong
+> one for measuring a workflow, so `scripts/causal_stopping.py` re-scores every
+> arm under a **causal** rule that uses only the history so far: stop at the
+> first iteration whose trailing 50-iteration window is flat to 1%. It needs no
+> converged answer and no cold run.
+>
+> | arm | the paper's metric | causal rule |
+> |---|---:|---:|
+> | `oracle_mesh` | +93.6% 13/13 | **+80.0%** [+77.6, +82.4] 13/13 |
+> | `oracle_bl` | +72.9% 13/13 | **+77.8%** [+74.9, +80.8] 13/13 |
+> | `or_proj_coarse` | +79.6% 13/13 | **+72.9%** [+69.0, +76.9] 13/13 |
+> | **`nf_bl`** | **+18.4%** 13/13 | **+7.0%** [−5.1, +20.0] **6/13** |
+> | `cartesian_128` | +3.4% 9/13 | −3.0% [−20.5, +18.1] 5/13 |
+>
+> **The decomposition survives the change of rule and the recommendation does
+> not.** Every exact-field arm keeps essentially all of its advantage and all
+> thirteen cases; §5.2.3's contrasts are therefore not artifacts of a
+> converged-answer-centred band. But `nf_bl`'s +18.4% becomes **+7.0% with an
+> interval spanning zero**. We report that rather than only the metric that
+> flatters us, and §11 draws the consequence: what this paper contributes is the
+> criterion and the controls, not a warm-start recommendation.
+>
+> **Why it changes, and it is not noise.** Under the causal rule `nf_bl` stops
+> at 425–561 iterations on every case, almost independently of the case, while
+> `cold` ranges 397–831. So the seed helps where the cold solve is slow and costs
+> where it is fast, and the association is strong: Spearman **0.874** between a
+> case's cold cost and the seed's benefit on it. Split at the median (a *post
+> hoc* split, and labelled as one) the seven slow cases give **+26.0% [+14.6,
+> +36.8], 6 of 7** and the six fast cases **−15.1% [−17.3, −12.9], 0 of 6**.
+> That is more useful to a practitioner than the mean: **seed the solves that are
+> expensive.**
 
 **Total drag, lift and pressure drag are unreadable over the thirteen**, and two
 cases carry all of it. `naca4415` at 2° and 4° have arms that settle on drag
@@ -850,14 +902,28 @@ measurable — and not a claim that a lossy round trip improves a seed.
 > **local field-quality diagnostics do not order convergence**, after §5.2.1 and
 > §5.5 for the wall gradient and §5.5 for wall-shear smoothness.
 
-> **What this table does not separate.** Each row moves one property *as we set
-> it*, and a storage format changes several properties of a field at once. The
-> raster row in particular changes region and channel coverage in no way — it is
-> the same whole field, all four channels — but it changes sampling position,
-> resolution and interpolation together, and §6 identifies only the first of
-> those as the one it can compute. §5.9 tests the leading alternative directly —
-> that any departure from the solver's own fixed point would do the same — and
-> rules it out for six sevenths of the effect.
+> **Two things this table does not separate, both stated because they qualify
+> the sentence readers will take away.**
+>
+> **The two representation rows are not in the same stratum.** The raster
+> contrast is `oracle_mesh` → `cartesian_128`, both whole-field; the body-fitted
+> contrast is `oracle_bl` → `or_proj_coarse`, both boundary-layer-only. Each
+> *link* moves exactly one property, which is what makes the −90.2 and the +6.7
+> valid. But the sentence "a raster costs 90 points and a body-fitted grid costs
+> nothing" compares two links measured in different strata, and is therefore not
+> itself a controlled contrast. It is the reading we believe, and §6 gives the
+> quantity that predicts it, but the study does not contain the arm — a
+> whole-field body-fitted projection — that would establish it directly.
+>
+> **A storage format changes several properties at once.** The raster changes
+> sampling *position*, tangential *resolution* and interpolation together, and §6
+> computes only the first. Tangential resolution is nonetheless controlled, by an
+> experiment already in this paper: §7.1's 421² raster has a tangential spacing of
+> **0.0071 chord, finer than the wall-fitted grid's 0.0079**, and is still flat
+> and negative. So the format that wins is the tangentially *coarser* one, and
+> resolution in the streamwise direction is not what separates them. §5.9 rules
+> out the remaining leading alternative — that any departure from the solver's own
+> fixed point would do the same — for six sevenths of the effect.
 
 ### 5.3 Condition 2 — hand over the boundary layer only
 

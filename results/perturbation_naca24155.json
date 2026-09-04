@@ -1,0 +1,92 @@
+{
+  "re": 3000000.0,
+  "n_iter": 6000,
+  "n_modes": 6,
+  "max_wavenumber": 3.0,
+  "perturb_seed": 20260904,
+  "rows": [
+    {
+      "case": "naca2415_aoa5",
+      "re": 3000000.0,
+      "first_cell_centre": 4.001483598179684e-06,
+      "target_norm": [
+        28.737520588755437,
+        9.953858251962961,
+        3.3016058981586496,
+        0.002922644270953708
+      ],
+      "damage": {
+        "cartesian_128": {
+          "whole_field_pct": {
+            "u": 17.84264114764847,
+            "v": 32.68892391397802,
+            "p": 10.250335154159355,
+            "nut": 57.5617027194914
+          },
+          "in_bl_pct": {
+            "u": 38.568982190831086,
+            "v": 38.089009911253314,
+            "p": 10.922842241342394,
+            "nut": 91.9049436729192
+          },
+          "first_ring_u_pct": 1807.4795026888225
+        },
+        "smooth_perturb": {
+          "whole_field_pct": {
+            "u": 17.842641147648468,
+            "v": 32.68892391397803,
+            "p": 10.250335154159353,
+            "nut": 57.56170271949141
+          },
+          "in_bl_pct": {
+            "u": 0.0,
+            "v": 0.0,
+            "p": 0.0,
+            "nut": 0.0
+          },
+          "first_ring_u_pct": 0.0
+        },
+        "smooth_perturb_x2": {
+          "whole_field_pct": {
+            "u": 35.685282295296936,
+            "v": 65.37784782795605,
+            "p": 20.500670308318707,
+            "nut": 115.12340543898281
+          },
+          "in_bl_pct": {
+            "u": 0.0,
+            "v": 0.0,
+            "p": 0.0,
+            "nut": 0.0
+          },
+          "first_ring_u_pct": 0.0
+        }
+      },
+      "cold@1e-03": 74,
+      "oracle_mesh@1e-03": 6,
+      "cartesian_128@1e-03": 68,
+      "smooth_perturb@1e-03": 219,
+      "smooth_perturb_x2@1e-03": 1837,
+      "cold@1e-04": 198,
+      "oracle_mesh@1e-04": 15,
+      "cartesian_128@1e-04": 173,
+      "smooth_perturb@1e-04": 4897,
+      "smooth_perturb_x2@1e-04": 5495,
+      "cold@1e-05": 404,
+      "oracle_mesh@1e-05": 66,
+      "cartesian_128@1e-05": 1250,
+      "smooth_perturb@1e-05": null,
+      "smooth_perturb_x2@1e-05": null,
+      "cold@5e-06": 1139,
+      "oracle_mesh@5e-06": 80,
+      "cartesian_128@5e-06": 1505,
+      "smooth_perturb@5e-06": null,
+      "smooth_perturb_x2@5e-06": null,
+      "cold@1e-06": 2024,
+      "oracle_mesh@1e-06": 129,
+      "cartesian_128@1e-06": 3518,
+      "smooth_perturb@1e-06": null,
+      "smooth_perturb_x2@1e-06": null
+    }
+  ]
+}
