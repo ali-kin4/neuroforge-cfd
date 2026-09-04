@@ -735,14 +735,28 @@ that damage is real, computable and bounded. **It is not what costs the solve.**
 The placement ladder shows it directly: all three arms below carry the same exact
 field through the same round trip, and only the grading of the grid changes.
 
-**Tree: `placement2`** (5 cases, 9 arms).
+**Tree: `placement2`** (5 cases, 9 arms). The whole ladder is reported, both
+families, because a ladder with half its rungs removed is not a ladder:
 
-| arm | values | first station | wall-gradient error | roughness (× conv.) | `C_d,v`@1% |
-|---|---:|---:|---:|---:|---:|
-| `or_proj_coarse` | 16,384 | 2.5·10⁻⁴ | **1218.8%** | 18.68× | **+86.1%** |
-| `or_proj_fine` | 16,384 | 5·10⁻⁶ | **1.8%** | **1.05×** | +69.0% |
-| `or_proj_half` | 8,192 | 5·10⁻⁶ | **1.8%** | **1.05×** | +71.0% |
-| `oracle_mesh` | — | native | 0.0% | 1.00× | +92.5% |
+| arm | source | values | first station | wall-gradient error | `C_d,v`@1% |
+|---|---|---:|---:|---:|---:|
+| `oracle_mesh` | exact | — | native | 0.0% | +92.5% |
+| `or_proj_coarse` | exact | 16,384 | 2.5·10⁻⁴ | **1218.8%** | **+86.1%** |
+| `or_proj_half` | exact | **8,192** | 5·10⁻⁶ | **1.8%** | +71.0% |
+| `or_proj_fine` | exact | 16,384 | 5·10⁻⁶ | **1.8%** | +69.0% |
+| `nf_proj_fine` | network | 16,384 | 5·10⁻⁶ | 53.1% | +17.7% |
+| `nf_proj_half` | network | **8,192** | 5·10⁻⁶ | 53.1% | +15.7% |
+| `nf_bl` | network | — | native | 53.7% | +14.6% |
+| `nf_proj_coarse` | network | 16,384 | 2.5·10⁻⁴ | **877.7%** | +14.5% |
+
+**The network family makes the same point a second time, and more cleanly.**
+Its four arms span **16.5× in wall-gradient error** — 53.1% to 877.7% — and
+**3.2 points in convergence**, from +14.5% to +17.7%, all 5 of 5. Whatever the
+first station does to the near-wall state, it does not reach the solve. The
+oracle family spans a wider range in convergence (69.0% to 86.1%) and orders it
+*against* the gradient: the arm carrying 1218.8% error is the best of the three.
+Neither family supports the near-wall state as the mediator, and they fail to
+support it in different directions.
 
 **Placement, not budget, determines what a grid retains.** Moving the first
 station inside the mesh's first cell takes the wall-gradient error from 1218.8%
@@ -750,9 +764,9 @@ to **1.8%** and the roughness to the converged field's own, at half the value
 budget as readily as at the full one. That is §6's criterion, confirmed.
 
 **And it does not help.** The arm carrying 1218.8% gradient error is the *best*
-of the three on the readable row (+86.1% against +69.1%), and on total drag the
-ordering is the same. Restoring the first-cell gradient does not recover the
-solve; here it costs.
+of the three exact-field arms on the readable row (+86.1% against +69.0%), and on
+total drag the ordering is the same. Restoring the first-cell gradient does not
+recover the solve; here it costs.
 
 > **Three honest qualifications.** The 1.8% is a single scalar — the first-cell
 > wall-normal gradient — and not a statement about the near-wall *state*. The
