@@ -703,6 +703,76 @@ the natural suspect. **We do not have the measurement that would establish it**,
 and §10 records this as the paper's principal open question rather than dressing
 a suspicion as a finding.
 
+### 5.2.3 Pricing each property: four contrasts that move one variable
+
+The arms compared so far differ in more than one way at a time. `oracle_mesh`
+carries the whole field, all four channels, at the solver's own points;
+`or_proj_coarse` carries the boundary layer only, three channels, through a
+grid. A difference between them is not attributable to any one of those. So we
+ran the missing control — `oracle_bl`, the exact field, all four channels,
+mesh-native, masked to the boundary layer — which turns the study into a chain
+in which **each link moves exactly one property**.
+
+Everything below is `C_d,v`@1%, paired within case before averaging, with a
+bootstrap CI and an exact sign test (`scripts/decompose.py`).
+
+| arm | field | region | delivered as | `C_d,v`@1% |
+|---|---|---|---|---:|
+| `oracle_mesh` | exact | whole | cell centres | +92.5% [+92.1, +92.8] 5/5 |
+| `oracle_bl` | exact | boundary layer | cell centres | +69.9% [+68.1, +71.8] 5/5 |
+| `or_proj_coarse` | exact | boundary layer | 256×64 grid, 16,384 values | +86.1% [+84.2, +87.9] 5/5 |
+| `nf_bl` | **surrogate** | boundary layer | cell centres | +14.6% [+11.5, +17.3] 5/5 |
+| `cartesian_128` | exact | whole | 128² raster, 16,384 values | +3.4% [−2.4, +8.7] 7/13 |
+
+And the differences, paired:
+
+| what moves | contrast | effect on `C_d,v`@1% | cases |
+|---|---|---:|---|
+| **region** | `oracle_mesh` → `oracle_bl` | **−22.5** points [−24.6, −20.4] | 0/5 improve |
+| **representation**, body-fitted | `oracle_bl` → `or_proj_coarse` | **+16.2** points [+12.2, +19.5] | 5/5 improve |
+| **representation**, raster | `oracle_mesh` → `cartesian_128` | **−90.2** points | 0/13 improve |
+| **accuracy** | `oracle_bl` → `nf_bl` | **−55.4** points [−58.4, −52.7] | 0/5 improve |
+
+Three readings follow, and the second is not the one we expected.
+
+**Storage format can cost everything or nothing, depending which format.** A
+uniform raster costs 90 points of a 93-point saving; a body-fitted grid holding
+*the same 16,384 values* costs none. "Representation matters" is true and far too
+coarse: what matters is whether the format places a station where the solver
+keeps its state, which is §6's criterion and a property of the format's grading
+rather than of its budget.
+
+**Accuracy matters, and matters more than a body-fitted round trip.** Replacing
+the exact field with the trained surrogate's prediction, changing nothing else,
+costs 55 points — more than twice what restricting the region costs and larger
+in magnitude than anything a body-fitted representation does. An earlier version
+of this paper argued "representation, not accuracy". **That is contradicted by
+our own control and is withdrawn.** Both matter; this table is what each is
+worth.
+
+**The body-fitted round trip does not merely fail to hurt — it helps, on every
+case, and we cannot explain it.** `or_proj_coarse` carries 18.8% error in `u`
+and 17.9% in `nut` relative to the field it was built from, and 1218.8% error in
+the first-cell wall gradient, and it converges *faster* than the exact field it
+is a corruption of, by 16.2 points with a CI clear of zero and 5 of 5 cases. We
+report it because it is what we measured and because it is the third independent
+sign in this paper that seed *accuracy* does not order convergence. The reading
+we find most plausible is that the round trip low-pass filters the field, and
+that a smoother seed — including a gentler transition across the boundary-layer
+mask, where `oracle_bl` hands over an abrupt edge — is easier for an
+under-relaxed SIMPLE sweep to accept than an exact but sharp one. That is the
+same smoothing argument §6.7 sets out, and it is an interpretation, not a
+measurement. **We do not claim that projecting a field improves it**, and a
+practitioner should read this row as "a body-fitted round trip is not the thing
+to worry about", not as advice to add one.
+
+> **What this table cannot separate.** `oracle_bl` and `or_proj_coarse` differ
+> in storage format, and the format also changes the smoothness of the field at
+> the mask boundary. The contrast is one-variable in *the property we set*, not
+> necessarily in the property that acts. Isolating that needs a seed perturbed
+> only in its smooth content at matched norm, which this study does not contain
+> and §11 lists first among what we would run next.
+
 ### 5.3 Condition 2 — hand over the boundary layer only
 
 The region axis is controlled the same way as the resampling axis: both arms are
