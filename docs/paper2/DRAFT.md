@@ -33,9 +33,9 @@ further 54.5, so **accuracy matters, and more than region does** -- contradictin
 an earlier form of this claim, which we withdraw.
 
 Nor is it the size of the error: a smooth perturbation carrying the raster's own
-error norm costs 12.2 points where the raster costs 82.4. What costs is **where**
-a format's error sits, and a parameter-free closed form separates the two formats
-by y+ alone before any solve. That quantity is **not** the mediator: three ways
+error norm costs 12.2 points at that band where the raster costs 82.5. What costs
+is **where** a format's error sits, and a parameter-free closed form separates the
+two formats by y+ alone before any solve. That quantity is **not** the mediator: three ways
 of restoring the near-wall state leave convergence unchanged, and a seed worse on
 every local measure we can make converges no worse. Classical grid sequencing
 beats the learned seed on both axes.
@@ -1140,30 +1140,63 @@ identical whole-field error and could not differ more in where it sits:
 | `cartesian_128` | 21.51% | 45.46% | **1974.90%** |
 | `smooth_perturb` | **21.51%** | **0.00%** | **0.00%** |
 
-**The result**, `C_d,v`@1%, paired within case, all 5 of 5:
+**The result**, `C_d,v`, paired within case, five cases, every band readable
+(settled spread 0.076% against a 0.5% limit):
 
-| arm | saving | paired against `oracle_mesh` |
-|---|---:|---:|
-| `oracle_mesh` | +92.4% [+92.1, +92.8] | — |
-| `smooth_perturb` | **+80.2%** [+77.1, +84.6] | **−12.2** points [−15.2, −8.1] |
-| `cartesian_128` | +10.0% [+3.8, +16.0] | **−82.4** points [−88.9, −76.1] |
+| band | `oracle_mesh` | `smooth_perturb`, paired | `cartesian_128`, paired |
+|---|---:|---:|---:|
+| `C_d,v`@1% | +92.4% | **−12.2** [−15.2, −8.0] | **−82.5** [−89.0, −76.1] |
+| `C_d,v`@0.5% | +91.9% | **−129.7** [−183.9, −71.0] | −79.6 [−86.5, −72.7] |
+| `C_d,v`@0.2% | +91.3% | **−237.5** [−313.2, −162.9] | −139.4 [−201.1, −80.2] |
 
-**The same error magnitude costs 12.2 points spread smoothly and 82.4 points
-delivered by a raster** — 6.8 times more, with intervals that do not overlap.
+**Two findings, and the second was not what we went looking for.**
 
-**What this establishes, and what it does not.** It establishes that the raster's
-harm is **not attributable to the size of the error it introduces**, and
-therefore not to mere distance from the discrete fixed point. Roughly six
-sevenths of it is attributable to *where* the error sits rather than how large it
-is, which is what §5.2 claims and what §6 computes.
+**At the band this paper reports, error magnitude is not what costs.** The same
+whole-field error norm costs 12.2 points spread smoothly and 82.5 delivered by a
+raster — 6.8 times more, with intervals that do not overlap. So the raster's harm
+at `C_d,v`@1% is **not** attributable to mere distance from the discrete fixed
+point, and roughly six sevenths of it is attributable to *where* the error sits.
+That is what §5.2 claims and what §6 computes, and it is the objection answered.
 
-It does **not** establish that distance from the fixed point is irrelevant:
-`smooth_perturb` costs a real and consistent 12.2 points, so departing from the
-solver's own fixed point is not free, and any study using a converged-field
-oracle should expect that floor. Nor could this arm have shown otherwise —
-it is zero exactly where the raster does its worst damage, by construction. The
-claim available from it is the one made above, and we do not make the stronger
-one.
+**But a smooth outer error is not cheap — it is deferred, and the crossover is
+the mechanism §6.7 could only argue for.** `smooth_perturb` is far better than
+the raster at a 1% band and far *worse* at 0.5% and 0.2%. That is exactly what a
+SIMPLE-family solver should do. Its near-wall field is exact, so `C_d,v` — a
+near-wall integral — enters a loose band almost at once; and its error is a
+smooth, globally elliptic mode, which is the one the pressure correction removes
+slowest, so it never clears. The raster's error is the opposite: high-wavenumber
+and near-wall, punished immediately by the loose band and then largely annihilated
+by a few under-relaxed momentum sweeps, which is why its penalty grows much more
+slowly with depth.
+
+**This is the first direct measurement in this paper of the smoothing argument.**
+§6.7 offers it as an interpretation that fits four otherwise-unrelated
+observations; here it makes a falsifiable prediction — smooth error should be
+cheap early and expensive late, high-wavenumber error the reverse — and the
+prediction holds on a controlled pair. We still do not claim it as the mechanism
+of §5.2, because this arm perturbs a field rather than decomposing one, and
+because a single crossover on five cases is evidence and not proof.
+
+**Reported against our own rule.** §4 says a saving that is not monotone across
+bands is not a clean rate measurement. `smooth_perturb` is emphatically not
+monotone (+80.2% → −37.8% → −146.2% in absolute saving), so its +80.2% at the 1%
+band must be read as "it enters this band quickly", not as "it converges
+quickly". The contrast that survives that caveat is the *comparison* at a fixed
+band against `cartesian_128`, which is what the first finding above rests on and
+what the objection required.
+
+**What this arm cannot show.** It cannot show that distance from the fixed point
+is irrelevant: `smooth_perturb` costs a real 12.2 points at 1% and far more at
+depth, so departing from the solver's own fixed point is not free, and any study
+using a converged-field oracle should expect that floor. Nor could it have shown
+otherwise — the perturbation is zero exactly where the raster does its worst
+damage, by construction. The claim available is the one made above, and we do not
+make the stronger one.
+
+> **A second arm at twice the norm (`smooth_perturb_x2`) was run to check that a
+> null was not simply a perturbation too small to matter.** It is not reported
+> here: the first finding is a positive contrast rather than a null, so the
+> guard is not needed for it, and the arm's own rows are censored on this budget.
 
 ## 6. The mechanism, in closed form
 Everything in §5 follows from one quantity, and that quantity can be computed
@@ -1520,9 +1553,15 @@ which attacks exactly that mode — beats every learned seed (§5.7). The §3
 verification is consistent with it from a third direction: `C_d,p` moves 49.8%
 under a fourfold change in cell count while `C_d,v` moves 6.9%.
 
-We state it as an interpretation and not a result, because we have not measured
-the mode decomposition and this paper has already withdrawn two mechanisms that
-were argued rather than measured — the pressure localisation of §5.2.2, and the
+**§5.9 is the one place this reading is tested rather than asserted, and it
+holds.** A seed whose error is smooth, global and outside the boundary layer is
+*cheap at a loose band and expensive at a tight one*; the raster, whose error is
+high-wavenumber and at the wall, is the reverse. That is the prediction the
+smoothing argument makes, on a controlled pair, and it is what the measurement
+shows. We still state the reading as an interpretation rather than a result,
+because one crossover on five cases is evidence and not proof, because §5.9
+perturbs a field rather than decomposing one, and because this paper has already
+withdrawn two mechanisms that were argued rather than measured — the pressure localisation of §5.2.2, and the
 low-pass-filtering reading of §5.2.3, which `scripts/mask_edge_probe.py`
 falsified by showing the round trip makes every seed *rougher*. Nothing in the
 multigrid reading survives if it is taken to mean "the projection smooths the
@@ -1952,9 +1991,16 @@ because it is the objection this design invites. An oracle seed is a fixed point
 of the discrete operator, so a contrast against it could be measuring distance
 from that fixed point rather than representation. §5.9 perturbs the converged
 field by a smooth error carrying the raster's **own** whole-field norm, ramped
-to zero inside the boundary layer. It costs **12.2 points**; the raster, with the
-identical error norm, costs **82.4**. Six sevenths of the harm is in *where* the
-error sits.
+to zero inside the boundary layer. At the 1% band it costs **12.2 points**; the
+raster, with the identical error norm, costs **82.5**. Six sevenths of the harm
+is in *where* the error sits.
+
+That control also produced the one thing this paper had argued for and never
+measured. The smooth seed is far better than the raster at a loose band and far
+*worse* at tight ones — cheap early, expensive late — which is what a
+SIMPLE-family solver does to a smooth elliptic mode, and the mirror image of what
+it does to the raster's high-wavenumber near-wall error. §6.7's reading made that
+prediction; §5.9 is where it is tested.
 
 *What* a representation does to the near-wall state we can state in closed form.
 A resampled field hands every cell nearer the wall than its first station that
