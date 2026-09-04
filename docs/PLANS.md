@@ -3,8 +3,102 @@
 **Living document. Update it at the end of every working session**, before the
 machine can lose power. Companion: `docs/GOALS.md` (why), this file (what next).
 
-Last updated: **2026-08-31** · branch `paper2/openfoam-warm-start` · pushed to
+Last updated: **2026-09-04** · branch `paper2/openfoam-warm-start` · pushed to
 `origin` (github.com/ali-kin4/neuroforge-cfd), ~35 commits ahead of `main`.
+
+---
+
+## 0.001 REVIEWER PANEL CLOSED OUT (2026-09-04)
+
+Three simulated reviewers returned reject (3/10), major (4/10), major (5/10).
+Everything below is what changed. **Read this section before anything older in
+this file: several entries beneath it are superseded, including 0.01's pressure
+mechanism, which is withdrawn.**
+
+### The title changed, because the old one was contradicted by our own data
+
+"A converged flow field stored on a grid is worth nothing as a RANS warm start"
+against `or_proj_coarse`'s +86.1%. Stored on a *body-fitted* grid it is worth
+nearly everything. New title: **"A perfect flow field on a raster is worth no
+initialisation: separating representation, region and accuracy in RANS warm
+starting"**.
+
+### The missing control landed and it reframes the paper
+
+`oracle_bl` -- exact field, four channels, mesh-native, masked to the boundary
+layer -- makes every link a one-variable contrast. On `Cd_v@1%`, paired,
+`runs/openfoam/placement2`, n=5 (`scripts/decompose.py`):
+
+| what moves | contrast | effect | cases |
+|---|---|---:|---|
+| region | `oracle_mesh` -> `oracle_bl` | **-22.5** [-24.6, -20.4] | 0/5 improve |
+| representation, body-fitted | `oracle_bl` -> `or_proj_coarse` | **+16.2** [+12.2, +19.5] | **5/5 improve** |
+| representation, raster | `oracle_mesh` -> `cartesian_128` | **-90.2** | 0/13 |
+| accuracy | `oracle_bl` -> `nf_bl` | **-55.4** [-58.4, -52.7] | 0/5 improve |
+
+Two consequences. **"Representation, not accuracy" is withdrawn** -- accuracy
+costs 55 points, more than twice what region costs. And the body-fitted round
+trip *helps*, 5/5, while carrying 18.8% error in `u` and 1218.8% in the wall
+gradient. Reported with the low-pass-filtering reading offered as an
+interpretation, not a mechanism.
+
+### What was withdrawn, and why
+
+* **The pressure mechanism** (0.01 below). It is an identity (`Cd = Cd_p +
+  Cd_v`), the quoted -183.9% is a censored mean (-37.8% on cases that reached),
+  and `nf_bl` -- the winner -- is itself -116.1% on `Cd_p`. The "160-point
+  smoothing improvement" is **0.2 points** once both arms are scored over the
+  same case set.
+* **"Representation, not accuracy"** -- see above.
+* **The near-wall gradient as mediator** -- already withdrawn, unchanged.
+
+### Fixed, each with the script that now produces it
+
+* `scripts/validate_closed_form.py` -- the closed-form validation had **no
+  committed producer**. Two of its five rows are structural no-ops (fewer than
+  two mesh rings below the representation's first station, so the donor mapping
+  hands the first ring its own value). The bound is **1.9-2.8x over three live
+  rows**, not 1.3-2.6x over five.
+* Its budget test compared two no-ops. Measured properly, a **4x** budget cut
+  moves the damage by 1.00x while moving the station moves it 12.7x.
+* `scripts/criterion_tables.py` -- sections 6.5 and 7.1 quoted the same 128^2
+  raster at 29.3x and 36.6x, evaluated at `u_tau` 0.0477 and 0.0427, neither
+  measured. One generator, one triple (`u_tau` 0.0491, `y_c` 3.88e-6): **35.7x**.
+* `scripts/verify_mesh.py` -- y+ median 0.59-0.63, max 1.12. Grid convergence
+  against a halved mesh: **Cd_v 6.9%, Cl 4.0%, Cd 20.2%, Cd_p 49.8%**. The
+  headline metric is the least mesh-sensitive and the secondary one the most.
+* `scripts/wallclock_cdv.py` -- the only seconds in the paper rode `Cd@1%`,
+  which the corpus marks unreadable. On `Cd_v@1%`, all five cases readable:
+  `nf_bl` **+14.6% iterations -> +9.0% end to end**, 5/5, with 11 s inference
+  charged. Moving to the readable row cost two thirds of our own number.
+* `scripts/certificate.py` now records per-seed verdicts. The K=25 gate **admits
+  `nf_bl` 5/5 on `Cd_v`** (capture 96.5%) and **rejects it 5/5 on `Cd`**, four
+  of which it would have helped. Section 8 now recommends the `Cd_v` gate.
+* `scripts/decompose.py`, `scripts/plot_mechanism.py` (rebuilt -- the old
+  Figure 1 was captioned "keep the gradient, keep the saving", the causal chain
+  the paper refutes, off pre-fix data), `scripts/reynolds_transfer.py` (now
+  measured at each case's own first cell centre and aggregated as a ratio of
+  integrals, so Table 4 agrees with Table 2), tables renumbered 1-4, all
+  roughness figures corrected (29.50x / 6.36x / 4.91x, not 26.2 / 5.7 / 4.2).
+
+### In flight at the end of this session
+
+1. **`corpus_probe.py` extended with `oracle_bl` + `or_proj_coarse`**, 13 cases,
+   ~11/13 done. This puts the whole decomposition at n=13 with a p-value, and
+   is reviewer W1's explicit ask. Re-score with
+   `reanalyse_depth.py --root runs/openfoam/corpus --out results/depth_corpus2.json`
+   then `decompose.py --scored results/depth_corpus2.json`, then rebuild
+   Figure 1 and update sections 5.2.3, 11 and the abstract.
+2. **`perturbation_probe.py`**, 5 cases, just launched. The fixed-point control
+   (reviewer W2, FATAL-adjacent). Score with
+   `reanalyse_depth.py --root runs/openfoam/perturb`.
+3. **`verify_mesh.py --refine`** -- the third mesh level, for an observed order.
+
+### Still open after those land
+
+* Run `journal-editor` for the meta-decision.
+* Tag `paper2-v1` and mint the Zenodo DOI (**needs the user's account**).
+* W7's remaining half: report paired contrasts in section 5.1 as well as 5.2.3.
 
 ---
 
