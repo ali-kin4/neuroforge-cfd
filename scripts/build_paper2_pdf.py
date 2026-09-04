@@ -95,7 +95,7 @@ CODE_ASCII = str.maketrans({
     "₇": "7", "₈": "8", "₉": "9", "₋": "-",
     "τ": "tau", "ν": "nu", "κ": "kappa", "ω": "omega", "δ": "delta",
     "α": "alpha", "×": "x", "·": ".", "−": "-", "≈": "~", "≤": "<=",
-    "≥": ">=", "±": "+/-", "—": "--", "–": "-", "°": "deg",
+    "≥": ">=", "±": "+/-", "—": "--", "–": "-", "°": "deg", "∞": "inf",
 })
 
 
@@ -140,6 +140,7 @@ SINGLES = [
     # so these must become maths mode or pdflatex stops on the byte.
     ("\u03c4", r"$\tau$"), ("\u03bd", r"$\nu$"), ("\u03ba", r"$\kappa$"),
     ("\u03c9", r"$\omega$"), ("\u03b4", r"$\delta$"), ("\u03b1", r"$\alpha$"),
+    ("\u221e", r"$\infty$"),
 ]
 
 

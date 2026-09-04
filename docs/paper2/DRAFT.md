@@ -354,7 +354,7 @@ with no wall function, so this is the condition that has to hold.
 (every count halved, first cell doubled: 7,850 cells). Changing the cell count
 by a factor of four moves the forces by:
 
-| quantity | mean \|change\|, coarse against study mesh |
+| quantity | mean absolute change, coarse against study mesh |
 |---|---:|
 | `C_d,v` viscous drag | **6.9%** |
 | `C_l` lift | 4.0% |
