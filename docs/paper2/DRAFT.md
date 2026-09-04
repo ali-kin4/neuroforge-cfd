@@ -800,27 +800,52 @@ our own control and is withdrawn.** Both matter; this table is what each is
 worth.
 
 **The body-fitted round trip does not merely fail to hurt — it helps, on every
-case, and we cannot explain it.** `or_proj_coarse` carries 18.8% error in `u`
-and 17.9% in `nut` relative to the field it was built from, and 1218.8% error in
-the first-cell wall gradient, and it converges *faster* than the exact field it
-is a corruption of, by 16.2 points with a CI clear of zero and 5 of 5 cases. We
-report it because it is what we measured and because it is the third independent
-sign in this paper that seed *accuracy* does not order convergence. The reading
-we find most plausible is that the round trip low-pass filters the field, and
-that a smoother seed — including a gentler transition across the boundary-layer
-mask, where `oracle_bl` hands over an abrupt edge — is easier for an
-under-relaxed SIMPLE sweep to accept than an exact but sharp one. That is the
-same smoothing argument §6.7 sets out, and it is an interpretation, not a
-measurement. **We do not claim that projecting a field improves it**, and a
-practitioner should read this row as "a body-fitted round trip is not the thing
-to worry about", not as advice to add one.
+case, and we tested the obvious explanation and it is false.**
+`or_proj_coarse` carries 18.8% error in `u` and 17.9% in `nut` relative to the
+field it was built from, and 1218.8% error in the first-cell wall gradient, and
+it converges *faster* than the exact field it is a corruption of, by 16.2 points
+with a CI clear of zero and 5 of 5 cases.
 
-> **What this table cannot separate.** `oracle_bl` and `or_proj_coarse` differ
-> in storage format, and the format also changes the smoothness of the field at
-> the mask boundary. The contrast is one-variable in *the property we set*, not
-> necessarily in the property that acts. Isolating that needs a seed perturbed
-> only in its smooth content at matched norm, which this study does not contain
-> and §11 lists first among what we would run next.
+The explanation we proposed was that a round trip low-pass filters the field, so
+the projected seed is smoother — in particular across the boundary-layer mask
+edge, where a `*_bl` arm hands over an abrupt transition. It also predicts the
+asymmetry in the table: the round trip should help the *exact* field, which has
+real near-wall structure to be discontinuous about, and do little for the
+network's field, which is already smooth. That is what §5.2.3's own numbers show
+(`nf_bl` +14.6% → `nf_proj_coarse` +14.5%).
+
+`scripts/mask_edge_probe.py` measures it on the seeds as the solver received
+them, at no compute cost. **The round trip makes every seed rougher, not
+smoother, and does so for both pairs alike:**
+
+| | `u` step at the mask edge | `nut` step | `u` profile roughness | `nut` profile roughness |
+|---|---:|---:|---:|---:|
+| `oracle_bl` | 0.027 | 0.153 | 0.143 | 0.206 |
+| `or_proj_coarse` | **0.083** | **0.265** | **0.251** | **0.385** |
+| `nf_bl` | 0.055 | 0.147 | 0.142 | 0.251 |
+| `nf_proj_coarse` | **0.146** | **0.353** | **0.251** | **0.458** |
+
+The mask edge gets sharper by 73–206%, the wall-normal profile gets rougher, and
+the effect is if anything *larger* for the network pair — the opposite of what
+the smoothing story needs on both counts. **So the interpretation is withdrawn.**
+The projected seed is worse than the mesh-native one on every local measure this
+study can make — L2 error, first-cell gradient, mask-edge step, profile
+roughness — and it converges better. We do not have a mechanism, and we say so.
+
+This is the fourth independent instance in this paper of the same pattern:
+**local field-quality diagnostics do not order convergence.** §5.2.1 and §5.5
+show it for the wall gradient, §5.5 again for wall-shear smoothness, and this row
+for edge sharpness and profile roughness. That negative result is by now the
+best-supported thing here, and it is why §6.7 declines to turn the criterion into
+a forecast.
+
+> **What this table still cannot separate.** `oracle_bl` and `or_proj_coarse`
+> differ in storage format, and a format changes many properties of a field at
+> once. The contrast is one-variable in *the property we set*, and the property
+> that acts is not established — only narrowed, by elimination of the four local
+> measures above. **We do not claim that projecting a field improves it**, and a
+> practitioner should read this row as "a body-fitted round trip is not the thing
+> to worry about", not as advice to add one.
 
 ### 5.3 Condition 2 — hand over the boundary layer only
 
@@ -1430,10 +1455,17 @@ verification is consistent with it from a third direction: `C_d,p` moves 49.8%
 under a fourfold change in cell count while `C_d,v` moves 6.9%.
 
 We state it as an interpretation and not a result, because we have not measured
-the mode decomposition and this paper has already withdrawn one mechanism that
-was argued rather than measured. The experiment that would settle it is a seed
-perturbed only in its smooth, outer, elliptic content at matched norm; §11 lists
-it as the first thing we would run next.
+the mode decomposition and this paper has already withdrawn two mechanisms that
+were argued rather than measured — the pressure localisation of §5.2.2, and the
+low-pass-filtering reading of §5.2.3, which `scripts/mask_edge_probe.py`
+falsified by showing the round trip makes every seed *rougher*. Nothing in the
+multigrid reading survives if it is taken to mean "the projection smooths the
+seed": it does not. What it claims is only that the solver removes
+high-wavenumber error fast and smooth global error slowly, which is a property
+of SIMPLE and not of any seed here.
+
+The experiment that would settle it is a seed perturbed only in its smooth,
+outer, elliptic content at matched norm. §5.9 runs exactly that.
 
 **So the criterion should be used for what it measures.** It says, before any
 solve, how badly a given output format will misreport the near-wall state, it is
