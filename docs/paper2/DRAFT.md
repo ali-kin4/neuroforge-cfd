@@ -403,11 +403,12 @@ solve trees, each with its own case set and its own arm set:
 
 | tree | cases | arms | used in |
 |---|---:|---:|---|
+| `corpus` | 13 | 5 | §5.1, §5.2, **§5.2.3** — the headline and the decomposition |
 | `repr3` | 6 | 15 | §5.3, §5.4, §5.6, §8 |
-| `placement2` | 5 | 9 | §5.2.1, §5.2.3 |
+| `placement2` | 5 | 9 | §5.2.1 (the placement ladder) |
 | `repair` | 5 | 8 | §5.5 |
+| `perturb` | 5 | 4 | **§5.9** (the fixed-point control) |
 | `sequencing` | 5 | 7 | §5.7 |
-| `corpus` | 13 | 5 | §5.1, §5.2 |
 | `wallclock2` | 5 | 4 | §9 |
 | Reynolds ladder | 2 × 5 Re | — | §6.6 (no solves; re-uses cold runs) |
 
