@@ -1,0 +1,148 @@
+{
+  "u_tau": 0.04907196485569508,
+  "y_c": 3.87953761865781e-06,
+  "y_c_plus": 0.571129601037369,
+  "nu": 3.3333333333333335e-07,
+  "u_inf": 1.0,
+  "delta": 0.0187,
+  "source": "mean over results/closed_form_validation.json per_case",
+  "formats": [
+    {
+      "format": "uniform raster 128^2, 3-chord crop",
+      "values": 16384,
+      "first_station": 0.01171875,
+      "factor": 35.68057813175608,
+      "y_plus_station": 1725.1862644580299,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "saturated",
+      "verdict": "fails (bound)"
+    },
+    {
+      "format": "uniform raster 256^2, 3-chord crop",
+      "values": 65536,
+      "first_station": 0.005859375,
+      "factor": 35.68057813175608,
+      "y_plus_station": 862.5931322290149,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "saturated",
+      "verdict": "fails (bound)"
+    },
+    {
+      "format": "uniform raster 512^2, 3-chord crop",
+      "values": 262144,
+      "first_station": 0.0029296875,
+      "factor": 34.66299634443426,
+      "y_plus_station": 431.29656611450747,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "wall_law",
+      "verdict": "fails"
+    },
+    {
+      "format": "uniform raster 128^2, 1-chord crop",
+      "values": 16384,
+      "first_station": 0.00390625,
+      "factor": 35.68057813175608,
+      "y_plus_station": 575.0620881526767,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "saturated",
+      "verdict": "fails (bound)"
+    },
+    {
+      "format": "wall-fitted 256x64 from 2.5e-4",
+      "values": 16384,
+      "first_station": 0.00025,
+      "factor": 24.152417434608292,
+      "y_plus_station": 36.80397364177131,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "wall_law",
+      "verdict": "fails"
+    },
+    {
+      "format": "wall-fitted 256x64 from 2.5e-5",
+      "values": 16384,
+      "first_station": 2.5e-05,
+      "factor": 6.444066911419503,
+      "y_plus_station": 3.6803973641771313,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "wall_law",
+      "verdict": "degraded"
+    },
+    {
+      "format": "wall-fitted 256x64 from 5e-6",
+      "values": 16384,
+      "first_station": 5e-06,
+      "factor": 1.2888133822839007,
+      "y_plus_station": 0.7360794728354263,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "wall_law",
+      "verdict": "**passes**"
+    },
+    {
+      "format": "wall-fitted 256x32 from 5e-6",
+      "values": 8192,
+      "first_station": 5e-06,
+      "factor": 1.2888133822839007,
+      "y_plus_station": 0.7360794728354263,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "wall_law",
+      "verdict": "**passes**"
+    },
+    {
+      "format": "mesh-native, queried at cell centres",
+      "values": 0,
+      "first_station": 3.87953761865781e-06,
+      "factor": 1.0,
+      "y_plus_station": 0.571129601037369,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "resolved",
+      "verdict": "**passes**"
+    }
+  ],
+  "ladder": [
+    {
+      "n": 128,
+      "values": 16384,
+      "first_station": 0.01171875,
+      "factor": 35.68057813175608,
+      "y_plus_station": 1725.1862644580299,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "saturated"
+    },
+    {
+      "n": 181,
+      "values": 32761,
+      "first_station": 0.008287292817679558,
+      "factor": 35.68057813175608,
+      "y_plus_station": 1220.0212256940765,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "saturated"
+    },
+    {
+      "n": 256,
+      "values": 65536,
+      "first_station": 0.005859375,
+      "factor": 35.68057813175608,
+      "y_plus_station": 862.5931322290149,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "saturated"
+    },
+    {
+      "n": 362,
+      "values": 131044,
+      "first_station": 0.004143646408839779,
+      "factor": 35.68057813175608,
+      "y_plus_station": 610.0106128470383,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "saturated"
+    },
+    {
+      "n": 421,
+      "values": 177241,
+      "first_station": 0.0035629453681710215,
+      "factor": 35.498703426020676,
+      "y_plus_station": 524.5221896689497,
+      "y_plus_cell": 0.571129601037369,
+      "regime": "wall_law"
+    }
+  ]
+}

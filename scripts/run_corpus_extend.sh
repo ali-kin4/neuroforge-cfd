@@ -13,7 +13,7 @@ set -u
 PY=.venv/Scripts/python.exe
 CASES=(
   "naca0012@8" "naca0012@10" "naca0012@12" "naca2412@8" "naca2412@10"
-  "naca0018@4" "naca0018@8" "naca4415@4" "naca2415@8" "naca0015@2"
+  "naca0018@4" "naca0018@8" "naca4415@4" "naca2415@8"
   "naca2415@2" "naca4415@2" "naca0015@4"
 )
 mkdir -p logs
