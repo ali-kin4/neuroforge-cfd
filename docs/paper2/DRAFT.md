@@ -849,10 +849,12 @@ own first continuity error: every seed but the converged-field oracle sits at
 ~1.4·10⁻⁶, and the whole-field arm is if anything the *cleanest* of them at
 1.19·10⁻⁶ while performing worst. Divergence does not discriminate.
 
-What survives is the consistency mechanism of §5.4: a seeded region that is
-inconsistent with the state the solver holds elsewhere destroys the pressure
-field, and the larger that region the more there is to be inconsistent about. We
-state this as the surviving candidate, not as an established mechanism.
+What survives is the consistency reading of §5.4: a seeded region that is
+inconsistent with the state the solver holds elsewhere leaves a smooth, global
+mismatch for the pressure correction to remove, and the larger that region the
+more there is to be inconsistent about. We state this as the surviving
+candidate, not as an established mechanism, and §5.2.2 records what happened to
+the previous candidate when we tried to establish it.
 
 **Together with §5.2 this gives two controlled contrasts sharing a common arm**
 (`nf_bl`), one per axis, each changing a single variable. Neither factor alone is
@@ -1739,11 +1741,16 @@ metric the paper is entitled to read.
   reports how badly a format will misreport the near-wall state, and **nothing
   follows from it about the speedup**. Use it to rule a format out, never to
   predict a gain.
-- **We locate the damage but cannot yet compute it in advance.** §5.2.2 shows a
-  projection preserves viscous drag and destroys the pressure field, which is
-  consistent across every projected arm and with §5.4's channel result. We have
-  no closed form for *that*, and no pre-flight test for it. Finding one is the
-  obvious continuation of this work and we do not claim to have done it.
+- **We have narrowed where the damage is and have not isolated it.** Every
+  projection preserves viscous drag while total drag suffers, so the damage
+  falls outside the near-wall shear — but §5.2.2 withdraws the pressure
+  localisation that an earlier version of this paper built on that, because it
+  is an arithmetic identity resting on a censored mean, and because the *winning*
+  seed is equally negative on `C_d,p`. What we can say is narrower: the harm
+  lives in the seed's smooth, outer, globally elliptic content rather than its
+  near-wall state, and §6.7 sets out the multigrid reading that fits it. We have
+  no closed form for that, no pre-flight test for it, and we do not claim to have
+  identified it. §11 names the experiment that would.
 - **Pressure drag is a secondary quantity here and is treated as one.** It
   converges three times slower than total drag from cold, its 1% row is
   unreadable on these trees, and the smoothed-repair observation on it (§5.5) was
