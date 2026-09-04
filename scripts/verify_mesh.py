@@ -204,11 +204,16 @@ def main(argv: list[str] | None = None) -> int:
     if args.refine:
         print("\n   solving the refined level "
               f"({', '.join(args.refine_cases)}) ...")
+        # n_smooth has to rise with the node count. At the study resolution 40
+        # Laplacian passes relax the offset curve; at 1.5x they do not, and
+        # `block_mesh_dict` rejects the result with 13-28 non-convex cells on
+        # every cambered or thick section (naca0012 alone happens to survive).
+        # 120 passes is valid for all six sections in this study.
         fine_spec = dataclasses.replace(
             spec, n_surface=int(spec.n_surface * 1.5),
             n_wake=int(spec.n_wake * 1.5), n_inner=int(spec.n_inner * 1.5),
             n_outer=int(spec.n_outer * 1.5), first_cell=spec.first_cell / 2,
-            first_wake=spec.first_wake / 2)
+            first_wake=spec.first_wake / 2, n_smooth=120)
         print(f"   refined {fine_spec.n_cells:,} cells "
               f"(first cell {fine_spec.first_cell:.1e})")
         for tag in args.refine_cases:

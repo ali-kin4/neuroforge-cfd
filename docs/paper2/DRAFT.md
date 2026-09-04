@@ -566,6 +566,12 @@ onto a 128² Cartesian grid — is statistically indistinguishable from no seed 
 all (+3.4%, p = 0.27). A pipeline that manufactured savings would not produce a
 null there.
 
+Reported as a *paired* contrast rather than as two independent savings, which is
+the form the comparison is actually made in: the raster costs **−90.2 points
+[−96.3, −84.7], 0 of 13 cases improve, p = 0.0002** against the same field read
+at the cell centres. §5.2.3 gives the other three contrasts on the same tree and
+the same row.
+
 **Total drag, lift and pressure drag are unreadable over the thirteen**, and two
 cases carry all of it. `naca4415` at 2° and 4° have arms that settle on drag
 values **1.04% and 1.27% apart**, against ≤0.113% for every other case in the
