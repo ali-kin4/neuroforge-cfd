@@ -11,9 +11,10 @@ zero. The body-fitted grid of identical budget sits with the mesh-native arms,
 which is what makes this a statement about placement rather than about grids.
 
 **B. The contrasts.** The same data as differences, each moving exactly one
-property, paired within case before averaging. Region costs; a raster
-representation costs almost everything; a body-fitted representation costs
-nothing; accuracy costs more than either of the first two.
+property, paired within case before averaging. A raster representation costs
+almost everything, accuracy costs more than region, and a body-fitted
+representation costs nothing measurable -- drawn hollow and labelled, because its
+interval spans zero and a null must not be coloured like an effect.
 
 This replaced a figure whose middle panel was captioned "keep the gradient, keep
 the saving" -- a causal chain sections 5.2.1, 5.5 and 6.7 refute -- and whose
@@ -150,12 +151,20 @@ def main(argv=None):
     for y, e, name, colour in bars:
         m = 100 * e["mean"]
         lo, hi = 100 * e["ci"][0], 100 * e["ci"][1]
-        ax.barh(y, m, height=0.58, color=colour, zorder=3)
+        # A contrast whose interval spans zero is a null, and must not be
+        # coloured like an effect. Drawn hollow, in ink rather than in the
+        # dimension's colour, and labelled as such.
+        null = lo <= 0.0 <= hi
+        ax.barh(y, m, height=0.58, color="white" if null else colour,
+                edgecolor=INK_3 if null else "none",
+                hatch="///" if null else None, lw=1.0, zorder=3)
         ax.plot([lo, hi], [y, y], color=INK, lw=1.4, zorder=4,
                 solid_capstyle="butt")
-        ax.text(m + (1.6 if m >= 0 else -1.6), y, f"{m:+.1f}",
+        label = f"{m:+.1f}" + ("   null (CI spans 0)" if null else "")
+        ax.text(m + (1.6 if m >= 0 else -1.6), y, label,
                 va="center", ha="left" if m >= 0 else "right",
-                fontsize=10, color=INK, fontweight="bold", zorder=5)
+                fontsize=10, color=INK_2 if null else INK,
+                fontweight="normal" if null else "bold", zorder=5)
     ax.set_yticks([b[0] for b in bars])
     ax.set_yticklabels([b[2].replace(" (", "\n(") for b in bars], fontsize=9.5,
                        color=INK_2)
@@ -165,7 +174,7 @@ def main(argv=None):
     ax.set_title("B  each bar moves one variable",
                  color=INK, loc="left", fontsize=11.5, fontweight="bold")
     span = max(abs(100 * b[1]["mean"]) for b in bars) if bars else 100
-    ax.set_xlim(-1.35 * span, 0.55 * span)
+    ax.set_xlim(-1.35 * span, 0.75 * span)
 
     n_main = main_data["n_cases"]
     note = (f"$C_{{d,v}}$@1%, the row the readability rule of section 4 admits. "

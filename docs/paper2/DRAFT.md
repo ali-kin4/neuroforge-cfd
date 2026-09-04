@@ -4,8 +4,8 @@
 
 - The same converged field: +93.6% read at the solver's points, +3.4% off a raster
 - A perfect flow field on a 128^2 raster is worth no initialisation (p = 0.27)
-- Body-fitted grids are not rasters: same budget, +86.1%; a y+ criterion says why
-- Region, representation and accuracy priced by controls that move one variable
+- Body-fitted grids are not rasters: same 16,384 values, and no measurable cost
+- Representation, accuracy and region priced at -90.2, -54.5 and -20.7 points
 - Three ways of restoring the near-wall state all fail to recover the solve
 
 ## Keywords
@@ -19,26 +19,26 @@ Neural surrogates for external aerodynamics are usually evaluated as predictors.
 Used instead as initial conditions for a RANS solver, what decides whether they
 help separates into three properties: where the surrogate stores its field,
 which region it covers, and how accurate it is. We separate them without a
-network, by handing a wall-resolved simpleFoam solve its own exact converged
-field back in controlled variants, so no result rests on a model's accuracy
-claim.
+network, by handing a wall-resolved simpleFoam solve its own converged field
+back in controlled variants, so no result rests on a model's accuracy claim.
+Every figure is viscous-drag convergence over thirteen cases, paired within case.
 
-Read at the solver's own cell centres, that field saves 93.6% of a cold solve
-(95% CI 92.9 to 94.3, 13 of 13 cases). Stored first on a 128^2 Cartesian raster
--- the format grid-based neural operators emit -- the identical field saves 3.4%
-(CI -2.4 to +8.7, p = 0.27): statistically indistinguishable from no
-initialisation. A body-fitted grid holding the same 16,384 values costs nothing,
-and in the one-variable control is 16.2 points *faster* than the mesh-native
-field it is built from. What costs is where a format puts its samples, not how
-many it stores. Restricting the exact field to the boundary layer costs 22.5
-points, and using the surrogate's prediction instead of the exact field a
-further 55.4: accuracy matters, and more than a body-fitted round trip does.
+Read at the solver's own cell centres, the exact field saves 93.6% of a cold
+solve (95% CI 92.9 to 94.3, 13 of 13). Stored first on a 128^2 Cartesian raster
+-- the format grid-based neural operators emit -- it saves 3.4% (CI -2.3 to
++8.8, p = 0.27): indistinguishable from no initialisation. **A body-fitted grid
+holding the same 16,384 values costs nothing measurable** (+6.7, CI -2.6 to
++14.8). What costs is where a format puts its samples, not how many it stores.
+Restricting the field to the boundary layer costs 20.7 points, and a surrogate's
+prediction in place of the exact field a further 54.5: **accuracy matters, and
+more than region does**, contradicting an earlier form of this claim that we
+withdraw.
 
 A parameter-free closed form predicts what a representation does to the
-near-wall state, bounds the measured damage above, and separates the two formats
-by y+ alone. That quantity is **not** the mediator: three independent ways of
-restoring the near-wall state leave convergence unchanged. Classical grid
-sequencing beats the learned seed on both cost and quality.
+near-wall state and separates the two formats by y+ alone, before any solve. It
+is **not** the mediator: three ways of restoring that state leave convergence
+unchanged, and a seed worse on every local measure we can make converges no
+worse. Classical grid sequencing beats the learned seed on both axes.
 
 ---
 
@@ -128,9 +128,11 @@ Ordered by what we think survives, not by what is largest.
    which is what makes this a statement about placement rather than about grids.
 2. **A decomposition into properties that can be set independently** (§5.2.3),
    each priced by a control that moves one variable on `C_d,v`@1%: region costs
-   22.5 points, a raster representation 90.2, a body-fitted one nothing at all,
-   and accuracy 55.4. It replaces the claim that representation matters *rather
-   than* accuracy, which our own control contradicts and which we withdraw.
+   20.7 points, a raster representation 90.2, a body-fitted one nothing
+   measurable, and accuracy 54.5 — all on the thirteen-case corpus, from one
+   tree, 13 of 13 cases where the effect is real. It replaces the claim that
+   representation matters *rather than* accuracy, which our own control
+   contradicts and which we withdraw.
 3. **A closed-form criterion for it, with no fitted parameter**, computable from
    a mesh and an output format before any solve is run, and a measured
    *upper bound* on the damage across a fifty-fold range of first stations
@@ -642,12 +644,14 @@ is on the **readable** row of the **thirteen-case** corpus, so it is not an
 artifact of a five-case tree. And the raster holds the same 16,384 values as the
 wall-fitted grid below, so it is not a budget effect.
 
-**A body-fitted grid is not a raster.** On the five-case mechanism tree, the same
-exact field through a wall-fitted 256×64 grid reads **+86.1% [+84.2, +87.9], 5/5**
-on `C_d,v`, against the mesh-native oracle's +92.5%. That is a loss, but a small
-one, and it is nothing like the raster's collapse to nothing. §6 gives the
-quantity that separates them: the raster's first wall-normal station sits at
-`y⁺ ≈ 1700`, the wall-fitted grid's at `y⁺ ≈ 38`.
+**A body-fitted grid is not a raster.** On the same thirteen cases, the same
+exact field through a wall-fitted 256×64 grid — holding the *same* 16,384 values
+as the raster — reads **+79.6% [+72.8, +85.3], 13/13** on `C_d,v`. Against the
+boundary-layer-matched mesh-native control that is a difference of +6.7 points
+with an interval spanning zero (§5.2.3): **no measurable cost**, where the raster
+costs 90.2. §6 gives the quantity that separates them, and it is neither budget
+nor accuracy: the raster's first wall-normal station sits at `y⁺ ≈ 1725`, the
+wall-fitted grid's at `y⁺ ≈ 37`.
 
 > **What we do not claim, and why.** On **total** drag the same arms read
 > +49.7%, −278.3% and −181.6%, which looks far more dramatic — and we do not
@@ -743,109 +747,101 @@ The arms compared so far differ in more than one way at a time. `oracle_mesh`
 carries the whole field, all four channels, at the solver's own points;
 `or_proj_coarse` carries the boundary layer only, three channels, through a
 grid. A difference between them is not attributable to any one of those. So we
-ran the missing control — `oracle_bl`, the exact field, all four channels,
-mesh-native, masked to the boundary layer — which turns the study into a chain
-in which **each link moves exactly one property**.
+added the missing control — `oracle_bl`, the exact field, all four channels,
+mesh-native, masked to the boundary layer — and ran the whole set on the
+**thirteen-case corpus**, so that every link moves exactly one property *and*
+every number comes from one tree at the study's full statistical power.
 
-Everything below is `C_d,v`@1%, paired within case before averaging, with a
-bootstrap CI and an exact sign test (`scripts/decompose.py`). **Tree:
-`placement2`** (5 cases, 9 arms) except the raster row, which is **`corpus`**
-(13 cases, 5 arms) — the two are marked, and no number is compared across
-them.
+**Tree: `corpus`** (13 cases, 5 arms). Row: `C_d,v`@1%, the row §4's readability
+rule admits. Paired within case before averaging; percentile bootstrap 95% CI and
+exact sign test (`scripts/decompose.py`).
 
-| arm | field | region | delivered as | `C_d,v`@1% |
-|---|---|---|---|---:|
-| `oracle_mesh` | exact | whole | cell centres | +92.5% [+92.1, +92.8] 5/5 |
-| `oracle_bl` | exact | boundary layer | cell centres | +69.9% [+68.1, +71.8] 5/5 |
-| `or_proj_coarse` | exact | boundary layer | 256×64 grid, 16,384 values | +86.1% [+84.2, +87.9] 5/5 |
-| `nf_bl` | **surrogate** | boundary layer | cell centres | +14.6% [+11.5, +17.3] 5/5 |
-| `cartesian_128` | exact | whole | 128² raster, 16,384 values | +3.4% [−2.4, +8.7] 7/13 |
+| arm | field | region | delivered as | `C_d,v`@1% | | |
+|---|---|---|---|---:|---|---|
+| `oracle_mesh` | exact | whole | cell centres | **+93.6%** | [+92.9, +94.3] | 13/13 |
+| `or_proj_coarse` | exact | boundary layer | 256×64 grid, 16,384 values | **+79.6%** | [+72.8, +85.3] | 13/13 |
+| `oracle_bl` | exact | boundary layer | cell centres | **+72.9%** | [+68.9, +76.5] | 13/13 |
+| `nf_bl` | **surrogate** | boundary layer | cell centres | **+18.4%** | [+12.4, +25.3] | 13/13 |
+| `cartesian_128` | exact | whole | 128² raster, 16,384 values | **+3.4%** | [−2.3, +8.8] | 9/13 |
 
 And the differences, paired:
 
-| what moves | contrast | effect on `C_d,v`@1% | cases |
-|---|---|---:|---|
-| **region** | `oracle_mesh` → `oracle_bl` | **−22.5** points [−24.6, −20.4] | 0/5 improve |
-| **representation**, body-fitted | `oracle_bl` → `or_proj_coarse` | **+16.2** points [+12.2, +19.5] | 5/5 improve |
-| **representation**, raster | `oracle_mesh` → `cartesian_128` | **−90.2** points | 0/13 improve |
-| **accuracy** | `oracle_bl` → `nf_bl` | **−55.4** points [−58.4, −52.7] | 0/5 improve |
+| what moves | contrast | effect on `C_d,v`@1% | cases | sign test |
+|---|---|---:|---|---:|
+| **representation**, raster | `oracle_mesh` → `cartesian_128` | **−90.2** [−96.3, −84.7] | 0/13 improve | p = 0.0002 |
+| **accuracy** | `oracle_bl` → `nf_bl` | **−54.5** [−58.9, −49.7] | 0/13 improve | p = 0.0002 |
+| **region** | `oracle_mesh` → `oracle_bl` | **−20.7** [−24.2, −17.6] | 0/13 improve | p = 0.0002 |
+| **representation**, body-fitted | `oracle_bl` → `or_proj_coarse` | **+6.7** [−2.6, +14.8] | 10/13 | *p = 0.09* |
 
 > ![fig](results/mechanism.png)
 >
-> **Figure 1. What a warm start is worth, decomposed.** **(A)** Convergence
-> saving on `C_d,v`@1% for five ways of handing the solver the same field, with
-> paired 95% bootstrap intervals and cases won. The pair to read is the exact
-> converged field at the solver's own cell centres against the identical field
-> stored on a 128² raster: +93.6% against +3.4%, an interval spanning zero. The
-> body-fitted grid of *identical budget* sits with the mesh-native arms, which is
-> what makes this a statement about placement rather than about grids. **(B)**
-> The same data as differences, each bar moving exactly one property. Accuracy
-> costs more than region; a body-fitted representation costs nothing.
+> **Figure 1. What a warm start is worth, decomposed.** Thirteen cases, one
+> tree, `C_d,v`@1%. **(A)** Convergence saving for five ways of handing the
+> solver the same field, with paired 95% bootstrap intervals and cases won. The
+> pair to read is the exact converged field at the solver's own cell centres
+> against the identical field stored on a 128² raster: +93.6% against +3.4%, an
+> interval spanning zero. The body-fitted grid of *identical budget* sits with
+> the mesh-native arms, which is what makes this a statement about placement
+> rather than about grids. **(B)** The same data as differences, each bar moving
+> exactly one property. A raster costs almost everything and accuracy costs more
+> than region; the body-fitted contrast is drawn hollow because its interval
+> spans zero — it is a null, and colouring it as a gain would overstate it.
 
-Three readings follow, and the second is not the one we expected.
+Three readings follow.
 
 **Storage format can cost everything or nothing, depending which format.** A
-uniform raster costs 90 points of a 93-point saving; a body-fitted grid holding
-*the same 16,384 values* costs none. "Representation matters" is true and far too
-coarse: what matters is whether the format places a station where the solver
-keeps its state, which is §6's criterion and a property of the format's grading
-rather than of its budget.
+uniform raster costs 90 of a 94-point saving, on every one of thirteen cases; a
+body-fitted grid holding *the same 16,384 values* costs nothing measurable. So
+"representation matters" is true and far too coarse. What matters is whether the
+format places a station where the solver keeps its state — §6's criterion, and a
+property of the format's grading rather than of its budget.
 
-**Accuracy matters, and matters more than a body-fitted round trip.** Replacing
-the exact field with the trained surrogate's prediction, changing nothing else,
-costs 55 points — more than twice what restricting the region costs and larger
-in magnitude than anything a body-fitted representation does. An earlier version
-of this paper argued "representation, not accuracy". **That is contradicted by
-our own control and is withdrawn.** Both matter; this table is what each is
-worth.
+**Accuracy matters, and matters more than region does.** Replacing the exact
+field with the trained surrogate's prediction, changing nothing else, costs 54.5
+points — more than twice what restricting the region costs, and second only to
+the raster. An earlier version of this paper argued "representation, not
+accuracy". **That is contradicted by our own control and is withdrawn.** Both
+matter; this table is what each is worth.
 
-**The body-fitted round trip does not merely fail to hurt — it helps, on every
-case, and we tested the obvious explanation and it is false.**
-`or_proj_coarse` carries 18.8% error in `u` and 17.9% in `nut` relative to the
-field it was built from, and 1218.8% error in the first-cell wall gradient, and
-it converges *faster* than the exact field it is a corruption of, by 16.2 points
-with a CI clear of zero and 5 of 5 cases.
+**The body-fitted round trip is a null, and we report it as one because the
+corpus says so.** On the five-case mechanism tree this contrast read **+16.2
+points [+12.2, +19.5], 5 of 5** — a projection making the exact field converge
+*better*, which we took seriously enough to look for a mechanism. At thirteen
+cases it is **+6.7 [−2.6, +14.8], 10 of 13, p = 0.09**: an interval spanning
+zero. The n = 5 version did not survive its own study's expansion, and we record
+that rather than quoting the larger number. What the row supports is the null —
+sending an exact field through a body-fitted grid of this budget costs nothing
+measurable — and not a claim that a lossy round trip improves a seed.
 
-The explanation we proposed was that a round trip low-pass filters the field, so
-the projected seed is smoother — in particular across the boundary-layer mask
-edge, where a `*_bl` arm hands over an abrupt transition. It also predicts the
-asymmetry in the table: the round trip should help the *exact* field, which has
-real near-wall structure to be discontinuous about, and do little for the
-network's field, which is already smooth. That is what §5.2.3's own numbers show
-(`nf_bl` +14.6% → `nf_proj_coarse` +14.5%).
+> **We looked for the mechanism before the corpus landed, and the search is
+> worth reporting even though the effect was not.** The explanation we proposed
+> was that a round trip low-pass filters the field, so the projected seed is
+> smoother — in particular across the boundary-layer mask edge, where a `*_bl`
+> arm hands over an abrupt transition. `scripts/mask_edge_probe.py` measures
+> that on the seeds as the solver received them, at no compute cost, and it is
+> **false**: the round trip makes every seed *rougher*.
+>
+> | | `u` step at the mask edge | `nut` step | `u` profile roughness | `nut` profile roughness |
+> |---|---:|---:|---:|---:|
+> | `oracle_bl` | 0.027 | 0.153 | 0.143 | 0.206 |
+> | `or_proj_coarse` | **0.083** | **0.265** | **0.251** | **0.385** |
+> | `nf_bl` | 0.055 | 0.147 | 0.142 | 0.251 |
+> | `nf_proj_coarse` | **0.146** | **0.353** | **0.251** | **0.458** |
+>
+> The mask edge sharpens by 73–206% and the wall-normal profile roughens, for
+> both pairs alike. It leaves a fact worth keeping: the projected seed is worse
+> than the mesh-native one on **every** local measure this study can make — L2
+> error, first-cell gradient, mask-edge step, profile roughness — and converges
+> no worse. That is the fourth independent instance here of the same pattern,
+> **local field-quality diagnostics do not order convergence**, after §5.2.1 and
+> §5.5 for the wall gradient and §5.5 for wall-shear smoothness.
 
-`scripts/mask_edge_probe.py` measures it on the seeds as the solver received
-them, at no compute cost. **The round trip makes every seed rougher, not
-smoother, and does so for both pairs alike:**
-
-| | `u` step at the mask edge | `nut` step | `u` profile roughness | `nut` profile roughness |
-|---|---:|---:|---:|---:|
-| `oracle_bl` | 0.027 | 0.153 | 0.143 | 0.206 |
-| `or_proj_coarse` | **0.083** | **0.265** | **0.251** | **0.385** |
-| `nf_bl` | 0.055 | 0.147 | 0.142 | 0.251 |
-| `nf_proj_coarse` | **0.146** | **0.353** | **0.251** | **0.458** |
-
-The mask edge gets sharper by 73–206%, the wall-normal profile gets rougher, and
-the effect is if anything *larger* for the network pair — the opposite of what
-the smoothing story needs on both counts. **So the interpretation is withdrawn.**
-The projected seed is worse than the mesh-native one on every local measure this
-study can make — L2 error, first-cell gradient, mask-edge step, profile
-roughness — and it converges better. We do not have a mechanism, and we say so.
-
-This is the fourth independent instance in this paper of the same pattern:
-**local field-quality diagnostics do not order convergence.** §5.2.1 and §5.5
-show it for the wall gradient, §5.5 again for wall-shear smoothness, and this row
-for edge sharpness and profile roughness. That negative result is by now the
-best-supported thing here, and it is why §6.7 declines to turn the criterion into
-a forecast.
-
-> **What this table still cannot separate.** `oracle_bl` and `or_proj_coarse`
-> differ in storage format, and a format changes many properties of a field at
-> once. The contrast is one-variable in *the property we set*, and the property
-> that acts is not established — only narrowed, by elimination of the four local
-> measures above. **We do not claim that projecting a field improves it**, and a
-> practitioner should read this row as "a body-fitted round trip is not the thing
-> to worry about", not as advice to add one.
+> **What this table does not separate.** Each row moves one property *as we set
+> it*, and a storage format changes several properties of a field at once. The
+> raster row in particular changes region and channel coverage in no way — it is
+> the same whole field, all four channels — but it changes sampling position,
+> resolution and interpolation together, and §6 identifies only the first of
+> those as the one it can compute. §5.9 tests the remaining alternative directly.
 
 ### 5.3 Condition 2 — hand over the boundary layer only
 
@@ -1863,13 +1859,15 @@ cleanest statement needs no network at all: take the exact converged flow field
 and give it back to the solver in variants that differ one property at a time.
 On viscous drag at a 1% band — the row this study's readability rule admits:
 
-| what moves | effect |
-|---|---:|
-| read at the solver's own cell centres | **+93.6%** [+92.9, +94.3], 13/13 |
-| → stored on a 128² raster of 16,384 values | **+3.4%** [−2.4, +8.7], p = 0.27 |
-| → stored on a body-fitted grid of the same 16,384 values | **no cost at all** |
-| → restricted to the boundary layer | −22.5 points |
-| → the surrogate's prediction instead of the exact field | −55.4 points |
+| what moves | effect on `C_d,v`@1% | |
+|---|---:|---|
+| read at the solver's own cell centres | **+93.6%** [+92.9, +94.3] | 13/13 |
+| → stored on a 128² raster of 16,384 values | **−90.2** points [−96.3, −84.7] | 0/13 |
+| → stored on a body-fitted grid of the same 16,384 values | **+6.7** [−2.6, +14.8] | *no measurable cost* |
+| → restricted to the boundary layer | **−20.7** points [−24.2, −17.6] | 0/13 |
+| → the surrogate's prediction instead of the exact field | **−54.5** points [−58.9, −49.7] | 0/13 |
+
+Every row is the same thirteen cases and the same tree, paired within case.
 
 **A perfect flow field on a raster is worth no initialisation**, and a perfect
 flow field on a body-fitted grid of identical budget is worth nearly everything.

@@ -1,5 +1,5 @@
 - The same converged field: +93.6% read at the solver's points, +3.4% off a raster
 - A perfect flow field on a 128^2 raster is worth no initialisation (p = 0.27)
-- Body-fitted grids are not rasters: same budget, +86.1%; a y+ criterion says why
-- Region, representation and accuracy priced by controls that move one variable
+- Body-fitted grids are not rasters: same 16,384 values, and no measurable cost
+- Representation, accuracy and region priced at -90.2, -54.5 and -20.7 points
 - Three ways of restoring the near-wall state all fail to recover the solve

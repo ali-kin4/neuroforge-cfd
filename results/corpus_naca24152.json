@@ -1,0 +1,70 @@
+{
+  "re": 3000000.0,
+  "n_iter": 6000,
+  "checkpoints": [
+    "checkpoints\\v2_transolver\\seed0.pt"
+  ],
+  "rows": [
+    {
+      "case": "naca2415_aoa2",
+      "re": 3000000.0,
+      "aoa": 2.0,
+      "airfoil": "naca2415",
+      "covered_fraction": 0.8010410094637224,
+      "cold_residual_floor": 7.899258987999999e-07,
+      "final_Cd_by_arm": {
+        "cold": 0.010891367817,
+        "oracle_mesh": 0.010948902849,
+        "oracle_bl": 0.010926634118,
+        "nf_bl": 0.010895265115,
+        "cartesian_128": 0.011013922268,
+        "or_proj_coarse": 0.010943436261
+      },
+      "arm_Cd_spread": 0.007214158631674846,
+      "admitted": true,
+      "field_error_pct": {
+        "u": 9.759190863726465,
+        "v": 21.590324074474587,
+        "p": 32.1170662266911,
+        "nut": 55.649619565383986,
+        "u_in_bl": 16.58493489399414
+      },
+      "or_proj_coarse_round_trip_pct": {
+        "u": 17.808896512239283,
+        "v": 23.42617965854457,
+        "p": 8.263701698376655,
+        "nut": 18.184225457556593
+      },
+      "cold@1e-03": 68,
+      "oracle_mesh@1e-03": 5,
+      "oracle_bl@1e-03": 71,
+      "nf_bl@1e-03": 73,
+      "cartesian_128@1e-03": 67,
+      "or_proj_coarse@1e-03": 72,
+      "cold@1e-04": 176,
+      "oracle_mesh@1e-04": 15,
+      "oracle_bl@1e-04": 190,
+      "nf_bl@1e-04": 199,
+      "cartesian_128@1e-04": 187,
+      "or_proj_coarse@1e-04": 189,
+      "cold@1e-05": 445,
+      "oracle_mesh@1e-05": 67,
+      "oracle_bl@1e-05": 384,
+      "nf_bl@1e-05": 664,
+      "cartesian_128@1e-05": null,
+      "or_proj_coarse@1e-05": 413,
+      "cold@5e-06": 1128,
+      "oracle_mesh@5e-06": 81,
+      "oracle_bl@5e-06": 607,
+      "nf_bl@5e-06": 1072,
+      "cartesian_128@5e-06": null,
+      "or_proj_coarse@5e-06": 668,
+      "cold@1e-06": 3041,
+      "oracle_mesh@1e-06": null,
+      "oracle_bl@1e-06": 5026,
+      "nf_bl@1e-06": null,
+      "cartesian_128@1e-06": null,
+      "or_proj_coarse@1e-06": null
+    }
+  ]
+}
