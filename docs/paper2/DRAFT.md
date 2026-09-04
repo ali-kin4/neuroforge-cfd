@@ -1636,49 +1636,55 @@ wall-distance computation, surrogate inference, masking, and writing the case.
 `scripts/wallclock_control.py` charges each preparation stage to the arms that
 need it and reports **end-to-end** seconds. It runs serially and refuses to start
 while any other solver is up; that refusal is part of the measurement. Five
-cases, all arms, `exclusive: true`.
+cases, all arms, `exclusive: true`. `scripts/wallclock_cdv.py` re-scores those
+same runs on **`C_d,v`@1%** — the row §4's readability rule admits and the row
+the headline is reported on. Every one of the five cases is readable there
+(settled spread 0.005–0.069% against a 0.5% limit), which the `C_d` version of
+this table cannot say of two of them.
 
-| arm | iterations | **end-to-end seconds** |
-|---|---:|---:|
-| `oracle_mesh` (control) | +92.0% | **+93.1%** |
-| **`nf_bl`** | **+34.0%** | **+28.8%** |
-| `fitted_bl` | −190.7% | −138.0% |
-| `cartesian_128` | −513.5% | −308.4% |
-
-**The iteration saving survives translation into seconds, and the cost of the
-translation is about five percentage points.** That is the transferable finding
-here, and it holds case by case rather than only on the mean:
-
-| case | iterations | seconds | gap |
+| arm | iterations | solver seconds | **end-to-end seconds** |
 |---|---:|---:|---:|
-| `naca0012@4` | −3.3% | −3.4% | 0.1 |
-| `naca2412@2` | +40.9% | +34.7% | 6.2 |
-| `naca0015@6` | +27.6% | +21.5% | 6.1 |
-| `naca0012@0` | +40.1% | +34.5% | 5.6 |
-| `naca2415@5` | +64.9% | +56.9% | 8.0 |
+| `oracle_mesh` (control) | +92.4% | +93.5% | **+93.5%** (5/5) |
+| **`nf_bl`** | **+14.6%** | +16.8% | **+9.0%** (5/5) |
+| `fitted_bl` | +41.7% | +26.4% | +26.1% (5/5) |
+| `cartesian_128` | +10.0% | −1.9% | −2.3% (2/5) |
 
-Seed construction is charged in full and is small against the solve: backbone
-inference at 31,700 points **10.4–10.6 s**, `wall_distance` 0.4 s, masking 0.4 s
-— **~11 s** against cold solves of 88–239 s. The rest of the five-point gap is
-the per-iteration penalty of a seeded solve, which is modest.
+**The iteration saving survives translation into seconds, and the translation
+costs about 5.6 percentage points** — almost all of it the one-off seed
+construction. It holds case by case rather than only on the mean:
 
-Two details worth stating because they cut *for* us and could look like errors:
-the **oracle does better in seconds than in iterations** (+93.1% vs +92.0%), and
-the Cartesian arm is **less bad** in seconds than in iterations (−308% vs −514%).
-Both have the same cause — a solve started near the answer has cheaper inner
-linear solves — and both mean iteration counts are the conservative unit.
+| case | iterations | end-to-end seconds | gap |
+|---|---:|---:|---:|
+| `naca0012@0` | +19.0% | +15.7% | 3.3 |
+| `naca0012@4` | +15.2% | +11.3% | 3.9 |
+| `naca0015@6` | +12.6% | +4.6% | 8.0 |
+| `naca2412@2` | +16.6% | +12.0% | 4.6 |
+| `naca2415@5` | +9.4% | +1.4% | 8.0 |
 
-**Readability, stated rather than assumed.** This tree carries five arms, not the
-fifteen of the mechanism study, so its reference is a median over fewer settled
-arms and its spreads are wider: two of the five cases (`naca2412@2` at 0.751%,
-`naca0012@0` at 0.745%) exceed the 0.5% limit for a 1% band. On the three
-readable cases the result is **+29.7% iterations → +25.0% seconds**, a 4.8-point
-translation cost — the same conclusion at a smaller n. The per-case gap column
-above is what we actually lean on, and it is independent of the readability
-verdict entirely.
+Seed construction is charged in full and is small against the solve, but not
+negligible against the saving: backbone inference at 31,700 points **10.4–10.6 s**,
+`wall_distance` 0.4 s, masking 0.4 s — **~11 s** against cold solves of 129–239 s,
+so roughly 5–8% of the solve set against a 14.6% iteration saving. On the two
+slowest-converging cases that leaves +4.6% and +1.4%, and we say so rather than
+quoting only the mean: **the recommended seed's end-to-end advantage is real,
+positive on every case, and small enough that a faster or slower inference stack
+would move it materially.**
+
+One detail worth stating because it cuts *for* us and could look like an error:
+`nf_bl` and `oracle_mesh` both do better in *solver* seconds than in iterations
+(+16.8% against +14.6%, +93.5% against +92.4%). A solve started near the answer
+has cheaper inner linear solves, so iteration counts are the conservative unit.
+
+> **What an earlier version of this section reported.** The same runs scored on
+> `C_d`@1% give `nf_bl` +34.0% iterations → +28.8% seconds, which is a larger
+> and more attractive number. It is on the row the thirteen-case corpus marks
+> unreadable, and two of these five cases exceed the spread limit on it. We
+> report the `C_d,v` figures above instead, and note that moving to the readable
+> row cost us two thirds of our own headline wall-clock number.
 
 The saving therefore survives the accounting an engineer would actually do:
-seconds, on one machine, with the seed's own construction charged to it.
+seconds, on one machine, with the seed's own construction charged to it — on the
+metric the paper is entitled to read.
 
 ---
 
