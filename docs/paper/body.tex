@@ -127,16 +127,21 @@ discrete balance the reference solved.
 \item \textbf{Descending the residual moves the field away from the truth, and the
 residual-selected iterate is never the best one.} Prior drafts of this work inferred the
 negative from a theorem and an iteration sweep that did not test it. We now test it
-directly, with the differentiable residual and no network in the loop: starting at the
-\emph{exact ground truth}, $300$ steps of gradient descent on $J=\tfrac12\|R_h\|^2$ cut
-the monitored residual by $84\%$ in $24/24$ cases and take the field error from zero to a
-median of $0.91$---the range a trained backbone \emph{starts} in
-(\autoref{sec:descent}). We state the claim as one about \textbf{iterate selection},
-because that is what holds universally: the error-minimising and residual-minimising
-iterates differ in $24/24$ cases on both a truth-started and a perturbed-start arm, and
-the residual-selected iterate is strictly worse in $24/24$. We explicitly do \emph{not}
-claim residual descent always harms: from a perturbed start it \emph{reduces} error in
-$18/24$ cases, typically by $60\%$, before overshooting.
+directly, with the differentiable residual and no network in the loop. Under
+Armijo-line-searched gradient descent---so the objective is monotone non-increasing by
+construction---on $200$ AirfRANS cases, starting at the \emph{exact ground truth} drives
+the field error up on $\mathbf{200/200}$ cases, ending at $1.57\times$ the entire error of
+the deployed surrogate; starting from that deployed surrogate it drives the error up on
+$\mathbf{94}$--$\mathbf{98\%}$ of cases across three seeds (median $+74$ to $+87\%$,
+$p<10^{-30}$), and the verdict is unchanged under three step rules and twelve decades of
+step size (\autoref{sec:descent}). We state the claim as one about \textbf{iterate
+selection}, because that is what holds universally: the error-minimising and
+residual-minimising iterates differ in $24/24$ cases on both a truth-started and a
+perturbed-start arm, and the residual-selected iterate is strictly worse in $24/24$. We
+explicitly do \emph{not} claim residual descent always harms. From a perturbed start it
+\emph{reduces} error in $18/24$ cases before overshooting, and on a backbone far from the
+floor it lowers error on $75\%$ of cases---so this is a regime claim, and the deployed
+backbone already sits inside the regime where descent almost never helps.
 
 \item \textbf{The boundary is the operator, not the problem class.} Residual-driven
 correction demonstrably succeeds on steady CFD when the residual is the
@@ -167,7 +172,7 @@ distribution-free split-conformal layer attains target coverage
 ($0.902{\pm}0.008$ at $0.90$), including under distribution shift. The monotone-residual
 acceptance gate admits a step on $99.8\%$ of deployed cases and lowers true error on
 $89.3\%$ of them---but an \emph{ungated} fixed half-step does better on accuracy alone
-($95.8\%$, median $6.0\%$), so the gate's accuracy comes from damping the correction, not
+($95.8\%$, median $6.2\%$), so the gate's accuracy comes from damping the correction, not
 from testing the residual. What the gate uniquely buys is the \textbf{certificate}: an
 ungated step raises the monitored residual on $1.0\%$ of deployed cases ($8.8\%$ on the
 ensemble path), and the gate makes that impossible by construction. On the deployed path
@@ -436,11 +441,13 @@ the data it is calibrated against, and that gap is not a resolution artifact.
 
 The NeuroForge framework wraps a one-shot backbone in a verify--estimate--correct--fall-back loop
 (\autoref{fig:pipeline}).
-Throughout, the physics residual plays \textbf{two distinct roles with two distinct
-verdicts} (\autoref{sec:experiments}): (i)~as a \emph{trust signal} it detects error and
-drives the conformal layer (reliable, backbone-robust---it tells you \emph{which}
-predictions to distrust); (ii)~as a correction \emph{objective} it fails---though the
-\emph{acceptance gate} built on it does work (\autoref{sec:iters}). Separately, a learned, supervised corrector improves a SOTA backbone
+Throughout, the monitored residual is asked to do three different jobs and earns
+\textbf{three different verdicts} (\autoref{sec:experiments}). It can be \emph{ranked}
+on: as a trust signal it detects error between cases and drives the conformal layer,
+positively across every backbone we test. It \emph{certifies}, but only to a
+floor-limited width, because most of a typical score is already present at zero error.
+And it cannot be \emph{descended}: as a correction objective it fails, though the
+\emph{acceptance gate} built on it still delivers its guarantee (\autoref{sec:iters}). Separately, a learned, supervised corrector improves a SOTA backbone
 (\autoref{sec:v2}); the deployed corrector ingests the residual as an input channel, but a
 controlled ablation attributes its gain to the learned correction, not to the residual input.
 We describe all components for completeness and flag, at each one, which role it instantiates.
@@ -1317,7 +1324,7 @@ provably non-worsening gate that also happens to improve accuracy.
 \paragraph{But the accuracy is damping, not the residual test---and we concede it.} The
 obvious control is an \emph{ungated} fixed half step: take half the correction
 unconditionally, never consulting the residual. It improves true error on $95.8\%$ of
-deployed cases by a median $6.0\%$, against the gate's $89.3\%$ and $5.8\%$. The gate's
+deployed cases by a median $6.2\%$, against the gate's $89.3\%$ and $5.8\%$. The gate's
 accuracy advantage is therefore not there; what improves the field is damping the
 correction, and the residual test is not what earns that. What the gate uniquely buys is
 the \textbf{certificate}. The ungated half step raises the monitored residual on $1.0\%$
@@ -1556,8 +1563,10 @@ Residual-driven correction is not doomed in general, and it is important to say 
 where it works. \citet{lei2026newtonkrylov} take a surrogate prediction as an initial
 guess for Newton--Krylov correction on \emph{steady} CFD and lower the median residual
 $L_2$ ratio by over seven orders of magnitude \emph{while} substantially reducing field
-and aerodynamic error---residual down and error down, in the same regime we study.
-\citet{huang2025physicscorrect} report a similar success.
+and aerodynamic error---residual down and error down, on steady problems as here.
+\citet{huang2025physicscorrect} report a similar success on \emph{transient} rollouts,
+which matters for the boundary we are about to draw: the two successes differ in problem
+class but share the property that does the work.
 
 That is not a counterexample to our result; it locates it. In those works the residual
 being driven is the \emph{solver's own} discrete operator, the one whose root the

@@ -33,13 +33,14 @@
   Representations (ICLR)}, \bibinfo{year}{2021}.
   \bibinfo{note}{ArXiv:2010.08895}.
 %Type = Article
-\bibitem[{Li et~al.(2022)Li, Huang, Liu, and Anandkumar}]{li2022geofno}
+\bibitem[{Li et~al.(2023)Li, Huang, Liu, and Anandkumar}]{li2022geofno}
 \bibinfo{author}{Z.~Li}, \bibinfo{author}{D.~Z. Huang},
   \bibinfo{author}{B.~Liu}, \bibinfo{author}{A.~Anandkumar},
 \newblock \bibinfo{title}{Fourier neural operator with learned deformations for
   pdes on general geometries},
-\newblock \bibinfo{journal}{arXiv preprint arXiv:2207.05209}
-  (\bibinfo{year}{2022}). \DOIprefix\doi{10.48550/arXiv.2207.05209}.
+\newblock \bibinfo{journal}{Journal of Machine Learning Research}
+  \bibinfo{volume}{24} (\bibinfo{year}{2023}) \bibinfo{pages}{1--26}.
+  \bibinfo{note}{ArXiv:2207.05209}.
 %Type = Article
 \bibitem[{Ranade et~al.(2025)Ranade, Nabian, Tangsali, Kamenev, Hennigh,
   Cherukuri, and Choudhry}]{ranade2025domino}
@@ -59,7 +60,9 @@
 \newblock \bibinfo{title}{Transolver: A fast transformer solver for {PDE}s on
   general geometries},
 \newblock in: \bibinfo{booktitle}{International Conference on Machine Learning
-  (ICML)}, \bibinfo{year}{2024}. \bibinfo{note}{ArXiv:2402.02366}.
+  (ICML)}, volume \bibinfo{volume}{235} of \textit{\bibinfo{series}{Proceedings
+  of Machine Learning Research}}, \bibinfo{year}{2024}, pp.
+  \bibinfo{pages}{53681--53705}. \bibinfo{note}{ArXiv:2402.02366}.
 %Type = Article
 \bibitem[{Luo et~al.(2025)Luo, Wu, Zhou, Xing, Di, Wang, and
   Long}]{luo2025transolverpp}
@@ -146,6 +149,7 @@
   partial differential equations},
 \newblock \bibinfo{journal}{Journal of Computational Physics}
   \bibinfo{volume}{378} (\bibinfo{year}{2019}) \bibinfo{pages}{686--707}.
+  \DOIprefix\doi{10.1016/j.jcp.2018.10.045}.
 %Type = Article
 \bibitem[{Roy et~al.(2025)Roy, Nayak, and Goswami}]{roy2025anchor}
 \bibinfo{author}{R.~Roy}, \bibinfo{author}{D.~Nayak},
@@ -164,7 +168,7 @@
   for neural operator {PDE} surrogates},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2603.11052}
   (\bibinfo{year}{2026}). \DOIprefix\doi{10.48550/arXiv.2603.11052}.
-%Type = Article
+%Type = Inproceedings
 \bibitem[{Gopakumar et~al.(2025)Gopakumar, Gray, Zanisi, Nunn, Giles, Kusner,
   Pamela, and Deisenroth}]{gopakumar2025pre}
 \bibinfo{author}{V.~Gopakumar}, \bibinfo{author}{A.~Gray},
@@ -173,8 +177,8 @@
   \bibinfo{author}{S.~Pamela}, \bibinfo{author}{M.~P. Deisenroth},
 \newblock \bibinfo{title}{Calibrated physics-informed uncertainty
   quantification},
-\newblock \bibinfo{journal}{arXiv preprint arXiv:2502.04406}
-  (\bibinfo{year}{2025}). \DOIprefix\doi{10.48550/arXiv.2502.04406}.
+\newblock in: \bibinfo{booktitle}{International Conference on Machine Learning
+  (ICML)}, \bibinfo{year}{2025}. \bibinfo{note}{ArXiv:2502.04406}.
 %Type = Article
 \bibitem[{Becker and Rannacher(2001)}]{beckerrannacher2001dwr}
 \bibinfo{author}{R.~Becker}, \bibinfo{author}{R.~Rannacher},
@@ -332,7 +336,7 @@
 \newblock \bibinfo{title}{Characterizing possible failure modes in
   physics-informed neural networks},
 \newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
-  Systems (NeurIPS)}, \bibinfo{year}{2021}.
+  Systems (NeurIPS)}, \bibinfo{year}{2021}. \bibinfo{note}{ArXiv:2109.01050}.
 %Type = Article
 \bibitem[{Wang et~al.(2022)Wang, Yu, and Perdikaris}]{wang2022ntk}
 \bibinfo{author}{S.~Wang}, \bibinfo{author}{X.~Yu},
@@ -341,11 +345,13 @@
   kernel perspective},
 \newblock \bibinfo{journal}{Journal of Computational Physics}
   \bibinfo{volume}{449} (\bibinfo{year}{2022}) \bibinfo{pages}{110768}.
+  \DOIprefix\doi{10.1016/j.jcp.2021.110768}.
 %Type = Book
 \bibitem[{Trefethen and Bau(1997)}]{trefethenbau1997}
 \bibinfo{author}{L.~N. Trefethen}, \bibinfo{author}{D.~Bau},
   \bibinfo{title}{Numerical Linear Algebra}, \bibinfo{publisher}{SIAM},
-  \bibinfo{year}{1997}.
+  \bibinfo{address}{Philadelphia}, \bibinfo{year}{1997}.
+  \DOIprefix\doi{10.1137/1.9780898719574}.
 %Type = Article
 \bibitem[{Stetter(1978)}]{stetter1978defect}
 \bibinfo{author}{H.~J. Stetter},
@@ -358,9 +364,10 @@
 \bibitem[{Brandt and Livne(2011)}]{brandt2011multigrid}
 \bibinfo{author}{A.~Brandt}, \bibinfo{author}{O.~E. Livne},
   \bibinfo{title}{Multigrid Techniques: 1984 Guide with Applications to Fluid
-  Dynamics}, Classics in Applied Mathematics, \bibinfo{publisher}{Society for
-  Industrial and Applied Mathematics}, \bibinfo{year}{2011}.
-  \DOIprefix\doi{10.1137/1.9781611972030}.
+  Dynamics}, volume~\bibinfo{volume}{67} of \textit{\bibinfo{series}{Classics
+  in Applied Mathematics}}, \bibinfo{publisher}{Society for Industrial and
+  Applied Mathematics}, \bibinfo{year}{2011}.
+  \DOIprefix\doi{10.1137/1.9781611970753}.
 %Type = Article
 \bibitem[{Morin et~al.(2000)Morin, Nochetto, and Siebert}]{morin2000data}
 \bibinfo{author}{P.~Morin}, \bibinfo{author}{R.~H. Nochetto},
@@ -372,26 +379,28 @@
 %Type = Book
 \bibitem[{Bochev and Gunzburger(2009)}]{bochevgunzburger2009book}
 \bibinfo{author}{P.~B. Bochev}, \bibinfo{author}{M.~D. Gunzburger},
-  \bibinfo{title}{Least-Squares Finite Element Methods}, Applied Mathematical
-  Sciences, \bibinfo{publisher}{Springer}, \bibinfo{address}{New York},
+  \bibinfo{title}{Least-Squares Finite Element Methods}, volume
+  \bibinfo{volume}{166} of \textit{\bibinfo{series}{Applied Mathematical
+  Sciences}}, \bibinfo{publisher}{Springer}, \bibinfo{address}{New York},
   \bibinfo{year}{2009}. \DOIprefix\doi{10.1007/b13382}.
 %Type = Article
 \bibitem[{Ashton et~al.(2024)Ashton, Maddix, Gundry, and
   Shabestari}]{ahmedml2024}
-\bibinfo{author}{N.~Ashton}, \bibinfo{author}{D.~Maddix},
-  \bibinfo{author}{S.~Gundry}, \bibinfo{author}{P.~Shabestari},
+\bibinfo{author}{N.~Ashton}, \bibinfo{author}{D.~C. Maddix},
+  \bibinfo{author}{S.~Gundry}, \bibinfo{author}{P.~M. Shabestari},
 \newblock \bibinfo{title}{{AhmedML}: High-fidelity computational fluid dynamics
   dataset for incompressible, low-speed bluff body aerodynamics},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2407.20801}
   (\bibinfo{year}{2024}). \DOIprefix\doi{10.48550/arXiv.2407.20801}.
-%Type = Article
+%Type = Inproceedings
 \bibitem[{Elrefaie et~al.(2024)Elrefaie, Morar, Dai, and
   Ahmed}]{elrefaie2024drivaernet}
 \bibinfo{author}{M.~Elrefaie}, \bibinfo{author}{F.~Morar},
   \bibinfo{author}{A.~Dai}, \bibinfo{author}{F.~Ahmed},
 \newblock \bibinfo{title}{{DrivAerNet++}: A large-scale multimodal car dataset
   with computational fluid dynamics simulations and deep learning benchmarks},
-\newblock \bibinfo{journal}{arXiv preprint arXiv:2406.09624}
-  (\bibinfo{year}{2024}). \DOIprefix\doi{10.48550/arXiv.2406.09624}.
+\newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
+  Systems (NeurIPS) Datasets and Benchmarks Track}, \bibinfo{year}{2024}.
+  \bibinfo{note}{ArXiv:2406.09624}.
 
 \end{thebibliography}

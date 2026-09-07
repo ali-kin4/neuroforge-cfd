@@ -350,6 +350,12 @@ CLAIMS = [
      lambda r: c3_ungated(r, "deployed"), 1.0, 0.1),
     ("C3 ungated raises residual, ensemble path (%)",
      lambda r: c3_ungated(r, "ensemble"), 8.8, 0.1),
+    ("C3 ungated half-step median error improvement, DEPLOYED (%)",
+     lambda r: -100.0 * review(r, "control3_fixed_step.json")["pooled"]
+     ["deployed_backbone_DEQ"]["policies"]["fixed_0.5"]["median_err_rel_change"], 6.2, 0.1),
+    ("C3 gate median error improvement, DEPLOYED (%)",
+     lambda r: -100.0 * review(r, "control3_fixed_step.json")["pooled"]
+     ["deployed_backbone_DEQ"]["policies"]["gate"]["median_err_rel_change"], 5.8, 0.1),
     ("C4 residual AUROC on drag error",
      c4_drag_auroc, 0.952, 0.001),
     ("floor share of a typical score (%)",

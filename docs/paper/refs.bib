@@ -8,10 +8,13 @@
 
 @article{li2022geofno,
   title   = {Fourier Neural Operator with Learned Deformations for PDEs on General Geometries},
-  author  = {Li, Zongyi and Huang, Daniel Z. and Liu, Burigede and Anandkumar, Anima},
-  journal = {arXiv preprint arXiv:2207.05209},
-  year    = {2022},
-  doi     = {10.48550/arXiv.2207.05209}
+  author  = {Li, Zongyi and Huang, Daniel Zhengyu and Liu, Burigede and Anandkumar, Anima},
+  journal = {Journal of Machine Learning Research},
+  volume  = {24},
+  number  = {388},
+  pages   = {1--26},
+  year    = {2023},
+  note    = {arXiv:2207.05209}
 }
 
 @article{ranade2025domino,
@@ -27,6 +30,9 @@
   title     = {Transolver: A Fast Transformer Solver for {PDE}s on General Geometries},
   author    = {Wu, Haixu and Luo, Huakun and Wang, Haowen and Wang, Jianmin and Long, Mingsheng},
   booktitle = {International Conference on Machine Learning (ICML)},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {235},
+  pages     = {53681--53705},
   year      = {2024},
   note      = {arXiv:2402.02366}
 }
@@ -45,7 +51,8 @@
   journal = {Journal of Computational Physics},
   volume  = {378},
   pages   = {686--707},
-  year    = {2019}
+  year    = {2019},
+  doi     = {10.1016/j.jcp.2018.10.045}
 }
 
 @article{learned2023residualcorrection,
@@ -141,25 +148,26 @@
 
 @article{ahmedml2024,
   title   = {{AhmedML}: High-Fidelity Computational Fluid Dynamics Dataset for Incompressible, Low-Speed Bluff Body Aerodynamics},
-  author  = {Ashton, Neil and Maddix, Danielle and Gundry, Samuel and Shabestari, Parisa},
+  author  = {Ashton, Neil and Maddix, Danielle C. and Gundry, Samuel and Shabestari, Parisa M.},
   journal = {arXiv preprint arXiv:2407.20801},
   year    = {2024},
   doi     = {10.48550/arXiv.2407.20801}
 }
 
-@article{elrefaie2024drivaernet,
-  title   = {{DrivAerNet++}: A Large-Scale Multimodal Car Dataset with Computational Fluid Dynamics Simulations and Deep Learning Benchmarks},
-  author  = {Elrefaie, Mohamed and Morar, Florin and Dai, Angela and Ahmed, Faez},
-  journal = {arXiv preprint arXiv:2406.09624},
-  year    = {2024},
-  doi     = {10.48550/arXiv.2406.09624}
+@inproceedings{elrefaie2024drivaernet,
+  title     = {{DrivAerNet++}: A Large-Scale Multimodal Car Dataset with Computational Fluid Dynamics Simulations and Deep Learning Benchmarks},
+  author    = {Elrefaie, Mohamed and Morar, Florin and Dai, Angela and Ahmed, Faez},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS) Datasets and Benchmarks Track},
+  year      = {2024},
+  note      = {arXiv:2406.09624}
 }
 
 @inproceedings{krishnapriyan2021failure,
   title     = {Characterizing possible failure modes in physics-informed neural networks},
   author    = {Krishnapriyan, Aditi S. and Gholami, Amir and Zhe, Shandian and Kirby, Robert M. and Mahoney, Michael W.},
   booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
-  year      = {2021}
+  year      = {2021},
+  note      = {arXiv:2109.01050}
 }
 
 @article{wang2022ntk,
@@ -168,14 +176,17 @@
   journal = {Journal of Computational Physics},
   volume  = {449},
   pages   = {110768},
-  year    = {2022}
+  year    = {2022},
+  doi     = {10.1016/j.jcp.2021.110768}
 }
 
 @book{trefethenbau1997,
   title     = {Numerical Linear Algebra},
   author    = {Trefethen, Lloyd N. and Bau, David},
   publisher = {SIAM},
-  year      = {1997}
+  address   = {Philadelphia},
+  year      = {1997},
+  doi       = {10.1137/1.9780898719574}
 }
 
 @article{roy2025anchor,
@@ -202,12 +213,12 @@
   doi     = {10.48550/arXiv.2004.08826}
 }
 
-@article{gopakumar2025pre,
-  title   = {Calibrated Physics-Informed Uncertainty Quantification},
-  author  = {Gopakumar, Vignesh and Gray, Ander and Zanisi, Lorenzo and Nunn, Timothy and Giles, Daniel and Kusner, Matt J. and Pamela, Stanislas and Deisenroth, Marc Peter},
-  journal = {arXiv preprint arXiv:2502.04406},
-  year    = {2025},
-  doi     = {10.48550/arXiv.2502.04406}
+@inproceedings{gopakumar2025pre,
+  title     = {Calibrated Physics-Informed Uncertainty Quantification},
+  author    = {Gopakumar, Vignesh and Gray, Ander and Zanisi, Lorenzo and Nunn, Timothy and Giles, Daniel and Kusner, Matt J. and Pamela, Stanislas and Deisenroth, Marc Peter},
+  booktitle = {International Conference on Machine Learning (ICML)},
+  year      = {2025},
+  note      = {arXiv:2502.04406}
 }
 
 @article{mukherjee2026certification,
@@ -326,8 +337,9 @@
   title     = {Multigrid Techniques: 1984 Guide with Applications to Fluid Dynamics},
   publisher = {Society for Industrial and Applied Mathematics},
   series    = {Classics in Applied Mathematics},
+  volume    = {67},
   year      = {2011},
-  doi       = {10.1137/1.9781611972030},
+  doi       = {10.1137/1.9781611970753},
 }
 
 @article{stetter1978defect,
@@ -352,15 +364,13 @@
   doi     = {10.1137/S0036142999360044},
 }
 
-,
-}
-
 @book{bochevgunzburger2009book,
   author    = {Bochev, Pavel B. and Gunzburger, Max D.},
   title     = {Least-Squares Finite Element Methods},
   publisher = {Springer},
   address   = {New York},
   series    = {Applied Mathematical Sciences},
+  volume    = {166},
   year      = {2009},
   doi       = {10.1007/b13382},
 }

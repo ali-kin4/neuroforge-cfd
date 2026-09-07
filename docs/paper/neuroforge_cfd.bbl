@@ -7,7 +7,7 @@
 
 \bibitem[Ashton et~al.(2024)Ashton, Maddix, Gundry, and
   Shabestari]{ahmedml2024}
-Neil Ashton, Danielle Maddix, Samuel Gundry, and Parisa Shabestari.
+Neil Ashton, Danielle~C. Maddix, Samuel Gundry, and Parisa~M. Shabestari.
 \newblock {AhmedML}: High-fidelity computational fluid dynamics dataset for
   incompressible, low-speed bluff body aerodynamics.
 \newblock \emph{arXiv preprint arXiv:2407.20801}, 2024.
@@ -30,8 +30,9 @@ Roland Becker and Rolf Rannacher.
 \bibitem[Bochev \& Gunzburger(2009)Bochev and
   Gunzburger]{bochevgunzburger2009book}
 Pavel~B. Bochev and Max~D. Gunzburger.
-\newblock \emph{Least-Squares Finite Element Methods}.
-\newblock Applied Mathematical Sciences. Springer, New York, 2009.
+\newblock \emph{Least-Squares Finite Element Methods}, volume 166 of
+  \emph{Applied Mathematical Sciences}.
+\newblock Springer, New York, 2009.
 \newblock \doi{10.1007/b13382}.
 
 \bibitem[Bonnet et~al.(2022)Bonnet, Mazari, Cinnella, and
@@ -46,18 +47,18 @@ Florent Bonnet, Jocelyn~Ahmed Mazari, Paola Cinnella, and Patrick Gallinari.
 \bibitem[Brandt \& Livne(2011)Brandt and Livne]{brandt2011multigrid}
 Achi Brandt and Oren~E. Livne.
 \newblock \emph{Multigrid Techniques: 1984 Guide with Applications to Fluid
-  Dynamics}.
-\newblock Classics in Applied Mathematics. Society for Industrial and Applied
-  Mathematics, 2011.
-\newblock \doi{10.1137/1.9781611972030}.
+  Dynamics}, volume~67 of \emph{Classics in Applied Mathematics}.
+\newblock Society for Industrial and Applied Mathematics, 2011.
+\newblock \doi{10.1137/1.9781611970753}.
 
 \bibitem[Elrefaie et~al.(2024)Elrefaie, Morar, Dai, and
   Ahmed]{elrefaie2024drivaernet}
 Mohamed Elrefaie, Florin Morar, Angela Dai, and Faez Ahmed.
 \newblock {DrivAerNet++}: A large-scale multimodal car dataset with
   computational fluid dynamics simulations and deep learning benchmarks.
-\newblock \emph{arXiv preprint arXiv:2406.09624}, 2024.
-\newblock \doi{10.48550/arXiv.2406.09624}.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)
+  Datasets and Benchmarks Track}, 2024.
+\newblock arXiv:2406.09624.
 
 \bibitem[Fung et~al.(2022)Fung, Heaton, Li, McKenzie, Osher, and
   Yin]{fung2022jfb}
@@ -86,8 +87,8 @@ Shailesh Garg and Souvik Chakraborty.
 Vignesh Gopakumar, Ander Gray, Lorenzo Zanisi, Timothy Nunn, Daniel Giles,
   Matt~J. Kusner, Stanislas Pamela, and Marc~Peter Deisenroth.
 \newblock Calibrated physics-informed uncertainty quantification.
-\newblock \emph{arXiv preprint arXiv:2502.04406}, 2025.
-\newblock \doi{10.48550/arXiv.2502.04406}.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, 2025.
+\newblock arXiv:2502.04406.
 
 \bibitem[Hillebrecht \& Unger(2025)Hillebrecht and
   Unger]{hillebrecht2025posteriori}
@@ -142,6 +143,7 @@ Aditi~S. Krishnapriyan, Amir Gholami, Shandian Zhe, Robert~M. Kirby, and
   networks.
 \newblock In \emph{Advances in Neural Information Processing Systems
   (NeurIPS)}, 2021.
+\newblock arXiv:2109.01050.
 
 \bibitem[Lakshminarayanan et~al.(2017)Lakshminarayanan, Pritzel, and
   Blundell]{lakshminarayanan2017ensembles}
@@ -170,12 +172,13 @@ Zongyi Li, Nikola Kovachki, Kamyar Azizzadenesheli, Burigede Liu, Kaushik
   (ICLR)}, 2021.
 \newblock arXiv:2010.08895.
 
-\bibitem[Li et~al.(2022)Li, Huang, Liu, and Anandkumar]{li2022geofno}
-Zongyi Li, Daniel~Z. Huang, Burigede Liu, and Anima Anandkumar.
+\bibitem[Li et~al.(2023)Li, Huang, Liu, and Anandkumar]{li2022geofno}
+Zongyi Li, Daniel~Zhengyu Huang, Burigede Liu, and Anima Anandkumar.
 \newblock Fourier neural operator with learned deformations for pdes on general
   geometries.
-\newblock \emph{arXiv preprint arXiv:2207.05209}, 2022.
-\newblock \doi{10.48550/arXiv.2207.05209}.
+\newblock \emph{Journal of Machine Learning Research}, 24\penalty0
+  (388):\penalty0 1--26, 2023.
+\newblock arXiv:2207.05209.
 
 \bibitem[Lippe et~al.(2023)Lippe, Veeling, Perdikaris, Turner, and
   Brandstetter]{lippe2023pderefiner}
@@ -243,6 +246,7 @@ Maziar Raissi, Paris Perdikaris, and George~E. Karniadakis.
   equations.
 \newblock \emph{Journal of Computational Physics}, 378:\penalty0 686--707,
   2019.
+\newblock \doi{10.1016/j.jcp.2018.10.045}.
 
 \bibitem[Ranade et~al.(2025)Ranade, Nabian, Tangsali, Kamenev, Hennigh,
   Cherukuri, and Choudhry]{ranade2025domino}
@@ -308,13 +312,15 @@ Hans~J. Stetter.
 \bibitem[Trefethen \& Bau(1997)Trefethen and Bau]{trefethenbau1997}
 Lloyd~N. Trefethen and David Bau.
 \newblock \emph{Numerical Linear Algebra}.
-\newblock SIAM, 1997.
+\newblock SIAM, Philadelphia, 1997.
+\newblock \doi{10.1137/1.9780898719574}.
 
 \bibitem[Wang et~al.(2022)Wang, Yu, and Perdikaris]{wang2022ntk}
 Sifan Wang, Xinling Yu, and Paris Perdikaris.
 \newblock When and why {PINNs} fail to train: A neural tangent kernel
   perspective.
 \newblock \emph{Journal of Computational Physics}, 449:\penalty0 110768, 2022.
+\newblock \doi{10.1016/j.jcp.2021.110768}.
 
 \bibitem[Winston \& Kolter(2020)Winston and Kolter]{winston2020monotone}
 Ezra Winston and J.~Zico Kolter.
@@ -327,7 +333,9 @@ Ezra Winston and J.~Zico Kolter.
 Haixu Wu, Huakun Luo, Haowen Wang, Jianmin Wang, and Mingsheng Long.
 \newblock Transolver: A fast transformer solver for {PDE}s on general
   geometries.
-\newblock In \emph{International Conference on Machine Learning (ICML)}, 2024.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, volume
+  235 of \emph{Proceedings of Machine Learning Research}, pp.\  53681--53705,
+  2024.
 \newblock arXiv:2402.02366.
 
 \bibitem[Yu et~al.(2026)Yu, Ho, and Wang]{yu2026conformalpinn}
