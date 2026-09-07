@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-07T09:35:42.072608+00:00",
-  "git_head": "4d3b6d23c34b7df2f76b4f1e21679c927acd37c4",
-  "git_head_short": "4d3b6d2",
+  "generated_utc": "2026-09-07T09:49:57.393870+00:00",
+  "git_head": "6fed9a53b43988679477d1afc1f24dac2eb51d57",
+  "git_head_short": "6fed9a5",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -12,7 +12,7 @@
     "cuda_toolkit": "12.4",
     "gpu": "NVIDIA GeForce RTX 4070 Ti"
   },
-  "n_files": 58,
+  "n_files": 64,
   "n_missing": 0,
   "missing": [],
   "files": [
@@ -190,7 +190,7 @@
       "path": "results/sensitivity/iters.csv",
       "script": "scripts/run_sensitivity.py",
       "tier": "cpu",
-      "claims": "tab:iters \u2014 residual rises (0.11->0.62) while error falls (3.92->2.29)",
+      "claims": "tab:iters \u2014 residual rises monotonically (0.11->0.62) while surface mse_p falls monotonically (541204->300664, rank corr -0.94). mse_u is NOT monotone: it bottoms at iter 3 (2.287) and rises 12.6% to 2.575 by iter 15, so it moves WITH the residual on 3 of the 5 intervals (rank corr -0.03). Row 0 is backbone-only, so 0->1 is a corrector-on/off contrast, not an iteration step; for n_iters>=1 alone the residual rises 84.7% and mse_u rises 4.7%. Not a test of residual minimisation -- that is results/residual_descent/",
       "sha256": "9f88c16c4b078fc3d34025c0d326ecc1dfad64327209b946268b1d1da9a18160",
       "bytes": 421,
       "git_tracked": true,
@@ -214,7 +214,7 @@
       "sha256": "29aa352f9be7a3becbcc92830faadee81bc40accf7aafd3d278c6fc67474bb4b",
       "bytes": 45819,
       "git_tracked": true,
-      "last_commit": "4807d2b"
+      "last_commit": "a86adc2"
     },
     {
       "path": "results/sensitivity/iters_seeded.csv",
@@ -225,6 +225,66 @@
       "bytes": 746,
       "git_tracked": true,
       "last_commit": "4807d2b"
+    },
+    {
+      "path": "results/residual_descent/verification.json",
+      "script": "scripts/residual_descent_test.py",
+      "tier": "cpu",
+      "claims": "the differentiable objective IS the monitored scalar: sqrt(2J) matches Diagnostics.residual_norm to 9.9e-8 relative; uniform freestream gives exactly 0 (theorem leg i); ||r*|| mean 0.178 (H2)",
+      "sha256": "7d7ddb73fd38d7a7e03ad21862933fcf8149f0437dc87831d75f8c0ab82e1bcc",
+      "bytes": 316,
+      "git_tracked": true,
+      "last_commit": "421183f"
+    },
+    {
+      "path": "results/residual_descent/descent_truth_bc_uvp_armijo.json",
+      "script": "scripts/residual_descent_test.py",
+      "tier": "cpu",
+      "claims": "theorem leg (ii) measured: Armijo gradient descent from the ground truth with Dirichlet data pinned at truth cuts J to 39.8% while field error rises on 200/200 cases and never returns to its start in 500 steps; end rel-L2 0.0069 = 1.57x the deployed Transolver's entire error",
+      "sha256": "29e9c073fe41c8216b7603347ed24d34e93436b4de0238509842cdb89ac90b2d",
+      "bytes": 441371,
+      "git_tracked": true,
+      "last_commit": "421183f"
+    },
+    {
+      "path": "results/residual_descent/descent_transolver_seed0_bc_uvp_armijo.json",
+      "script": "scripts/residual_descent_test.py",
+      "tier": "cpu",
+      "claims": "deployed backbone, seed 0: residual -34% while rel-L2 rises on 96.5% of 200 cases (median +76.5%, Wilcoxon p=2.3e-32)",
+      "sha256": "3e3702c1bfeb8e772d1e77b13de974592b5f6559128d24d8f8db5365e5fd09ac",
+      "bytes": 479666,
+      "git_tracked": true,
+      "last_commit": "a48a46c"
+    },
+    {
+      "path": "results/residual_descent/eta_sensitivity.json",
+      "script": "scripts/residual_descent_test.py",
+      "tier": "cpu",
+      "claims": "eta swept over 12 decades, 6 (arm,mode) blocks: on the deployed backbone error worsens monotonically with the ACHIEVED J reduction (no good eta exists); on the far-from-floor dropout-FNO the same sweep runs the other way (-14.8% at J/J0=0.34), which is why the claim is a regime claim",
+      "sha256": "b94d7d60aa482f56de8f60db5e2e383fd808531a6c473dbed6d49319ca9bf7ec",
+      "bytes": 162230,
+      "git_tracked": true,
+      "last_commit": "6fed9a5"
+    },
+    {
+      "path": "results/residual_descent/regime_boundary.json",
+      "script": "scripts/residual_descent_test.py",
+      "tier": "cpu",
+      "claims": "regime boundary in the theorem's own variable rho=||R_h(u_hat)||/||r*||: fraction helped rises monotonically with rho; deployed Transolver sits at median rho=1.13-1.14 with 88% of cases in the bin where descent helps 0-1%",
+      "sha256": "2af348cf5bdd54bba270558cc82ef239cac78193c3971e6483daa1203e858238",
+      "bytes": 3240,
+      "git_tracked": true,
+      "last_commit": "2434377"
+    },
+    {
+      "path": "results/residual_descent/summary.json",
+      "script": "scripts/residual_descent_test.py",
+      "tier": "cpu",
+      "claims": "index of all 16 descent runs (3 step rules, 5 start fields, 2 constraint modes) with their aggregates and measured wall_s",
+      "sha256": "2556b5eb118acf8278eb33ab2e2752bf5e33af671d937776e4c0c10baeae3a5e",
+      "bytes": 38420,
+      "git_tracked": true,
+      "last_commit": "6fed9a5"
     },
     {
       "path": "results/sensitivity/toggles.json",

@@ -117,7 +117,14 @@ HEADLINE: list[dict] = [
     # --- sensitivity sweeps (tab:iters, toggles, OOD coverage) ---
     {"path": "results/sensitivity/iters.csv",
      "script": "scripts/run_sensitivity.py", "tier": "cpu",
-     "claims": "tab:iters — residual rises (0.11->0.62) while error falls (3.92->2.29)"},
+     "claims": "tab:iters — residual rises monotonically (0.11->0.62) while surface mse_p "
+               "falls monotonically (541204->300664, rank corr -0.94). mse_u is NOT "
+               "monotone: it bottoms at iter 3 (2.287) and rises 12.6% to 2.575 by iter 15, "
+               "so it moves WITH the residual on 3 of the 5 intervals (rank corr -0.03). "
+               "Row 0 is backbone-only, so 0->1 is a corrector-on/off contrast, not an "
+               "iteration step; for n_iters>=1 alone the residual rises 84.7% and mse_u "
+               "rises 4.7%. Not a test of residual minimisation -- that is "
+               "results/residual_descent/"},
     {"path": "results/sensitivity/iters.json",
      "script": "scripts/run_sensitivity.py", "tier": "cpu",
      "claims": "iteration-sensitivity sweep (json form of tab:iters)"},
@@ -129,6 +136,37 @@ HEADLINE: list[dict] = [
     {"path": "results/sensitivity/iters_seeded.csv",
      "script": "scripts/iters_sweep_seeded.py", "tier": "gpu",
      "claims": "mean+-sd over 5 seeds per iteration cap (csv form)"},
+    # --- residual descent at n=200 (sec:descent, deployed-backbone arms) ---
+    {"path": "results/residual_descent/verification.json",
+     "script": "scripts/residual_descent_test.py", "tier": "cpu",
+     "claims": "the differentiable objective IS the monitored scalar: sqrt(2J) matches "
+               "Diagnostics.residual_norm to 9.9e-8 relative; uniform freestream gives "
+               "exactly 0 (theorem leg i); ||r*|| mean 0.178 (H2)"},
+    {"path": "results/residual_descent/descent_truth_bc_uvp_armijo.json",
+     "script": "scripts/residual_descent_test.py", "tier": "cpu",
+     "claims": "theorem leg (ii) measured: Armijo gradient descent from the ground truth "
+               "with Dirichlet data pinned at truth cuts J to 39.8% while field error "
+               "rises on 200/200 cases and never returns to its start in 500 steps; "
+               "end rel-L2 0.0069 = 1.57x the deployed Transolver's entire error"},
+    {"path": "results/residual_descent/descent_transolver_seed0_bc_uvp_armijo.json",
+     "script": "scripts/residual_descent_test.py", "tier": "cpu",
+     "claims": "deployed backbone, seed 0: residual -34% while rel-L2 rises on 96.5% of "
+               "200 cases (median +76.5%, Wilcoxon p=2.3e-32)"},
+    {"path": "results/residual_descent/eta_sensitivity.json",
+     "script": "scripts/residual_descent_test.py", "tier": "cpu",
+     "claims": "eta swept over 12 decades, 6 (arm,mode) blocks: on the deployed backbone "
+               "error worsens monotonically with the ACHIEVED J reduction (no good eta "
+               "exists); on the far-from-floor dropout-FNO the same sweep runs the other "
+               "way (-14.8% at J/J0=0.34), which is why the claim is a regime claim"},
+    {"path": "results/residual_descent/regime_boundary.json",
+     "script": "scripts/residual_descent_test.py", "tier": "cpu",
+     "claims": "regime boundary in the theorem's own variable rho=||R_h(u_hat)||/||r*||: "
+               "fraction helped rises monotonically with rho; deployed Transolver sits at "
+               "median rho=1.13-1.14 with 88% of cases in the bin where descent helps 0-1%"},
+    {"path": "results/residual_descent/summary.json",
+     "script": "scripts/residual_descent_test.py", "tier": "cpu",
+     "claims": "index of all 16 descent runs (3 step rules, 5 start fields, 2 constraint "
+               "modes) with their aggregates and measured wall_s"},
     {"path": "results/sensitivity/toggles.json",
      "script": "scripts/run_sensitivity.py", "tier": "cpu",
      "claims": "trust-gate / acceptance-test toggles are structural no-ops on DEQ"},
