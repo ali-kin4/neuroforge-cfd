@@ -623,3 +623,30 @@ exactly, so the comparison is anchored.
    made. It belongs in "what remains deployable" and it does not resurrect
    Design B — a better drag *estimator* is not a drag-error *certificate*, and
    §3 measured the certificate and found nothing.
+
+---
+
+## 9. Provenance, for anyone auditing the commit order
+
+The pre-registration claim in §1 is checkable and one detail would otherwise
+mislead an auditor.
+
+| what | commit | time |
+|---|---|---|
+| pre-registration: rule, boxes, multiplicity rule, predictions, test code | `282b00e` | 10:45:03 |
+| 200-case run finished (`functional_audit_gate.json` on disk) | — | ~10:51 |
+| that file first *appears* in git | `27e11c5` | 11:01:54 |
+| this work's own results commit | `a81c9bd` | 11:08:58 |
+
+`git ls-tree 282b00e results/review/functional_audit_gate.json` returns nothing:
+**the run output did not exist at pre-registration time.** The file's first
+appearance is in `27e11c5`, a *different* concurrent piece of work on the same
+worktree whose blanket `git add` swept it up seven minutes before this work
+committed it. Its content was not modified — `scripts/make_manifest.py --check`
+verifies the committed hash, and the file still carries `n_cases: 200`,
+`runtime_s: 311` and its `preregistration` back-reference to §1.
+
+So `git log --diff-filter=A` attributes the artifact to the wrong commit. The
+ordering that matters — rule and predictions committed, *then* numbers — holds,
+and is verifiable by the `ls-tree` above rather than by taking this note's word
+for it.
