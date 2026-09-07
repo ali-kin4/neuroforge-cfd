@@ -423,16 +423,29 @@ residual of the ground-truth field is substantially nonzero: $\|r^\star\|$ has m
 (median $0.133$) in the whole-grid norm named above, while the uniform-freestream field
 gives $\|R_h(u_\infty)\|=0$ in every case---the objective strictly prefers a physically
 wrong field to the truth (\texttt{results/certificates/residual\_floor\_realdata.json}). A
-trained backbone's over-smoothed prediction (the dropout-FNO of
+trained backbone's prediction (the dropout-FNO of
 \texttt{checkpoints/certificates\_deq.pt}, distinct from the Transolver headline) sits
 \emph{below} the truth floor in $160/200$ cases. We give that number with its
 counterweight rather than on its own, because it is the flattering one: on the
 \emph{deployed} Transolver the same inversion occurs on only $2.5$--$7.0\%$ of cases
-across seeds (\texttt{results/review/functional\_audit\_gate\_analysis.json}), so the
-truth is the best-scoring field on more than $93\%$ of them. The inversion is largely a
-property of an over-smoothed backbone---a smooth field has small derivatives---and we do
-not rest any claim on it. What does not depend on the backbone is the floor itself, which
-no model enters. The floor is not an artifact of the
+across seeds ($8/5/5$ of $200$ for the backbone alone and $12/9/14$ for
+Transolver$+$DEQ, seeds $0,1,2$;
+\texttt{results/certificates/transolver\_inversion.json},
+\texttt{results/review/functional\_audit\_gate\_analysis.json}), so the
+truth is the best-scoring field on more than $93\%$ of them, and the median gap reverses
+sign ($+0.013$ to $+0.015$ \emph{above} the floor, against $-0.024$ below it for the
+dropout-FNO). Both backbones are scored with an identical ruler: the harness reproduces
+the published dropout-FNO row to all digits. The inversion is a property of that one
+backbone and we rest no claim on it. It is worth naming the mechanism correctly, since the
+natural guess is wrong: the dropout-FNO is not a \emph{smoother} field---its
+velocity-gradient energy is $1.75\times$ the truth's over the fluid (and $1.96\times$ in a
+near-body band), against $1.00\times$ for Transolver. What distinguishes it is that its
+monitored residual is nearly case-\emph{independent} (spread $0.034$ versus the truth's
+$0.162$, the Transolver's $0.161$), so it neither tracks case difficulty nor clears the
+floor. By \eqref{eq:rf-decomp} a prediction can fall below the floor only when its error is
+systematically anti-aligned with $r^\star$; unbiased error of any magnitude raises the
+monitored residual, which is why the accurate backbone sits above it. What does not depend
+on the backbone is the floor itself, which no model enters. The floor is not an artifact of the
 deployed grid: re-rasterised from the source point clouds at $128^2$--$512^2$ and scored on
 a region fixed in physical units it \emph{increases} by $2.6\times$, fitting
 $\|r^\star\|\sim h^p$ with $p=-0.64\pm0.29$ and decaying in $0/16$ cases, while a
