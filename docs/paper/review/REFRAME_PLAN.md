@@ -1,5 +1,48 @@
 # Paper 1 reframe plan — after two desk rejections on originality
 
+> ## RESOLVED 2026-09-07 — read this before the body of the plan
+>
+> **The blocking question in §4 is answered: the floor PLATEAUS, and in fact
+> grows under refinement.** `p = −0.387` over 24 cases × 3 levels, rising in
+> 21/24; corroborated at 16 cases × 5 rungs across three exclusion bands. So the
+> strong branch obtains and §4's decision tree is closed. Full report:
+> `floor_resolution_study.md`.
+>
+> **§3 was wrong about which claim was at risk.** Leg (i) — the uniform field's
+> exactly-zero residual — was never a rasterisation artifact and cannot be one:
+> a constant field has identically zero finite differences at every `h`. Only
+> the floor's *magnitude* was ever grid-dependent, and it grows. The claim that
+> did break is leg (A) of the λ-sweep, which §3 did not flag: its margin
+> collapses monotonically with refinement and crosses zero by 512², so "for
+> every λ ≥ 0" must be restated at the deployed resolution.
+>
+> **The mechanism is the reference-operator mismatch, not the closure omission.**
+> Continuity and momentum rise at the same rate in the same cases, which rules
+> out both single-term stories. The omitted `∇ν_t·∇u` term does grow, as
+> predicted, but is ~5% of the floor — real, non-vanishing, and not the driver.
+>
+> **§6's statistical exposure is retired, by a better experiment than the one
+> proposed.** `tab:iters` no longer has to carry the negative half. Descending
+> the monitored residual from the *exact ground truth*, with no network in the
+> loop, cuts it by 84% in 24/24 cases and takes the field error from zero to a
+> median of 0.91. The error-optimal and residual-chosen iterates differ in 24/24
+> cases on both arms and the residual-chosen one is strictly worse in 24/24.
+> This also supersedes `novelty_hunt.md` §0a experiment (1): there is no
+> backbone to call over-smoothed.
+>
+> **The claim to make is about iterate selection, not about harm.** From a
+> perturbed start, residual descent *cuts* the error in 18/24 cases, typically
+> by 60%. "Descending the residual makes the field worse" does not survive that
+> and must not be written. "The residual-selected iterate is not the
+> error-minimising iterate" holds in 24/24 and does.
+>
+> **Venue: Computers & Fluids**, per `venue_plan.md`, with the no-APC route and
+> the sanctions question verified there. That check is done; do not re-open it.
+>
+> Remaining before submission: the rewrite itself (§8 steps 3–6), and the
+> `tab:positioning` decision in step 4.
+
+
 Created 2026-09-07. Living document: update as the six research reports land.
 
 ## 1. The situation, stated without euphemism
@@ -102,6 +145,9 @@ to primary evidence and keep the iteration sweep as illustration. Re-run the
 sweep across seeds if the checkpoints still exist.
 
 ## 7. Research in flight (six agents, launched 2026-09-07)
+
+All six landed 2026-09-07; `floor_resolution_study.md` and `decisive_controls.md`
+carry the results that moved claims.
 
 | Report | Question it settles |
 |---|---|
