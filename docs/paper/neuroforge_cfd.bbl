@@ -1,4 +1,4 @@
-\begin{thebibliography}{41}
+\begin{thebibliography}{43}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -11,6 +11,7 @@ Neil Ashton, Danielle Maddix, Samuel Gundry, and Parisa Shabestari.
 \newblock {AhmedML}: High-fidelity computational fluid dynamics dataset for
   incompressible, low-speed bluff body aerodynamics.
 \newblock \emph{arXiv preprint arXiv:2407.20801}, 2024.
+\newblock \doi{10.48550/arXiv.2407.20801}.
 
 \bibitem[Bai et~al.(2019)Bai, Kolter, and Koltun]{bai2019deq}
 Shaojie Bai, J.~Zico Kolter, and Vladlen Koltun.
@@ -56,6 +57,7 @@ Mohamed Elrefaie, Florin Morar, Angela Dai, and Faez Ahmed.
 \newblock {DrivAerNet++}: A large-scale multimodal car dataset with
   computational fluid dynamics simulations and deep learning benchmarks.
 \newblock \emph{arXiv preprint arXiv:2406.09624}, 2024.
+\newblock \doi{10.48550/arXiv.2406.09624}.
 
 \bibitem[Fung et~al.(2022)Fung, Heaton, Li, McKenzie, Osher, and
   Yin]{fung2022jfb}
@@ -85,6 +87,7 @@ Vignesh Gopakumar, Ander Gray, Lorenzo Zanisi, Timothy Nunn, Daniel Giles,
   Matt~J. Kusner, Stanislas Pamela, and Marc~Peter Deisenroth.
 \newblock Calibrated physics-informed uncertainty quantification.
 \newblock \emph{arXiv preprint arXiv:2502.04406}, 2025.
+\newblock \doi{10.48550/arXiv.2502.04406}.
 
 \bibitem[Hillebrecht \& Unger(2025)Hillebrecht and
   Unger]{hillebrecht2025posteriori}
@@ -109,6 +112,7 @@ Xinquan Huang and Paris Perdikaris.
 \newblock {PhysicsCorrect}: A training-free approach for stable neural {PDE}
   simulations.
 \newblock \emph{arXiv preprint arXiv:2507.02227}, 2025.
+\newblock \doi{10.48550/arXiv.2507.02227}.
 \newblock AAAI 2026.
 
 \bibitem[Jha(2024)]{learned2023residualcorrection}
@@ -128,6 +132,7 @@ Chundong Jia, Chao Xia, Alexey Vdovin, Qing Jia, Simone Sebben, and Zhigang
 \newblock Multi-granularity conformal prediction for reliable neural-operator
   automotive aerodynamic surrogates.
 \newblock \emph{arXiv preprint arXiv:2607.17297}, 2026.
+\newblock \doi{10.48550/arXiv.2607.17297}.
 
 \bibitem[Krishnapriyan et~al.(2021)Krishnapriyan, Gholami, Zhe, Kirby, and
   Mahoney]{krishnapriyan2021failure}
@@ -152,6 +157,7 @@ Mingcheng Lei, Weishao Tang, Yufei Zhang, and Haixin Chen.
 \newblock Reliable and efficient steady {CFD} from surrogate predictions
   through {Newton--Krylov} correction.
 \newblock \emph{arXiv preprint arXiv:2608.04400}, 2026.
+\newblock \doi{10.48550/arXiv.2608.04400}.
 \newblock Submitted 5 August 2026.
 
 \bibitem[Li et~al.(2021)Li, Kovachki, Azizzadenesheli, Liu, Bhattacharya,
@@ -169,6 +175,7 @@ Zongyi Li, Daniel~Z. Huang, Burigede Liu, and Anima Anandkumar.
 \newblock Fourier neural operator with learned deformations for pdes on general
   geometries.
 \newblock \emph{arXiv preprint arXiv:2207.05209}, 2022.
+\newblock \doi{10.48550/arXiv.2207.05209}.
 
 \bibitem[Lippe et~al.(2023)Lippe, Veeling, Perdikaris, Turner, and
   Brandstetter]{lippe2023pderefiner}
@@ -187,6 +194,7 @@ Huakun Luo, Haixu Wu, Hang Zhou, Lanxiang Xing, Yichen Di, Jianmin Wang, and
 \newblock Transolver++: An accurate neural solver for {PDE}s on million-scale
   geometries.
 \newblock \emph{arXiv preprint arXiv:2502.02414}, 2025.
+\newblock \doi{10.48550/arXiv.2502.02414}.
 
 \bibitem[Ma et~al.(2024)Ma, Pitt, Azizzadenesheli, and Anandkumar]{ma2024uqno}
 Ziqi Ma, David Pitt, Kamyar Azizzadenesheli, and Anima Anandkumar.
@@ -225,6 +233,7 @@ Amartya Mukherjee, Maxwell Fitzsimmons, David~C. Del Rey~Fern{\'a}ndez, and Jun
 \newblock Rigorous error certification for neural {PDE} solvers: From empirical
   residuals to solution guarantees.
 \newblock \emph{arXiv preprint arXiv:2603.19165}, 2026.
+\newblock \doi{10.48550/arXiv.2603.19165}.
 
 \bibitem[Raissi et~al.(2019)Raissi, Perdikaris, and
   Karniadakis]{raissi2019pinn}
@@ -242,6 +251,7 @@ Rishikesh Ranade, Mohammad~Amin Nabian, Kaustubh Tangsali, Alexey Kamenev,
 \newblock {DoMINO}: A decomposable multi-scale iterative neural operator for
   modeling large scale engineering simulations.
 \newblock \emph{arXiv preprint arXiv:2501.13350}, 2025.
+\newblock \doi{10.48550/arXiv.2501.13350}.
 \newblock NVIDIA.
 
 \bibitem[Rhie \& Chow(1983)Rhie and Chow]{rhiechow1983}
@@ -257,12 +267,28 @@ Mateus~Dias Ribeiro, Abdul Rehman, Sheraz Ahmed, and Andreas Dengel.
 \newblock {DeepCFD}: Efficient steady-state laminar flow approximation with
   deep convolutional neural networks.
 \newblock \emph{arXiv preprint arXiv:2004.08826}, 2020.
+\newblock \doi{10.48550/arXiv.2004.08826}.
+
+\bibitem[Rigotti et~al.(2026)Rigotti, Thumiger, and Frick]{rigotti2026gist}
+Mattia Rigotti, Nicholas Thumiger, and Thomas Frick.
+\newblock {GIST}: Gauge-invariant spectral transformers for scalable graph
+  neural operators.
+\newblock \emph{arXiv preprint arXiv:2603.16849}, 2026.
+\newblock \doi{10.48550/arXiv.2603.16849}.
 
 \bibitem[Roy et~al.(2025)Roy, Nayak, and Goswami]{roy2025anchor}
 Rajyasri Roy, Dibyajyoti Nayak, and Somdatta Goswami.
 \newblock {ANCHOR}: Error-controlled adaptive numerical correction for neural
   operator time marching.
 \newblock \emph{arXiv preprint arXiv:2512.19643}, 2025.
+\newblock \doi{10.48550/arXiv.2512.19643}.
+
+\bibitem[Scherz et~al.(2026)Scherz, Hines, and Bekemeyer]{scherz2026evaluation}
+Jan Scherz, Derrick Hines, and Philipp Bekemeyer.
+\newblock Evaluation of state-of-the-art deep learning architectures for
+  aerodynamical predictions.
+\newblock \emph{arXiv preprint arXiv:2607.13866}, 2026.
+\newblock \doi{10.48550/arXiv.2607.13866}.
 
 \bibitem[Song et~al.(2026)Song, Li, Deng, Li, Pan, Lai, and
   Wang]{song2026structureaware}
@@ -270,6 +296,7 @@ Haoze Song, Zhihao Li, Mengyi Deng, Xin Li, Duyi Pan, Zhilu Lai, and Wei Wang.
 \newblock Structure-aware epistemic uncertainty quantification for neural
   operator {PDE} surrogates.
 \newblock \emph{arXiv preprint arXiv:2603.11052}, 2026.
+\newblock \doi{10.48550/arXiv.2603.11052}.
 
 \bibitem[Stetter(1978)]{stetter1978defect}
 Hans~J. Stetter.
@@ -317,6 +344,7 @@ S.~Zhang, M.~Mallon, M.~Luo, J.~Thiyagalingam, P.~Tzeferacos, R.~Bingham, and
 \newblock Data-driven modeling of shock physics by physics-informed
   {MeshGraphNets}.
 \newblock \emph{arXiv preprint arXiv:2602.14918}, 2026.
+\newblock \doi{10.48550/arXiv.2602.14918}.
 \newblock Submitted 16 February 2026.
 
 \end{thebibliography}

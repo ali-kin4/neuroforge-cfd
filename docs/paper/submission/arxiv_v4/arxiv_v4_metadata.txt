@@ -1,7 +1,7 @@
 arXiv v4 REPLACE -- arXiv:2607.10333
 ====================================================================
 Upload: arxiv_v4_source.tar.gz  (files at archive top level, matching the
-v2/v3 layout; TMLR build, 41 pp, 10 figures and 10 tables, builds clean
+v2/v3 layout; TMLR build, 43 pp, 10 figures and 10 tables, builds clean
 with pdflatex x3 -- verified by scripts/build_arxiv_package.py, which
 refuses to emit a tarball that does not compile). The archive carries 9
 image files: fig:pipeline is drawn inline, not included.
@@ -99,7 +99,7 @@ solver's own.
 --------------------------------------------------------------------
 COMMENTS field  (arXiv caps this at 400 characters; this is 366)
 --------------------------------------------------------------------
-41 pages, 10 figures. v4 substantially reframes the paper and retracts a v3 claim: the no-slip-weight objection is NOT closed for all lambda -- the margin crosses zero by 512^2. New: a grid-refinement ladder showing the residual floor grows rather than decays, and direct residual descent from the exact ground truth. Code: https://github.com/ali-kin4/neuroforge-cfd
+43 pages, 10 figures. v4 substantially reframes the paper and retracts a v3 claim: the no-slip-weight objection is NOT closed for all lambda -- the margin crosses zero by 512^2. New: a grid-refinement ladder showing the residual floor grows rather than decays, and direct residual descent from the exact ground truth. Code: https://github.com/ali-kin4/neuroforge-cfd
 
 --------------------------------------------------------------------
 UPLOAD CHECKLIST
