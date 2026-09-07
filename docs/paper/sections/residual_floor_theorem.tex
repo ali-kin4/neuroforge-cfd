@@ -138,6 +138,24 @@ backbone's over-smoothed prediction (here the dropout-FNO of
 \emph{below} the truth floor in $160/200$ cases, consistent with the loop's drive away from
 $u^\star$ in \autoref{tab:iters}.
 
+\paragraph{An apparent contradiction, and its resolution.} If the deployed prediction sits
+\emph{below} the floor in $80\%$ of cases, it sits in the regime this theorem calls
+floor-dominated---where $\|Le\|\lesssim\|r^\star\|$ and the residual decouples from the
+error. Yet a rank correlation of $0.61$ with field error is measured in exactly that
+regime. The two are not in conflict because they are statements about different things.
+The decoupling in \eqref{eq:rf-decomp} is \emph{within} a case: it says that, holding the
+case fixed, moving the field to lower residual need not move it toward the truth---which
+is precisely what \autoref{sec:descent} then measures. The detector claim is
+\emph{between} cases: it says that a case whose prediction is worse tends to carry a
+larger monitored residual than a case whose prediction is better. Nothing in the
+decomposition forbids that, because across cases both $r^\star$ and $Le$ vary, and a case
+with a larger floor is also, empirically, a harder case. That last observation is the
+obvious worry---that the ranking is a difficulty proxy rather than an error
+detector---and we test it directly: conditioning on each case's own floor leaves a partial
+rank correlation of $0.561$ against a raw $0.610$ (\autoref{sec:selective}). The detector
+survives the control, but it should be read as a between-case triage signal and never as
+evidence that residual descent within a case moves toward the truth.
+
 \paragraph{Robustness to the boundary term.} One might object that the monitored $R_h$
 omits the no-slip term, so the negative is merely an artifact of dropping the boundary
 constraint. We tested this with the \emph{framework's own} boundary-inclusive residual

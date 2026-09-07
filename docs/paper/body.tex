@@ -499,7 +499,29 @@ differences with one-sided stencils at the borders; residuals are zeroed inside 
 solid. A boundary-condition violation map $r_{bc}$ adds a \textbf{no-slip} term
 penalising velocity magnitude in the thin fluid band adjacent to the wall (weighted by
 $\exp(-|\mathrm{sdf}|/\ell)$, $\ell\approx3$ cells) and a \textbf{far-field} term
-penalising deviation from $(u_\infty, v_\infty)$ on the outer border ring. We stress the
+penalising deviation from $(u_\infty, v_\infty)$ on the outer border ring.
+
+\paragraph{Two implementation facts that bear on later claims, disclosed here.}
+\emph{(i) The monitor discards its own strongest no-slip cells.} Residuals, including
+$r_{bc}$, are zeroed on the fluid ring immediately adjacent to the solid, because a
+central stencil there reaches into the $u=v=0$ discontinuity and returns a spurious value
+an order of magnitude above the bulk. That masking is necessary, but it removes a mean
+$46\%$ (range $35$--$51\%$) of the squared no-slip penalty---precisely the band where the
+proximity weight is largest. Any claim resting on the \emph{magnitude} of $r_{bc}$,
+including leg (A) of \autoref{sec:residual_floor}, is therefore a claim about the
+surviving $54\%$, and we flag it there rather than let the weight profile suggest
+otherwise. \emph{(ii) There are two Laplacian stencils in this pipeline.} The numpy
+monitor whose numbers we report uses the compact three-point form; the differentiable
+twin used to build the corrector's residual \emph{input} channels uses a repeated first
+difference, which is wider and annihilates the period-2 mode the compact form sees. The
+training-time operator therefore has a strictly larger kernel than the monitored one. This
+is a live alternative explanation for the null result of the residual-input ablation
+(\autoref{sec:v2}) and we do not claim to have excluded it. Where it could have mattered
+most---the descent of \autoref{sec:descent}, which necessarily minimises the
+differentiable twin---we check both operators explicitly and both fall together in
+$24/24$ cases, so that result is not an artifact of the wider stencil.
+
+We stress the
 standard caveat that drives our whole study: a low residual is \textbf{necessary but not
 sufficient} for correctness---a smooth near-freestream field can have near-zero residual
 yet be entirely wrong---so the residual is a \emph{consistency monitor}, and whether it
@@ -1116,8 +1138,26 @@ oracle. It complements, not replaces, the quantitative regime-shift results abov
 \subsection{Residual-as-objective fails: the residual and the error move apart}
 \label{sec:iters}
 
-The most direct evidence that the residual is a poor \emph{objective} comes from sweeping
-the number of correction iterations on a single trained checkpoint (\autoref{tab:iters}).
+The direct evidence that the residual is a poor \emph{objective} is the descent experiment
+of \autoref{sec:descent}, which minimises it. This subsection reports an earlier and
+weaker observation---an iteration sweep on a single trained checkpoint
+(\autoref{tab:iters})---together with the three reasons it cannot carry the claim on its
+own. We keep it because it is what first prompted the question, not because it settles it.
+
+\paragraph{Three limits of this sweep, stated before its numbers.} \emph{(i)} The swept
+knob is the DEQ corrector's internal fixed-point cap
+(\texttt{results/sensitivity/iters.json}), and that corrector is trained by supervised
+regression toward ground truth; it never sees the residual as an objective. The sweep is
+therefore an anti-correlation along one trajectory, not a test of residual minimisation.
+\emph{(ii)} The anti-correlation is not monotone across the sweep. Error falls and
+residual rises only over iterations $0\!\to\!3$; from iteration $3$ to $15$ both
+\emph{rise} together ($\texttt{mse\_u}$ $2.287\to2.575$, residual $0.542\to0.620$), so
+over four of the five intervals the two quantities move in the \emph{same} direction.
+Quoting the $0\!\to\!3$ endpoints alone, as earlier drafts of this paper did, overstates
+the effect. \emph{(iii)} It is a single unseeded checkpoint ($n=1$), and it reports
+$\texttt{mse\_u}$ and surface $\texttt{mse\_p}$ only, while \autoref{tab:indist} shows
+this corrector family inflating $\texttt{mse\_v}$ and volume $\texttt{mse\_p}$. None of
+these limits applies to \autoref{sec:descent}, which is why the claim now rests there.
 
 \begin{table}[t]
 \centering
@@ -1141,9 +1181,11 @@ sweep (one checkpoint, not seeded). See \autoref{fig:fig4}.}
 
 As the loop iterates, the \textbf{PDE residual norm rises monotonically}
 ($0.11\rightarrow0.62$) while the \textbf{field error falls} ($\texttt{mse\_u}$
-$3.92\rightarrow2.29$ by iter 3)---the two objectives move in \emph{opposite} directions.
-This is the clean statement of detector $\ne$ fixer: the very quantity one would minimise
-to ``fix'' the field grows while the field gets better. (Note this does not contradict the
+$3.92\rightarrow2.29$ by iter 3)---over that initial interval the two objectives move in
+\emph{opposite} directions. Beyond iteration $3$ they move together, as noted above, so
+the honest reading of this table is that the residual is not a usable stopping signal
+along this path rather than that it is anti-correlated with error throughout. (Note this
+does not contradict the
 DEQ contraction of \autoref{sec:conformal}: the contraction is in the correction variable
 $\delta$, which converges; the PDE residual of the \emph{output field} is a different
 quantity, and it is the one that rises.)
