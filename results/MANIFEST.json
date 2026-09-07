@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-07T09:54:27.330371+00:00",
-  "git_head": "0ddccba48d813ec18d82968d12c9d2243e177c36",
-  "git_head_short": "0ddccba",
+  "generated_utc": "2026-09-07T10:00:27.195672+00:00",
+  "git_head": "ccba7619ff2697f8591555d16d1f676db420c28f",
+  "git_head_short": "ccba761",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -161,10 +161,10 @@
       "script": "scripts/probe_transolver_inversion.py",
       "tier": "gpu",
       "claims": "the 160/200 prediction-below-floor inversion is backbone-specific and does NOT survive on the deployed Transolver: 8/5/5 of 200 (backbone alone) and 12/9/14 of 200 (Transolver+DEQ) across seeds 0/1/2, median gap +0.013..+0.015 ABOVE the floor vs -0.024 BELOW for the dropout-FNO. Identity gates both pass (truth floor reproduces the committed per_case exactly, max_abs_diff 0; the dropout-FNO row reproduces mean/std/160 to all digits). Banded gradient energy: dropout-FNO 1.75x the truth's, Transolver 1.00x, so 'over-smoothed' is wrong too",
-      "sha256": "4504bff8043e425e40e9b51b4727f5e26601f26483232dc7c1737dc8be61d392",
-      "bytes": 11138,
+      "sha256": "e72df1785dddf9675012ce0593456877539af8eba3942d2a072da684f01af0b0",
+      "bytes": 11940,
       "git_tracked": true,
-      "last_commit": "0ddccba"
+      "last_commit": "ccba761"
     },
     {
       "path": "results/certificates/floor_resolution_decomposition.json",
