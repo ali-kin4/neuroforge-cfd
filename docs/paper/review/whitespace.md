@@ -235,11 +235,16 @@ and `results/control/force_vs_official_multischeme.json` (Transolver, 3 seeds):
 | near-field, wall-extrapolated | **0.800** | **0.799 ± 0.026** | 0.882 | 0.902 ± 0.007 | 220% |
 | far-field control volume | 0.611 | 0.400 ± 0.082 | **0.99999** | 0.998 ± 0.001 | **23.5%** |
 
-Three facts fall out, and each is quotable:
+Three facts fall out. **Fact 1 is currently over-stated and fact 3 is the safest**
+— read A0 in §3 before quoting any of them.
 
-1. **The two near-field schemes have zero headroom.** The prediction ranks drag
-   exactly as well as the exact truth does through the same integrator. The model
-   is not the bottleneck; the representation is.
+1. **The two near-field schemes have no measurable headroom.** The prediction ranks
+   drag as well as the exact truth does through the same integrator (0.839 vs 0.839;
+   0.799 vs 0.800). *Careful:* equality of two Spearman correlations is **not**
+   proof that the representation dominates — Spearman is not additive, and two
+   comparable independent error sources can coincide. The defensible wording until
+   the per-case check in A0(c) is done is **"the model is not the dominant term"**,
+   not "improving the model cannot improve the number".
 2. **An 18-variant design sweep does not escape it.** Pressure scheme
    (offset/extrapolated), shear scheme (field_abs/field_signed/no-slip) and standoff
    (1.0/1.5/2.0 cells) span ρ_D ∈ [0.796, 0.841] and median c_d error ∈ [214%, 369%].
@@ -275,9 +280,16 @@ model number, not auditing the measurement instrument. It is also invisible unle
 you have the *official solver-computed* labels to compare against, which AirfRANS
 provides and most datasets do not.
 
-**Reachability: highest in the report.** The measurement is already in the
-repository, seed-independent, n=200, with no model in the loop. The missing piece is
-one resolution ladder (§3, A1).
+**Reachability: highest in the report — with one blocking control.** The measurement
+is already in the repository, seed-independent, n=200, with no model in the loop.
+But it currently conflates **rasterisation loss** with **integrator-formulation
+difference**: `gt_nf` is *our* `force_coefficients` on a *128² raster*, compared
+against `Simulation.force_coefficient(reference=True)`, which is AirfRANS's own
+integrator on the body-fitted cloud. The 18-variant sweep controls our integrator's
+design choices but every variant is still our quadrature on a raster. **The
+separation has never been run** — `force_vs_official.json` says so in its own meta:
+`"pred_af_skipped": "airfrans' own integrator on our prediction skipped"`. That is
+A0 in §3, and it blocks the ladder.
 
 ---
 
@@ -403,7 +415,47 @@ Costs assume the existing single-GPU workstation and the existing scripts.
 
 ---
 
-### A1. The drag-observability ladder. **DO THIS FIRST.**
+### A0. Separate rasterisation loss from integrator formulation. **BLOCKING. DO THIS FIRST.**
+**Why.** ρ_D = 0.839 on the ground-truth field is the load-bearing number of G1 and
+of §4, and it currently mixes two mechanisms. Without A0, **the A1 ladder is
+uninterpretable**: a flat ladder is equally consistent with "the raster destroys the
+information" and with "our quadrature carries a raster-independent offset from
+AirfRANS's".
+
+**The discriminating arm, and note the trap.** Running AirfRANS's own
+`Simulation.force_coefficient(reference=True)` on the native cloud is *not* a
+control — it **is** the label by construction, so it returns ≈1.0 trivially. The
+control that separates the mechanisms is a **raster round-trip**:
+
+| | AirfRANS's integrator | our integrator |
+|---|---|---|
+| native cloud | 1.0 by construction — not informative | **(b) never measured** |
+| rasterise → scatter back to mesh nodes | **(a) never measured** | 0.839 (have it) |
+
+- **(a)** Rasterise the GT to 128², interpolate back onto the original mesh nodes,
+  call `Simulation.force_coefficient` on *those* fields. If ρ_D collapses to ≈0.84,
+  **the raster owns the loss** and G1's framing is clean. If it stays ≈0.98, most of
+  the 0.839 is our quadrature and the "representation ceiling" claim must be
+  substantially weakened to "our integrator's ceiling".
+- **(b)** Our `force_coefficients` on the native cloud (no raster). Brackets (a) from
+  the other side.
+- **(c)** Per-case correlation between prediction drag error and ground-truth drag
+  error, from the arrays in `results/control/_cache/`. This is what licenses fact 1's
+  strong form; without it, use the weak form.
+
+**Cost.** ~4–6 h. (a) reuses the existing rasteriser plus a scatter-back
+interpolation; (b) is a coordinate change in an existing function; (c) is analysis.
+
+**Risk.** *This is a risk-reduction experiment, so "failure" is success.* The bad
+outcome is (a) ≈ 0.98, which costs G1 its headline but is far cheaper to learn now
+than in review — and it would still leave the honest and useful finding "report your
+integrator's ceiling", plus the far-field/near-field observability asymmetry (fact
+3), which is a property of the *scheme family*, not of our quadrature, and survives
+either way.
+
+---
+
+### A1. The drag-observability ladder. **Second, and gated on A0.**
 **Claim it buys.** *The ceiling on integrated drag from a Cartesian raster of
 AirfRANS is a property of the representation, not of the grid: it does not close
 under refinement, while lift's does not need to.*
@@ -526,24 +578,38 @@ Risk of not doing it: fatal if a reviewer finds it.** This is not optional.
 
 ## 4. The single strongest claim reachable in about a month
 
-> **On AirfRANS, both of the quantities a neural surrogate is audited and judged by
-> — the monitored PDE residual and the integrated drag coefficient — carry a floor
-> set by the mismatch between the surrogate's Cartesian representation and the
-> body-fitted finite-volume operator that generated the labels: the residual does
-> not vanish at the ground truth and grows under refinement, and no near-wall
-> integration scheme recovers the official drag ranking from the exact ground-truth
-> field beyond ρ_D ≈ 0.84 — a ceiling the deployed model already attains, so
-> improving the model cannot improve either number.**
+**State it in two independent parts. Do not stake the headline on the link between
+them until A0 and A1 return.**
 
-One mechanism (operator provenance), two consequences (the audit cannot certify, the
-measurement cannot report), both measured model-free on 200 public cases, both
-falsifiable by a refinement ladder. The residual half is already done; the drag half
-is A1, one day of compute.
+> **(Earned today.)** On AirfRANS, the steady-RANS residual a deployed surrogate can
+> afford to monitor does not vanish at the ground truth and **grows** under grid
+> refinement (p = −0.64 ± 0.29, 0/16 cases decaying, ×2.6 from 128² to 512²),
+> because the reference solution's individually grid-converged convective and
+> pressure-gradient terms fail to cancel under a different discrete operator —
+> repairing the omitted closure term moves the floor by <0.1%. The obstruction is
+> **operator provenance**, not resolution and not missing physics, so a surrogate
+> cannot be certified by a residual monitor that is not the one its training data
+> solves.
 
-Note what this sentence deliberately does *not* say: it does not say the closure term
-is the cause (0a), it does not say descent always diverges (`novelty_hunt.md` §2
-wording discipline), and it does not claim the floor grows without bound
-(`floor_resolution_study.md` §6.2 honest bound).
+> **(Second, independent measurement — pending A0.)** On the same benchmark, no
+> near-wall integration scheme recovers the official drag ranking from the **exact
+> ground-truth field** beyond ρ_D ≈ 0.84 across an 18-variant design sweep, while a
+> far-field momentum balance recovers **lift** at ρ_L = 0.99999 and 0.05% median
+> error — so on this representation lift is observable and drag is not.
+
+The residual half is fully earned: 16 cases × 5 rungs, three artifact controls (MMS
+analytic, MMS raster null, C¹ re-rasterisation), and a term-level decomposition. The
+drag half has **none** of that yet — it is one uncontrolled comparison plus a design
+sweep. Two separately measured ceilings on one public benchmark is already a strong
+paper. **Upgrade to the single "one mechanism, two consequences" sentence only if
+A0(a) shows the raster owns the loss and A1's ladder does not close it** — at which
+point the merged claim becomes the strongest thing this project can say.
+
+Note what these sentences deliberately do *not* say: not that the closure term is the
+cause (§0a), not that descent always diverges (`novelty_hunt.md` §2 wording
+discipline), not that the floor grows without bound (`floor_resolution_study.md`
+§6.2 honest bound), and not that improving the model cannot improve drag (G1 fact 1,
+weak form).
 
 ---
 
@@ -589,10 +655,13 @@ wording discipline), and it does not claim the floor grows without bound
   precisely why it should be reported by us and not by a reviewer.
 
 **Cross-cutting.**
-- *The strongest claim rests on two ladders sharing one mechanism.* If A1 comes out
-  flat-but-not-rising while the residual ladder rises, the "one mechanism" framing
-  weakens to "two related ceilings". Have the fallback wording ready before running,
-  not after.
+- *The shared-mechanism claim is two unverified steps deep.* It assumes (i) the drag
+  ceiling is representational — unproven until A0 — and (ii) that it is the *same*
+  non-cancellation as the residual floor — untested. §4 is now split so the headline
+  does not depend on either. Do not re-merge it in prose before the evidence merges.
+- *If A1 comes out flat-but-not-rising while the residual ladder rises*, the framing
+  is "two related ceilings", not one mechanism. Fallback wording is in §4; fix it
+  before running, not after.
 - *`FINDINGS.md` F7's two-Laplacian-stencil discrepancy* (`residuals.py:524` wide vs
   `operators.py:186` compact) is a live alternative explanation for the W1 null and
   is unresolved. It does not touch A1, but it must be fixed or disclosed before any

@@ -1,0 +1,80 @@
+{
+  "artifact": "iters_sweep_seeded",
+  "status": "in-progress",
+  "control": {
+    "engine_maxiters_inert_on_deq": true,
+    "r_at_engine_maxiters_1": 0.2292158603668213,
+    "r_at_engine_maxiters_15": 0.2292158603668213,
+    "swept_knob": "DEQCorrector.max_iter (internal fixed-point cap)"
+  },
+  "per_seed": [
+    {
+      "seed": 0,
+      "rows": [
+        {
+          "n_iters": 0,
+          "mse_u": 0.15472327074579847,
+          "mse_v": 0.10092053487529629,
+          "mse_p": 759.7844499348292,
+          "surface_mse_p": 13526.665064571347,
+          "residual_norm": 0.2072776003430287,
+          "residual_error_spearman": 0.7017391304347826
+        },
+        {
+          "n_iters": 1,
+          "mse_u": 0.14348365623003836,
+          "mse_v": 0.08584840574482622,
+          "mse_p": 644.1371461731454,
+          "surface_mse_p": 13382.291202509941,
+          "residual_norm": 0.20242608121285835,
+          "residual_error_spearman": 0.6443478260869565
+        },
+        {
+          "n_iters": 3,
+          "mse_u": 0.1423543864700825,
+          "mse_v": 0.08171398035308786,
+          "mse_p": 594.4012118504123,
+          "surface_mse_p": 13365.177958120315,
+          "residual_norm": 0.21001914919664463,
+          "residual_error_spearman": 0.6330434782608695
+        },
+        {
+          "n_iters": 5,
+          "mse_u": 0.1426937863805976,
+          "mse_v": 0.08107156158994823,
+          "mse_p": 583.4390810017428,
+          "surface_mse_p": 13363.781857306058,
+          "residual_norm": 0.2116015680755178,
+          "residual_error_spearman": 0.6382608695652173
+        },
+        {
+          "n_iters": 10,
+          "mse_u": 0.14289529572323312,
+          "mse_v": 0.08091090747138362,
+          "mse_p": 579.9525833042225,
+          "surface_mse_p": 13362.757211807524,
+          "residual_norm": 0.21199221101899943,
+          "residual_error_spearman": 0.6382608695652173
+        },
+        {
+          "n_iters": 15,
+          "mse_u": 0.14290799823381212,
+          "mse_v": 0.08090761840973289,
+          "mse_p": 579.865107176121,
+          "surface_mse_p": 13362.666193276023,
+          "residual_norm": 0.21200314133117595,
+          "residual_error_spearman": 0.6382608695652173
+        }
+      ],
+      "residual_rises": true,
+      "error_falls": true,
+      "dissociates": true,
+      "residual_monotone_nondecreasing": false,
+      "mse_u_argmin_iters": 3,
+      "residual_norm_start": 0.2072776003430287,
+      "residual_norm_end": 0.21200314133117595,
+      "mse_u_start": 0.15472327074579847,
+      "mse_u_best": 0.1423543864700825
+    }
+  ]
+}

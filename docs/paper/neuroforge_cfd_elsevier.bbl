@@ -12,39 +12,13 @@
 \providecommand{\bibinfo}[2]{#2}
 \ifx\xfnm\relax \def\xfnm[#1]{\unskip,\space#1}\fi
 %Type = Article
-\bibitem[{Scherz et~al.(2026)Scherz, Hines, and
-  Bekemeyer}]{scherz2026evaluation}
-\bibinfo{author}{J.~Scherz}, \bibinfo{author}{D.~Hines},
-  \bibinfo{author}{P.~Bekemeyer},
-\newblock \bibinfo{title}{Evaluation of state-of-the-art deep learning
-  architectures for aerodynamical predictions},
-\newblock \bibinfo{journal}{arXiv preprint arXiv:2607.13866}
-  (\bibinfo{year}{2026}).
-%Type = Article
-\bibitem[{Rigotti et~al.(2026)Rigotti, Thumiger, and Frick}]{rigotti2026gist}
-\bibinfo{author}{M.~Rigotti}, \bibinfo{author}{N.~Thumiger},
-  \bibinfo{author}{T.~Frick},
-\newblock \bibinfo{title}{{GIST}: Gauge-invariant spectral transformers for
-  scalable graph neural operators},
-\newblock \bibinfo{journal}{arXiv preprint arXiv:2603.16849}
-  (\bibinfo{year}{2026}).
-%Type = Article
-\bibitem[{Huang and Perdikaris(2025)}]{huang2025physicscorrect}
-\bibinfo{author}{X.~Huang}, \bibinfo{author}{P.~Perdikaris},
-\newblock \bibinfo{title}{{PhysicsCorrect}: A training-free approach for stable
-  neural {PDE} simulations},
-\newblock \bibinfo{journal}{arXiv preprint arXiv:2507.02227}
-  (\bibinfo{year}{2025}). \bibinfo{note}{AAAI 2026}.
-%Type = Article
-\bibitem[{Jha(2024)}]{learned2023residualcorrection}
-\bibinfo{author}{P.~K. Jha},
-\newblock \bibinfo{title}{Residual-based error corrector operator to enhance
-  accuracy and reliability of neural operator surrogates of nonlinear
-  variational boundary-value problems},
-\newblock \bibinfo{journal}{Computer Methods in Applied Mechanics and
-  Engineering} \bibinfo{volume}{419} (\bibinfo{year}{2024})
-  \bibinfo{pages}{116595}. \DOIprefix\doi{10.1016/j.cma.2023.116595},
-  \bibinfo{note}{arXiv:2306.12047}.
+\bibitem[{Lei et~al.(2026)Lei, Tang, Zhang, and Chen}]{lei2026newtonkrylov}
+\bibinfo{author}{M.~Lei}, \bibinfo{author}{W.~Tang},
+  \bibinfo{author}{Y.~Zhang}, \bibinfo{author}{H.~Chen},
+\newblock \bibinfo{title}{Reliable and efficient steady {CFD} from surrogate
+  predictions through {Newton--Krylov} correction},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2608.04400}
+  (\bibinfo{year}{2026}). \bibinfo{note}{Submitted 5 August 2026}.
 %Type = Inproceedings
 \bibitem[{Li et~al.(2021)Li, Kovachki, Azizzadenesheli, Liu, Bhattacharya,
   Stuart, and Anandkumar}]{li2021fno}
@@ -126,6 +100,23 @@
 \newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
   Systems (NeurIPS)}, \bibinfo{year}{2023}. \bibinfo{note}{ArXiv:2308.05732}.
 %Type = Article
+\bibitem[{Jha(2024)}]{learned2023residualcorrection}
+\bibinfo{author}{P.~K. Jha},
+\newblock \bibinfo{title}{Residual-based error corrector operator to enhance
+  accuracy and reliability of neural operator surrogates of nonlinear
+  variational boundary-value problems},
+\newblock \bibinfo{journal}{Computer Methods in Applied Mechanics and
+  Engineering} \bibinfo{volume}{419} (\bibinfo{year}{2024})
+  \bibinfo{pages}{116595}. \DOIprefix\doi{10.1016/j.cma.2023.116595},
+  \bibinfo{note}{arXiv:2306.12047}.
+%Type = Article
+\bibitem[{Huang and Perdikaris(2025)}]{huang2025physicscorrect}
+\bibinfo{author}{X.~Huang}, \bibinfo{author}{P.~Perdikaris},
+\newblock \bibinfo{title}{{PhysicsCorrect}: A training-free approach for stable
+  neural {PDE} simulations},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2507.02227}
+  (\bibinfo{year}{2025}). \bibinfo{note}{AAAI 2026}.
+%Type = Article
 \bibitem[{Raissi et~al.(2019)Raissi, Perdikaris, and
   Karniadakis}]{raissi2019pinn}
 \bibinfo{author}{M.~Raissi}, \bibinfo{author}{P.~Perdikaris},
@@ -206,9 +197,10 @@
 \newblock in: \bibinfo{booktitle}{International Conference on Machine Learning
   (ICML)}, \bibinfo{year}{2016}. \bibinfo{note}{ArXiv:1506.02142}.
 %Type = Article
-\bibitem[{Ma et~al.(2024)Ma, Azizzadenesheli, and Anandkumar}]{ma2024uqno}
-\bibinfo{author}{Z.~Ma}, \bibinfo{author}{K.~Azizzadenesheli},
-  \bibinfo{author}{A.~Anandkumar},
+\bibitem[{Ma et~al.(2024)Ma, Pitt, Azizzadenesheli, and
+  Anandkumar}]{ma2024uqno}
+\bibinfo{author}{Z.~Ma}, \bibinfo{author}{D.~Pitt},
+  \bibinfo{author}{K.~Azizzadenesheli}, \bibinfo{author}{A.~Anandkumar},
 \newblock \bibinfo{title}{Calibrated uncertainty quantification for operator
   learning via conformal prediction},
 \newblock \bibinfo{journal}{Transactions on Machine Learning Research (TMLR)}
@@ -282,6 +274,17 @@
   approximation with deep convolutional neural networks},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2004.08826}
   (\bibinfo{year}{2020}).
+%Type = Article
+\bibitem[{Zhang et~al.(2026)Zhang, Mallon, Luo, Thiyagalingam, Tzeferacos,
+  Bingham, and Gregori}]{zhang2026phymgn}
+\bibinfo{author}{S.~Zhang}, \bibinfo{author}{M.~Mallon},
+  \bibinfo{author}{M.~Luo}, \bibinfo{author}{J.~Thiyagalingam},
+  \bibinfo{author}{P.~Tzeferacos}, \bibinfo{author}{R.~Bingham},
+  \bibinfo{author}{G.~Gregori},
+\newblock \bibinfo{title}{Data-driven modeling of shock physics by
+  physics-informed {MeshGraphNets}},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2602.14918}
+  (\bibinfo{year}{2026}). \bibinfo{note}{Submitted 16 February 2026}.
 %Type = Inproceedings
 \bibitem[{Krishnapriyan et~al.(2021)Krishnapriyan, Gholami, Zhe, Kirby, and
   Mahoney}]{krishnapriyan2021failure}

@@ -78,81 +78,78 @@ correction, not to residual-conditioning. We report both.
 In priority order:
 
 \begin{enumerate}
-\item \textbf{A backbone-agnostic trust layer over a consistently positive residual detector (headline).} The physics residual is
-a calibrated, \emph{case-level} error detector across three architecturally-distinct backbones
-tested. On the SOTA
-Transolver backbone its per-case rank (Spearman) correlation with field error is
-$0.611{\pm}0.054$ over five seeds (\autoref{sec:v2}, \autoref{tab:v2}); on a much weaker grid backbone it is
-$\approx 0.40$ bare and a learned corrector lifts it to $0.83$ (\autoref{sec:indist-ablation});
-and on a param-matched message-passing GNN (MeshGraphNet, bare) it is $0.851{\pm}0.058$
-(\texttt{results/mgn/mgn\_results.json}, a high value that partly reflects that model's wide
-error spread, which is easy to rank),
-so the detector is consistently \emph{positive} across all three, though its \emph{strength}
-varies ($\rho$ from $0.40$ to $0.85$; spatial localisation is weaker and
-region-scale---patch pooling doubles it to $\rho{\approx}0.32$,
-\autoref{sec:method}). Building on it---and depending only on a model's predictions and
-$\sigma$, hence backbone-agnostic---a split-conformal trust layer attains
-target coverage on the SOTA backbone ($0.902{\pm}0.008$ at the $0.90$ target,
-\autoref{sec:v2}); with a deep-ensemble $\sigma$ the band is input-adaptive on that same
-near-deterministic model (ECE $0.074$, \autoref{tab:uq}), and on the weak backbone it
-holds under distribution shift, including a regime where the bare model's signal collapses
-(\autoref{sec:ood}, \autoref{sec:conformal}).
-The signal also supports \emph{selective prediction}: it detects worst-decile-error cases
-with AUROC $0.87$--$0.91$ on the AirfRANS arms ($0.83$--$0.98$ including the DeepCFD OOD
-seeds), and rank-fused with the ensemble $\sigma$ reaches AUROC $0.905$, recovering
-$\approx 91\%$ of the oracle's achievable error reduction at a $10\%$ rejection budget
-(\autoref{fig:risk_coverage}).
-The layer depends only on a model's predictions and uncertainty, so it is backbone-robust.
+\item \textbf{The ground truth fails the check (headline).} The residual a deployed
+surrogate can afford to monitor is not the operator that produced its training labels,
+and the gap is not small. On $200/200$ real AirfRANS test cases the monitored residual of
+the \emph{ground-truth} field is substantially nonzero---$\|r^\star\|$ mean $0.192$,
+median $0.133$---while the physically wrong uniform-freestream field scores an
+\textbf{exact zero} at every resolution, because a spatially constant field has
+identically zero finite differences. The objective therefore strictly prefers a wrong
+field to the truth (\autoref{sec:residual_floor}). This is a property of the
+\emph{operator}, not of any model: no network appears anywhere in the measurement.
 
-\item \textbf{Learned correction works on a strong backbone.} A learned DEQ corrector trained
-(supervised) toward ground truth reduces volume-field MSE on the SOTA backbone on
-\textbf{all five seeds}: $\texttt{mse\_u}$ $0.133\rightarrow0.122$ ($-8\%$),
-$\texttt{mse\_v}$ $0.096\rightarrow0.076$ ($-21\%$), $\texttt{mse\_p}$ $644\rightarrow485$
-($-25\%$, gate-verified), with internal force-ranking self-consistency held
-($\rho_{C_l}=0.999$; against \emph{official} labels drag ranking is recovered at
-$\rho_D=0.84$, and a repaired control-volume integrator recovers official \emph{lift}
-nearly exactly from the predicted fields, $\rho_L=0.998{\pm}0.001$ with per-seed median
-magnitude errors of $3.6$--$3.9\%$, \autoref{sec:v2}). The backbone is a published SOTA architecture (Transolver),
-so the corrector improves a competitive surrogate.\footnote{Throughout, ``SOTA'' refers
-to Transolver's status as a published state-of-the-art architecture at the time of our
-experiments (ICML 2024); an independent 2026 benchmark still highlights Transolver(++)
-among the strongest aerodynamic surrogates \citep{scherz2026evaluation}, while newer
-architectures have since advanced the AirfRANS accuracy frontier \citep{rigotti2026gist}.
-Our claims concern the trust layer and corrector demonstrated \emph{on} this competitive
-backbone, not an accuracy-leaderboard position.} The deployed corrector
-ingests the residual as an input channel, but a controlled ablation that zeros that input at
-train and inference (5 seeds) matches or slightly exceeds the deployed corrector, so we
-attribute the gain to the learned correction, not to residual-conditioning (\autoref{sec:v2},
-\texttt{results/control/w1\_capture.json}).
+\item \textbf{The floor cannot be refined away, and in practice it grows.} Two separate
+statements, which we are careful not to conflate. \emph{Provably}, the monitored operator
+is an inconsistent discretisation of RANS---it uses $\nu_{\mathrm{eff}}\nabla^2 u$ in
+place of $\nabla\!\cdot\!(\nu_{\mathrm{eff}}\nabla u)$---so its floor has a nonzero
+continuum limit and is bounded away from zero as $h\to0$; assumption (H2) becomes a
+theorem (\autoref{sec:residual_floor}). \emph{Empirically}, the floor does not merely
+persist but \textbf{rises} under refinement: over $24$ cases at $128^2/256^2/512^2$,
+scored on a region fixed in physical units, $\|r^\star\|$ goes $0.0624\to0.0779\to0.1067$,
+rising in $21/24$ cases, fitting $\|r^\star\|\sim h^{p}$ with $p=-0.387$
+(\autoref{sec:floor_ladder}). The decision rule was registered before the measurement.
+The omitted closure term grows as predicted but accounts for only ${\approx}4\%$ of the
+floor: restoring it moves the floor by $-0.01\%$ to $+0.18\%$. Neither a higher-order
+interpolant (cubic \emph{raises} the floor by $6$--$12\%$) nor operator repair removes it.
+What sets its size is the mismatch between our Cartesian stencil and the body-fitted
+discrete balance the reference solved.
 
-\item \textbf{Residual-as-objective fails---but the gate built on it works (a separated
-verdict).} Used as a correction \emph{objective}, the residual
-does not work. Sweeping the correction iterations \emph{raises} the PDE residual
-($0.11\rightarrow0.62$) while \emph{lowering} field error
-($\texttt{mse\_u}$ $3.92\rightarrow2.29$): the two move in opposite directions
-(\autoref{sec:iters}, \autoref{fig:fig4}). The \emph{acceptance gate} is a distinct
-mechanism and earns a distinct verdict: measured over $1200$ gated steps it admits a step on
-$99.8\%$ of deployed cases (the full correction on half of them), and the admitted step
-lowers true field error on $89.3\%$ of them by a median $5.8\%$ (\autoref{sec:iters},
-\texttt{results/control/acceptance\_gate.json}). The monotone-residual guarantee is thus
-cheap, provably non-worsening \emph{and} useful---it is residual \emph{minimisation}, not
-the gate, that fails. Minimising the residual is not minimising the error---which is
-exactly why the deployed corrector supervises toward truth rather than minimising the
-residual. The residual-floor theorem locates this failure as a \emph{regime boundary}
-rather than a contradiction of prior successful residual-driven correctors: correction
-works where the discrete residual is (near-)exact at the truth
-\citep{huang2025physicscorrect, learned2023residualcorrection}, and fails where the
-monitored residual carries a floor, as here (\autoref{sec:residual_floor}).
+\item \textbf{Descending the residual moves the field away from the truth, and the
+residual-selected iterate is never the best one.} Prior drafts of this work inferred the
+negative from a theorem and an iteration sweep that did not test it. We now test it
+directly, with the differentiable residual and no network in the loop: starting at the
+\emph{exact ground truth}, $300$ steps of gradient descent on $J=\tfrac12\|R_h\|^2$ cut
+the monitored residual by $84\%$ in $24/24$ cases and take the field error from zero to a
+median of $0.91$---the range a trained backbone \emph{starts} in
+(\autoref{sec:descent}). We state the claim as one about \textbf{iterate selection},
+because that is what holds universally: the error-minimising and residual-minimising
+iterates differ in $24/24$ cases on both a truth-started and a perturbed-start arm, and
+the residual-selected iterate is strictly worse in $24/24$. We explicitly do \emph{not}
+claim residual descent always harms: from a perturbed start it \emph{reduces} error in
+$18/24$ cases, typically by $60\%$, before overshooting.
 
-\item \textbf{Backbone-dependence, reported as a finding (not hidden).} The same corrector
-that delivers $-9$ to $-25\%$ on the SOTA backbone is flat-to-unhelpful on the weak grid
-backbone (\autoref{sec:indist-ablation}, \autoref{tab:indist}), where it trades volume
-accuracy for surface fidelity and a stronger trust signal. Correction quality is therefore
-backbone-dependent; we report both regimes side by side and the SOTA result is the one that
-supports the learned-correction claim. For honest context we also report a matched-budget
-baseline study (\autoref{sec:baseline}, \autoref{tab:transolver}): the grid backbone trails
-Transolver by $4$--$60\times$, while the trust layer and corrector are demonstrated
-\emph{on} the competitive Transolver backbone in \autoref{sec:v2}.
+\item \textbf{The boundary is the operator, not the problem class.} Residual-driven
+correction demonstrably succeeds on steady CFD when the residual is the
+\emph{solver's own}: \citet{lei2026newtonkrylov} drive a surrogate initial guess with
+Newton--Krylov correction and lower the median residual ratio by seven orders of magnitude
+\emph{while} reducing field and aerodynamic error. That is not a counterexample to our
+result, it locates it. Correction works where the monitored operator is
+solver-consistent, and fails where an affordable surrogate-side monitor is inconsistent
+with the data generator. We draw the boundary there rather than at
+steady-versus-transient or resolved-versus-under-resolved (\autoref{sec:regime}).
+
+\item \textbf{The residual still ranks errors---but it earns its place only in fusion.}
+As a \emph{detector} the residual is consistently positive across three architecturally
+distinct backbones ($\rho$ from $0.40$ to $0.85$) and flags worst-decile cases at AUROC
+$0.871$. A \emph{physics-free} ensemble $\sigma$ does at least as well ($0.894$), and a
+paired case-level bootstrap cannot separate them ($+0.023$, CI $[-0.035,+0.083]$); it is
+the \emph{fusion} that reaches $0.905$ and recovers ${\approx}91\%$ of the oracle. We
+report this rather than attributing the fused number to physics. The one place physics
+wins outright is the engineering quantity: on $|\Delta C_D|$ the residual reaches AUROC
+$0.952$ against the physics-free score, with bootstrap CIs excluding zero
+(\autoref{sec:selective}). We also confirm the detector is not a difficulty proxy:
+conditioning on each case's own floor leaves partial $\rho=0.561$ against a raw $0.610$.
+
+\item \textbf{What remains deployable, with its accuracy claim corrected.} A
+distribution-free split-conformal layer attains target coverage
+($0.902{\pm}0.008$ at $0.90$), including under distribution shift. The monotone-residual
+acceptance gate admits a step on $99.8\%$ of deployed cases and lowers true error on
+$89.3\%$ of them---but an \emph{ungated} fixed half-step does better on accuracy alone
+($95.8\%$, median $6.2\%$), so the gate's accuracy comes from damping the correction, not
+from testing the residual. What the gate uniquely buys is the \textbf{certificate}: an
+ungated step raises the monitored residual on $1.0\%$ of deployed cases ($8.8\%$ on the
+ensemble path), and the gate makes that impossible by construction
+(\autoref{sec:iters}).
 
 \item \textbf{A reproducible, CPU-first open-source package} (\texttt{neuroforge-cfd})
 with a frozen I/O contract, interchangeable backbones, a zero-download synthetic
@@ -839,8 +836,19 @@ range). This is precisely what ``backbone-robust'' means here: the detector \emp
 every architecture, not that its strength is uniform across them. (The high MeshGraphNet value
 partly reflects that model's wide error spread---large, dispersed errors are easier to rank by
 residual.) MeshGraphNet is run only as a bare backbone (no corrector and
-no conformal layer), so it speaks only to the trust-signal claim. Either way the residual is a
-reliable detector.
+no conformal layer), so it speaks only to the trust-signal claim.
+
+\paragraph{A disclosure on the MeshGraphNet arm.} That model was trained on
+$16$k-point subsamples and evaluated at the full $\approx180$k points, and our own
+density control (\texttt{results/control/mgn\_density\_control.json}) returns the verdict
+\textsc{density-driven}, with an MSE ratio of $2.44$ between the two densities. The
+$0.851$ correlation is therefore measured on a model evaluated off its training
+distribution, and we flag it rather than let it stand as a clean third architecture. The
+control measures MSE on four cases and carries no rank correlation, so it does not
+establish that $\rho=0.851$ is \emph{itself} a density artifact---but it is enough that
+the number should not be read as a like-for-like third point, and the
+$0.40$--$0.85$ range should be read as $0.40$--$0.61$ among the arms trained and
+evaluated at matched density. The detector remains positive on all three.
 
 \paragraph{Conformal coverage holds under both uncertainty estimators.}
 Split-conformal calibration of the pressure channel at $\alpha=0.1$ attains target coverage
@@ -1127,7 +1135,20 @@ rel-$L_2$ error on \textbf{$89.3\%$} of deployed cases, by a median $\mathbf{5.8
 ($74.3\%$ and $2.6\%$ on the ensemble-mean path, where the correction has less headroom
 because the ensemble mean is already the more accurate field, \autoref{sec:v2}). The
 ``certified self-correction'' guarantee is therefore real \emph{and} useful: a cheap,
-provably non-worsening gate that also happens to improve accuracy. This does not rescue the
+provably non-worsening gate that also happens to improve accuracy.
+
+\paragraph{But the accuracy is damping, not the residual test---and we concede it.} The
+obvious control is an \emph{ungated} fixed half step: take half the correction
+unconditionally, never consulting the residual. It improves true error on $95.8\%$ of
+deployed cases by a median $6.2\%$, against the gate's $89.3\%$ and $5.8\%$. The gate's
+accuracy advantage is therefore not there; what improves the field is damping the
+correction, and the residual test is not what earns that. What the gate uniquely buys is
+the \textbf{certificate}. The ungated half step raises the monitored residual on $1.0\%$
+of deployed cases ($8.8\%$ on the ensemble path), and the gate makes that outcome
+impossible by construction rather than improbable in practice. That is a guarantee, not
+an accuracy claim, and it is the only thing we claim for it.
+
+This does not rescue the
 residual as an \emph{objective}---the full step still raises the residual on half the
 deployed cases while error falls, and \autoref{tab:iters} still shows residual and error
 moving apart under iteration. It does mean the two mechanisms deserve separate verdicts,
@@ -1138,6 +1159,172 @@ were not retained.) We
 additionally note that for the DEQ corrector the trust-gating and acceptance-test toggles
 are structural no-ops---the DEQ branch bypasses both---so the only live correction knob is
 the applied-delta step size (\texttt{results/sensitivity/toggles.json}).
+
+\subsection{The floor does not refine away---it grows}
+\label{sec:floor_ladder}
+
+If the floor $r^\star=R_h(u^\star)$ were an artifact of the $128^2$ grid
+under-resolving the boundary layer, everything built on it would collapse to ``you
+under-resolved your data''. It is not. We rasterise the same AirfRANS truth at
+$128^2$, $256^2$ and $512^2$ and measure the floor on each
+(\texttt{scripts/floor\_resolution\_ladder.py}).
+
+\paragraph{Protocol, fixed before the measurement.} Three choices decide this
+experiment and all three were registered in the repository before it was run.
+\emph{(i)} The scored region is fixed in \textbf{physical} units---fluid cells with
+$\mathrm{sdf}\ge 1.5\,h_{128}=0.0352$ chord---because the solid-adjacent ring the
+monitor zeroes is physically thinner on a finer grid, so scoring the default set
+would compare different regions at different levels and could manufacture a plateau
+by unmasking the steepest cells. \emph{(ii)} The reading of the fitted exponent in
+$\|r^\star\|\sim C h^{p}$ was fixed in advance: $p\ge1$ with an extrapolation to zero
+is \textsc{decay}, $p<0.5$ is \textsc{plateau}. \emph{(iii)} Levels whose spacing
+falls below the source cloud's own are excluded, since below that the raster
+differentiates a piecewise-linear reconstruction rather than sampling a solution.
+
+\paragraph{Result.} The floor rises monotonically as the grid is refined
+(\autoref{tab:floor_ladder}): $0.0624\to0.0779\to0.1067$ while $h$ falls by $4\times$,
+rising in $\mathbf{21/24}$ cases, with $p=-0.387$---not merely inside the
+pre-registered \textsc{plateau} band but the wrong \emph{sign} for decay. Meanwhile
+$\|R_h(u_\infty)\|=0$ exactly at every level, as it must: a spatially constant field
+has identically zero finite differences at any $h$. The gap the objective must be
+blamed for therefore \emph{widens} with refinement.
+
+\begin{table}[t]
+\centering
+\caption{The residual floor under grid refinement, $24$ AirfRANS test cases, scored on
+a region fixed in physical units. The floor grows; the uniform freestream stays at
+exactly zero. Fitted $p$ in $\|r^\star\|\sim Ch^{p}$; the pre-registered rule reads
+$p<0.5$ as a plateau.}
+\label{tab:floor_ladder}
+\begin{tabular}{lccccc}
+\toprule
+level & $h$ & $\|r^\star\|$ & continuity & momentum & $\|R_h(u_\infty)\|$ \\
+\midrule
+$128^2$ & $0.0234$ & $0.0624$ & $0.0477$ & $0.0401$ & $0$ \\
+$256^2$ & $0.0117$ & $0.0779$ & $0.0589$ & $0.0510$ & $0$ \\
+$512^2$ & $0.0059$ & $\mathbf{0.1067}$ & $0.0791$ & $0.0717$ & $0$ \\
+\midrule
+fitted $p$ & & $-0.387$ & $-0.365$ & $-0.419$ & --- \\
+rose in & & $21/24$ & $21/24$ & $21/24$ & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Four controls, because a rising floor is usually a bug.}
+\emph{The operator is second order.} Method of manufactured solutions on the same
+monitor gives $p=2.06$ in the interior band, so the discretisation converges as
+claimed and the behaviour on real data is a statement about the data.
+\emph{Restoring the omitted closure term does nothing.} Adding
+$(\partial_j\nu_t)(\partial_j u_i+\partial_i u_j)$ back changes the floor by
+$-0.01\%$ to $+0.18\%$ across five rungs; the term itself is $3.5$--$4.8\%$ of the
+floor. At $Re\approx2\times10^6$ the entire viscous term is $1$--$4\%$ of convection,
+so no part of it can carry a floor of this size---the floor lives in the
+convection/pressure block.
+\emph{A higher-order interpolant does not reduce it.} Rasterising the same source
+cloud with cubic rather than linear interpolation \emph{raises} the floor by
+$6$--$12\%$, and lowers it in only $2$--$4$ of $16$ cases; if linear interpolation's
+kinks set the floor, cubic would cut it.
+\emph{The pipeline does not manufacture rising residuals.} Pushing a manufactured
+analytic solution through the identical rasteriser gives a residual that \emph{falls}
+with refinement (fine/coarse $0.41$--$0.74$) where the real truth's rises.
+
+\paragraph{What this leaves.} Two statements, which we keep separate. The
+inconsistency of the monitored operator makes the floor \textbf{provably} bounded away
+from zero as $h\to0$ (\autoref{sec:residual_floor}). Its measured \textbf{size},
+however, is set by the mismatch between our Cartesian stencil and the body-fitted
+discrete balance the AirfRANS reference actually solved---a mismatch common to every
+equation, which is why continuity and momentum rise at the same rate in the same
+cases. We report the closure term as a small, separately provable component and do not
+attribute the observed floor to it. A limitation of the ladder itself: at $512^2$ the
+raster spacing is only $1.27\times$ the source cloud's far-field spacing, so that level
+is near the exclusion limit; the $128^2\!\to\!256^2$ leg, comfortably clear of it,
+already shows the rise.
+
+\subsection{Descending the residual: the experiment the negative claim requires}
+\label{sec:descent}
+
+\autoref{tab:iters} sweeps a corrector's internal iteration cap. That corrector is
+trained by supervised regression toward ground truth and never sees the residual as an
+objective, so the sweep is an anti-correlation along one trajectory and \emph{not} a
+test of residual minimisation. The claim that the residual fails as an objective
+requires actually minimising it. We do that here
+(\texttt{scripts/residual\_descent.py}).
+
+\paragraph{Design.} We run $300$ Adam steps on $J(y)=\tfrac12\|R_h(y)\|^2$ using the
+differentiable residual, over $24$ AirfRANS test cases, from two starting points. The
+first is the \textbf{exact ground truth}---no network is involved anywhere, so the
+standard reply that a surrogate is over-smoothed has nothing to attach to. The second
+is the truth plus a smooth displacement, which is where a surrogate's error actually
+lives. Steps are taken in units of each channel's own scale, since a uniform absolute
+step would destroy $\nu_t$ (order $10^{-3}$) long before the velocity (order $10$)
+moved. As a control we descend the true field error from the same perturbed start; it
+must, and does, recover the truth.
+
+\paragraph{Result: the truth is not a fixed point.} Starting at $u^\star$, descent cuts
+the monitored residual by $84\%$ in $\mathbf{24/24}$ cases and drives the field error
+from exactly zero to a median of $0.91$---the range in which a trained backbone
+\emph{starts}. This is theorem leg (ii) as a measurement rather than an algebraic
+remark: the same descent applied to the \emph{error} objective from the same point does
+not move at all, because $\nabla\|e\|^2=0$ there exactly, while $\nabla J\ne0$. The
+compact-stencil monitor we report falls in $24/24$ cases too, so this is not the
+differentiable twin's wider Laplacian being gamed.
+
+\paragraph{The claim we make, and the one we do not.} We do \emph{not} claim residual
+descent always harms the field: from the perturbed start it \emph{reduces} error in
+$18/24$ cases, typically by $60\%$, before overshooting. What holds universally is a
+statement about \textbf{iterate selection}. The error-minimising and residual-minimising
+iterates never coincide---they differ in $24/24$ cases on both arms---and the
+residual-selected iterate is strictly worse in $\mathbf{24/24}$. From the perturbed
+start the error bottoms at step ${\approx}62$ and the residual keeps falling to step
+${\approx}192$, by which point the error is $1.3\times$ its best value on the path. A
+practitioner who stops where the residual says lands worse than a point already
+traversed. Descent also terminates at a residual of $0.028$ while the exact truth sits
+at $0.110$: the objective ranks a field with error $1.31$ as four times better than the
+field with error zero.
+
+Two further readings we record because they went against our own expectation. The error
+does not rise monotonically---these are Adam steps on a non-convex objective, not
+gradient flow---so the claim is about endpoints, not paths. And the iterate moves
+\emph{away} from the uniform freestream rather than toward it: descent does not travel
+to the spurious global minimum of leg (i), it finds a nearby different low-residual
+field. The damage does not require reaching $u_\infty$, which makes it more relevant to
+a short practical polish, not less.
+
+\subsection{The boundary is the operator, not the problem class}
+\label{sec:regime}
+
+Residual-driven correction is not doomed in general, and it is important to say exactly
+where it works. \citet{lei2026newtonkrylov} take a surrogate prediction as an initial
+guess for Newton--Krylov correction on \emph{steady} CFD and lower the median residual
+$L_2$ ratio by over seven orders of magnitude \emph{while} substantially reducing field
+and aerodynamic error---residual down and error down, in the same regime we study.
+\citet{huang2025physicscorrect} report a similar success.
+
+That is not a counterexample to our result; it locates it. In those works the residual
+being driven is the \emph{solver's own} discrete operator, the one whose root the
+reference solution is. Its floor at the truth is zero by construction, so minimising it
+and minimising the error are the same problem. Our monitor is the affordable
+surrogate-side one: a different discretisation, on a different mesh, from the generator
+of the labels. Its floor at the truth is \emph{not} zero, does not vanish under
+refinement (\autoref{sec:floor_ladder}), and its minimiser is displaced from $u^\star$
+(\autoref{sec:residual_floor}).
+
+We therefore draw the boundary at \textbf{operator consistency} rather than where
+earlier drafts of this work drew it, at steady-versus-transient or
+resolved-versus-under-resolved. Both of those are falsified by \citet{lei2026newtonkrylov}
+being steady and successful. The operator boundary is not: it predicts success exactly
+where the monitored residual is the generator's own, and failure exactly where an
+affordable proxy replaces it.
+
+The observation that a PDE residual need not vanish at the ground truth is not ours
+alone---\citet{zhang2026phymgn} report it for shock physics and conclude that a
+physics-informed loss ``cannot be formulated using the absolute PDE residual alone;
+instead, it must be defined relative to the residual present in the ground-truth
+data''. Their remedy requires $R_h(u^\star)$, which a deployment-time monitor by
+definition does not have. Our contribution relative to theirs is to establish that the
+floor is bounded away from zero for an inconsistent operator, to measure that it grows
+under refinement rather than merely persisting, and to show what the resulting
+misplaced minimum does to a correction path.
 
 \subsection{The conformal trust layer: coverage and contraction}
 \label{sec:conformal}
@@ -1257,7 +1444,34 @@ bootstrap $95\%$ CIs ($10^4$ resamples;
 correlation at $0.610$ $[0.506, 0.698]$ and the fused score at $0.703$ $[0.615, 0.773]$;
 every arm's CI excludes zero by a wide margin. The trust signal is thus not merely
 correlated with error; it supports near-oracle triage at deployment-relevant rejection
-budgets. The audit is also essentially free at the point of use: computing the full
+budgets.
+
+\paragraph{Does the physics earn its place?}
+\label{sec:selective}
+Not on field error, and we state that rather than let the fused number stand for the
+residual's. A \emph{physics-free} score---the ensemble $\sigma$, which needs no operator,
+no mesh and no PDE---is nominally ahead of the residual ($0.894$ against $0.871$), and a
+paired case-level bootstrap cannot separate them ($\Delta$AUROC $+0.023$, $95\%$ CI
+$[-0.035,+0.083]$). The gain that survives is the \emph{fusion}'s, not the physics'. An
+earlier draft of this paper attributed ``AUROC $\approx0.9$'' to the residual; that is
+the fused score's number and the attribution was wrong.
+
+There is one place the physics wins outright, and it is the place an engineer cares
+about. Ranking cases by error in the \emph{drag coefficient} rather than in the field,
+the residual reaches AUROC $\mathbf{0.952}$ against $0.871$ on field error, and here it
+beats the physics-free score decisively ($\Delta$AUROC $+0.055$ to $+0.088$, bootstrap
+CIs excluding zero). The residual degrades gracefully onto the engineering quantity where
+the physics-free score does not.
+
+\paragraph{The detector is not a difficulty proxy.} Cases whose geometry rasterises badly
+could be both high-$\|r^\star\|$ and hard to predict, which would make the correlation a
+restatement of case difficulty. Conditioning on each case's \emph{own} floor---the
+ground-truth field's residual, an oracle quantity---leaves a partial rank correlation of
+$0.561$ against a raw $0.610$, so $92\%$ of the association survives and the drop's CI
+includes zero. The deployable residual also significantly outranks that oracle difficulty
+variable itself, which a pure difficulty proxy could not do.
+
+The audit is also essentially free at the point of use: computing the full
 residual diagnostic and trust map, the case-level score, the ensemble spread, and the
 conformal band costs a median $1.7$\,ms per case on a single CPU thread
 (\texttt{scripts/measure\_audit\_cost.py}, \texttt{results/control/audit\_cost.json}),

@@ -50,30 +50,45 @@ not `alpha < ||r*||`.
 
 Legs (i) and (ii) are correct but elementary.
 
-## F3. The replacement theory is BETTER, and it is the real novelty
+## F3. SUPERSEDED BY MEASUREMENT — read this whole section before citing it
 
-The audit found a sharper true statement already implicit in the code.
+**This section originally proposed that the floor is caused by the operator
+omitting the turbulence gradient term `(d_j nu_t)(d_j u_i + d_i u_j)`, with a
+closed-form continuum limit `2 * S * grad(nu_t)` of about 0.13. THAT MECHANISM
+IS WRONG and must not be written into the paper.**
 
-The monitored operator uses `nu_eff * laplacian(u)` and **omits**
-`(d_j nu_t)(d_j u_i + d_i u_j)`. It is therefore an **inconsistent
-discretisation of RANS**. Its floor has a nonzero **continuum limit in closed
-form**, `2 * S * grad(nu_t)`, which does **not vanish as h goes to zero**.
+`floor_resolution_study.md` section 6.2 measured it. Repairing the **full**
+stress divergence moves the floor from 0.10737 to 0.10740, which is **under
+0.1%**. The omitted term is 4.5% of the floor at 512^2. It is real and it does
+grow as predicted, but it is not the driver.
 
-This converts (H2) from an assumption into a theorem. Back-of-envelope puts
-`||2 * S * grad(nu_t)||` at about 0.13 against a measured momentum floor of
-0.1448.
+**What the measurement actually found, and it is stronger:**
 
-Why this matters:
+- **The floor does not decay under refinement. It GROWS.** `p = -0.387` over 24
+  cases at 3 levels, rising in 21 of 24; corroborated at 16 cases over 5 rungs
+  across three exclusion bands, where 0 of 16 decay, 15 of 16 rise, and the
+  floor grows by a factor of 2.56 from 128^2 to 512^2 on a region held fixed in
+  physical units. The decision rule was committed in `bf5106c` **before** the
+  run, so this is pre-registered.
+- **The mechanism is operator provenance.** Continuity and momentum rise at the
+  same rate in the same cases (`p = -0.365` and `-0.419`, both 21 of 24), which
+  rules out both single-term stories: a closure omission moves momentum alone,
+  and lost divergence-freedom moves continuity alone. The driver is failed
+  cancellation between individually grid-converged convective (0.183 to 0.199)
+  and pressure-gradient (0.180 to 0.181) terms.
 
-1. It is genuinely novel, unlike leg (iii). The classical chain
-   `||e|| <= C * ||R||` is calibrated by `R(u*) = 0`. This is the
-   **inconsistent-operator case where that calibration point does not exist.**
-2. It makes a falsifiable prediction: **the floor must plateau under grid
-   refinement.** The resolution study now running tests exactly that. Theory and
-   experiment were commissioned independently and they agree.
-3. It generalises. The claim becomes operator-level, not grid-level: *you
-   cannot audit a surrogate with a residual operator inconsistent with the one
-   that generated its training data.* That survives past 2-D and past 128^2.
+**Why the distinction matters more than the accuracy does.** If the closure term
+were the cause, then "which operator should you audit with?" has a trivial
+answer (add the term back), and the negative result is a bug report. Under
+provenance it is a genuine open design problem, and that is what makes it a
+paper.
+
+The novelty localises on **operator availability**, not on RANS, not on 2-D and
+not on the grid. The goal-oriented and dual-weighted-residual line works for
+reduced-order models precisely because `r = A_FOM(u_ROM) - b` vanishes at the
+truth by construction. A dataset-trained surrogate has no `A_FOM`. That sentence
+answers "isn't this just a-posteriori error estimation?" before a reviewer asks
+it, and it must go in the related work.
 
 Further strengthenings available: `dim ker L >= |M| + 3|W|`, at least 25% of the
 fluid state by counting, with solid degrees of freedom exactly invisible and the
@@ -103,9 +118,36 @@ on the **operator**:
 - **Solver-consistent operator** (Lei et al.; PhysicsCorrect) means residual
   correction WORKS.
 - **Affordable surrogate-side monitor, inconsistent with the data generator**
-  (this work) means residual correction FAILS, and F3 says why in closed form.
+  (this work) means residual correction FAILS.
 
-That is a sharp, defensible, genuinely new boundary.
+### THE SLOGAN — get this exactly right, it is the highest-priority edit
+
+The tempting one-liner is *"you cannot audit a surrogate with a residual
+operator different from the one that generated its training data."*
+
+**Do not write that sentence. This paper's own control 4 falsifies it.** That
+exact operator-inconsistent monitor triages worst-decile drag error at **AUROC
+0.952**, which beats its own 0.871 on field error. It audits perfectly well. A
+reviewer who reads the abstract and then the drag table finds the contradiction
+in about thirty seconds, and it would be the most likely self-inflicted wound in
+the whole reframe.
+
+**The correct statement is sharper, and it is three verbs with three
+independently measured verdicts:**
+
+> An operator-inconsistent residual monitor can **rank** predictions, but it
+> cannot **certify** them and it cannot be **descended**. The obstruction is a
+> non-vanishing floor at the reference solution, and refinement makes it worse,
+> not better.
+
+| verb | verdict | the evidence |
+|---|---|---|
+| **rank** | YES | rho 0.61; AUROC 0.871 on field error, **0.952 on drag**; survives the difficulty confound at 92% |
+| **certify** | NO | floor 0.192 sits above prediction 0.113, so no threshold on the norm implies a bound |
+| **descend** | NO | 24 of 24 cases diverge when descending from the exact truth |
+
+The abstract, introduction, positioning and conclusion must all say the same
+three verbs. This is the spine of the paper.
 
 ## F5. The floor observation is already in print, and uncited
 
@@ -129,7 +171,23 @@ data oscillation (Morin, Nochetto and Siebert, SINUM 38:466, 2000), and
 McGreivy and Hakim (Nature Machine Intelligence 6:1256-1269, 2024) as genre
 precedent for a critique paper in ML-for-CFD.
 
-## F6. A physics-free baseline may beat the physics residual
+## F6. RESOLVED — the physics-free baseline MATCHES, it does not beat
+
+**Verdict: write "matches". Do not write "beats", and do not write "is beaten
+by".** The paired bootstrap in control 1 gives sigma minus residual
+**delta-AUROC +0.023 with a 95% confidence interval of [-0.035, +0.083]**, which
+includes zero. The nominal ordering below is real, but it is not statistically
+supported, so the brief's premise that a physics-free baseline outranks the
+physics residual does NOT hold.
+
+What remains true and must still be fixed: the abstract attributes "AUROC approx
+0.9" to the residual alone, which overclaims. The honest statement is that the
+physics residual and the physics-free ensemble spread are statistically
+indistinguishable as rankers, and that **fusing them is what delivers the
+headline number** (AUROC 0.905, about 91% oracle recovery against roughly 67%
+and 72% separately).
+
+The original, now-superseded framing follows for the record.
 
 `results/selective/selective_prediction.json`, arm `ensemble_mean`:
 
@@ -241,16 +299,51 @@ Not "here is our trust layer". That claim is crowded and it lost twice.
 **An audit of what a surrogate-side physics residual can actually do**, with the
 operator-level boundary as the organising result:
 
-1. The monitored residual is provably inconsistent with the data generator, so
-   the truth itself fails the check, with a closed-form nonzero continuum floor
-   (F3), confirmed by a grid-refinement plateau.
-2. Therefore it cannot be minimised, shown by actual residual descent (F1).
-3. Where the operator IS solver-consistent, residual correction works (Lei et
+1. The monitored residual does not vanish at the reference solution, and the
+   floor **grows** under refinement, so it is not a discretisation artifact. The
+   mechanism is operator provenance, not a missing closure term (F3).
+2. It therefore cannot be **descended**: from the exact truth, descent cuts the
+   residual 84% while driving field error from zero to a median of 0.91, in 24
+   of 24 cases. The precise claim is about **iterate selection** — the
+   error-optimal and residual-chosen iterates never coincide and the
+   residual-chosen one is strictly worse, 24 of 24. Do NOT write "descending the
+   residual makes the field worse", because from a perturbed start it cuts error
+   in 18 of 24 cases (F1).
+3. It also cannot **certify**, because the floor sits above the prediction.
+4. It CAN **rank**, and better on drag (AUROC 0.952) than on field error
+   (0.871). A physics-free baseline matches it within noise; fusion is what
+   delivers the headline (F6).
+5. Where the operator IS solver-consistent, residual correction works (Lei et
    al.), so the boundary is the operator, not the problem class (F4).
-4. It still ranks errors usefully, but a physics-free baseline ranks them better
-   and physics earns its keep only in fusion (F6).
-5. What remains deployable: the calibrated conformal layer on the corrected
-   field, and the acceptance gate.
+6. What remains deployable: the calibrated conformal layer on the corrected
+   field, and the acceptance gate — **for its certificate, not its accuracy**.
+   An ungated fixed half step improves true error on 95.8% of cases against the
+   gate's 89.2%, so the accuracy gain is damping. Concede this.
+
+### Corrections still to apply to the manuscript
+
+- **`tab:iters` must report all four channels.** Over iterations 0 to 3,
+  `mse_v` rises 96% and `mse_p` rises 41% while `mse_u` falls 27%. Reporting two
+  of four channels is what made the figure look clean.
+- **Disclose the MeshGraphNet density control.** `mgn_density_control.json` has
+  zero manuscript mentions. That is a non-disclosure regardless of what it does
+  or does not establish, and it measures MSE on 4 cases, so the stronger claim
+  that rho = 0.851 is a density artifact is NOT established by it either.
+- **Restate the boundary-weight sweep at the deployed resolution.** Its margin
+  collapses with refinement and crosses zero by 512^2, so "for every weight" is
+  false as written.
+- **Drop theorem leg (iii).** It is an upper bound sold as a lower bound and it
+  is numerically vacuous. Do not try to repair it.
+
+### Citation verification, closed this session
+
+Verified directly against Crossref and arXiv, not taken on an agent's word:
+`garg2025dfuq`, `yu2026conformalpinn`, `song2026structureaware`,
+`rigotti2026gist`, `scherz2026evaluation` all check out exactly.
+`ma2024uqno` is confirmed as TMLR 2024, OpenReview `cGpegxy12T`, **and its bib
+entry was missing its second author, David Pitt — now fixed.** The two new
+must-cites `lei2026newtonkrylov` and `zhang2026phymgn` were added to `refs.bib`
+with verified metadata. Do not re-run this check.
 
 Genre precedent: McGreivy and Hakim, Nature Machine Intelligence 2024. A
 rigorous critique paper in machine learning for CFD, highly cited, and very hard
