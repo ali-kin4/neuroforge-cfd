@@ -546,3 +546,62 @@ error-minimising `k` than at `k = 0` in X/24 cases), without which a +2.3% mean 
 | `floor_resolution_study.md` | **this file** |
 | `theorem_audit.md` | not run — superseded in part by §1's MMS and unit-test gates |
 | `venue_plan.md` | not run — still open, and needed before submission |
+
+---
+
+## 11. F3's mechanism is refuted by F3's own data — added 2026-09-07
+
+`FINDINGS.md` F3 proposes that the floor is explained by the omitted closure
+term `(∂_j ν_t)(∂_j u_i + ∂_i u_j)`, whose continuum limit `2S·∇ν_t` it puts at
+**≈ 0.13** against a measured momentum floor of 0.1448 — roughly 90% of it. That
+would make the closure omission the mechanism, and `FINDINGS.md` nominates it as
+"the real novelty" on which to rebuild the paper.
+
+It is not the mechanism. Three measurements, all from the decomposition study's
+own committed rungs (16 cases × 5 rungs, band 0.1):
+
+| n | floor | repaired operator | omitted term | convection | pressure | viscous |
+|---:|---:|---:|---:|---:|---:|---:|
+| 128 | 0.045929 | 0.045924 | 0.001610 | 0.183155 | 0.180199 | 0.002287 |
+| 256 | 0.071918 | 0.071974 | 0.003454 | 0.189391 | 0.180409 | 0.005116 |
+| 512 | 0.107366 | 0.107402 | 0.004843 | 0.199377 | 0.180673 | 0.007294 |
+
+**1. Repairing the operator does not move the floor.** Adding the omitted term
+back changes it by **−0.01% to +0.18%** across every rung. If the closure
+omission drove the floor, repairing it would collapse it. It does not move it at
+all. This is the single decisive number.
+
+**2. The omitted term is 3.5–4.8% of the floor, not 90%.** F3's back-of-envelope
+is high by roughly a factor of 20. At `Re ≈ 2×10⁶` the entire *viscous* term is
+1.2–3.7% of convection, so no sub-part of it can carry a floor of order the
+convective terms.
+
+**3. The lockstep of §1a is explained.** The interior momentum balance here is
+convection against pressure gradient — 0.1832 against 0.1802 at 128². Under
+refinement **convection sharpens (0.1832 → 0.1994) while pressure stays flat
+(0.1802 → 0.1807)**, and the floor is what their discrete imbalance leaves
+behind. That imbalance is common to continuity and momentum alike, which is why
+`p_cont` and `p_mom` track each other, and it is exactly the
+reference-operator mismatch: the AirfRANS field satisfies a body-fitted discrete
+balance, and no Cartesian stencil reproduces it at any `h`.
+
+### What survives of F3, stated precisely
+
+The *theorem* survives; the *attribution* does not, and they must not be
+conflated in the rewrite.
+
+* **Survives.** The monitored operator is an inconsistent discretisation of
+  RANS, so its floor has a nonzero continuum limit. That converts (H2) from an
+  assumption into a **proved lower bound** — the floor cannot vanish under
+  refinement even in principle. That is worth stating, and it is novel.
+* **Does not survive.** The claim that this term *explains the observed floor*.
+  It accounts for ~4% of it. The paper must not write "the floor is the omitted
+  closure term", and must not quote 0.13.
+* **Consequence for the headline.** The §4 sentence is unaffected and in fact
+  better supported: the boundary is the **operator**, and the dominant
+  inconsistency is the discretisation-and-mesh mismatch with the data generator,
+  with the closure omission a smaller, separately-provable component that
+  guarantees the floor cannot be refined away.
+
+The two results are complementary rather than competing: theory proves the floor
+is bounded away from zero, measurement shows what actually sets its size.
