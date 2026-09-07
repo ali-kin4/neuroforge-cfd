@@ -3,8 +3,58 @@
 **Living document. Update it at the end of every working session**, before the
 machine can lose power. Companion: `docs/GOALS.md` (why), this file (what next).
 
-Last updated: **2026-09-04** · branch `paper2/openfoam-warm-start` · pushed to
+Last updated: **2026-09-07** · branch `paper2/openfoam-warm-start` · pushed to
 `origin` (github.com/ali-kin4/neuroforge-cfd), ~35 commits ahead of `main`.
+
+---
+
+## 0.0001 PAPER 1 — THE §4 FUNCTIONAL GATE IS CLOSED: **DESIGN A** (2026-09-07)
+
+`strongest_design.md` §4's gate decided between Design A (audit-operator ladder)
+and Design D (A + a goal-oriented certificate). It is run and it **fails on both
+pre-registered tests**, so the branch is **Design A**. Report:
+`docs/paper/review/functional_audit_gate.md`. Producer:
+`scripts/functional_audit_gate.py`. Rule committed in `282b00e` **before** the
+run (verify: `git ls-tree 282b00e results/review/functional_audit_gate.json`
+returns nothing). Results in `a81c9bd`, `1fb1445`, `367553e`. ~37 min CPU.
+
+* **(a) fails.** The ground truth's own drag-direction functional residual is
+  **9.6–10.3× the median |ΔC_d|** it would have to certify. The floor does not
+  cancel under integration.
+* **(b) fails.** Signed functional AUROC **0.61–0.70** against the residual
+  norm's **0.94–0.96** on the same fields; paired bootstrap ΔAUROC −0.25 to
+  −0.47, every CI excluding zero.
+* **(b′) gives the mechanism.** Same cells, same operator — taking the absolute
+  value moves AUROC 0.61 → 0.94. Cancellation, measured. The signed functional's
+  most-confident decile hides drag errors 3.5–4.3× the worst-decile threshold.
+* **(c) not built**, per the rule.
+
+### Two things this forces on the manuscript regardless of branch
+
+1. **Retire the 160/200 inversion argument.** It is a dropout-FNO
+   (`certificates_deq.pt`, `mse_u≈3.92`); on the deployed Transolver the
+   norm-level inversion is **2.5–6.5%**. A repo-reading reviewer checks this in
+   one command.
+2. **Restate the `certify` verb as a WIDTH, not an impossibility.** Split
+   conformal on the deployed norm attains 0.89 coverage at a 0.90 target, with a
+   bound **5.6–6.8×** the median |ΔC_d| and **1.6×** the median field rel-L2,
+   because **86%** of a typical score is floor present at zero error. "Cannot
+   certify" is too strong; "certifies only to a floor-limited width" is what is
+   measured. `descend` (24/24) and the floor's non-decay are untouched and carry
+   the thesis.
+
+### Do NOT do (a recommendation this work made and then killed)
+
+Do not swap the surface force integrator for the telescoped far-field
+control-volume drag. It wins on ground-truth fields (ρ 0.985 vs 0.839) and
+**loses on predicted fields** (0.37–0.49 vs 0.83–0.85), which is what would
+actually be deployed. See `functional_audit_gate.md` §8.1.
+
+### Next
+
+Design A's plan is `strongest_design.md` §9 weeks 1–4, unchanged, minus the
+Design B branch: the owned OpenFOAM corpus (A1–A3) is still the exposure-killer
+and must not be cut.
 
 ---
 
