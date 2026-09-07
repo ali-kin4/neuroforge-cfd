@@ -258,13 +258,22 @@ Primary metric is `band_0.1` — RMS over fluid cells with `sdf > 0.1` chord, ex
 the monitor's zeroed ring: a **fixed physical region** at every rung, for the same
 reason §0 fixes its exclusion in physical units.
 
-| N | h | **band0.1** | band0.25 | cubic C1 | repaired | omit ∇ν_t | MMS analytic | MMS raster | h/s_local |
-|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 128 | 0.02362 | **0.04593** | 0.0367 | 0.05117 | 0.04592 | 0.00161 | 6.9e-4 | 6.9e-4 | 8.08 |
-| 181 | 0.01667 | **0.05590** | — | — | 0.05600 | 0.00255 | 3.4e-4 | 3.7e-4 | 5.70 |
-| 256 | 0.01176 | **0.07192** | — | 0.08046 | 0.07197 | 0.00345 | 1.7e-4 | 2.8e-4 | 4.02 |
-| 362 | 0.00831 | **0.09049** | — | — | 0.09054 | 0.00426 | 8e-5 | 3.0e-4 | 2.84 |
-| 512 | 0.00587 | **0.10737** | 0.1090 | 0.11426 | 0.10740 | 0.00484 | 4e-5 | 3.8e-4 | 2.01 |
+| N | h | band0.05 | **band0.1** | band0.25 | cubic C1 | repaired | omit ∇ν_t | MMS analytic | MMS raster | h/s_local |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 128 | 0.02362 | 0.05743 | **0.04593** | 0.03768 | 0.05117 | 0.04592 | 0.00161 | 6.9e-4 | 6.9e-4 | 8.08 |
+| 181 | 0.01667 | 0.05931 | **0.05590** | 0.05145 | — | 0.05600 | 0.00255 | 3.4e-4 | 3.7e-4 | 5.70 |
+| 256 | 0.01176 | 0.07374 | **0.07192** | 0.07139 | 0.08046 | 0.07197 | 0.00345 | 1.7e-4 | 2.8e-4 | 4.02 |
+| 362 | 0.00831 | 0.09107 | **0.09049** | 0.09197 | — | 0.09054 | 0.00426 | 8e-5 | 3.0e-4 | 2.84 |
+| 512 | 0.00587 | 0.10711 | **0.10737** | 0.10933 | 0.11426 | 0.10740 | 0.00484 | 4e-5 | 3.8e-4 | 2.01 |
+
+All three bands rise monotonically at every rung. `band0.25` — the best-resolved
+region, furthest from every near-wall confound — rises **×2.90** and does so in
+**16/16** cases; it is the strongest series, not a hand-picked one.
+
+**Two ratios, both quoted below, so they are not confused.** Ratio-of-means over the
+ladder is **×2.34** (0.10737/0.04593) on `band0.1` and **×2.90** on `band0.25`;
+mean-of-per-case-ratios on `band0.1` is **×2.56**. The `fine/coarse` column in the
+verdict table is the per-case mean (2.56); table arithmetic gives 2.34.
 
 | series | DECAY | rising (p<0) | order p | fine/coarse |
 |---|---:|---:|---:|---:|
@@ -452,7 +461,82 @@ the "quantified operator-specific floor" clause with
 > pressure terms are individually grid-converged — the floor is their non-cancelling
 > remainder, and refinement makes the mismatch worse.
 
-## 10. Status of the six reports
+## 10. Experiment 2 — seeding `tab:iters`
+
+### 10.1 The part that cannot be fixed, stated first
+
+`tab:iters` was produced by `scripts/run_sensitivity.py` on
+**`checkpoints/certificates_deq.pt`** — a dropout-FNO backbone with a DEQ corrector,
+`mse_u ≈ 3.92`, `n_eval = 80`. There is **exactly one such file** in the repository
+and **no seeded siblings** (`find checkpoints -name '*.pt'`; the only other single
+checkpoint is `audit_pilot/seed0_base.pt`, a different arm). **The n = 1 dependency
+for that configuration cannot be removed without retraining that arm.** Nothing below
+is a substitute for it, and the paper must not present it as one.
+
+### 10.2 What seeded evidence does exist
+
+| evidence | seeds | what it shows |
+|---|---:|---|
+| `results/control/w1_capture.json` | **5** | WITH-residual corrector beats the NULL (residual-zeroed) corrector on **0/5** seeds — the residual is not load-bearing *as a corrector input* |
+| `results/control/bc_inclusive_sweep.json` | 1 | the dissociation survives adding the no-slip term (same n=1 checkpoint) |
+| `scripts/iters_sweep_seeded.py` (this work) | **5** | the iteration sweep re-run on the 5-seed Transolver+DEQ arm |
+
+Five reload-complete Transolver checkpoints *do* exist
+(`checkpoints/v2_transolver/seed{0..4}.pt` + `seed{k}_corr_with.pt`, the headline v2
+system, `mse_u ≈ 0.13`). Re-running the sweep there asks a **different, stronger**
+question than the original could: is the dissociation a property of one checkpoint,
+or of the method?
+
+**Method deviations from `tab:iters`, stated so a diff of the two tables is not
+mysterious.** `tab:iters` used `n_eval = 80` drawn through a *shuffled* index
+(`idx[:N_EVAL]` in `run_sensitivity.py`); this run uses the **first 24 cases in cache
+order** (CPU/GPU budget: ~18 min per seed × 5). Both the count and the selection
+differ. The swept knob is identical — `DEQCorrector.max_iter`, with the control that
+the engine-level `max_iters` is **inert** on the DEQ branch re-verified and logged
+(`0.229216` at both 1 and 15).
+
+### 10.3 Pre-declared reading rule (written before the 5-seed aggregate landed)
+
+* **Sign count is the primary statistic.** Dissociation (residual higher at the last
+  cap than at `k=0`, *and* best `mse_u` below `k=0`) on **≥ 4/5** seeds ⇒ backbone-
+  agnostic and seed-robust.
+* **Magnitude is reported against seed noise.** If the `k=0 → k=15` residual rise
+  exceeds ~2× the across-seed std, it is reported as a measured rise; if not, the
+  honest verdict is *"direction consistent across N/5 seeds, magnitude within seed
+  noise"* — a robustness check, not "the residual rises".
+* **The word "monotonically" is at risk and will not be smuggled through.** Seed 0
+  already dips at `k=1` (0.2073 → **0.2024** → 0.2100 → 0.2116 → 0.2120). The script
+  logs `residual_monotone_nondecreasing` per seed, and the report leads with it rather
+  than with `dissociates`.
+
+### 10.4 Result (seed 0 complete; full aggregate in `results/sensitivity/iters_seeded.json`)
+
+Seed 0, 24 cases: residual `0.2073 → 0.2024 → 0.2100 → 0.2116 → 0.2120`,
+`mse_u` `0.1547 → 0.1435 → 0.1424 → 0.1427 → 0.1429`.
+
+The dissociation reproduces **in direction** — the error minimum is at `k=3` while the
+residual keeps climbing past it — but the magnitude is nothing like the FNO arm's.
+Residual rises **+2.3%** here against **+450%** in `tab:iters` (0.113 → 0.620), and
+`mse_u` is flat after `k=1` where `tab:iters` shows real over-correction damage
+(2.287 → 2.575).
+
+**The coherent reading, and the one the paper should adopt:** dissociation magnitude
+scales with how far the corrector moves the field. A well-fit backbone (`mse_u` 0.13)
+barely moves, so its residual barely climbs. **Therefore: keep `tab:iters` with its
+honest n = 1 caption and add the seeded sweep as a robustness table** — do not swap it
+in as the headline. Swapping invites the question "why is your seeded version 100×
+weaker?" with no answer prepared; presenting it as a robustness check answers it in
+advance.
+
+**Still to verify before this section is final** (both flagged rather than assumed):
+`deq_iters_mean` per cap — on the FNO arm the DEQ never converged early and hit the
+cap at every `k`, so if on the Transolver arm it reaches its fixed point at `k ≈ 2`
+then the `k = 5, 10, 15` rows are near-duplicates and the flat tail means "converged",
+not "residual plateaus"; and a **paired** per-case sign count (residual higher at the
+error-minimising `k` than at `k = 0` in X/24 cases), without which a +2.3% mean over
+24 unpaired cases is not credibly distinguishable from zero.
+
+## 11. Status of the six reports
 
 | Report | State |
 |---|---|

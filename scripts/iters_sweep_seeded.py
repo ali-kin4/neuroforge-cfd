@@ -114,12 +114,23 @@ def eval_at_iters(engine, pairs, n_iters, checker):
     # not return their mean, and we need it. Caching the field means each case is
     # solved ONCE, not twice -- at 5 seeds x 6 caps x 80 cases that halves the run.
     cache = {}
+    deq_iters = []
 
     def predict(case):
         key = case.name
         if key not in cache:
-            cache[key] = (engine.predictor.predict(case) if n_iters == 0
-                          else engine.solve(case).field)
+            if n_iters == 0:
+                cache[key] = engine.predictor.predict(case)
+            else:
+                res = engine.solve(case)
+                # How many fixed-point steps the DEQ actually took. On the FNO arm
+                # this equalled the cap at every k (the DEQ never converged early).
+                # If on this arm it saturates at k~2, the k=5/10/15 rows are
+                # near-duplicates and a flat tail means "converged", not "the
+                # residual plateaus" -- so it is logged, not assumed.
+                if res.history and "deq_iters" in res.history[-1]:
+                    deq_iters.append(float(res.history[-1]["deq_iters"]))
+                cache[key] = res.field
         return cache[key]
 
     mets = evaluate_cases(predict, pairs, checker=checker)
@@ -139,6 +150,14 @@ def eval_at_iters(engine, pairs, n_iters, checker):
         "residual_norm": _nan_mean(res_norms),
         "residual_error_spearman": float(
             mets.get("residual_error_spearman", float("nan"))),
+        # Per-case residuals are kept, not just their mean: a small mean shift over
+        # a couple of dozen unpaired cases is not distinguishable from noise, but a
+        # PAIRED per-case sign count against k=0 is.
+        "residual_norm_per_case": [float(x) for x in res_norms],
+        "deq_iters_mean": _nan_mean(deq_iters) if deq_iters else 0.0,
+        "deq_iters_frac_at_cap": (
+            float(np.mean([d >= n_iters - 1e-9 for d in deq_iters]))
+            if deq_iters else None),
     }
 
 
@@ -219,6 +238,13 @@ def main(argv=None):
 
         base, fin = rows[0], rows[-1]
         best = min(rows, key=lambda r: r["mse_u"])
+        # PAIRED sign count: in how many individual cases is the residual higher at
+        # the error-minimising cap than at k=0? This is what makes a small mean
+        # shift credible; an unpaired 2% difference over 24 cases is not.
+        b0 = base.get("residual_norm_per_case") or []
+        bb = best.get("residual_norm_per_case") or []
+        paired = [(y > x) for x, y in zip(b0, bb) if np.isfinite(x) and np.isfinite(y)]
+        n_paired_up = int(sum(paired))
         seed_out = {
             "seed": int(seed), "rows": rows,
             "residual_rises": bool(fin["residual_norm"] > base["residual_norm"]),
@@ -229,6 +255,11 @@ def main(argv=None):
                 all(rows[i + 1]["residual_norm"] >= rows[i]["residual_norm"] - 1e-12
                     for i in range(len(rows) - 1))),
             "mse_u_argmin_iters": int(best["n_iters"]),
+            "paired_residual_up_at_best_k": n_paired_up,
+            "paired_n": len(paired),
+            "deq_iters_mean_by_k": {str(r["n_iters"]): r["deq_iters_mean"] for r in rows},
+            "deq_iters_frac_at_cap_by_k": {
+                str(r["n_iters"]): r["deq_iters_frac_at_cap"] for r in rows},
             "residual_norm_start": base["residual_norm"],
             "residual_norm_end": fin["residual_norm"],
             "mse_u_start": base["mse_u"], "mse_u_best": best["mse_u"],
