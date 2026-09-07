@@ -188,13 +188,18 @@ def main(argv=None):
     log(f"  {len(test_pcs)} clouds, {len(test_pairs)} pairs")
 
     # Resume-friendly: keep any seeds already computed in a previous invocation.
+    # Resume policy: keep EVERY previously computed seed, including ones this
+    # invocation is about to recompute. A recomputed seed replaces its predecessor
+    # only once it has actually finished (see the drop below). The earlier version
+    # dropped the requested seeds up front, so a crash part-way through a re-run
+    # destroyed results that were already on disk.
     per_seed = []
     if os.path.exists(a.out):
         try:
             prev = json.load(open(a.out, encoding="utf-8"))
-            per_seed = [s for s in prev.get("per_seed", [])
-                        if s["seed"] not in set(a.seeds)]
-            log(f"  resuming; kept {len(per_seed)} previously computed seeds")
+            per_seed = list(prev.get("per_seed", []))
+            log(f"  resuming; kept {len(per_seed)} previously computed seeds "
+                f"({sorted(s['seed'] for s in per_seed)})")
         except Exception:
             per_seed = []
 
@@ -264,6 +269,8 @@ def main(argv=None):
             "residual_norm_end": fin["residual_norm"],
             "mse_u_start": base["mse_u"], "mse_u_best": best["mse_u"],
         }
+        # Now that the replacement exists, retire any earlier entry for this seed.
+        per_seed = [s for s in per_seed if s["seed"] != int(seed)]
         per_seed.append(seed_out)
         log(f"seed {seed}: dissociates={seed_out['dissociates']} "
             f"(resid {base['residual_norm']:.3f}->{fin['residual_norm']:.3f}, "

@@ -2,8 +2,7 @@
 
 Dear Editors,
 
-I am pleased to submit **"The ground truth fails its own physics check: what a
-surrogate-side RANS residual can and cannot certify"** for consideration as an original
+I am pleased to submit **"The ground truth fails its own physics check: the cost of auditing a CFD surrogate with an operator-inconsistent residual"** for consideration as an original
 research paper in *Computers & Fluids*.
 
 **What the paper reports.** A widely adopted proposal for trusting machine-learning CFD

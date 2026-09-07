@@ -68,7 +68,7 @@ repository at docs/paper/review/RESOLUTION.md.
 --------------------------------------------------------------------
 TITLE  (CHANGED -- paste this)
 --------------------------------------------------------------------
-The ground truth fails its own physics check: what a surrogate-side RANS residual can and cannot certify
+The ground truth fails its own physics check: the cost of auditing a CFD surrogate with an operator-inconsistent residual
 
 --------------------------------------------------------------------
 ABSTRACT  (CHANGED -- paste this; plain text, no LaTeX)

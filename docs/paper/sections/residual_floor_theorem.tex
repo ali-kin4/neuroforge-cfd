@@ -43,10 +43,14 @@ both, and it is not ill-conditioning. It is that the monitored residual is
 can afford to evaluate is not the operator whose root its training labels are, so the
 truth carries a floor and the objective's minimiser sits away from $u^\star$.
 
-The section is organised around the paper's three verbs. \textbf{Certify: no}, and this is
-the leg the theory settles---\autoref{thm:consistency-floor} shows the floor survives the
-continuum limit, and \autoref{thm:residual-floor} shows the truth is neither a minimiser
-nor a stationary point, so no threshold on the residual norm implies a bound on the error.
+The section is organised around the paper's three verbs. \textbf{Certify: only loosely},
+and this is the leg the theory settles---\autoref{thm:consistency-floor} shows the floor
+survives the continuum limit, and \autoref{thm:residual-floor} shows the truth is neither a
+minimiser nor a stationary point, so no \emph{threshold} on the residual norm implies a
+bound on the error. A calibrated bound is still available by conformalising the score
+against held-out data, and we report one; what the floor destroys is its tightness, since
+$86\%$ of a typical prediction's score is present at zero error and the resulting
+certificate is $5.6$--$6.8\times$ the quantity being certified (\autoref{sec:conformal}).
 \textbf{Descend: no}, by \autoref{thm:residual-floor}(iii)--(iv), measured in
 \autoref{sec:descent}. \textbf{Rank: yes}---nothing here contradicts that, and we are
 explicit below about why a floor that defeats certification leaves between-case triage

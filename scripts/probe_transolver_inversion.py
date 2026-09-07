@@ -458,8 +458,17 @@ def stage_transolver(pairs, per_case, checker, seeds, device, pc_cache, n, cache
                     grad_energy(field0, case, truth, sel) / gt if gt > 0 else float("nan"))
                 deq_ratios[band].append(
                     grad_energy(field_deq, case, truth, sel) / gt if gt > 0 else float("nan"))
+            # Each AirfRANS cloud has a DIFFERENT point count, so every forward
+            # requests a differently-sized block and torch's caching allocator
+            # fragments steadily. Left alone this creeps to the 12 GB cap and the
+            # run degrades from ~7.8 s/case to a standstill (observed). Releasing
+            # the cache periodically keeps the footprint flat.
+            if device.type == "cuda" and (j + 1) % 10 == 0:
+                torch.cuda.empty_cache()
             if (j + 1) % 25 == 0:
-                log(f"seed {seed}: {j + 1} cases, {time.time() - t0:.0f}s elapsed")
+                mem = (torch.cuda.memory_reserved() / 2**30) if device.type == "cuda" else 0.0
+                log(f"seed {seed}: {j + 1} cases, {time.time() - t0:.0f}s elapsed, "
+                    f"{mem:.1f} GiB reserved")
         dt = time.time() - t0
         log(f"seed {seed}: {len(bb_norms)} cases in {dt:.1f}s "
             f"({dt / max(len(bb_norms), 1):.2f}s/case)")

@@ -843,8 +843,34 @@ OpenFOAM force labels (which our pipeline never loads). Recomputed against those
 \emph{ranking}---$\rho_D=0.84{\pm}0.01$ (drag), $\rho_L=0.88$ (lift)---but not magnitude:
 absolute drag is biased ($\approx 11\times$ mean relative error) by the near-field
 integrator's $1.5$-cell surface-sampling offset, and the same integrator on \emph{perfect}
-fields also yields $\rho_D=0.84$, so the model saturates the measurement ceiling rather than
-the prediction being the limit.
+fields also yields $\rho_D=0.84$, so what limits this number is the measurement rather than
+the prediction.
+
+\paragraph{That $0.84$ is not a ceiling, and we withdraw an earlier reading of it as one.}
+A three-parameter ordinary least-squares regression on $(U,\alpha,\alpha^2)$ that never
+touches a flow field ranks the official drag at $\rho=0.874$---above every integrator arm we
+tried on \emph{ground-truth} fields ($0.611$--$0.839$) and above every arm on predicted
+fields ($0.828$--$0.845$); $\alpha$ alone gives $0.800$
+(\texttt{scripts/drag\_covariate\_control.py},
+\texttt{results/control/drag\_covariate\_control.json}). The operating conditions are
+recoverable because \texttt{Simulation.reset()} parses them from the case name. The
+consequence generalises beyond this paper: \textbf{a drag rank correlation reported on this
+benchmark is uninterpretable without its covariate baseline}, and the conventional
+near-field number sits below that baseline.
+
+\paragraph{What the rasterisation costs, measured against AirfRANS's own integrator.}
+To separate information destroyed by the raster from our choice of quadrature, we
+rasterise the exact truth to $128^2$, scatter it back to the source mesh nodes, and
+integrate with AirfRANS's \emph{own} \texttt{force\_coefficient}
+(\texttt{scripts/drag\_observability\_roundtrip.py}; four pre-registered gates all exactly
+$0.0$). That round trip gives $\rho_D=0.700$ and $\rho_L=0.9967$---drag \emph{below} our
+own $0.839$, so the raster, not the quadrature, owns the loss. Controlling for the
+covariates leaves partial $\rho_D=0.133$ against partial $\rho_L=0.976$. The mechanism is
+resolution: $68\%$ of drag is viscous and the wall shear lives in a sublayer at
+$y^+\!\approx\!5$, so recovering it needs $N\sim10^5$ where lift, set by chord-scale
+surface pressure, converges at first order over the same ladder. Lift is observable from a
+raster at deployed resolution; drag is not, and the requirement is quantified rather than
+absolute.
 
 \textbf{Repairing the measurement.} We then repaired what is repairable
 (\texttt{scripts/design\_force\_integrator.py},

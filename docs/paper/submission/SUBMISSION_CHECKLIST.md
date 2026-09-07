@@ -3,8 +3,7 @@
 Target: **Computers & Fluids** (Elsevier), ISSN 0045-7930. Impact factor 3.0,
 CiteScore 5.6.
 
-Manuscript: **"The ground truth fails its own physics check: what a surrogate-side
-RANS residual can and cannot certify"**.
+Manuscript: **"The ground truth fails its own physics check: the cost of auditing a CFD surrogate with an operator-inconsistent residual"**.
 
 > **Requirements below were read directly from the journal's own pages on 2026-09-07**
 > (`.../computers-and-fluids/publish/guide-for-authors` and `.../publish/open-access-options`).
