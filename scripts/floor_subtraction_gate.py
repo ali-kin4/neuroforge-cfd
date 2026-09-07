@@ -190,6 +190,27 @@ def main(argv=None):
             arms[f"{fk}/deployed_norm"]["frac_cases_norm_below_floor"] = \
                 float(np.mean(sig < floor))
 
+    # ---- scale-invariance gate ------------------------------------------- #
+    # The first objection to "sigma' gives a WIDER interval" is that sigma' is
+    # ~0.44x the median of sigma, so the comparison is unfair. It is not: c is the
+    # 0.90 quantile of E/sigma', so a global rescale sigma' -> lambda*sigma' sends
+    # c -> c/lambda and leaves c*sigma' -- hence the width -- unchanged. Measured
+    # rather than argued, because it is the cheap way to attack the result.
+    fk0 = f"raw_seed{seeds[0]}"
+    e0 = np.abs(np.array([per_case[n]["fields"][fk0]["cd"] for n in names]) - cd_t)
+    s0 = np.array([per_case[n]["fields"][fk0]["sigma_diff"] for n in names])
+    base = conformal(s0, e0, reps=a.reps)["bound_over_error"]
+    scaled = {str(lam): conformal(lam * s0, e0, reps=a.reps)["bound_over_error"]
+              for lam in (0.01, 0.5, 2.0, 100.0)}
+    worst = max(abs(v / base - 1.0) for v in scaled.values())
+    scale_gate = {"pass": bool(worst < 1e-9), "arm": fk0, "base": base,
+                  "rescaled": scaled, "max_rel_change": worst,
+                  "rule": ("bound_over_error must be invariant under sigma -> "
+                           "lambda*sigma, so the sigma'-vs-sigma comparison cannot "
+                           "be an artifact of sigma' having a smaller median")}
+    print(f"\nscale-invariance gate: {'PASS' if scale_gate['pass'] else 'FAIL'} "
+          f"(max relative change {worst:.2e})")
+
     prim = [arms[f"raw_seed{s}/oracle_floor_subtracted"]["bound_over_error"]
             for s in seeds if f"raw_seed{s}/oracle_floor_subtracted" in arms]
     dep = [arms[f"raw_seed{s}/deployed_norm"]["bound_over_error"] for s in seeds
@@ -211,6 +232,7 @@ def main(argv=None):
            "question": ("Is the conformal certificate wide BECAUSE of the residual "
                         "floor? Oracle counterfactual with sigma' = ||R(u_hat) - R(u*)||."),
            "preregistration": "docstring of scripts/floor_subtraction_gate.py",
+           "gates": {"scale_invariance": scale_gate},
            "verdict": {"branch": br, "why": why,
                        "oracle_floor_subtracted_mean_x": m,
                        "deployed_mean_x": float(np.mean(dep)),

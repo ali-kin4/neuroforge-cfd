@@ -2,6 +2,21 @@
  "artifact": "floor_subtraction_gate",
  "question": "Is the conformal certificate wide BECAUSE of the residual floor? Oracle counterfactual with sigma' = ||R(u_hat) - R(u*)||.",
  "preregistration": "docstring of scripts/floor_subtraction_gate.py",
+ "gates": {
+  "scale_invariance": {
+   "pass": true,
+   "arm": "raw_seed0",
+   "base": 10.464709580341848,
+   "rescaled": {
+    "0.01": 10.464709580341848,
+    "0.5": 10.464709580341848,
+    "2.0": 10.464709580341848,
+    "100.0": 10.464709580341848
+   },
+   "max_rel_change": 0.0,
+   "rule": "bound_over_error must be invariant under sigma -> lambda*sigma, so the sigma'-vs-sigma comparison cannot be an artifact of sigma' having a smaller median"
+  }
+ },
  "verdict": {
   "branch": "FLOOR-NOT-CAUSAL",
   "why": "oracle floor-subtracted width 11.33x >= 4.0x: removing the floor EXACTLY does not make the certificate usable, so the width is not caused by the floor",
@@ -16,7 +31,7 @@
   "sigma' cancels SHARED rasterisation noise as well as the floor, so a large gain is an UPPER bound on what floor removal could buy."
  ],
  "metadata": {
-  "date": "2026-09-07 20:49:46",
+  "date": "2026-09-07 20:55:46",
   "device": "cpu",
   "n_cases": 200,
   "seeds": [
@@ -26,7 +41,7 @@
   ],
   "reps": 400,
   "conformal": "exact ceil((1-alpha)(n+1)) order statistic",
-  "runtime_s": 149.02459025382996
+  "runtime_s": 150.51450943946838
  },
  "arms": {
   "raw_seed0/uninformative": {
