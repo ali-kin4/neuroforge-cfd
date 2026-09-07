@@ -1,4 +1,4 @@
-\begin{thebibliography}{35}
+\begin{thebibliography}{40}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -26,6 +26,13 @@ Roland Becker and Rolf Rannacher.
 \newblock \emph{Acta Numerica}, 10:\penalty0 1--102, 2001.
 \newblock \doi{10.1017/S0962492901000010}.
 
+\bibitem[Bochev \& Gunzburger(2009)Bochev and Gunzburger]{bochev2009lsfem}
+Pavel Bochev and Max Gunzburger.
+\newblock A locally conservative least-squares method for {D}arcy flows.
+\newblock \emph{Communications in Numerical Methods in Engineering},
+  24\penalty0 (2):\penalty0 97--110, 2009.
+\newblock \doi{10.1002/cnm.1029}.
+
 \bibitem[Bonnet et~al.(2022)Bonnet, Mazari, Cinnella, and
   Gallinari]{bonnet2022airfrans}
 Florent Bonnet, Jocelyn~Ahmed Mazari, Paola Cinnella, and Patrick Gallinari.
@@ -34,6 +41,14 @@ Florent Bonnet, Jocelyn~Ahmed Mazari, Paola Cinnella, and Patrick Gallinari.
 \newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)
   Datasets and Benchmarks Track}, 2022.
 \newblock arXiv:2212.07564.
+
+\bibitem[Brandt \& Livne(2011)Brandt and Livne]{brandt2011multigrid}
+Achi Brandt and Oren~E. Livne.
+\newblock \emph{Multigrid Techniques: 1984 Guide with Applications to Fluid
+  Dynamics}.
+\newblock Classics in Applied Mathematics. Society for Industrial and Applied
+  Mathematics, 2011.
+\newblock \doi{10.1137/1.9781611972030}.
 
 \bibitem[Elrefaie et~al.(2024)Elrefaie, Morar, Dai, and
   Ahmed]{elrefaie2024drivaernet}
@@ -189,6 +204,20 @@ Tanya Marwah, Ashwini Pokle, J.~Zico Kolter, Zachary~C. Lipton, Jianfeng Lu,
   (NeurIPS)}, 2023.
 \newblock arXiv:2312.00234.
 
+\bibitem[McGreivy \& Hakim(2024)McGreivy and Hakim]{mcgreivy2024weak}
+Nick McGreivy and Ammar Hakim.
+\newblock Weak baselines and reporting biases lead to overoptimism in machine
+  learning for fluid-related partial differential equations.
+\newblock \emph{Nature Machine Intelligence}, 6:\penalty0 1256--1269, 2024.
+\newblock \doi{10.1038/s42256-024-00897-5}.
+
+\bibitem[Morin et~al.(2000)Morin, Nochetto, and Siebert]{morin2000data}
+Pedro Morin, Ricardo~H. Nochetto, and Kunibert~G. Siebert.
+\newblock Data oscillation and convergence of adaptive {FEM}.
+\newblock \emph{SIAM Journal on Numerical Analysis}, 38\penalty0 (2):\penalty0
+  466--488, 2000.
+\newblock \doi{10.1137/S0036142999360044}.
+
 \bibitem[Mukherjee et~al.(2026)Mukherjee, Fitzsimmons, Del Rey~Fern{\'a}ndez,
   and Liu]{mukherjee2026certification}
 Amartya Mukherjee, Maxwell Fitzsimmons, David~C. Del Rey~Fern{\'a}ndez, and Jun
@@ -234,6 +263,13 @@ Haoze Song, Zhihao Li, Mengyi Deng, Xin Li, Duyi Pan, Zhilu Lai, and Wei Wang.
 \newblock Structure-aware epistemic uncertainty quantification for neural
   operator {PDE} surrogates.
 \newblock \emph{arXiv preprint arXiv:2603.11052}, 2026.
+
+\bibitem[Stetter(1978)]{stetter1978defect}
+Hans~J. Stetter.
+\newblock The defect correction principle and discretization methods.
+\newblock \emph{Numerische Mathematik}, 29\penalty0 (4):\penalty0 425--443,
+  1978.
+\newblock \doi{10.1007/BF01432879}.
 
 \bibitem[Trefethen \& Bau(1997)Trefethen and Bau]{trefethenbau1997}
 Lloyd~N. Trefethen and David Bau.

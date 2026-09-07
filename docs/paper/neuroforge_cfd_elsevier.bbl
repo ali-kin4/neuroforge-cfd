@@ -1,4 +1,4 @@
-\begin{thebibliography}{35}
+\begin{thebibliography}{40}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 \providecommand{\url}[1]{\texttt{#1}}
 \providecommand{\href}[2]{#2}
@@ -285,6 +285,15 @@
   physics-informed {MeshGraphNets}},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2602.14918}
   (\bibinfo{year}{2026}). \bibinfo{note}{Submitted 16 February 2026}.
+%Type = Article
+\bibitem[{McGreivy and Hakim(2024)}]{mcgreivy2024weak}
+\bibinfo{author}{N.~McGreivy}, \bibinfo{author}{A.~Hakim},
+\newblock \bibinfo{title}{Weak baselines and reporting biases lead to
+  overoptimism in machine learning for fluid-related partial differential
+  equations},
+\newblock \bibinfo{journal}{Nature Machine Intelligence} \bibinfo{volume}{6}
+  (\bibinfo{year}{2024}) \bibinfo{pages}{1256--1269}.
+  \DOIprefix\doi{10.1038/s42256-024-00897-5}.
 %Type = Inproceedings
 \bibitem[{Krishnapriyan et~al.(2021)Krishnapriyan, Gholami, Zhe, Kirby, and
   Mahoney}]{krishnapriyan2021failure}
@@ -308,6 +317,37 @@
 \bibinfo{author}{L.~N. Trefethen}, \bibinfo{author}{D.~Bau},
   \bibinfo{title}{Numerical Linear Algebra}, \bibinfo{publisher}{SIAM},
   \bibinfo{year}{1997}.
+%Type = Article
+\bibitem[{Stetter(1978)}]{stetter1978defect}
+\bibinfo{author}{H.~J. Stetter},
+\newblock \bibinfo{title}{The defect correction principle and discretization
+  methods},
+\newblock \bibinfo{journal}{Numerische Mathematik} \bibinfo{volume}{29}
+  (\bibinfo{year}{1978}) \bibinfo{pages}{425--443}.
+  \DOIprefix\doi{10.1007/BF01432879}.
+%Type = Book
+\bibitem[{Brandt and Livne(2011)}]{brandt2011multigrid}
+\bibinfo{author}{A.~Brandt}, \bibinfo{author}{O.~E. Livne},
+  \bibinfo{title}{Multigrid Techniques: 1984 Guide with Applications to Fluid
+  Dynamics}, Classics in Applied Mathematics, \bibinfo{publisher}{Society for
+  Industrial and Applied Mathematics}, \bibinfo{year}{2011}.
+  \DOIprefix\doi{10.1137/1.9781611972030}.
+%Type = Article
+\bibitem[{Morin et~al.(2000)Morin, Nochetto, and Siebert}]{morin2000data}
+\bibinfo{author}{P.~Morin}, \bibinfo{author}{R.~H. Nochetto},
+  \bibinfo{author}{K.~G. Siebert},
+\newblock \bibinfo{title}{Data oscillation and convergence of adaptive {FEM}},
+\newblock \bibinfo{journal}{SIAM Journal on Numerical Analysis}
+  \bibinfo{volume}{38} (\bibinfo{year}{2000}) \bibinfo{pages}{466--488}.
+  \DOIprefix\doi{10.1137/S0036142999360044}.
+%Type = Article
+\bibitem[{Bochev and Gunzburger(2009)}]{bochev2009lsfem}
+\bibinfo{author}{P.~Bochev}, \bibinfo{author}{M.~Gunzburger},
+\newblock \bibinfo{title}{A locally conservative least-squares method for
+  {D}arcy flows},
+\newblock \bibinfo{journal}{Communications in Numerical Methods in Engineering}
+  \bibinfo{volume}{24} (\bibinfo{year}{2009}) \bibinfo{pages}{97--110}.
+  \DOIprefix\doi{10.1002/cnm.1029}.
 %Type = Article
 \bibitem[{Ashton et~al.(2024)Ashton, Maddix, Gundry, and
   Shabestari}]{ahmedml2024}

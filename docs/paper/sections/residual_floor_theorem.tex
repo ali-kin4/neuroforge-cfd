@@ -209,7 +209,23 @@ the \emph{optimisation difficulty} of PINN losses, and \citet{wang2022ntk} analy
 bias and loss-term imbalance in PINN \emph{training dynamics}; both concern trainability, not
 a displacement of the residual minimiser from the truth. The forward-vs-backward error gap
 $\|e\|\!\le\!\|R_h\|/\sigma_{\min}$ is classical \citep{trefethenbau1997}, and a-posteriori
-PINN bounds upper-bound error \emph{by} residual (the benign regime). That a residual blind to
+PINN bounds upper-bound error \emph{by} residual (the benign regime).
+
+The nearest classical relatives are worth naming precisely, because each has the structure
+we need and none has the case. Defect correction \citep{stetter1978defect} and multigrid
+$\tau$-correction \citep{brandt2011multigrid} both drive one operator using the residual
+of \emph{another}, and both handle the resulting mismatch by carrying an explicit
+correction term---which is exactly the object a deployment-time monitor cannot form,
+because it would require the fine operator we are trying to avoid running. In the finite
+element a-posteriori literature the phenomenon of an error contribution that the estimator
+cannot see and that does not vanish with refinement is \emph{data oscillation}
+\citep{morin2000data}; our floor is its analogue for an inconsistent monitored operator,
+with the difference that data oscillation is a property of the right-hand side's
+representation while ours is a property of the operator itself. Least-squares finite
+element methods \citep{bochev2009lsfem} obtain a residual functional that \emph{is}
+norm-equivalent to the error---the property our monitor lacks---by constructing the
+discretisation and the functional together, which is precisely the option a surrogate-side
+audit forgoes when it adopts a cheap operator after the fact. That a residual blind to
 certain modes makes the truth a non-minimiser is, in its bare form, elementary (the pressure
 gauge above). Our contribution is sharper and threefold: \textbf{(a)} the \emph{quantified}
 operator-specific floor $\|e_\infty\|=\|L^{+}r^\star\|\le\|r^\star\|/\sigma_{\min}$ for this

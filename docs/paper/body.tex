@@ -846,7 +846,21 @@ integrator; drag \emph{ranking} is still best served by the near-field scheme
 ($\rho_D=0.84$). We therefore report lift as quantitatively recovered, read
 $\rho_{C_l}/\rho_{C_d}$ in the tables as internal consistency, and still make no claim of
 accurate absolute \emph{drag} or of a cross-method force-ranking win (published methods use
-a different force-integration convention). The backbone is itself a published SOTA architecture
+a different force-integration convention).
+
+\paragraph{Two deflations of these numbers, which we would rather state than be asked.}
+$\rho_L=0.998$ is an easy number twice over, and should not be read as evidence that the
+surrogate has learned the near-wall flow. Angle of attack is an \emph{input} channel, and
+lift at these conditions is close to a function of it; separately, the control-volume
+estimator recovers lift from circulation through the outer ring via Kutta--Joukowski, so
+it depends on the far field the surrogate predicts most easily and not on the surface at
+all. The high correlation is real and useful for triage, but it is not a strong test.
+Second, and more restrictive: with residuals and forces evaluated on a grid whose
+solid-adjacent ring is masked, at $Re\approx10^6$ the momentum thickness is far below one
+cell, so the \emph{viscous} component of drag is not merely inaccurate here---it is
+\textbf{unavailable}. Every drag statement in this paper is therefore about the
+pressure-dominated component on a grid that cannot resolve the boundary layer, which is
+also why we do not report $C_{d,v}$ anywhere. The backbone is itself a published SOTA architecture
 (Transolver, \citealt{wu2024transolver}), so the trust layer and corrector are demonstrated
 \emph{on} a competitive surrogate---not only on the weak grid backbone.
 
@@ -1395,7 +1409,16 @@ alone---\citet{zhang2026phymgn} report it for shock physics and conclude that a
 physics-informed loss ``cannot be formulated using the absolute PDE residual alone;
 instead, it must be defined relative to the residual present in the ground-truth
 data''. Their remedy requires $R_h(u^\star)$, which a deployment-time monitor by
-definition does not have. Our contribution relative to theirs is to establish that the
+definition does not have.
+
+We also note the genre this paper belongs to. \citet{mcgreivy2024weak} show that weak
+baselines and reporting biases have produced systematic overoptimism in machine learning
+for fluid PDEs; the corrective in both cases is a measurement rather than a method, and
+several of the concessions we make above---an ungated baseline that beats our gate, a
+physics-free score that matches our physics one---are exactly the comparisons that work
+argues are routinely omitted.
+
+Our contribution relative to \citet{zhang2026phymgn} is to establish that the
 floor has a nonzero continuum limit for an inconsistent operator, to measure that it grows
 under refinement rather than merely persisting, and to show what the resulting
 misplaced minimum does to a correction path.
