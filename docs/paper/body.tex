@@ -1216,12 +1216,18 @@ knob is the DEQ corrector's internal fixed-point cap
 (\texttt{results/sensitivity/iters.json}), and that corrector is trained by supervised
 regression toward ground truth; it never sees the residual as an objective. The sweep is
 therefore an anti-correlation along one trajectory, not a test of residual minimisation.
-\emph{(ii)} The anti-correlation is not monotone across the sweep. Error falls and
-residual rises only over iterations $0\!\to\!3$; from iteration $3$ to $15$ both
-\emph{rise} together ($\texttt{mse\_u}$ $2.287\to2.575$, residual $0.542\to0.620$), so
-over four of the five intervals the two quantities move in the \emph{same} direction.
-Quoting the $0\!\to\!3$ endpoints alone, as earlier drafts of this paper did, overstates
-the effect. \emph{(iii)} It is a single unseeded checkpoint ($n=1$), and it reports
+\emph{(ii)} The anti-correlation is carried by one channel, and not the channel
+earlier drafts emphasised. Across the sweep the residual rises while surface
+$\texttt{mse\_p}$ falls, and those two are strongly anti-correlated (rank correlation
+$-0.94$); $\texttt{mse\_u}$ has essentially no relationship with the residual
+($-0.03$). $\texttt{mse\_u}$ falls only over iterations $0\!\to\!3$ and then
+\emph{rises} alongside the residual ($2.287\to2.575$ against $0.542\to0.620$), so on
+three of the five intervals the two move in the \emph{same} direction. Row $0$ is
+moreover backbone-only, which makes $0\!\to\!1$ a corrector on/off contrast rather than
+an iteration step; restricted to $n_{\mathrm{iters}}\ge1$ the residual rises $84.7\%$
+while $\texttt{mse\_u}$ rises $4.7\%$---again the same direction. Quoting the
+$0\!\to\!3$ $\texttt{mse\_u}$ endpoints alone, as earlier drafts of this paper did,
+overstates the effect. \emph{(iii)} It is a single unseeded checkpoint ($n=1$), and it reports
 $\texttt{mse\_u}$ and surface $\texttt{mse\_p}$ only, while \autoref{tab:indist} shows
 this corrector family inflating $\texttt{mse\_v}$ and volume $\texttt{mse\_p}$. None of
 these limits applies to \autoref{sec:descent}, which is why the claim now rests there.
@@ -1428,6 +1434,69 @@ practitioner who stops where the residual says lands worse than a point already
 traversed. Descent also terminates at a residual of $0.028$ while the exact truth sits
 at $0.110$: the objective ranks a field with error $1.31$ as four times better than the
 field with error zero.
+
+\paragraph{At $n=200$, on the deployed backbone, and under gradient descent.} The
+preceding arms use $24$ cases, an Adam optimiser and a synthetic displacement. We
+repeated the experiment with the framework's \emph{monitored} operator (a differentiable
+replica verified against \texttt{Diagnostics.residual\_norm} to $10^{-8}$ relative),
+under \textbf{Armijo-line-searched gradient descent}---so $J$ is monotone non-increasing
+and the step is chosen by the objective---on $200$ AirfRANS test cases, starting from the
+\emph{deployed} Transolver (three backbone seeds) and from the dropout-FNO of
+\autoref{tab:iters}, with the far-field and near-wall Dirichlet data \emph{pinned at
+ground truth} so the negative cannot be attributed to an unconstrained residual
+(\autoref{tab:descent200}; \texttt{scripts/residual\_descent\_test.py}).
+From the truth, $J$ falls to $39.8\%$ of $J_0$ while the field error rises on
+$\mathbf{200/200}$ cases and never returns to its starting value at any of $500$ steps,
+ending at $\mathrm{rel}\text{-}L_2=0.0069$---$1.57\times$ the \emph{entire} error of the
+deployed Transolver---at a measured exchange rate
+$\Delta\mathrm{err}/\Delta\|R_h\|=-0.140$. From the deployed Transolver the residual
+falls $34\%$ while the error rises on $\mathbf{96.5/94.0/98.0\%}$ of cases (seeds
+$0/1/2$; median $+76.5/+73.9/+86.9\%$; Wilcoxon $p<10^{-30}$), against the supervised
+corrector's $-9/-21/-25\%$ on the same backbone. The verdict is unchanged under three
+step rules---Armijo, fixed $\eta$ swept over $12$ decades, and Adam---and in every one
+the outcome is monotone in the \emph{achieved} $J$: the harder the objective is
+minimised, the worse the field.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Armijo-line-searched gradient descent on the monitored objective
+$J=\tfrac12\|R_h\|^2$, $500$ steps, $n=200$ AirfRANS \texttt{full} test cases, with the
+far-field and near-wall Dirichlet data pinned at ground truth. $J$ is monotone
+non-increasing by construction. rel-$L_2$ is the fluid-masked rel-$L_2$ of speed (the
+\texttt{measure\_acceptance\_gate} formula); $\Delta$ is the median per-case change.
+\texttt{scripts/residual\_descent\_test.py}.}
+\label{tab:descent200}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l r r r r r}
+\toprule
+start field & $\|R_h\|$ start$\to$end & $J/J_0$ & $\Delta$ rel-$L_2$ & frac.\ worse & $\texttt{mse\_u}$ start$\to$end \\
+\midrule
+ground truth $u^\star$ & $0.191\to0.125$ & $0.398$ & --- ($0\to0.0069$) & $\mathbf{200/200}$ & $0.000\to0.499$ \\
+Transolver seed 0      & $0.218\to0.144$ & $0.406$ & $+76.5\%$ & $0.965$ & $0.119\to0.556$ \\
+Transolver seed 1      & $0.218\to0.142$ & $0.388$ & $+73.9\%$ & $0.940$ & $0.120\to0.553$ \\
+Transolver seed 2      & $0.217\to0.141$ & $0.390$ & $+86.9\%$ & $0.980$ & $0.103\to0.544$ \\
+dropout-FNO            & $0.286\to0.153$ & $0.238$ & $-18.7\%$ & $0.250$ & $0.898\to0.930$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{Where descent helps, and why that does not rescue the objective.} The
+dropout-FNO row is a genuine exception: there descent \emph{lowers} the error, on $75\%$
+of cases. The boundary is measurable in the theorem's own variable
+$\rho=\|R_h(\hat u)\|/\|r^\star\|$, since the truth arm supplies $\|r^\star\|$ for the
+same case. Over $200$ cases the fraction on which residual descent lowers
+$\mathrm{rel}\text{-}L_2$ rises monotonically with $\rho$: for the dropout-FNO $0.40$ at
+$\rho\in[1,1.5)$, $0.97$ at $[1.5,2)$ and $1.00$ above $2$; for the deployed Transolver
+$0.01$, $0.28$ and $0.25$. The deployed backbone has median $\rho=1.13$--$1.14$ with
+$88\%$ of cases in the lowest bin: it is already inside the regime where descent almost
+never helps. ($\rho$ is a strong trend, not a complete predictor---at matched
+$\rho\in[1.5,2)$ the two backbones differ---so we claim the ordering, not a law.) Even in
+the favourable regime the objective is not usable: the gain is ${\approx}1/35$ of the
+supervised corrector's, and there is \textbf{no stopping rule}---$J$ falls monotonically
+on $100\%$ of cases while the error minimum is interior on $78.5\%$, so driving $J$ lower
+with Adam cuts the gain from $-15.3\%$ to $-6.7\%$.
 
 Two further readings we record because they went against our own expectation. The error
 does not rise monotonically---these are Adam steps on a non-convex objective, not
@@ -1973,13 +2042,19 @@ differentiating the interpolant rather than sampling the solution. The
 $128^2\!\to\!256^2$ leg is clear of that limit and already shows the rise, but we cannot
 extend the ladder further on this data and do not claim an asymptotic rate---only that the
 floor does not decay over the range a $128^2$-trained surrogate is deployed in.
-\item \textbf{The descent is Adam, not gradient flow.} \autoref{sec:descent} minimises the
-residual with a first-order optimiser and per-channel scaling, not by integrating the
-gradient flow theorem leg (iv) describes. Consequently the field error rises overall but
-not monotonically, and our claim is about endpoints and about which iterate the residual
-selects, not about the shape of the path. A different optimiser or step schedule would
-change the trajectory; what it would not change is that the residual keeps falling past
-the point where the error has turned.
+\item \textbf{The $n{=}24$ descent arms are Adam, not gradient flow.} The $24$-case arms
+of \autoref{sec:descent} minimise the residual with a first-order optimiser and
+per-channel scaling, so the field error rises overall but not monotonically and those
+claims are about endpoints rather than the shape of the path. The $n{=}200$ arm closes
+this: it uses Armijo-line-searched gradient descent, under which $J$ is monotone
+non-increasing by construction, and reaches the same verdict on the deployed backbone
+under three separate step rules.
+\item \textbf{The headline descent arm freezes $\nu_t$.} Descending the eddy viscosity
+alongside $(u,v,p)$ quarters the velocity damage, but it does so by dumping the residual
+into the closure: $\texttt{mse\_nut}$ rises seven orders of magnitude
+($6.3\times10^{-9}\to0.115$) while the field error still worsens on $82.5\%$ of cases. We
+therefore freeze $\nu_t$ in the headline arm and report the four-channel arm as a
+control.
 \item \textbf{Grid resolution and near-wall blindness.} A uniform $128^2$ Cartesian grid
 cannot resolve a Re $\approx 10^6$ boundary layer (sub-cell), so wall quantities are
 approximate and the absolute MSE values are not comparable to body-fitted solvers.
