@@ -130,6 +130,23 @@ def bound_rows(root, kind):
     return float(d["bound"][f"{kind}_rows"])
 
 
+def wallclock(root, arm, field):
+    """Savings from the exclusive tree -- the only one whose seconds are quotable.
+
+    Every other tree ran cases in parallel, so its seconds measure contention
+    rather than the seed. ``wallclock2`` runs serially and refuses to start while
+    another solver is up.
+    """
+    d = load(root, "results/wallclock_cdv.json")
+    if d is None:
+        return None
+    node = d["summary"][arm]
+    if field == "wins":
+        return float(node["wins_end_to_end"])
+    v = node[field]
+    return 100.0 * (v["mean"] if isinstance(v, dict) else v)
+
+
 CLAIMS = [
     # arms
     ("oracle_mesh saving (%)", lambda r: level(r, "oracle_mesh", "mean"), 93.6, 0.05),
@@ -177,6 +194,23 @@ CLAIMS = [
     ("closed form over-prediction, max", lambda r: bound_ratio(r, "max"), 2.8, 0.05),
     ("closed form live rows", lambda r: bound_rows(r, "non_degenerate"), 3, 0.5),
     ("closed form degenerate rows", lambda r: bound_rows(r, "degenerate"), 2, 0.5),
+    # the wall-clock table, from the exclusive tree only
+    ("wall-clock nf_bl, iterations (%)",
+     lambda r: wallclock(r, "nf_bl", "iterations"), 14.6, 0.1),
+    ("wall-clock nf_bl, solver seconds (%)",
+     lambda r: wallclock(r, "nf_bl", "solver_seconds"), 16.8, 0.1),
+    ("wall-clock nf_bl, end-to-end seconds (%)",
+     lambda r: wallclock(r, "nf_bl", "end_to_end_seconds"), 9.0, 0.1),
+    ("wall-clock nf_bl, end-to-end wins",
+     lambda r: wallclock(r, "nf_bl", "wins"), 5, 0.5),
+    ("wall-clock oracle_mesh, end-to-end (%)",
+     lambda r: wallclock(r, "oracle_mesh", "end_to_end_seconds"), 93.5, 0.1),
+    ("wall-clock cartesian_128, end-to-end (%)",
+     lambda r: wallclock(r, "cartesian_128", "end_to_end_seconds"), -2.3, 0.1),
+    ("wall-clock cartesian_128, end-to-end wins",
+     lambda r: wallclock(r, "cartesian_128", "wins"), 2, 0.5),
+    ("wall-clock fitted_bl, end-to-end (%)",
+     lambda r: wallclock(r, "fitted_bl", "end_to_end_seconds"), 26.1, 0.1),
 ]
 
 
