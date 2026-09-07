@@ -1,0 +1,91 @@
+{
+ "artifact": "control6_iters_channels_and_monotonicity",
+ "question": "tab:iters reports only mse_u and surface mse_p while tab:indist documents this corrector family inflating mse_v (+129%) and mse_p (+57%). Do the omitted channels rise along the sweep? And is the 'opposite directions' claim true over the whole range?",
+ "channel_availability": {
+  "columns_retained_in_iters_json": [
+   "deq_iters_mean",
+   "mse_u",
+   "n_iters",
+   "residual_error_spearman",
+   "residual_norm",
+   "surface_mse_p"
+  ],
+  "columns_needed": [
+   "mse_u",
+   "mse_v",
+   "mse_p",
+   "mse_nut",
+   "surface_mse_p"
+  ],
+  "columns_MISSING": [
+   "mse_v",
+   "mse_p",
+   "mse_nut"
+  ],
+  "verdict": "The per-channel data was NOT retained. results/sensitivity/iters.json and iters.csv carry mse_u and surface_mse_p only; mse_v, volume mse_p and mse_nut appear nowhere in the sweep's committed output.",
+  "provenance_check": {
+   "script": "scripts/run_sensitivity.py",
+   "found": true,
+   "mentions_mse_v": false,
+   "mentions_mse_p": true,
+   "first_index_mse_u": 1073,
+   "first_index_surface_mse_p": 1080
+  },
+  "figures_present": [
+   "iters_metrics.png",
+   "ood_coverage.png",
+   "trust_weights.png"
+  ],
+  "no_substitution": "We do NOT substitute the tab:indist per-channel numbers: that is a different corrector arm on a different backbone and would be a fabricated row."
+ },
+ "monotonicity": {
+  "n_iters": [
+   0,
+   1,
+   3,
+   5,
+   10,
+   15
+  ],
+  "mse_u": [
+   3.923773992619553,
+   2.4603128107080745,
+   2.2874115067434295,
+   2.4387229704013222,
+   2.5697800306960223,
+   2.5754771669350722
+  ],
+  "residual_norm": [
+   0.11262006154283881,
+   0.3355632131919265,
+   0.5418833289295435,
+   0.5935137506574393,
+   0.6178580850362778,
+   0.6198838077485561
+  ],
+  "mse_u_argmin_iter": 3,
+  "mse_u_min": 2.2874115067434295,
+  "mse_u_at_last": 2.5754771669350722,
+  "mse_u_rise_from_min_to_last_pct": 12.593521512959407,
+  "residual_at_min": 0.5418833289295435,
+  "residual_at_last": 0.6198838077485561,
+  "residual_rise_from_min_to_last_pct": 14.394330782070316,
+  "residual_is_monotone_increasing": true,
+  "mse_u_is_monotone": false,
+  "spearman_residual_vs_mse_u_over_sweep": -0.02857142857142857,
+  "spearman_over_iters_3_to_15": 1.0,
+  "confirmed": "mse_u bottoms at iteration 3 (2.2874) and rises to 2.5755 by iteration 15, while residual_norm rises 0.5419 -> 0.6199 over the same span: across iterations 3-15 residual and error move in the SAME direction."
+ },
+ "surface_mse_p_direction": {
+  "values": [
+   541203.9648868717,
+   428560.20412922336,
+   336718.1999415,
+   308381.3726539468,
+   300298.06511763704,
+   300664.06122011464
+  ],
+  "monotone_decreasing_to_iter10": true,
+  "note": "surface pressure keeps improving to iter 10 then flattens/rises slightly; it does not share mse_u's turn at iteration 3."
+ }
+}

@@ -1,0 +1,449 @@
+{
+ "artifact": "control1_physics_vs_physicsfree",
+ "question": "Does the physics residual buy anything over a physics-free ensemble-spread baseline on the paper's own selective-prediction task, and is the fusion gain statistically real? Marginal CIs cannot answer this; a PAIRED case-level bootstrap can.",
+ "method": {
+  "auroc": "Mann-Whitney AUROC for detecting worst-decile-rel-L2 cases. The positive-class threshold is the FULL-SAMPLE top-decile threshold and is held FIXED across bootstrap draws, so 'worst-decile case' is a property of the case (the paper's estimand) and the paired delta is not contaminated by label churn.",
+  "spearman": "case-level Spearman(score, rel_L2).",
+  "risk": "retained mean rel-L2 after rejecting the highest-scoring 10% of cases. Primary paired risk statistic because it is a difference of well-behaved means; oracle-recovery is a RATIO of differences whose denominator can approach zero under resampling, so it is reported as a descriptive on the full sample only.",
+  "bootstrap": "10000 case-level resamples, seed 0, percentile CI."
+ },
+ "arms": {
+  "ensemble_mean": {
+   "n_cases": 200,
+   "top_decile_threshold_rel_l2": 0.006801791723089762,
+   "n_positives": 20,
+   "scores_available": [
+    "fused",
+    "residual",
+    "sigma_p",
+    "sigma_vel"
+   ],
+   "marginal": {
+    "residual": {
+     "spearman": 0.610323258081452,
+     "auroc_top_decile": 0.8705555555555555,
+     "retained_risk_at_10pct": 0.0036258560886445338,
+     "published_spearman": 0.6103232580814522,
+     "published_auroc": 0.8705555555555555,
+     "reproduces": true,
+     "oracle_recovery_at_10pct": 0.6699248490970853
+    },
+    "sigma_vel": {
+     "spearman": 0.6542938573464336,
+     "auroc_top_decile": 0.8938888888888888,
+     "retained_risk_at_10pct": 0.003600716636101335,
+     "published_spearman": 0.6542938573464337,
+     "published_auroc": 0.8938888888888888,
+     "reproduces": true,
+     "oracle_recovery_at_10pct": 0.7170689400598571
+    },
+    "sigma_p": {
+     "spearman": 0.5805430135753393,
+     "auroc_top_decile": 0.8552777777777778,
+     "retained_risk_at_10pct": 0.0036642283080840204,
+     "published_spearman": 0.5805430135753396,
+     "published_auroc": 0.8552777777777778,
+     "reproduces": true,
+     "oracle_recovery_at_10pct": 0.5979653105753119
+    },
+    "fused": {
+     "spearman": 0.7028211264860553,
+     "auroc_top_decile": 0.9052777777777777,
+     "retained_risk_at_10pct": 0.0034953119559396825,
+     "published_spearman": 0.7028211264860554,
+     "published_auroc": 0.9052777777777777,
+     "reproduces": true,
+     "oracle_recovery_at_10pct": 0.9147346537783212
+    }
+   },
+   "paired": {
+    "sigma_vel_minus_residual": {
+     "delta_auroc": {
+      "point": 0.023333333333333317,
+      "ci95": [
+       -0.03455491662947662,
+       0.08321396144429848
+      ],
+      "boot_mean": 0.023639267603432258,
+      "boot_std": 0.029750872853458895,
+      "frac_draws_gt_0": 0.7931,
+      "frac_draws_lt_0": 0.2044,
+      "excludes_zero": false,
+      "n_boot_valid": 10000
+     },
+     "delta_spearman": {
+      "point": 0.04397059926498159,
+      "ci95": [
+       -0.05172274894675658,
+       0.14207637424809105
+      ],
+      "boot_mean": 0.04396320770593974,
+      "boot_std": 0.04957239903877572,
+      "frac_draws_gt_0": 0.8139,
+      "frac_draws_lt_0": 0.1861,
+      "excludes_zero": false,
+      "n_boot_valid": 10000
+     },
+     "delta_retained_risk_at_10pct": {
+      "point": -2.513945254319864e-05,
+      "ci95": [
+       -0.00018887408033509321,
+       7.338499630804584e-05
+      ],
+      "boot_mean": -4.880871351593028e-05,
+      "boot_std": 6.723466552632434e-05,
+      "frac_draws_gt_0": 0.2386,
+      "frac_draws_lt_0": 0.7614,
+      "excludes_zero": false,
+      "n_boot_valid": 10000
+     },
+     "delta_oracle_recovery_fixed_denominator": {
+      "point": 0.04714409096277177,
+      "ci95": [
+       -0.1376191042865483,
+       0.3541961309032766
+      ],
+      "boot_mean": 0.09153112725175161,
+      "boot_std": 0.12608537047407273,
+      "frac_draws_gt_0": 0.7614,
+      "frac_draws_lt_0": 0.2386,
+      "excludes_zero": false,
+      "n_boot_valid": 10000
+     },
+     "note": "positive delta_auroc/spearman favours the FIRST-named score; NEGATIVE delta_retained_risk favours it (lower risk is better)."
+    },
+    "fused_minus_residual": {
+     "delta_auroc": {
+      "point": 0.03472222222222221,
+      "ci95": [
+       0.004934455846220558,
+       0.06889227690663616
+      ],
+      "boot_mean": 0.03491717001450265,
+      "boot_std": 0.016185329168979787,
+      "frac_draws_gt_0": 0.9886,
+      "frac_draws_lt_0": 0.0111,
+      "excludes_zero": true,
+      "n_boot_valid": 10000
+     },
+     "delta_spearman": {
+      "point": 0.09249786840460328,
+      "ci95": [
+       0.033935122772156955,
+       0.1539332162494405
+      ],
+      "boot_mean": 0.09254226756272245,
+      "boot_std": 0.03050385884164938,
+      "frac_draws_gt_0": 0.9996,
+      "frac_draws_lt_0": 0.0004,
+      "excludes_zero": true,
+      "n_boot_valid": 10000
+     },
+     "delta_retained_risk_at_10pct": {
+      "point": -0.00013054413270485125,
+      "ci95": [
+       -0.00025105282700031576,
+       -1.838839902971791e-05
+      ],
+      "boot_mean": -0.00012068174949321716,
+      "boot_std": 5.9710502290663126e-05,
+      "frac_draws_gt_0": 0.0084,
+      "frac_draws_lt_0": 0.9915,
+      "excludes_zero": true,
+      "n_boot_valid": 10000
+     },
+     "delta_oracle_recovery_fixed_denominator": {
+      "point": 0.24480980468123584,
+      "ci95": [
+       0.03448382000471605,
+       0.4708001215311259
+      ],
+      "boot_mean": 0.22631484778271016,
+      "boot_std": 0.11197528452883511,
+      "frac_draws_gt_0": 0.9915,
+      "frac_draws_lt_0": 0.0084,
+      "excludes_zero": true,
+      "n_boot_valid": 10000
+     },
+     "note": "positive delta_auroc/spearman favours the FIRST-named score; NEGATIVE delta_retained_risk favours it (lower risk is better)."
+    },
+    "fused_minus_sigma_vel": {
+     "delta_auroc": {
+      "point": 0.011388888888888893,
+      "ci95": [
+       -0.020813832128054387,
+       0.044559893861569826
+      ],
+      "boot_mean": 0.0112779024110704,
+      "boot_std": 0.01643826540531527,
+      "frac_draws_gt_0": 0.7564,
+      "frac_draws_lt_0": 0.2413,
+      "excludes_zero": false,
+      "n_boot_valid": 10000
+     },
+     "delta_spearman": {
+      "point": 0.04852726913962169,
+      "ci95": [
+       0.001465065662718843,
+       0.09659930230049783
+      ],
+      "boot_mean": 0.0485790598567827,
+      "boot_std": 0.024294082464018894,
+      "frac_draws_gt_0": 0.979,
+      "frac_draws_lt_0": 0.021,
+      "excludes_zero": true,
+      "n_boot_valid": 10000
+     },
+     "delta_retained_risk_at_10pct": {
+      "point": -0.00010540468016165261,
+      "ci95": [
+       -0.0001657016933287243,
+       4.372997423619292e-06
+      ],
+      "boot_mean": -7.187303597728686e-05,
+      "boot_std": 4.42886325226755e-05,
+      "frac_draws_gt_0": 0.033,
+      "frac_draws_lt_0": 0.9668,
+      "excludes_zero": false,
+      "n_boot_valid": 10000
+     },
+     "delta_oracle_recovery_fixed_denominator": {
+      "point": 0.1976657137184641,
+      "ci95": [
+       -0.008200695220582721,
+       0.31074088385779713
+      ],
+      "boot_mean": 0.13478372053095852,
+      "boot_std": 0.08305460577066823,
+      "frac_draws_gt_0": 0.9668,
+      "frac_draws_lt_0": 0.033,
+      "excludes_zero": false,
+      "n_boot_valid": 10000
+     },
+     "note": "positive delta_auroc/spearman favours the FIRST-named score; NEGATIVE delta_retained_risk favours it (lower risk is better)."
+    }
+   },
+   "oracle": {
+    "retained_risk_at_0pct": 0.003983091610794806,
+    "oracle_retained_risk_at_10pct": 0.0034498444523534543,
+    "max_achievable_reduction": 0.0005332471584413513
+   }
+  },
+  "corrected_seed0": {
+   "n_cases": 200,
+   "top_decile_threshold_rel_l2": 0.006491700752598642,
+   "n_positives": 20,
+   "scores_available": [
+    "residual"
+   ],
+   "marginal": {
+    "residual": {
+     "spearman": 0.6356348908722718,
+     "auroc_top_decile": 0.9141666666666667,
+     "retained_risk_at_10pct": 0.003648844690523605,
+     "published_spearman": 0.6356348908722718,
+     "published_auroc": 0.9141666666666667,
+     "reproduces": true,
+     "oracle_recovery_at_10pct": 0.6310015963792563
+    }
+   },
+   "paired": {},
+   "oracle": {
+    "retained_risk_at_0pct": 0.0039656337537031135,
+    "oracle_retained_risk_at_10pct": 0.003463592134478578,
+    "max_achievable_reduction": 0.0005020416192245353
+   }
+  },
+  "corrected_seed1": {
+   "n_cases": 200,
+   "top_decile_threshold_rel_l2": 0.006680850109632614,
+   "n_positives": 20,
+   "scores_available": [
+    "residual"
+   ],
+   "marginal": {
+    "residual": {
+     "spearman": 0.6158553963849096,
+     "auroc_top_decile": 0.8919444444444444,
+     "retained_risk_at_10pct": 0.003823568583901894,
+     "published_spearman": 0.6158553963849097,
+     "published_auroc": 0.8919444444444444,
+     "reproduces": true,
+     "oracle_recovery_at_10pct": 0.624218694086355
+    }
+   },
+   "paired": {},
+   "oracle": {
+    "retained_risk_at_0pct": 0.004134572251809795,
+    "oracle_retained_risk_at_10pct": 0.003636343552710828,
+    "max_achievable_reduction": 0.000498228699098967
+   }
+  },
+  "corrected_seed2": {
+   "n_cases": 200,
+   "top_decile_threshold_rel_l2": 0.007126587634947977,
+   "n_positives": 20,
+   "scores_available": [
+    "residual"
+   ],
+   "marginal": {
+    "residual": {
+     "spearman": 0.6665191629790744,
+     "auroc_top_decile": 0.9,
+     "retained_risk_at_10pct": 0.003947285467457804,
+     "published_spearman": 0.6665191629790745,
+     "published_auroc": 0.9,
+     "reproduces": true,
+     "oracle_recovery_at_10pct": 0.656801090300448
+    }
+   },
+   "paired": {},
+   "oracle": {
+    "retained_risk_at_0pct": 0.0042808959897702925,
+    "oracle_retained_risk_at_10pct": 0.003772963638196575,
+    "max_achievable_reduction": 0.0005079323515737176
+   }
+  },
+  "deepcfd_seed0": {
+   "n_cases": 247,
+   "top_decile_threshold_rel_l2": 0.10630127154553158,
+   "n_positives": 25,
+   "scores_available": [
+    "residual"
+   ],
+   "marginal": {
+    "residual": {
+     "spearman": 0.7166509522611224,
+     "auroc_top_decile": 0.9320720720720721,
+     "retained_risk_at_10pct": 0.06442272750539356,
+     "published_spearman": 0.7166509522611224,
+     "published_auroc": 0.9320720720720721,
+     "reproduces": true,
+     "oracle_recovery_at_10pct": 0.7939741345184351
+    }
+   },
+   "paired": {},
+   "oracle": {
+    "retained_risk_at_0pct": 0.06886719224272982,
+    "oracle_retained_risk_at_10pct": 0.0632694472481376,
+    "max_achievable_reduction": 0.005597744994592216
+   }
+  },
+  "deepcfd_seed1": {
+   "n_cases": 247,
+   "top_decile_threshold_rel_l2": 0.10559378288406707,
+   "n_positives": 25,
+   "scores_available": [
+    "residual"
+   ],
+   "marginal": {
+    "residual": {
+     "spearman": 0.6571326412624189,
+     "auroc_top_decile": 0.8295495495495495,
+     "retained_risk_at_10pct": 0.06446660845151776,
+     "published_spearman": 0.6571326412624189,
+     "published_auroc": 0.8295495495495495,
+     "reproduces": true,
+     "oracle_recovery_at_10pct": 0.6067185106408756
+    }
+   },
+   "paired": {},
+   "oracle": {
+    "retained_risk_at_0pct": 0.06790630368474816,
+    "oracle_retained_risk_at_10pct": 0.062236960862823945,
+    "max_achievable_reduction": 0.005669342821924217
+   }
+  },
+  "deepcfd_seed2": {
+   "n_cases": 247,
+   "top_decile_threshold_rel_l2": 0.1007317464759136,
+   "n_positives": 25,
+   "scores_available": [
+    "residual"
+   ],
+   "marginal": {
+    "residual": {
+     "spearman": 0.9340034784049029,
+     "auroc_top_decile": 0.9758558558558559,
+     "retained_risk_at_10pct": 0.05966022318421652,
+     "published_spearman": 0.9340034784049028,
+     "published_auroc": 0.9758558558558559,
+     "reproduces": true,
+     "oracle_recovery_at_10pct": 0.9150881281550636
+    }
+   },
+   "paired": {},
+   "oracle": {
+    "retained_risk_at_0pct": 0.06484344928356785,
+    "oracle_retained_risk_at_10pct": 0.059179266851432724,
+    "max_achievable_reduction": 0.005664182432135123
+   }
+  }
+ },
+ "headline": {
+  "arm": "ensemble_mean",
+  "note": "sigma_vel is dumped per-case ONLY for the ensemble_mean arm; the corrected_seed*/deepcfd_seed* arms carry the residual score alone, so the residual-vs-sigma paired test is not computable there. The brief's 'do this on every arm' is not satisfiable with the committed data.",
+  "residual": {
+   "spearman": 0.610323258081452,
+   "auroc": 0.8705555555555555,
+   "oracle_recovery_10pct": 0.6699248490970853
+  },
+  "sigma_vel": {
+   "spearman": 0.6542938573464336,
+   "auroc": 0.8938888888888888,
+   "oracle_recovery_10pct": 0.7170689400598571
+  },
+  "sigma_p": {
+   "spearman": 0.5805430135753393,
+   "auroc": 0.8552777777777778,
+   "oracle_recovery_10pct": 0.5979653105753119
+  },
+  "fused": {
+   "spearman": 0.7028211264860553,
+   "auroc": 0.9052777777777777,
+   "oracle_recovery_10pct": 0.9147346537783212
+  },
+  "sigma_vel_minus_residual": {
+   "delta_auroc": 0.023333333333333317,
+   "delta_auroc_ci95": [
+    -0.03455491662947662,
+    0.08321396144429848
+   ],
+   "delta_auroc_excludes_zero": false,
+   "delta_spearman": 0.04397059926498159,
+   "delta_spearman_ci95": [
+    -0.05172274894675658,
+    0.14207637424809105
+   ],
+   "delta_spearman_excludes_zero": false
+  },
+  "fused_minus_residual": {
+   "delta_auroc": 0.03472222222222221,
+   "delta_auroc_ci95": [
+    0.004934455846220558,
+    0.06889227690663616
+   ],
+   "delta_auroc_excludes_zero": true,
+   "delta_spearman": 0.09249786840460328,
+   "delta_spearman_ci95": [
+    0.033935122772156955,
+    0.1539332162494405
+   ],
+   "delta_spearman_excludes_zero": true
+  },
+  "fused_minus_sigma_vel": {
+   "delta_auroc": 0.011388888888888893,
+   "delta_auroc_ci95": [
+    -0.020813832128054387,
+    0.044559893861569826
+   ],
+   "delta_auroc_excludes_zero": false,
+   "delta_spearman": 0.04852726913962169,
+   "delta_spearman_ci95": [
+    0.001465065662718843,
+    0.09659930230049783
+   ],
+   "delta_spearman_excludes_zero": true
+  }
+ }
+}

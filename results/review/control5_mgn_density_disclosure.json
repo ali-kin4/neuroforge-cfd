@@ -1,0 +1,35 @@
+{
+ "artifact": "control5_mgn_density_disclosure",
+ "question": "Is the MeshGraphNet density control disclosed, and does it undermine the rho = 0.851 headline?",
+ "what_the_file_shows": {
+  "verdict": "DENSITY-DRIVEN",
+  "velocity_ratio_180k_over_16k": 2.437387914316428,
+  "per_channel_ratio": {
+   "u": 2.988982086557949,
+   "v": 1.8857937420749071,
+   "p": 2.0600065312965925,
+   "nut": 1.3781081413696739
+  },
+  "trained_at_n_points": 16384,
+  "evaluated_at_n_points_typical": 180864,
+  "density_mismatch_factor": 11.039093017578125,
+  "n_cases_scored": 4,
+  "metric": "per-point PHYSICAL MSE at the same 16,384 indices (confound-free)"
+ },
+ "disclosure_audit": {
+  "manuscript_files_searched": "docs/paper/**/*.{tex,md,bib} EXCLUDING docs/paper/review/",
+  "manuscript_hits": [],
+  "disclosed_in_manuscript": false,
+  "review_note_hits": [
+   "docs/paper/review\\FINDINGS.md",
+   "docs/paper/review\\r2_holes.md"
+  ]
+ },
+ "what_this_file_does_NOT_establish": "The brief asserts rho = 0.851 is 'substantially an artifact of a train/eval point-density mismatch'. This file cannot establish that and does not claim to: it measures MSE, contains NO rank correlation at either density, carries no per-case residual values, and scores only 4 cases. A density-driven inflation of the ERROR SPREAD is a mechanism by which rho could be inflated, not a measurement that it is. Establishing the stronger claim would require recomputing the residual-error Spearman at 16k and at full density -- not available in committed data.",
+ "what_it_DOES_establish": [
+  "MeshGraphNet is evaluated ~11x off its training point density.",
+  "Velocity MSE inflates 2.44x because of that mismatch (4 cases, confound-free probe).",
+  "The control exists, is committed, and is cited nowhere in the manuscript.",
+  "body.tex:839-841 already attributes the high rho to 'that model's wide error spread'; this file supplies a mechanism for that spread which the paper does not disclose."
+ ]
+}

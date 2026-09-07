@@ -1,0 +1,380 @@
+{
+ "artifact": "control2_difficulty_confound",
+ "question": "Is the residual-error rank correlation a per-case DIFFICULTY proxy? A geometry that rasterises badly could carry both a high ground-truth residual and a high prediction error with no causal link between the monitored residual and the model's error.",
+ "conditioning_variable": {
+  "name": "norm_truth  ==  ||r(truth)||",
+  "source": "results/certificates/residual_floor_realdata.json",
+  "definition": "continuity + momentum_x + momentum_y (BC term EXCLUDED, matching physics_residual_torch) -- evaluated on the GROUND-TRUTH field.",
+  "why_this_one": "model-independent per-case discretisation + model-form residual: exactly the 'this geometry is hard to rasterise' quantity the confound objection names.",
+  "NOT_the_floor_r_star": "The brief calls this ||r*||. That is a misnomer for this file: its actual minimum is norm_uniform = 0.0 exactly on all 200 cases (frac_uniform_lt_truth = 1.0); the experiment exists to show the monitored residual PREFERS the uniform freestream to the truth. We therefore condition on ||r(truth)||, the residual of the ground-truth field, and name it as such.",
+  "norm_pred_NOT_used": "residual_floor_realdata.json also carries norm_pred, but that is a DIFFERENT model (checkpoints/certificates_deq.pt, dropout-FNO, DEQ not applied) than the Transolver arms scored here. Only the model-independent norm_truth is joined."
+ },
+ "arms": {
+  "ensemble_mean": {
+   "joinable": true,
+   "n_cases": 200,
+   "decomposition_first": {
+    "rho_residual_vs_normtruth": 0.974887872196805,
+    "rho_error_vs_normtruth": 0.516183904597615,
+    "note": "the confound can only explain the headline if the conditioning variable correlates with BOTH sides. If rho(error, ||r(truth)||) is small the partial cannot collapse much, and the objection is answered arithmetically."
+   },
+   "rho_raw": 0.610323258081452,
+   "rho_partial_given_normtruth": 0.5615233432569243,
+   "fraction_of_rho_surviving": 0.9200425116061773,
+   "absolute_drop": 0.048799914824527724,
+   "residual_vs_difficulty_itself": {
+    "rho_error_vs_residual": 0.610323258081452,
+    "rho_error_vs_normtruth": 0.516183904597615,
+    "auroc_residual": 0.8705555555555555,
+    "auroc_normtruth": 0.8177777777777778,
+    "paired_delta_rho_residual_minus_normtruth": {
+     "point": 0.09413935348383706,
+     "ci95": [
+      0.05462197764025626,
+      0.14200325529242025
+     ],
+     "boot_mean": 0.09375970913488015,
+     "boot_std": 0.02201107730708597,
+     "frac_draws_gt_0": 1.0,
+     "frac_draws_lt_0": 0.0,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "paired_delta_auroc_residual_minus_normtruth": {
+     "point": 0.0527777777777777,
+     "ci95": [
+      0.0052631578947368585,
+      0.1144688644688644
+     ],
+     "boot_mean": 0.05279965977403366,
+     "boot_std": 0.027954706018348152,
+     "frac_draws_gt_0": 0.998,
+     "frac_draws_lt_0": 0.0009,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "logic": "||r(truth)|| is the difficulty variable, and it needs the ground truth to compute, so it is an ORACLE difficulty score. If the deployable residual outranks it, the residual carries model-specific error information that pure case difficulty does not, and the 'it is just a difficulty proxy' objection fails."
+   },
+   "bootstrap": {
+    "rho_raw": {
+     "point": 0.610323258081452,
+     "ci95": [
+      0.5056882280649273,
+      0.6983332745147922
+     ],
+     "boot_mean": 0.6074962526924723,
+     "boot_std": 0.04914264424406134,
+     "frac_draws_gt_0": 1.0,
+     "frac_draws_lt_0": 0.0,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "rho_partial": {
+     "point": 0.5615233432569243,
+     "ci95": [
+      0.44940899814436447,
+      0.6400007887682018
+     ],
+     "boot_mean": 0.5514685784924523,
+     "boot_std": 0.04887034130149104,
+     "frac_draws_gt_0": 1.0,
+     "frac_draws_lt_0": 0.0,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "drop_raw_minus_partial": {
+     "point": 0.048799914824527724,
+     "ci95": [
+      -0.06012478890543755,
+      0.1801826677743306
+     ],
+     "boot_mean": 0.05602767420001995,
+     "boot_std": 0.061632819027943785,
+     "frac_draws_gt_0": 0.8213,
+     "frac_draws_lt_0": 0.1787,
+     "excludes_zero": false,
+     "n_boot_valid": 10000
+    }
+   },
+   "sigma_vel_same_test": {
+    "rho_raw": 0.6542938573464336,
+    "rho_partial_given_normtruth": 0.513631655876832,
+    "rho_sigma_vs_normtruth": 0.5635190879771994,
+    "note": "if the physics-free score survives conditioning just as well, the confound is not specific to the physics residual."
+   }
+  },
+  "corrected_seed0": {
+   "joinable": true,
+   "n_cases": 200,
+   "decomposition_first": {
+    "rho_residual_vs_normtruth": 0.8996684917122928,
+    "rho_error_vs_normtruth": 0.4404545113627841,
+    "note": "the confound can only explain the headline if the conditioning variable correlates with BOTH sides. If rho(error, ||r(truth)||) is small the partial cannot collapse much, and the objection is answered arithmetically."
+   },
+   "rho_raw": 0.6356348908722718,
+   "rho_partial_given_normtruth": 0.6107282559686483,
+   "fraction_of_rho_surviving": 0.9608161300437041,
+   "absolute_drop": 0.024906634903623437,
+   "residual_vs_difficulty_itself": {
+    "rho_error_vs_residual": 0.6356348908722718,
+    "rho_error_vs_normtruth": 0.4404545113627841,
+    "auroc_residual": 0.9141666666666667,
+    "auroc_normtruth": 0.8263888888888888,
+    "paired_delta_rho_residual_minus_normtruth": {
+     "point": 0.1951803795094877,
+     "ci95": [
+      0.11818850705229514,
+      0.2821741605500723
+     ],
+     "boot_mean": 0.19435908687223005,
+     "boot_std": 0.04198338750379235,
+     "frac_draws_gt_0": 1.0,
+     "frac_draws_lt_0": 0.0,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "paired_delta_auroc_residual_minus_normtruth": {
+     "point": 0.08777777777777784,
+     "ci95": [
+      0.0046082949308756645,
+      0.1930767172522883
+     ],
+     "boot_mean": 0.08772356842901118,
+     "boot_std": 0.04797094135141572,
+     "frac_draws_gt_0": 0.9938,
+     "frac_draws_lt_0": 0.005,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "logic": "||r(truth)|| is the difficulty variable, and it needs the ground truth to compute, so it is an ORACLE difficulty score. If the deployable residual outranks it, the residual carries model-specific error information that pure case difficulty does not, and the 'it is just a difficulty proxy' objection fails."
+   },
+   "bootstrap": {
+    "rho_raw": {
+     "point": 0.6356348908722718,
+     "ci95": [
+      0.5363951605921438,
+      0.7167757721927484
+     ],
+     "boot_mean": 0.6324837053291171,
+     "boot_std": 0.0458171731918631,
+     "frac_draws_gt_0": 1.0,
+     "frac_draws_lt_0": 0.0,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "rho_partial": {
+     "point": 0.6107282559686483,
+     "ci95": [
+      0.5014590463554056,
+      0.693379986455059
+     ],
+     "boot_mean": 0.6042886255573294,
+     "boot_std": 0.04871505292472319,
+     "frac_draws_gt_0": 1.0,
+     "frac_draws_lt_0": 0.0,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "drop_raw_minus_partial": {
+     "point": 0.024906634903623437,
+     "ci95": [
+      -0.059706280862826706,
+      0.12612891083881686
+     ],
+     "boot_mean": 0.028195079771787607,
+     "boot_std": 0.04730731953541504,
+     "frac_draws_gt_0": 0.7275,
+     "frac_draws_lt_0": 0.2725,
+     "excludes_zero": false,
+     "n_boot_valid": 10000
+    }
+   }
+  },
+  "corrected_seed1": {
+   "joinable": true,
+   "n_cases": 200,
+   "decomposition_first": {
+    "rho_residual_vs_normtruth": 0.936996924923123,
+    "rho_error_vs_normtruth": 0.47166729168229204,
+    "note": "the confound can only explain the headline if the conditioning variable correlates with BOTH sides. If rho(error, ||r(truth)||) is small the partial cannot collapse much, and the objection is answered arithmetically."
+   },
+   "rho_raw": 0.6158553963849096,
+   "rho_partial_given_normtruth": 0.5645561580873363,
+   "fraction_of_rho_surviving": 0.9167024619761368,
+   "absolute_drop": 0.051299238297573324,
+   "residual_vs_difficulty_itself": {
+    "rho_error_vs_residual": 0.6158553963849096,
+    "rho_error_vs_normtruth": 0.47166729168229204,
+    "auroc_residual": 0.8919444444444444,
+    "auroc_normtruth": 0.8177777777777778,
+    "paired_delta_rho_residual_minus_normtruth": {
+     "point": 0.14418810470261756,
+     "ci95": [
+      0.08303217110173128,
+      0.21356376019768566
+     ],
+     "boot_mean": 0.1436072473517357,
+     "boot_std": 0.03358870761664364,
+     "frac_draws_gt_0": 1.0,
+     "frac_draws_lt_0": 0.0,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "paired_delta_auroc_residual_minus_normtruth": {
+     "point": 0.0741666666666666,
+     "ci95": [
+      0.007206063485360288,
+      0.15935648061673258
+     ],
+     "boot_mean": 0.07421281647811748,
+     "boot_std": 0.038697600685557845,
+     "frac_draws_gt_0": 0.9984,
+     "frac_draws_lt_0": 0.0008,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "logic": "||r(truth)|| is the difficulty variable, and it needs the ground truth to compute, so it is an ORACLE difficulty score. If the deployable residual outranks it, the residual carries model-specific error information that pure case difficulty does not, and the 'it is just a difficulty proxy' objection fails."
+   },
+   "bootstrap": {
+    "rho_raw": {
+     "point": 0.6158553963849096,
+     "ci95": [
+      0.5121871690199651,
+      0.701429617467438
+     ],
+     "boot_mean": 0.6128555626799979,
+     "boot_std": 0.04771496714621789,
+     "frac_draws_gt_0": 1.0,
+     "frac_draws_lt_0": 0.0,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "rho_partial": {
+     "point": 0.5645561580873363,
+     "ci95": [
+      0.4477155523508488,
+      0.652246034061573
+     ],
+     "boot_mean": 0.5578165597486706,
+     "boot_std": 0.052192389821306244,
+     "frac_draws_gt_0": 1.0,
+     "frac_draws_lt_0": 0.0,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "drop_raw_minus_partial": {
+     "point": 0.051299238297573324,
+     "ci95": [
+      -0.04953951620470902,
+      0.1700096149496093
+     ],
+     "boot_mean": 0.05503900293132719,
+     "boot_std": 0.055705759963451555,
+     "frac_draws_gt_0": 0.8411,
+     "frac_draws_lt_0": 0.1589,
+     "excludes_zero": false,
+     "n_boot_valid": 10000
+    }
+   }
+  },
+  "corrected_seed2": {
+   "joinable": true,
+   "n_cases": 200,
+   "decomposition_first": {
+    "rho_residual_vs_normtruth": 0.9198394959873997,
+    "rho_error_vs_normtruth": 0.4930728268206705,
+    "note": "the confound can only explain the headline if the conditioning variable correlates with BOTH sides. If rho(error, ||r(truth)||) is small the partial cannot collapse much, and the objection is answered arithmetically."
+   },
+   "rho_raw": 0.6665191629790744,
+   "rho_partial_given_normtruth": 0.6240151370748342,
+   "fraction_of_rho_surviving": 0.9362298516455788,
+   "absolute_drop": 0.042504025904240184,
+   "residual_vs_difficulty_itself": {
+    "rho_error_vs_residual": 0.6665191629790744,
+    "rho_error_vs_normtruth": 0.4930728268206705,
+    "auroc_residual": 0.9,
+    "auroc_normtruth": 0.8177777777777778,
+    "paired_delta_rho_residual_minus_normtruth": {
+     "point": 0.17344633615840394,
+     "ci95": [
+      0.10539652607739344,
+      0.2520598059704168
+     ],
+     "boot_mean": 0.1727385056915119,
+     "boot_std": 0.03760099549878973,
+     "frac_draws_gt_0": 1.0,
+     "frac_draws_lt_0": 0.0,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "paired_delta_auroc_residual_minus_normtruth": {
+     "point": 0.0822222222222222,
+     "ci95": [
+      0.004567025826430822,
+      0.18049277618632456
+     ],
+     "boot_mean": 0.0822229648799488,
+     "boot_std": 0.044702975041185755,
+     "frac_draws_gt_0": 0.9958,
+     "frac_draws_lt_0": 0.0026,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "logic": "||r(truth)|| is the difficulty variable, and it needs the ground truth to compute, so it is an ORACLE difficulty score. If the deployable residual outranks it, the residual carries model-specific error information that pure case difficulty does not, and the 'it is just a difficulty proxy' objection fails."
+   },
+   "bootstrap": {
+    "rho_raw": {
+     "point": 0.6665191629790744,
+     "ci95": [
+      0.5743620938248682,
+      0.7409664353039662
+     ],
+     "boot_mean": 0.6634347962552172,
+     "boot_std": 0.042281573338678796,
+     "frac_draws_gt_0": 1.0,
+     "frac_draws_lt_0": 0.0,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "rho_partial": {
+     "point": 0.6240151370748342,
+     "ci95": [
+      0.5177438907214071,
+      0.7001800653813028
+     ],
+     "boot_mean": 0.6166013632307188,
+     "boot_std": 0.04620672368890575,
+     "frac_draws_gt_0": 1.0,
+     "frac_draws_lt_0": 0.0,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "drop_raw_minus_partial": {
+     "point": 0.042504025904240184,
+     "ci95": [
+      -0.04363127081737723,
+      0.14807125599399526
+     ],
+     "boot_mean": 0.0468334330244985,
+     "boot_std": 0.04910020013919713,
+     "frac_draws_gt_0": 0.833,
+     "frac_draws_lt_0": 0.167,
+     "excludes_zero": false,
+     "n_boot_valid": 10000
+    }
+   }
+  },
+  "deepcfd_seed0": {
+   "joinable": false,
+   "reason": "keys on 'index', not case name, and n=247 on a different (DeepCFD OOD) split -- the 200-case floor table cannot be joined to it. Not improvised."
+  },
+  "deepcfd_seed1": {
+   "joinable": false,
+   "reason": "keys on 'index', not case name, and n=247 on a different (DeepCFD OOD) split -- the 200-case floor table cannot be joined to it. Not improvised."
+  },
+  "deepcfd_seed2": {
+   "joinable": false,
+   "reason": "keys on 'index', not case name, and n=247 on a different (DeepCFD OOD) split -- the 200-case floor table cannot be joined to it. Not improvised."
+  }
+ }
+}
