@@ -54,11 +54,26 @@ Hence $u^\star$ is \textbf{not} a minimiser of $J$.
 \item[\textup{(ii)}] \emph{(Misplaced stationarity.)} $\nabla J(u^\star)=L^\top r^\star$, so
 $u^\star$ is a stationary point of $J$ iff $L^\top r^\star=0$; if $r^\star\notin\ker L^\top$,
 gradient flow on $J$ leaves $u^\star$.
-\item[\textup{(iii)}] \emph{(Quantified floor.)} The \emph{minimum-norm} minimiser of the
-linearised objective $\tfrac12\|r^\star+Le\|^2$ is $e_\infty=-L^{+}r^\star$ ($L^{+}$ the
-Moore--Penrose pseudoinverse), leaving irreducible field error
-$\|e_\infty\|=\|L^{+}r^\star\|\le\|r^\star\|/\sigma_{\min}$, which grows as
-$\sigma_{\min}\to 0$ (ill-conditioning).
+\item[\textup{(iii)}] \emph{(Displacement of the minimiser, with a lower bound.)} The
+\emph{minimum-norm} minimiser of the linearised objective $\tfrac12\|r^\star+Le\|^2$ is
+$e_\infty=-L^{+}r^\star$ ($L^{+}$ the Moore--Penrose pseudoinverse). The displacement is
+bounded \emph{below} by
+\begin{equation}
+\|e_\infty\|=\|L^{+}r^\star\|\;\ge\;\frac{\|P_{\operatorname{range}L}\,r^\star\|}{\sigma_{\max}},
+\label{eq:rf-lower}
+\end{equation}
+with $\sigma_{\max}$ the largest singular value of $L$ and $P_{\operatorname{range}L}$ the
+orthogonal projector onto $\operatorname{range}L$. It is this \emph{lower} bound that
+carries the thesis: the minimiser is displaced from $u^\star$ by a strictly positive
+amount whenever $r^\star$ has any component in $\operatorname{range}L$. (The
+complementary upper bound $\|e_\infty\|\le\|r^\star\|/\sigma_{\min}$, $\sigma_{\min}$ the
+smallest \emph{nonzero} singular value, holds as well but is the wrong direction for this
+argument and is numerically vacuous at this problem size, where $\sigma_{\min}$ of a
+$\sim\!4.7\times10^{4}$ by $6.6\times10^{4}$ advection--diffusion Jacobian is not
+separable from zero. Earlier drafts of this work advertised that upper bound as the
+result; it is not, and we correct it here.) Note also that the minimiser is not a point
+but the affine set $e_\infty+\ker L$, and a descent started from a prediction lands on the
+projection of that prediction, not on the minimum-norm point.
 \item[\textup{(iv)}] \emph{(Local divergence direction.)} Under residual-gradient flow
 $\dot e=-\nabla J(\hat u)$, the field error obeys
 $\frac{d}{dt}\tfrac12\|e\|^2\big|_{0}=-\|Le\|^2-(Le)\cdot r^\star$. There is an open cone of
@@ -74,13 +89,20 @@ $J(u_\infty)=0=\min J$ (as $J\ge0$). By (H2), $J(u^\star)=\tfrac12\|r^\star\|^2>
 (ii) $\nabla J(u)=DR_h(u)^\top R_h(u)$; evaluate at $u^\star$ and use \eqref{eq:rf-decomp}.
 (iii) $\tfrac12\|r^\star+Le\|^2$ is convex in $e$; its minimum-norm minimiser is the
 least-squares solution $e_\infty=-L^{+}r^\star$, which requires no injectivity (it is the
-Moore--Penrose pseudoinverse of the normal equations $L^\top L e=-L^\top r^\star$), and
-$\|L^{+}\|_2=1/\sigma_{\min}$ with $\sigma_{\min}$ the smallest nonzero singular value of $L$.
+Moore--Penrose pseudoinverse of the normal equations $L^\top L e=-L^\top r^\star$). For
+the lower bound \eqref{eq:rf-lower}, write $r^\star=P r^\star+(I-P)r^\star$ with
+$P:=P_{\operatorname{range}L}$; since $L L^{+}=P$ we have $L e_\infty=-P r^\star$, and
+$\|P r^\star\|=\|L e_\infty\|\le\sigma_{\max}\|e_\infty\|$, which rearranges to
+\eqref{eq:rf-lower}. The upper bound follows from $\|L^{+}\|_2=1/\sigma_{\min}$ with
+$\sigma_{\min}$ the smallest nonzero singular value of $L$.
 (iv) To first order $\dot e|_0=-L^\top(r^\star+Le)$, so
 $\frac{d}{dt}\tfrac12\|e\|^2|_0=e\cdot\dot e=-e^\top L^\top(r^\star+Le)=-\|Le\|^2-(Le)\cdot r^\star$.
-This is positive iff $(Le)\cdot r^\star<-\|Le\|^2$; taking $Le$ near $-\alpha\,r^\star/\|r^\star\|$
-(feasible whenever $r^\star$ has a nonzero component in $\operatorname{range}L$) the
-condition holds on an open cone with $0<\alpha<\|r^\star\|$.
+This is positive iff $(Le)\cdot r^\star<-\|Le\|^2$. Since $Le$ is confined to
+$\operatorname{range}L$, only the projected part of the floor is reachable: taking $Le$
+near $-\alpha\,P_{\operatorname{range}L}r^\star/\|P_{\operatorname{range}L}r^\star\|$
+(feasible whenever $P_{\operatorname{range}L}r^\star\neq0$) the condition holds on an open
+cone with $0<\alpha<\|P_{\operatorname{range}L}\,r^\star\|$. The constant is the
+\emph{projected} floor, not $\|r^\star\|$; an earlier draft stated the latter.
 \end{proof}
 
 \paragraph{Good detector, bad fixer---from one decomposition.} Equation~\eqref{eq:rf-decomp}
@@ -133,12 +155,22 @@ we can close it in full rather than concede it. Writing the weighted monitor
 $\rho_\lambda=\sqrt{\|R_h\|^2+\lambda\,\overline{r_{bc}^2}}$, both logged components are
 recoverable at every sweep point, so $\lambda$ can be swept post hoc at no computational
 cost (\texttt{scripts/bc\_weight\_sweep.py}, \texttt{results/control/bc\_weight\_sweep.json}).
-Both legs survive for \emph{every} $\lambda\ge0$, in closed form rather than on a grid of
-sampled values. \textbf{(A)}~The uniform field remains a spurious minimum: it has both a
-smaller interior residual and a smaller no-slip term than the truth
+\textbf{(A)}~At the deployed resolution the uniform field remains a spurious minimum: it
+has both a smaller interior residual and a smaller no-slip term than the truth
 ($\overline{r_{bc}^2}=0.0053$ versus $0.0073$---on a $128^2$ grid the boundary layer is
 sub-cell, so the rasterised truth itself carries near-wall velocity), hence
-$\rho_\lambda(u_\infty)<\rho_\lambda(u^\star)$ for all $\lambda$. \textbf{(B)}~Along the
+$\rho_\lambda(u_\infty)<\rho_\lambda(u^\star)$ for all $\lambda$ \emph{at that
+resolution}. We state this as a claim at the deployed grid rather than a
+resolution-independent one, because it is not: the framework's proximity weight decays
+over $3\min(dx,dy)$ and therefore measures a physically \emph{thinner} band as the grid
+refines, and the margin collapses monotonically with refinement---$+9.3\%$ at $128^2$,
+$+6.9\%$ at $256^2$, $+3.9\%$ at $362^2$, and $-2.8\%$ at $512^2$, where it has crossed.
+Where it crosses, the weight at which the ordering flips is
+$\lambda^\star=\|R_h(u^\star)\|^2/(\overline{r_{bc}^2}(u_\infty)-\overline{r_{bc}^2}(u^\star))$,
+with median ${\approx}600$; since the deployed trust map uses $\lambda=1$, a monitor that
+rescued the ordering would be one in which the no-slip term outweighs the entire PDE
+residual by two orders of magnitude, which is no longer a PDE monitor. Leg (A) is thus a
+statement about the grid the audit runs on, and it is leg (B) that carries the argument. \textbf{(B)}~Along the
 correction path, where field error falls ($3.17\!\to\!2.32$), \emph{both} increments are
 positive---the interior term by $+0.635$ and the no-slip term by $+0.0019$---so
 $\rho_\lambda$ rises for all $\lambda$; there is no crossover weight. Up-weighting the

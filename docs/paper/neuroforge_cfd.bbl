@@ -132,6 +132,13 @@ Balaji Lakshminarayanan, Alexander Pritzel, and Charles Blundell.
   (NeurIPS)}, 2017.
 \newblock arXiv:1612.01474.
 
+\bibitem[Lei et~al.(2026)Lei, Tang, Zhang, and Chen]{lei2026newtonkrylov}
+Mingcheng Lei, Weishao Tang, Yufei Zhang, and Haixin Chen.
+\newblock Reliable and efficient steady {CFD} from surrogate predictions
+  through {Newton--Krylov} correction.
+\newblock \emph{arXiv preprint arXiv:2608.04400}, 2026.
+\newblock Submitted 5 August 2026.
+
 \bibitem[Li et~al.(2021)Li, Kovachki, Azizzadenesheli, Liu, Bhattacharya,
   Stuart, and Anandkumar]{li2021fno}
 Zongyi Li, Nikola Kovachki, Kamyar Azizzadenesheli, Burigede Liu, Kaushik
@@ -166,8 +173,8 @@ Huakun Luo, Haixu Wu, Hang Zhou, Lanxiang Xing, Yichen Di, Jianmin Wang, and
   geometries.
 \newblock \emph{arXiv preprint arXiv:2502.02414}, 2025.
 
-\bibitem[Ma et~al.(2024)Ma, Azizzadenesheli, and Anandkumar]{ma2024uqno}
-Ziqi Ma, Kamyar Azizzadenesheli, and Anima Anandkumar.
+\bibitem[Ma et~al.(2024)Ma, Pitt, Azizzadenesheli, and Anandkumar]{ma2024uqno}
+Ziqi Ma, David Pitt, Kamyar Azizzadenesheli, and Anima Anandkumar.
 \newblock Calibrated uncertainty quantification for operator learning via
   conformal prediction.
 \newblock \emph{Transactions on Machine Learning Research (TMLR)}, 2024.
@@ -215,23 +222,11 @@ Mateus~Dias Ribeiro, Abdul Rehman, Sheraz Ahmed, and Andreas Dengel.
   deep convolutional neural networks.
 \newblock \emph{arXiv preprint arXiv:2004.08826}, 2020.
 
-\bibitem[Rigotti et~al.(2026)Rigotti, Thumiger, and Frick]{rigotti2026gist}
-Mattia Rigotti, Nicholas Thumiger, and Thomas Frick.
-\newblock {GIST}: Gauge-invariant spectral transformers for scalable graph
-  neural operators.
-\newblock \emph{arXiv preprint arXiv:2603.16849}, 2026.
-
 \bibitem[Roy et~al.(2025)Roy, Nayak, and Goswami]{roy2025anchor}
 Rajyasri Roy, Dibyajyoti Nayak, and Somdatta Goswami.
 \newblock {ANCHOR}: Error-controlled adaptive numerical correction for neural
   operator time marching.
 \newblock \emph{arXiv preprint arXiv:2512.19643}, 2025.
-
-\bibitem[Scherz et~al.(2026)Scherz, Hines, and Bekemeyer]{scherz2026evaluation}
-Jan Scherz, Derrick Hines, and Philipp Bekemeyer.
-\newblock Evaluation of state-of-the-art deep learning architectures for
-  aerodynamical predictions.
-\newblock \emph{arXiv preprint arXiv:2607.13866}, 2026.
 
 \bibitem[Song et~al.(2026)Song, Li, Deng, Li, Pan, Lai, and
   Wang]{song2026structureaware}
@@ -271,5 +266,14 @@ Yifan Yu, Cheuk~Hin Ho, and Yangshuai Wang.
   physics-informed neural networks.
 \newblock \emph{Journal of Computational Physics}, 561:\penalty0 114979, 2026.
 \newblock \doi{10.1016/j.jcp.2026.114979}.
+
+\bibitem[Zhang et~al.(2026)Zhang, Mallon, Luo, Thiyagalingam, Tzeferacos,
+  Bingham, and Gregori]{zhang2026phymgn}
+S.~Zhang, M.~Mallon, M.~Luo, J.~Thiyagalingam, P.~Tzeferacos, R.~Bingham, and
+  G.~Gregori.
+\newblock Data-driven modeling of shock physics by physics-informed
+  {MeshGraphNets}.
+\newblock \emph{arXiv preprint arXiv:2602.14918}, 2026.
+\newblock Submitted 16 February 2026.
 
 \end{thebibliography}

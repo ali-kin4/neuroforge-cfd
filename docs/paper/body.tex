@@ -29,49 +29,59 @@ roles and answers each empirically on a SOTA backbone, and---separately---deploy
 learned, supervised corrector whose gain we attribute by ablation to the learned
 correction, not to the residual.
 
-\paragraph{Research question.} \emph{In which of its roles---trust signal, correction
-objective, and acceptance gate---is the steady-RANS physics residual of a neural-CFD
-prediction useful, and does the answer survive on a competitive backbone?}
+\paragraph{Research question.} \emph{A deployed surrogate cannot afford the solver that
+produced its training data, so any self-audit must monitor a cheaper, different operator.
+What does that substitution cost, and which of the residual's roles---error detector,
+correction objective, acceptance gate---survive it?}
 
-\paragraph{Thesis (one sentence).} \textbf{\emph{The steady-RANS physics residual is a
-reliable, conformally-calibrated, backbone-robust case-level trust signal---it tells you
-where a prediction is wrong---even though minimising the residual directly remains a poor
-correction objective; the learned correction we deploy reduces error on a SOTA
-surrogate, but a controlled ablation attributes that gain to the learned correction, not to
-feeding it the residual.}}
+\paragraph{Thesis (one sentence).} \textbf{\emph{The steady-RANS residual a deployed
+surrogate can afford to monitor is inconsistent with the operator that generated its
+labels, so the ground truth itself fails the check by a margin that grows under grid
+refinement; consequently the residual cannot be minimised---the iterate it selects is
+never the error-optimal one---while it remains useful for ranking errors, and the boundary
+between the residual corrections that work in the literature and the failure we report is
+operator consistency, not the problem class.}}
 
-\paragraph{Self-auditing, defined.} We call a surrogate \emph{self-auditing} if, from its
-own prediction and inputs alone---no ground truth, no reference solver---it supplies three
-measurable things: \textbf{(i)} a case-level \emph{trust score} whose ranking of
-predictions by true error is validated; \textbf{(ii)} a \emph{calibrated error band} with
-a distribution-free guarantee; and \textbf{(iii)} an \emph{accept/reject decision} whose
-efficiency is measured against an oracle. The title is a claim, and the paper is its
-proof obligation: we instantiate all three components with the physics residual at the
-centre---(i) positive residual--error rank correlation across three backbones and two
-datasets (\autoref{sec:v2}); (ii) split-conformal coverage at target, stable across 20
-calibration re-draws (\autoref{sec:conformal}); (iii) near-oracle triage, recovering
-$\approx 91\%$ of the achievable error reduction at a $10\%$ rejection budget
-(\autoref{fig:risk_coverage}; the deciding score fuses the residual with the surrogate's
-own ensemble spread---neither needs ground truth---and the residual alone still recovers
-$\approx 67\%$)---and then quantify the audit's limits: the residual-floor
-theorem (\autoref{sec:residual_floor}) characterises exactly what the monitored residual
-cannot see, and the failed \emph{objective} role marks what the audit does \emph{not}
-license---the audit tells you where to look, not how to fix.
+\paragraph{Why this is not a statement about our grid.} The obvious reply to a nonzero
+residual at the truth is that the grid is too coarse. We test it directly and it is wrong:
+refining from $128^2$ to $512^2$ makes the floor \emph{larger}, in $21$ of $24$ cases, by
+a rule registered before the measurement (\autoref{sec:floor_ladder}). Restoring the
+omitted closure term moves it by less than $0.2\%$; a higher-order interpolant raises
+rather than lowers it; and a manufactured analytic solution pushed through the same
+rasteriser behaves in the opposite direction. The uniform freestream, meanwhile, scores an
+exact zero at every resolution, because a spatially constant field has identically zero
+finite differences---so the gap by which the objective prefers a wrong field to the truth
+widens as the grid improves.
 
-We arrive at this thesis the hard way. We built the full
-predict$\rightarrow$verify$\rightarrow$estimate-uncertainty$\rightarrow$correct$\rightarrow$fall-back
+\paragraph{Self-auditing, defined---and what of it survives.} We call a surrogate
+\emph{self-auditing} if, from its own prediction and inputs alone---no ground truth, no
+reference solver---it supplies three measurable things: \textbf{(i)} a case-level
+\emph{trust score} whose ranking of predictions by true error is validated; \textbf{(ii)}
+a \emph{calibrated error band} with a distribution-free guarantee; and \textbf{(iii)} an
+\emph{accept/reject decision} whose efficiency is measured against an oracle. We
+instantiate all three, and then report honestly which of them the physics actually earns.
+(i) holds, but a \emph{physics-free} ensemble score ranks field error at least as well and
+a paired bootstrap cannot separate them; the physics wins outright only on drag
+(\autoref{sec:selective}). (ii) holds outright, and needs no operator at all. (iii)
+holds as a \emph{guarantee}---the gate cannot raise the residual---but its accuracy
+advantage does not survive an ungated fixed half step, so we claim the certificate and not
+the accuracy (\autoref{sec:iters}). What the residual uniquely supplies is none of these:
+it is the diagnosis of why the fourth role, correction objective, cannot work.
+
+We arrived here the hard way, and by discarding earlier claims of our own. We built the
+full predict$\rightarrow$verify$\rightarrow$estimate-uncertainty$\rightarrow$correct$\rightarrow$fall-back
 pipeline, pre-registered hypotheses, and ran a 3-seed ablation on real AirfRANS plus an
-out-of-distribution study, two formal certificates, and---in a second phase---the same
-trust layer and corrector on a SOTA Transolver backbone. The trust signal and the
-supervised corrector survive on the strong backbone; residual \emph{minimisation} is the
-part that disappoints---the iteration sweep drives residual and error apart---and we report
-that as a finding rather than hide it. The acceptance gate built on the same residual is a
-\emph{separate} mechanism, and measured directly it works (\autoref{sec:iters}). Two honest findings accompany the corrector:
-\emph{correction quality is backbone-dependent}---the supervised corrector that helps on
-the SOTA backbone is flat on the weak grid backbone---and a controlled ablation shows the
-gain is \emph{not} sourced from the residual input (a null corrector with the residual
-channels zeroed matches or slightly exceeds it), so we attribute the gain to the learned
-correction, not to residual-conditioning. We report both.
+out-of-distribution study, two formal certificates, and the same trust layer and corrector
+on a SOTA Transolver backbone. Earlier drafts of this work inferred the failure of the
+residual as an objective from a theorem plus an iteration sweep of a corrector that never
+minimises the residual---an inference the sweep does not support, as a reviewer would
+rightly have said. We now minimise the residual directly, with no network in the loop
+(\autoref{sec:descent}), and state the resulting claim in the narrower form the data
+actually supports: not that residual descent always harms the field, since from a
+perturbed start it often helps, but that the iterate it selects is never the best one on
+its own path. Two further findings accompany the learned corrector and we report both:
+correction quality is backbone-dependent, and a controlled ablation attributes its gain to
+the learned correction rather than to conditioning on the residual.
 
 \subsection{Contributions}
 
@@ -92,8 +102,8 @@ field to the truth (\autoref{sec:residual_floor}). This is a property of the
 statements, which we are careful not to conflate. \emph{Provably}, the monitored operator
 is an inconsistent discretisation of RANS---it uses $\nu_{\mathrm{eff}}\nabla^2 u$ in
 place of $\nabla\!\cdot\!(\nu_{\mathrm{eff}}\nabla u)$---so its floor has a nonzero
-continuum limit and is bounded away from zero as $h\to0$; assumption (H2) becomes a
-theorem (\autoref{sec:residual_floor}). \emph{Empirically}, the floor does not merely
+continuum limit rather than converging to zero as $h\to0$, so (H2) stops being an
+assumption (\autoref{sec:residual_floor}). \emph{Empirically}, the floor does not merely
 persist but \textbf{rises} under refinement: over $24$ cases at $128^2/256^2/512^2$,
 scored on a region fixed in physical units, $\|r^\star\|$ goes $0.0624\to0.0779\to0.1067$,
 rising in $21/24$ cases, fitting $\|r^\star\|\sim h^{p}$ with $p=-0.387$
@@ -312,44 +322,66 @@ is retained because it is correct and reproducible; the acceptance-gate guarante
 particular is real and, as we now measure, materially useful---it admits a step on $99.8\%$
 of deployed cases and that step lowers field error on $89.3\%$ of them
 (\autoref{sec:iters}).
-\autoref{tab:positioning} summarises the positioning: each neighbouring work holds one
-or two of the audit's components, and none combines a validated physics-residual trust
-signal with distribution-free calibration, measured selective prediction, a head-on test
-of the residual's objective role, and a theory of the signal's limits.
+\autoref{tab:positioning} places the neighbouring work on the boundary this paper draws.
+The organising question is not which features a system has, but whether the residual it
+drives is the \emph{same discrete operator} that produced its reference data. Where it is,
+residual-driven correction works and is already demonstrated. Where an affordable
+surrogate-side proxy stands in for it, the truth itself fails the check, and this paper is
+about what follows from that.
 
 \begin{table}[t]
 \centering
 \small
-\caption{Positioning against the closest 2024--2026 work. Columns: \emph{Trust} =
-physics-residual trust signal validated against true error; \emph{Calib.} =
-distribution-free calibrated bands; \emph{Select.} = selective prediction measured
-(risk--coverage / AUROC); \emph{Object.} = residual-as-correction-objective tested;
-\emph{Theory} = formal theory of the signal's limits; \emph{$\ge$3 bb.} = three or more
-backbone families; \emph{$\ge$2 data} = two or more datasets/regimes.
-$\bullet$ = demonstrated, $\circ$ = partial, -- = not a goal of / not reported by that
-work. In the \emph{Object.} column, PhysicsCorrect and the variational corrector
-\emph{succeed} in regimes where the discrete residual is (near-)exact at the truth; we
-test the floored steady-RANS regime where it \emph{fails}---the residual-floor theorem
-(\autoref{sec:residual_floor}) is the boundary between the two.}
+\caption{The boundary, and where the closest 2024--2026 work sits on it. The
+discriminating question is whether the residual being monitored or minimised is the
+discrete operator whose root the reference solution is. Where it is, the floor at the
+truth is zero by construction and minimising the residual is minimising the error. Where
+it is not---the affordable, deployment-time case---the floor is nonzero, provably so, and
+the objective's minimiser is displaced from the truth. Prior residual-correction successes
+and this paper's negative result are not in conflict; they sit on opposite sides of this
+line.}
 \label{tab:positioning}
 \begin{adjustbox}{max width=\textwidth}
-\begin{tabular}{l c c c c c c c}
+\begin{tabular}{p{0.17\textwidth} p{0.36\textwidth} p{0.40\textwidth}}
 \toprule
- & Trust & Calib. & Select. & Object. & Theory & $\ge$3 bb. & $\ge$2 data \\
+ & \textbf{Solver-consistent operator} \newline (the generator's own residual)
+ & \textbf{Surrogate-side proxy operator} \newline (affordable, inconsistent) \\
 \midrule
-PRE conformal \citep{gopakumar2025pre} & $\bullet$ & $\bullet$ & -- & -- & -- & $\bullet$ & $\bullet$ \\
-Structure-aware UQ \citep{song2026structureaware} & $\circ$ & -- & -- & -- & -- & -- & -- \\
-ANCHOR \citep{roy2025anchor} & $\bullet$ & -- & $\circ$ & -- & -- & -- & -- \\
-PhysicsCorrect \citep{huang2025physicscorrect} & -- & -- & -- & $\bullet$ & $\circ$ & $\bullet$ & $\bullet$ \\
-Variational corrector \citep{learned2023residualcorrection} & -- & -- & -- & $\bullet$ & $\circ$ & -- & -- \\
-Conformal DrivAerML \citep{jia2026multigranularity} & -- & $\bullet$ & -- & -- & -- & $\circ$ & -- \\
-Error certification \citep{mukherjee2026certification} & -- & -- & -- & -- & $\bullet$ & -- & -- \\
-\midrule
-\textbf{This work} & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ \\
+Floor at the truth
+ & Zero by construction.
+ & Nonzero, with a nonzero continuum limit (\autoref{sec:residual_floor}); it
+   \emph{grows} under refinement, $p=-0.387$, rising in $21/24$ cases
+   (\autoref{sec:floor_ladder}). \\
+\addlinespace
+Residual as a correction objective
+ & Works: residual $\downarrow$ and error $\downarrow$ together
+   \citep{lei2026newtonkrylov, huang2025physicscorrect,
+   learned2023residualcorrection}.
+ & Fails: the residual-selected iterate is never the error-optimal one, in $24/24$
+   cases, and descent from the exact truth drives error from zero
+   (\autoref{sec:descent}). \\
+\addlinespace
+Residual as an error detector
+ & Not the question these works ask.
+ & Positive across backbones, but matched by a physics-free score on field error;
+   it wins outright only on drag (\autoref{sec:selective}). \\
+\addlinespace
+Cost at deployment
+ & A solver-grade operator per correction step.
+ & ${\sim}1.7$\,ms per case (\autoref{sec:cost}), which is why it is the one a
+   deployed surrogate can actually afford. \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
 \end{table}
+
+The trust-layer components this paper retains---distribution-free conformal bands
+\citep{gopakumar2025pre, jia2026multigranularity}, residual-based error signals
+\citep{roy2025anchor, song2026structureaware} and a-posteriori certification
+\citep{mukherjee2026certification}---are individually well developed in that recent
+literature, and we claim no priority over them. What is new here is the measurement that
+constrains all of them: the operator such a layer can afford to monitor does not vanish on
+the data it is calibrated against, and that gap is not a resolution artifact.
 
 \section{Method}
 \label{sec:method}
@@ -1229,8 +1261,8 @@ analytic solution through the identical rasteriser gives a residual that \emph{f
 with refinement (fine/coarse $0.41$--$0.74$) where the real truth's rises.
 
 \paragraph{What this leaves.} Two statements, which we keep separate. The
-inconsistency of the monitored operator makes the floor \textbf{provably} bounded away
-from zero as $h\to0$ (\autoref{sec:residual_floor}). Its measured \textbf{size},
+inconsistency of the monitored operator gives the floor a nonzero \textbf{continuum
+limit}, so refinement alone cannot remove it (\autoref{sec:residual_floor}). Its measured \textbf{size},
 however, is set by the mismatch between our Cartesian stencil and the body-fitted
 discrete balance the AirfRANS reference actually solved---a mismatch common to every
 equation, which is why continuity and momentum rise at the same rate in the same
@@ -1322,7 +1354,7 @@ physics-informed loss ``cannot be formulated using the absolute PDE residual alo
 instead, it must be defined relative to the residual present in the ground-truth
 data''. Their remedy requires $R_h(u^\star)$, which a deployment-time monitor by
 definition does not have. Our contribution relative to theirs is to establish that the
-floor is bounded away from zero for an inconsistent operator, to measure that it grows
+floor has a nonzero continuum limit for an inconsistent operator, to measure that it grows
 under refinement rather than merely persisting, and to show what the resulting
 misplaced minimum does to a correction path.
 
