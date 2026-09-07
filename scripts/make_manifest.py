@@ -135,9 +135,12 @@ HEADLINE: list[dict] = [
                "5-rung ladder (11 points per case per band). The registered model q-1=r holds "
                "in 1/16 cases; the one-group s/h form q=r holds in 7/16 and wins on adjusted "
                "R^2 in 13-14/16. Pooled over 3 bands x 5 rungs x 4 decimations (33 cells) "
-               "floor ~ (h/s)^-0.48, R^2=0.71, median scatter 12%%. The s-exponent is 66-92%% "
-               "of the h-exponent, so most of the refinement-driven growth is reproduced by "
-               "thinning the cloud at fixed grid. Per-case the collapse does NOT hold"},
+               "floor ~ (h/s)^-0.48, R^2=0.71 against 0.775 for the two-slope fit. The s- and "
+               "h-exponents are of the same order (0.50 vs 0.65 on the primary band), but NO "
+               "collapse is claimed: q-r = -0.15+-0.45 (within 0.35 in 7/16), the gap grows "
+               "monotonically with band, and the per-case matched-h/s test FAILS -- two routes "
+               "to h/s=2.84 agree to 13%% in the mean but differ by a median 43%% per case and "
+               "are anti-correlated across cases (Spearman -0.61)"},
     {"path": "results/certificates/probe_conformal_after_deq.json",
      "script": "scripts/probe_conformal_after_deq.py", "tier": "cpu",
      "claims": "conformal survives DEQ (20/20 independent split)"},

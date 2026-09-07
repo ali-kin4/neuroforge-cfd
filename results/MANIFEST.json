@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-07T17:26:00.996943+00:00",
-  "git_head": "fe279609f97f4a57210eec927a47404d71107978",
-  "git_head_short": "fe27960",
+  "generated_utc": "2026-09-07T17:31:57.213789+00:00",
+  "git_head": "279749473740c1d79fba8e0d725c8456ba76030c",
+  "git_head_short": "2797494",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -190,7 +190,7 @@
       "path": "results/certificates/floor_collapse_analysis.json",
       "script": "scripts/floor_collapse_analysis.py",
       "tier": "cpu",
-      "claims": "POST-HOC, not pre-registered. Pools the decimation grid with the committed 5-rung ladder (11 points per case per band). The registered model q-1=r holds in 1/16 cases; the one-group s/h form q=r holds in 7/16 and wins on adjusted R^2 in 13-14/16. Pooled over 3 bands x 5 rungs x 4 decimations (33 cells) floor ~ (h/s)^-0.48, R^2=0.71, median scatter 12%%. The s-exponent is 66-92%% of the h-exponent, so most of the refinement-driven growth is reproduced by thinning the cloud at fixed grid. Per-case the collapse does NOT hold",
+      "claims": "POST-HOC, not pre-registered. Pools the decimation grid with the committed 5-rung ladder (11 points per case per band). The registered model q-1=r holds in 1/16 cases; the one-group s/h form q=r holds in 7/16 and wins on adjusted R^2 in 13-14/16. Pooled over 3 bands x 5 rungs x 4 decimations (33 cells) floor ~ (h/s)^-0.48, R^2=0.71 against 0.775 for the two-slope fit. The s- and h-exponents are of the same order (0.50 vs 0.65 on the primary band), but NO collapse is claimed: q-r = -0.15+-0.45 (within 0.35 in 7/16), the gap grows monotonically with band, and the per-case matched-h/s test FAILS -- two routes to h/s=2.84 agree to 13%% in the mean but differ by a median 43%% per case and are anti-correlated across cases (Spearman -0.61)",
       "sha256": "0c29de8e520a6821ebd4d509b0c4fb8d8101cc14560d4e2c785d40cfc127259b",
       "bytes": 24339,
       "git_tracked": true,

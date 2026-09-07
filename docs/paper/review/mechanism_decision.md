@@ -383,6 +383,14 @@ Anchor phrases below were verified present in the current files. The source is
 hard-wrapped; match on the phrase, not on the line breaks. **Nothing in this section
 was applied — another process owns these files.**
 
+**One instruction to whoever applies this list, so the split is not "harmonised" in the
+wrong direction.** The word *grows* is deliberately **kept** where it reports the
+measurement (the contribution bullet at `body.tex` l.110, the ladder result paragraph)
+and **removed** where it carries mechanism weight (the thesis sentence B1, the
+subsection title B4, the discussion B8). That inconsistency is intentional: the
+measurement is real and stays; the claim that refinement *causes* the growth by
+resolving more of an operator mismatch is what was refuted. Do not unify them.
+
 ### `docs/paper/sections/residual_floor_theorem.tex`
 
 **(T1) §"Assumptions, stated plainly" — delete the provenance attribution.** *Licensed
@@ -456,13 +464,22 @@ with
 > the bound \emph{wider}, $7.4\times\!\to\!11.3\times$ on $3/3$ seeds
 > (\texttt{results/review/floor\_subtraction\_gate.json}). Floor subtraction improves
 > the score's \emph{ranking} (Spearman $0.61\!\to\!0.66$) and degrades its use as a
-> conformal \emph{scale}, because the width tracks the dispersion of the nonconformity
+> conformal \emph{scale}. (Floor subtraction improves the ranking on $2$ of $3$ seeds,
+> Spearman $0.616/0.592/0.626\to0.681/0.703/0.601$.) The width tracks the dispersion of the nonconformity
 > ratio $E/\sigma$ ($Q_{0.9}/\mathrm{median}$: $15.1$ for an uninformative score,
 > $6.3$ for the monitor, $10.5$ after floor subtraction). The width is the heavy tail
 > of the drag-error distribution, not the floor: the marginal interval with no monitor
 > at all is $17.2\times$, so the monitor already buys $2.3\times$. Since the oracle
 > $r^\star$ dominates any predictor of it, no learned floor correction can improve this
 > certificate either."
+
+**(T5b) the usability sentence between T5 and T6 — it falls in neither anchor and
+carries two stale numbers.** *Licensed by:* `functional_audit_gate_followup.json`.
+Anchor: `An interval $1.6\times$ the median error is usable; one $6\times$ the median
+drag error is not a design tool.` Replace with
+
+> "An interval $1.7\times$ the median error is usable; one $8\times$ the median drag
+> error is not a design tool."
 
 **(T6) same paragraph — the refinement clause.** *Licensed by:* §1.4 and §1.6.
 Anchor: `And refinement cannot recover it, because the floor grows`. Replace with
@@ -589,9 +606,27 @@ mismatch, not less.` Replace the trailing clause with
 
 *Licensed by:* §1.4.
 
-**(B9) anywhere `5.6`--`6.8` or `0.891`--`0.895` appears** (`residual_floor_theorem.tex`
-l.46 and l.393 are the two known sites; grep before submission). → `6.5`--`7.9` and
-`0.901`--`0.903`.
+### `docs/paper/abstract.tex` — outside the two files named in the brief, and the
+most-read file in the package
+
+**(A1) l.22 carries both stale numbers.** *Licensed by:*
+`functional_audit_gate_followup.json`. Anchor: `supports a valid split-conformal band
+at $0.89$ coverage, at a width $5.6$--$6.8\times$ the drag error it bounds.` Replace
+with
+
+> "supports a valid split-conformal band at $0.90$ coverage, at a width
+> $6.5$--$7.9\times$ the drag error it bounds."
+
+The `$0.89$` was the *defect*, not a rounding: the plain empirical quantile delivers
+`0.892` by construction. Shipping the abstract with it would advertise the bug.
+
+**(B9) the residual grep.** Sites found and listed: `abstract.tex` l.22 (A1),
+`residual_floor_theorem.tex` l.46 (T3), l.387 (T4), l.393 (T5), l.395 (T5b).
+`neuroforge_cfd.tex` and `neuroforge_cfd_elsevier.tex` are wrappers and carry none.
+`docs/paper/submission/arxiv_v4/stage/` is a **frozen snapshot of a shipped package**
+and must not be edited in place; it will be regenerated from the corrected sources.
+Re-run before submission:
+`grep -rn "5\.6\|6\.8\|0\.891\|0\.895\|0\.89 coverage" docs/paper/*.tex docs/paper/sections/`.
 
 ### `docs/paper/review/floor_resolution_study.md`
 
