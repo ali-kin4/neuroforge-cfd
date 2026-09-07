@@ -49,12 +49,53 @@ physical-units exclusion is for. The default one-cell-ring mask — the policy t
 paper's own numbers use — gives `p = −0.344`, the same verdict; it is reported
 as the appendix curve, not as the result.
 
-**The rise is not rasterisation error.** This is the important one, and it comes
-from the MMS-raster control: push a *manufactured analytic* solution through the
-identical rasteriser and residual, and its residual **falls** with refinement
-(fine/coarse 0.41–0.74 across three cases) while the real AirfRANS truth's
-**rises** (0.86–3.23). Same pipeline, same cases, opposite direction. Whatever
-makes the real floor grow is in the data, not in the interpolation.
+**The rise is not the pipeline itself.** The MMS-raster control pushes a
+*manufactured analytic* solution through the identical rasteriser and residual;
+its residual **falls** with refinement (fine/coarse 0.41–0.74) while the real
+AirfRANS truth's **rises** (0.86–3.23). Same code, opposite direction. Claim
+only what that shows: the rasteriser does not manufacture rising residuals out
+of nothing. It does **not** prove the real data's rise is free of interpolation
+error, because the manufactured field has no boundary layer and is genuinely
+easier to interpolate. The argument against interpolation as the driver is §1a
+below, not this control.
+
+**A curve that was in the first draft of this report and should not be quoted.**
+The ladder also scores a set restricted to cells holding ≥8 source points, which
+fits `p = −0.909`. That number is not evidence: the qualifying cell count falls
+1863 → 1529 → 732 as `h` shrinks, because cells that dense are found only near
+the wall. The set *migrates* toward the wall rather than staying fixed, so part
+of that exponent is "we moved the scoring region". It is retained in the JSON
+and excluded from the argument.
+
+### 1a. Continuity and momentum rise in lockstep — which names the mechanism
+
+The decisive decomposition, and it does not go the way either candidate
+explanation predicted:
+
+| level | ‖r\*‖ | continuity | momentum |
+|---|---:|---:|---:|
+| 128² | 0.0624 | 0.0477 | 0.0401 |
+| 256² | 0.0779 | 0.0589 | 0.0510 |
+| 512² | 0.1067 | 0.0791 | 0.0717 |
+| fitted `p` | −0.387 | **−0.365** | **−0.419** |
+| rose in | 21/24 | 21/24 | 21/24 |
+
+The two components grow at the same rate, in the same cases. The 5-rung study
+agrees across all 16 of its cases: `p_cont` and `p_mom` track each other to
+within 0.01–0.09 everywhere.
+
+That rules out both single-term stories. Had the **closure omission** driven the
+rise it would have hit momentum only — continuity contains no `ν_t`. Had
+**divergence-freedom lost in linear interpolation** driven it (the domain-expert
+report's §2d) it would have hit continuity only. Neither did; they move together,
+which points at a cause common to every equation.
+
+The cause consistent with that is the **reference-operator mismatch**. The
+AirfRANS solution satisfies a different discrete operator on a body-fitted mesh.
+Interpolated onto a Cartesian raster it satisfies neither operator, in *every*
+equation, and refining the raster resolves more of the mismatch rather than less.
+This is also the direct evidence for the §4 headline, which is a claim about
+exactly that mismatch.
 
 **Caveat, stated rather than buried.** The source cloud's median
 nearest-neighbour spacing is `4.4e-5` chord near the wall but `4.6e-3` in the
@@ -82,11 +123,17 @@ The two studies trade off exactly the right way: 24 cases × 3 levels here,
 
 ## 3. What this does to the paper
 
-**H-B held.** The omitted `∇ν_t·∇u` term was predicted, before the run, to
-*grow* with refinement — at 128² the sub-cell boundary layer smears `∇ν_t`, so
-the term is under-estimated there. It does: 0.0018 → 0.0039 → 0.0054, `p =
-−0.808`. This is a **model** omission behaving like one. It is the cleanest
-component of the floor to point at, because no amount of refinement removes it.
+**H-B held, but it is not the mechanism.** The omitted `∇ν_t·∇u` term was
+predicted, before the run, to *grow* with refinement — at 128² the sub-cell
+boundary layer smears `∇ν_t`, so the term is under-estimated there. It does:
+0.0018 → 0.0039 → 0.0054, `p = −0.808`. That is a model omission behaving like
+one, and it never vanishes under refinement.
+
+It is nevertheless **~5% of the floor** at 512² (0.0054 against 0.1067), and
+§1a shows the rise is not momentum-specific. So the closure omission is a real,
+non-vanishing component and *not* the driver. An earlier draft of this report
+called it "the cleanest component to point at"; that was wrong, and the paper
+must not lead with it.
 
 **H-C held — leg (A) needs no weakening.** The λ-sweep's closed form requires
 `r_bc²(u*) > r_bc²(u_∞)`, and the theorem file attributes that inequality to the
@@ -142,27 +189,258 @@ claim:
 | from truth, descend residual | 0.181 → 0.029, **24/24** | 0 → median 0.91 | 0.181 → 0.037, 24/24 |
 | from truth, descend error | no motion (∇ = 0 exactly) | 0 → 0 | no motion |
 | perturbed, descend residual | 0.503 → 0.038, 24/24 | 2.56 → 3.96 mean | 0.503 → 0.044, 24/24 |
-| perturbed, descend error | 0.503 → 0.312 | 2.56 → **0.000**, 24/24 | 0.503 → 0.311 |
+| perturbed, descend error | 0.503 → 0.312 | 2.56 → 0.000, 24/24 | 0.503 → 0.311 |
 
 Started at the **exact ground truth**, with no network anywhere in the loop, 300
 steps of descent on the monitored residual cut it by 84% in 24/24 cases and take
 the field error from zero to a median of 0.91 — the range a trained backbone
 *starts* in. The compact-stencil monitor the paper reports falls in 24/24 too,
-so this is not the differentiable twin's wider Laplacian being gamed. The
-`perturbed_error` arm recovers the truth exactly, so the optimiser works.
+so this is not the differentiable twin's wider Laplacian being gamed.
 
-**One correction to the paper's framing, from the perturbed arm.** Residual
-descent is *unreliable*, not uniformly harmful: from a perturbed field it cuts
-the error in 18/24 cases, typically by 60%, and multiplies it by up to 7.5× in
-the other 6. The defensible sentence is not "descending the residual makes
-things worse" but "descending the residual cannot reach the truth and fails
-catastrophically on a minority of cases" — it terminates at residual 0.028 while
-the exact truth sits at 0.110, so the objective ranks a field with error 1.31 as
-four times better than the field with error 0.
+**The claim to make, because it holds in 24/24 rather than 6/24.** A blanket
+"descending the residual makes the field worse" does not survive this data:
+from a perturbed start it *cuts* the error in 18/24 cases, typically by 60%,
+blowing up only in the other 6. What holds everywhere is a statement about
+**iterate selection**:
+
+| | error-optimal iterate | residual-chosen iterate |
+|---|---|---|
+| from truth | step 0, error 0 — in 24/24 | step ~230, error 0.77 |
+| perturbed | step ~62, error 0.573 | step ~192, error 1.044 |
+
+The two never coincide — they differ in 24/24 cases on both arms — and the
+residual-chosen iterate is **strictly worse in 24/24**. Descent overshoots: the
+error bottoms out early, then climbs while the residual keeps falling. Stop
+where the residual tells you and you land 1.3× worse than a point you had
+already passed through on your own trajectory.
+
+This is precisely the reading R2 steelmanned, now measured: the residual is not
+a usable *selector* along a correction path. It survives the "but it helped most
+cases" rebuttal, and it retires the n=1 exposure of `tab:iters`.
+
+**Two supporting details, stated carefully.** Residual descent terminates at
+0.028 while the exact truth sits at 0.110 — the objective ranks a field with
+error 1.31 as four times better than the field with error 0. And the
+`perturbed_error` arm does not "recover the truth exactly": it reaches error
+`~1e-4` but a residual of 0.227, twice the truth's own 0.110. A field that is
+numerically indistinguishable from the truth carries double its residual, so the
+monitor is not a fine-grained selector — which is an asset for the detector
+claim's honest framing, not an embarrassment.
+
+**Not used: the λ = 100 boundary-inclusive arm.** Its optimisation largely
+failed — the residual fell in only 10/24 cases and the compact monitor in 7/24,
+while the error reached 210 and the distance to the uniform field 14.6. That is
+a badly scaled objective driving the field somewhere wild, not evidence about
+no-slip weighting. The λ question is settled by the closed form in §3, not here.
 
 ---
 
-## 6. Status of the six reports
+## 6. The decomposition study, completed (16 cases × 5 rungs)
+
+§2 above referred to this pass while it was still running on 3 cases. It has since
+finished at **n = 16 cases × 5 rungs**, and it settles *why* the floor rises.
+Producer: `scripts/floor_resolution_decomposition.py` →
+`results/certificates/floor_resolution_decomposition.json`. **17.8 min, CPU-only.**
+
+Primary metric is `band_0.1` — RMS over fluid cells with `sdf > 0.1` chord, excluding
+the monitor's zeroed ring: a **fixed physical region** at every rung, for the same
+reason §0 fixes its exclusion in physical units.
+
+| N | h | **band0.1** | band0.25 | cubic C1 | repaired | omit ∇ν_t | MMS analytic | MMS raster | h/s_local |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 128 | 0.02362 | **0.04593** | 0.0367 | 0.05117 | 0.04592 | 0.00161 | 6.9e-4 | 6.9e-4 | 8.08 |
+| 181 | 0.01667 | **0.05590** | — | — | 0.05600 | 0.00255 | 3.4e-4 | 3.7e-4 | 5.70 |
+| 256 | 0.01176 | **0.07192** | — | 0.08046 | 0.07197 | 0.00345 | 1.7e-4 | 2.8e-4 | 4.02 |
+| 362 | 0.00831 | **0.09049** | — | — | 0.09054 | 0.00426 | 8e-5 | 3.0e-4 | 2.84 |
+| 512 | 0.00587 | **0.10737** | 0.1090 | 0.11426 | 0.10740 | 0.00484 | 4e-5 | 3.8e-4 | 2.01 |
+
+| series | DECAY | rising (p<0) | order p | fine/coarse |
+|---|---:|---:|---:|---:|
+| **band 0.10 (primary)** | **0/16** | **15/16** | **−0.64 ± 0.29** | **2.56** |
+| band 0.25 (best-resolved) | 0/16 | **16/16** | −0.77 ± 0.16 | 2.97 |
+| omitted ∇ν_t term | 0/16 | 16/16 | −0.93 ± 0.20 | 3.87 |
+| MMS raster (pipeline null) | 0/16 | 3/16 | +0.32 ± 0.27 | 0.65 |
+| MMS analytic (truncation) | **16/16** | 0/16 | **+2.02 ± 0.05** | 0.061 |
+
+Per-case order on the primary metric spans −0.96 to +0.11; the one non-negative case
+is flat, not decaying. This corroborates §0 at 5× the case count and adds two things.
+
+### 6.1 A third artifact control: C¹ re-rasterisation
+
+§1 rules out rasterisation error with the MMS-raster null. The remaining version of
+that objection is sharper: *you are twice-differencing a C⁰ piecewise-linear
+interpolant, whose kinks sit at fixed physical triangle edges, so a second difference
+across one scales like Δs/h and blows up as h shrinks.* Re-rasterising with
+**CloughTocher (C¹, same triangulation)** answers it: the floor comes out **higher**,
+not lower, at every rung tested (0.0512 / 0.0805 / 0.1143 versus 0.0459 / 0.0719 /
+0.1074). If kinks drove the rise, C¹ would remove it. **Refuted.**
+
+### 6.2 The mechanism: it is not the closure term, it is failed cancellation
+
+Splitting the momentum residual into its terms (band 0.1, means over 16 cases):
+
+| term | 128² | 512² | change |
+|---|---:|---:|---|
+| convective `u·∇u` | 0.1832 | 0.1994 | +9% (grid-converged) |
+| pressure gradient `∇p` | 0.1802 | 0.1807 | **+0.3% (grid-converged)** |
+| viscous `ν_eff∇²u` | 0.0023 | 0.0073 | small throughout |
+| continuity `∇·u` | 0.0351 | 0.0794 | +126% |
+| **residual = their non-cancelling remainder** | **0.0459** | **0.1074** | **+134%** |
+
+**The individual terms are grid-converged; their cancellation is not.** AirfRANS
+balances convection against pressure gradient in *its* finite-volume operator on *its*
+body-fitted mesh. Under our cell-centred central-difference Cartesian operator that
+balance does not hold, and the imbalance grows from 25% to 54% of the convective scale
+as our stencil resolves finer scales of the reference field. Continuity behaves the
+same way: the reference is divergence-free in its FV sense, not in ours.
+
+This refines §3's reading. The omitted `∇ν_t` term does grow as predicted (H-B holds),
+but it is **4.5% of the floor** at 512², and **repairing the full stress divergence
+`div(ν_eff(∇u+∇uᵀ)) − ν_eff∇²u` moves the floor by less than 0.1%** (0.10737 →
+0.10740). So the floor is not "the structure the monitored operator omits" in the
+closure sense — it is the residue of **operator provenance**. The `∇ν_t` term is the
+cleanest *illustration* of a non-vanishing component; it is not the driver.
+
+> **Honest bound.** The repaired floor is a **lower bound** on reference-operator
+> mismatch: SA source terms, FV flux reconstruction and mesh non-orthogonality are not
+> modelled. And the MMS null tests the pipeline on a field smooth at the cloud scale;
+> §6.1 covers sub-cell content, but the ladder cannot be pushed past `h ≈ s_local`
+> without differentiating a reconstruction. The defensible claim is **"does not
+> decay"**, not "grows without bound".
+
+## 7. Leg (A): a numerical disagreement with §3, and the wording both studies support
+
+§3 concludes "H-C held — leg (A) needs no weakening". The 16-case decomposition run
+does **not** reproduce that at the finest rung, and the discrepancy should be settled
+in the paper's favour of caution rather than silently averaged away.
+
+`bc²` under the **framework's own** no-slip band (the quantity `bc_weight_sweep.py`
+uses), truth versus uniform:
+
+| N | truth bc² | uniform bc² | margin | leg (A) per case |
+|---:|---:|---:|---:|---:|
+| 128 | 0.006018 | 0.005507 | **+9.3%** | 14/16 |
+| 181 | 0.004113 | 0.003828 | +7.4% | 12/16 |
+| 256 | 0.002790 | 0.002609 | +6.9% | 13/16 |
+| 362 | 0.001904 | 0.001832 | +3.9% | 12/16 |
+| 512 | 0.001281 | 0.001318 | **−2.8%** | 12/16 |
+
+**Where the two studies agree:** the margin collapses monotonically with refinement.
+§3 measures +9.4% → +9.0% → +1.6% over three levels; this run measures +9.3% → +7.4%
+→ +6.9% → +3.9% → −2.8% over five. Same trend, same cause — the framework's band
+decays over `3·min(dx,dy)` and so shrinks with `h`.
+
+**Where they differ:** whether the *mean* has crossed zero by 512². §3 (n = 24) has
+truth still above by 1.6%; this run (n = 16) has it 2.8% below. A ±2% mean difference
+between two 16–24-case subsets at a margin that has already collapsed to ~2% is
+subset noise, not a contradiction. **Neither study licenses a resolution-independent
+claim**, and the per-case counts here show it was never universal anyway: leg (A)
+holds at **14/16** cases at 128², at **all five rungs in only 11/16** cases, and at no
+rung in 1/16.
+
+Two further facts this run adds:
+
+* **The theorem's attribution is CORRECT, and this was a live alternative.**
+  `bc_violation` is two additive terms — the no-slip band *and* the far-field mismatch
+  on the outer one-cell ring. The uniform field has an identically zero ring by
+  construction, so the ordering could have been an artifact of the crop's outer
+  boundary rather than of the boundary layer. Splitting them: the truth's ring is
+  **5.3e-5 of 6.0e-3 — under 1%**. The ordering really is about the near-wall band.
+* **The crossover weight is O(10²–10³), not O(1) and not O(10⁶).** Where the ordering
+  flips, `λ* = ‖R_h(u*)‖²/(bc²_unif − bc²_truth)` has median **581** (range 359–8549;
+  at 512²: median 599, n = 4). The framework's own trust map uses λ = 1, so λ* ≈ 600
+  is a monitor in which the no-slip term outweighs the entire PDE residual by two
+  orders of magnitude — no longer a PDE monitor at all. This is a **real technical
+  break**, not a formality, and not a practical rescue either.
+
+**Mitigation, already in hand.** Leg (B) — along the correction path *both* increments
+are positive, so `ρ_λ` rises for every λ — does **not** depend on the truth-vs-uniform
+ordering, and leg (B) is the leg that actually supports `tab:iters`. Leg (i) is
+*strengthened*: `R_h(u_∞) = 0` exactly at every `h`, while `‖r*‖` grows, so the gap
+the objective must be blamed for widens with refinement.
+
+## 8. Exact text changes for `sections/residual_floor_theorem.tex`
+
+**(a) §"Assumptions, stated plainly" — delete the grid concession.** Replace
+
+> "(H2) holds here because $R_h$ omits the no-slip closure *and* the $128^2$ grid
+> under-resolves the boundary layer and drops the spatially-varying-$\nu_t$ term
+> $\nabla\nu_t\!\cdot\!\nabla u$."
+
+with
+
+> "(H2) holds here for a reason that is \emph{not} grid resolution. Re-rasterising the
+> same AirfRANS fields from their source point clouds at $128^2$--$512^2$ makes the
+> floor \emph{grow}, not decay (fitted order $p=-0.64\pm0.29$ on a fixed physical
+> region, $0/16$ cases decaying and $15/16$ rising, $\times 2.6$ over the ladder;
+> \texttt{results/certificates/floor\_resolution\_decomposition.json}). The convective
+> and pressure-gradient terms are individually grid-converged ($0.183\!\to\!0.199$ and
+> $0.180\!\to\!0.181$); the floor is their non-cancelling remainder, growing from
+> $25\%$ to $54\%$ of the convective scale. Restoring the omitted stress divergence
+> moves it by ${<}0.1\%$. (H2) is a statement about auditing a finite-volume,
+> body-fitted reference with a different discrete operator, not about a sub-cell
+> boundary layer."
+
+**(b) §"Empirical confirmation" — one sentence after the 0.192/0.133 numbers.**
+
+> "The floor is not an artifact of the deployed grid: refined to $512^2$ it
+> \emph{increases} by $2.6\times$ on a fixed physical region, while a manufactured
+> potential flow---an exact solution of the continuum operator for any $\nu_t$---pushed
+> through the identical rasterisation pipeline converges at order $2.02\pm0.05$ and
+> remains $280\times$ smaller, and a $C^1$ re-rasterisation \emph{raises} rather than
+> lowers the floor."
+
+**(c) §"Robustness to the boundary term", leg (A) — weaken the universal quantifier.**
+Replace
+
+> "\textbf{(A)}~The uniform field remains a spurious minimum: it has both a smaller
+> interior residual and a smaller no-slip term than the truth
+> ($\overline{r_{bc}^2}=0.0053$ versus $0.0073$---on a $128^2$ grid the boundary layer
+> is sub-cell, so the rasterised truth itself carries near-wall velocity), hence
+> $\rho_\lambda(u_\infty)<\rho_\lambda(u^\star)$ for all $\lambda$."
+
+with
+
+> "\textbf{(A)}~At the deployed resolution the uniform field remains a spurious
+> minimum: it has both a smaller interior residual and a smaller no-slip term than the
+> truth ($\overline{r_{bc}^2}=0.0053$ versus $0.0073$; $14/16$ cases in the resolution
+> study), hence $\rho_\lambda(u_\infty)<\rho_\lambda(u^\star)$ for all $\lambda$
+> \emph{at that resolution}. We claim no more, because this leg is
+> resolution-contingent: the framework's no-slip band is scored over a width
+> $3\min(dx,dy)$ that shrinks with $h$, and the margin collapses monotonically under
+> refinement ($+9.3\%$ at $128^2$ to $-2.8\%$ at $512^2$), admitting a finite crossover
+> weight $\lambda^\star=\|r^\star\|^2/(\overline{r_{bc}^2}(u_\infty)-\overline{r_{bc}^2}(u^\star))$
+> of median ${\approx}600$---two orders of magnitude above the framework's own
+> $\lambda=1$, i.e. a monitor in which no-slip outweighs the entire PDE residual. The
+> far-field ring contributes under $1\%$ of $\overline{r_{bc}^2}(u^\star)$, so the
+> inequality is genuinely about the near-wall band as stated. Leg~(B) carries the
+> argument and does not depend on this ordering."
+
+**(d) §"Relation to prior work", contribution (a) — restate the contribution.** Replace
+the "quantified operator-specific floor" clause with
+
+> "\textbf{(a)} the demonstration that this floor is a property of \emph{operator
+> provenance} rather than of the mesh---it does not decay under refinement but grows,
+> because the individually grid-converged terms of the reference solution fail to
+> cancel under a different discrete operator, so a surrogate cannot be certified by a
+> residual monitor that is not the one its training data solves;"
+
+## 9. Rebuttal line
+
+> **Reviewer:** *your residual floor is an artifact of a $128^2$ grid that cannot
+> resolve the boundary layer.*
+> **We did:** re-rasterised the same AirfRANS point clouds from the raw clouds at
+> $128^2$–$512^2$ (one triangulation per case, `h` the only variable), gated on a
+> manufactured solution (order $2.02\pm0.05$) and on reproducing the published
+> per-case numbers ($3\times10^{-8}$).
+> **Evidence:** the floor **rises** — $p = -0.64\pm0.29$, **0/16 cases decay**, 15/16
+> rise, $\times2.6$ from $128^2$ to $512^2$. The pipeline null stays $280\times$
+> smaller; a $C^1$ re-rasterisation raises the floor rather than lowering it;
+> repairing the omitted closure term moves it by ${<}0.1\%$. The convective and
+> pressure terms are individually grid-converged — the floor is their non-cancelling
+> remainder, and refinement makes the mismatch worse.
+
+## 10. Status of the six reports
 
 | Report | State |
 |---|---|
