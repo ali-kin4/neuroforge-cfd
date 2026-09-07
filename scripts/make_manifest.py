@@ -102,6 +102,15 @@ HEADLINE: list[dict] = [
     {"path": "results/certificates/residual_floor_realdata.json",
      "script": "scripts/probe_residual_floor.py", "tier": "cpu",
      "claims": "residual floor: ||r*|| mean 0.192; uniform field gives 0 (theorem H2)"},
+    {"path": "results/certificates/transolver_inversion.json",
+     "script": "scripts/probe_transolver_inversion.py", "tier": "gpu",
+     "claims": "the 160/200 prediction-below-floor inversion is backbone-specific and does "
+               "NOT survive on the deployed Transolver: 8/5/5 of 200 (backbone alone) and "
+               "12/9/14 of 200 (Transolver+DEQ) across seeds 0/1/2, median gap +0.013..+0.015 "
+               "ABOVE the floor vs -0.024 BELOW for the dropout-FNO. Identity gates both pass "
+               "(truth floor reproduces the committed per_case exactly, max_abs_diff 0; the "
+               "dropout-FNO row reproduces mean/std/160 to all digits). Banded gradient energy: "
+               "dropout-FNO 1.75x the truth's, Transolver 1.00x, so 'over-smoothed' is wrong too"},
     {"path": "results/certificates/floor_resolution_decomposition.json",
      "script": "scripts/floor_resolution_decomposition.py", "tier": "cpu",
      "claims": "the residual floor does NOT decay under refinement: p=-0.64+-0.29 on a "
