@@ -36,10 +36,11 @@ five nested boxes ``V_1..V_5``:
 Residual variants
 -----------------
 ``form``:
-  ``adv``  -- the DEPLOYED monitor, ``u.grad u + grad p - nu_eff lap u``
-              (``physics.residuals.momentum_residual``).  This is the audited
-              object and it is the PRIMARY arm: a conservative reformulation
-              would change the operator under test.
+  ``adv``  -- the DEPLOYED monitor, ``u.grad u + grad p - nu_eff lap u``: the
+              same formula as ``physics.residuals.momentum_residual``, evaluated
+              in float64 here against the library path's float32.  This is the
+              audited object and it is the PRIMARY arm: a conservative
+              reformulation would change the operator under test.
   ``cons`` -- ``div(uu + pI - nu_eff grad u)``, the divergence form.  Secondary,
               and the only form for which the divergence-theorem reading exists.
 ``ring``:
@@ -150,9 +151,10 @@ def _nu_eff(field: FlowField, case) -> np.ndarray:
 def momentum_maps(field: FlowField, case, form: str) -> tuple[np.ndarray, np.ndarray]:
     """Signed, NON-DIMENSIONALISED momentum residual maps, unmasked.
 
-    ``form='adv'`` reproduces ``physics.residuals.momentum_residual`` exactly
-    (float64 arithmetic); ``form='cons'`` is the divergence form of the same
-    equation, whose box sum telescopes to an edge flux.
+    ``form='adv'`` is the same formula as ``physics.residuals.momentum_residual``
+    evaluated in float64 (the library path is float32, so the two agree to
+    single-precision rounding, not bitwise); ``form='cons'`` is the divergence
+    form of the same equation, whose box sum telescopes to an edge flux.
     """
     dx, dy = field.domain.dx, field.domain.dy
     u = np.asarray(field.u, dtype=np.float64)
@@ -837,11 +839,115 @@ def _conformal(pc, names, seeds, box_names, cd_t, a) -> dict:
     return res
 
 
+# --------------------------------------------------------------------------- #
+# --followup : two checks the gate's own results forced, run after the verdict
+# --------------------------------------------------------------------------- #
+def followup(a) -> int:
+    """F1: how TIGHT is the bound the residual NORM supports?  F2: does the
+    far-field flux still beat the surface integrator on PREDICTED fields?
+
+    F1 exists because the gate's own test (a), applied to the norm baseline on
+    the deployed arm, PASSES its 10% bar (inversion 2.5-6.5%).  The paper's
+    "cannot certify" leg therefore cannot rest on the inversion; it has to rest
+    on the bound's WIDTH, which is a number and is measured here rather than
+    asserted.  Non-vanishing does not prevent a valid bound -- split conformal
+    always returns one -- it prevents a tight one.
+
+    F2 exists because section 8's far-field result was measured on ground-TRUTH
+    fields while being recommended as deployable.  What would be deployed ranks
+    drag from a PREDICTED field.
+    """
+    t0 = time.time()
+    run = json.load(open(OUT_RUN, encoding="utf-8"))
+    pc = run["per_case"]
+    names = sorted(pc)
+    off = json.load(open(f"{FCACHE}/official_labels_full_test_n200.json",
+                         encoding="utf-8"))
+    sel = json.load(open(SEL_PC, encoding="utf-8"))["ensemble_mean"]
+    cd_t = np.array([pc[n]["fields"]["truth"]["cd"] for n in names])
+    rng = np.random.default_rng(a.seed)
+    boxes = [b["name"] for b in run["meta"]["boxes"]]
+
+    def conformal(score, err, q=0.90, reps=400):
+        cs, cov, w = [], [], []
+        for _ in range(reps):
+            i = rng.permutation(len(err))
+            cal, tst = i[: len(i) // 2], i[len(i) // 2:]
+            c = float(np.quantile(err[cal] / np.maximum(score[cal], 1e-30), q))
+            cs.append(c)
+            cov.append(float((err[tst] <= c * score[tst]).mean()))
+            w.append(float(np.median(c * score[tst])))
+        return {"c_median": float(np.median(cs)),
+                "coverage_mean": float(np.mean(cov)),
+                "median_bound_width": float(np.median(w))}
+
+    out = {"artifact": "functional_audit_gate_followup",
+           "F1": {"question": ("The gate's own bar (inversion < 10%) is PASSED by the "
+                               "residual NORM on the deployed arm (2.5-6.5%). So how "
+                               "tight is the bound the norm actually supports?"),
+                  "method": "split conformal, 90% target, 400 random half-splits",
+                  "arms": {}},
+           "F2": {"question": ("Section 8 measured the far-field flux on GROUND-TRUTH "
+                               "fields but recommended it as deployable. Does it still "
+                               "beat the surface integrator on PREDICTED fields?"),
+                  "arms": {}}}
+
+    for s in a.seeds:
+        fk = f"raw_seed{s}"
+        if fk not in pc[names[0]]["fields"]:
+            continue
+        e = np.abs(np.array([pc[n]["fields"][fk]["cd"] for n in names]) - cd_t)
+        r = np.array([pc[n]["fields"][fk]["residual_norm"] for n in names])
+        rec = conformal(r, e)
+        rec["median_abs_dCd"] = float(np.median(e))
+        rec["bound_over_error"] = rec["median_bound_width"] / max(np.median(e), 1e-30)
+        out["F1"]["arms"][f"{fk}/target_absdCd"] = rec
+
+    e = np.array([x["rel_l2"] for x in sel])
+    r = np.array([x["residual"] for x in sel])
+    rec = conformal(r, e)
+    rec["median_rel_l2"] = float(np.median(e))
+    rec["bound_over_error"] = rec["median_bound_width"] / max(np.median(e), 1e-30)
+    out["F1"]["arms"]["ensemble_mean/target_field_rel_l2"] = rec
+
+    rt = np.array([pc[n]["fields"]["truth"]["residual_norm"] for n in names])
+    rp = np.array([pc[n]["fields"]["raw_seed0"]["residual_norm"] for n in names])
+    out["F1"]["floor_share_of_typical_score"] = float(np.median(rt) / np.median(rp))
+
+    nm = [n for n in names if n in off]
+    cdo = np.array([off[n]["cd"] for n in nm])
+    for fld in ["truth"] + [f"raw_seed{s}" for s in a.seeds]:
+        if fld not in pc[nm[0]]["fields"]:
+            continue
+        out["F2"]["arms"][fld] = {
+            "rho_surface_vs_official": spearman(
+                np.array([pc[n]["fields"][fld]["cd"] for n in nm]), cdo),
+            "rho_phi_outer_vs_official": {
+                b: spearman(np.array([pc[n]["fields"][fld]["boxes"][b]["cons"]["phi_outer"]
+                                      for n in nm]), cdo) for b in boxes},
+        }
+    out["meta"] = {"date": time.strftime("%Y-%m-%d %H:%M:%S"), "n_cases": len(names),
+                   "n_with_official": len(nm), "runtime_s": time.time() - t0}
+    path = OUT_RUN.replace(".json", "_followup.json")
+    with open(path, "w", newline="\n", encoding="utf-8") as fh:
+        json.dump(out, fh, indent=1, allow_nan=False)
+    log(f"wrote {path}")
+    for k, v in out["F1"]["arms"].items():
+        log(f"  F1 {k}: coverage {v['coverage_mean']:.3f}, bound is "
+            f"{v['bound_over_error']:.1f}x the median error")
+    for k, v in out["F2"]["arms"].items():
+        best = max(v["rho_phi_outer_vs_official"].values())
+        log(f"  F2 {k}: surface {v['rho_surface_vs_official']:+.3f} vs "
+            f"phi_outer best {best:+.3f}")
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--validate", action="store_true")
     p.add_argument("--run", action="store_true")
     p.add_argument("--analyse", action="store_true")
+    p.add_argument("--followup", action="store_true")
     p.add_argument("--n-validate", type=int, default=6)
     p.add_argument("--limit", type=int, default=0)
     p.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
@@ -854,7 +960,9 @@ def main(argv=None) -> int:
         return run_gate(a)
     if a.analyse:
         return analyse(a)
-    p.error("one of --validate / --run / --analyse is required")
+    if a.followup:
+        return followup(a)
+    p.error("one of --validate / --run / --analyse / --followup is required")
     return 2
 
 

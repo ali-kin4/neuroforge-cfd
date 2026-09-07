@@ -66,6 +66,20 @@ HEADLINE: list[dict] = [
     {"path": "results/control/force_vs_official.json",
      "script": "scripts/recompute_force_vs_official.py", "tier": "gpu",
      "claims": "vs official labels rho_D 0.839, rho_L 0.879; self-consistency 0.995/0.999 reproduced"},
+    # --- drag observability: raster round trip through AirfRANS's own integrator ---
+    {"path": "results/control/drag_observability_roundtrip.json",
+     "script": "scripts/drag_observability_roundtrip.py", "tier": "cpu",
+     "claims": "raster round trip scored by AirfRANS's OWN integrator: rho_D 0.700 / "
+               "0.710 / 0.762 at 128/256/512 vs rho_L 0.9967 / 0.9986 / 0.9995; "
+               "viscous drag recovered to 0.55%/1.05%/1.91% of its value; verdict "
+               "R-WORSE (raster owns the loss, 0.839 is not a ceiling); all 4 gates 0.0"},
+    # --- covariate control: how much of a drag rho is just knowing the case ---
+    {"path": "results/control/drag_covariate_control.json",
+     "script": "scripts/drag_covariate_control.py", "tier": "cpu",
+     "claims": "(U,alpha,alpha^2) regression on the simulation NAME ranks official cd at "
+               "0.874, beating every ground-truth integrator arm (0.611-0.839) and every "
+               "prediction (0.828-0.845); partial rho_D drops to 0.53-0.65, partial rho_L "
+               "holds at 0.85-0.9999"},
     # --- per-cell vs per-case trust scope ---
     {"path": "results/control/percell_residual_error.json",
      "script": "scripts/control_percell_residual_error.py", "tier": "cpu",
@@ -266,6 +280,17 @@ HEADLINE: list[dict] = [
                "indistinguishable on AUROC (CIs include zero) and significantly better on "
                "Spearman (+0.059..+0.132, 3/3 CIs exclude zero) -- cancellation identified as the "
                "mechanism by measurement rather than by argument"},
+    {"path": "results/review/functional_audit_gate_followup.json",
+     "script": "scripts/functional_audit_gate.py --followup", "tier": "cpu-verify",
+     "claims": "two controls the gate's own results forced. F1: the residual NORM passes the "
+               "gate's own inversion bar on the deployed arm, so the 'cannot certify' leg is "
+               "restated as a WIDTH -- split conformal attains 0.89 coverage at a 0.90 target "
+               "with a bound 5.6-6.8x the median |dCd| and 1.6x the median field rel-L2, because "
+               "median ||R(truth)||/median ||R(pred)|| = 0.864, i.e. 86%% of a typical score is "
+               "floor present at zero error. F2: the far-field flux beats the surface integrator "
+               "on GROUND-TRUTH fields (rho 0.985 vs 0.839) and LOSES on PREDICTED fields "
+               "(0.37-0.49 vs 0.83-0.85), which withdraws an integrator recommendation an earlier "
+               "draft of the report made"},
 ]
 
 

@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-07T07:53:12.094266+00:00",
-  "git_head": "1fb1445714e6fccbfaaa16c24134c5533fa1bafe",
-  "git_head_short": "1fb1445",
+  "generated_utc": "2026-09-07T08:02:32.791433+00:00",
+  "git_head": "da23297d2cdcabbadc68ce8745fadc6d8ce9d0ae",
+  "git_head_short": "da23297",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -12,7 +12,7 @@
     "cuda_toolkit": "12.4",
     "gpu": "NVIDIA GeForce RTX 4070 Ti"
   },
-  "n_files": 52,
+  "n_files": 55,
   "n_missing": 0,
   "missing": [],
   "files": [
@@ -75,6 +75,26 @@
       "bytes": 4748,
       "git_tracked": true,
       "last_commit": "6a9b97d"
+    },
+    {
+      "path": "results/control/drag_observability_roundtrip.json",
+      "script": "scripts/drag_observability_roundtrip.py",
+      "tier": "cpu",
+      "claims": "raster round trip scored by AirfRANS's OWN integrator: rho_D 0.700 / 0.710 / 0.762 at 128/256/512 vs rho_L 0.9967 / 0.9986 / 0.9995; viscous drag recovered to 0.55%/1.05%/1.91% of its value; verdict R-WORSE (raster owns the loss, 0.839 is not a ceiling); all 4 gates 0.0",
+      "sha256": "f9bd171993ebcc22c0736f7158284818780d673d1b534f6e8938c861861e3c5d",
+      "bytes": 11308,
+      "git_tracked": true,
+      "last_commit": "da23297"
+    },
+    {
+      "path": "results/control/drag_covariate_control.json",
+      "script": "scripts/drag_covariate_control.py",
+      "tier": "cpu",
+      "claims": "(U,alpha,alpha^2) regression on the simulation NAME ranks official cd at 0.874, beating every ground-truth integrator arm (0.611-0.839) and every prediction (0.828-0.845); partial rho_D drops to 0.53-0.65, partial rho_L holds at 0.85-0.9999",
+      "sha256": "3af857f9f54bca8dbeb2623136748447f801ff74156f9c7b88c34b7831091107",
+      "bytes": 2822,
+      "git_tracked": true,
+      "last_commit": "27e11c5"
     },
     {
       "path": "results/control/percell_residual_error.json",
@@ -535,6 +555,16 @@
       "bytes": 5316,
       "git_tracked": true,
       "last_commit": "a81c9bd"
+    },
+    {
+      "path": "results/review/functional_audit_gate_followup.json",
+      "script": "scripts/functional_audit_gate.py --followup",
+      "tier": "cpu-verify",
+      "claims": "two controls the gate's own results forced. F1: the residual NORM passes the gate's own inversion bar on the deployed arm, so the 'cannot certify' leg is restated as a WIDTH -- split conformal attains 0.89 coverage at a 0.90 target with a bound 5.6-6.8x the median |dCd| and 1.6x the median field rel-L2, because median ||R(truth)||/median ||R(pred)|| = 0.864, i.e. 86%% of a typical score is floor present at zero error. F2: the far-field flux beats the surface integrator on GROUND-TRUTH fields (rho 0.985 vs 0.839) and LOSES on PREDICTED fields (0.37-0.49 vs 0.83-0.85), which withdraws an integrator recommendation an earlier draft of the report made",
+      "sha256": "9bbb50bbe7fb58eadaca03137054293f46404e50fa131e5539cdc30d820114b4",
+      "bytes": 2758,
+      "git_tracked": false,
+      "last_commit": ""
     }
   ]
 }

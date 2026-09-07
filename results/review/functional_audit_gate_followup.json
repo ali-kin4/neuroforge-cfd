@@ -1,0 +1,89 @@
+{
+ "artifact": "functional_audit_gate_followup",
+ "F1": {
+  "question": "The gate's own bar (inversion < 10%) is PASSED by the residual NORM on the deployed arm (2.5-6.5%). So how tight is the bound the norm actually supports?",
+  "method": "split conformal, 90% target, 400 random half-splits",
+  "arms": {
+   "raw_seed0/target_absdCd": {
+    "c_median": 0.05175856887410242,
+    "coverage_mean": 0.891025,
+    "median_bound_width": 0.007879389892223997,
+    "median_abs_dCd": 0.0014151048348425635,
+    "bound_over_error": 5.568060894301596
+   },
+   "raw_seed1/target_absdCd": {
+    "c_median": 0.06983207044035682,
+    "coverage_mean": 0.894525,
+    "median_bound_width": 0.0099995876275663,
+    "median_abs_dCd": 0.0014866303673278652,
+    "bound_over_error": 6.726344252969888
+   },
+   "raw_seed2/target_absdCd": {
+    "c_median": 0.0556985034546216,
+    "coverage_mean": 0.8909750000000001,
+    "median_bound_width": 0.008608705976715557,
+    "median_abs_dCd": 0.0012728187686796223,
+    "bound_over_error": 6.763497041802681
+   },
+   "ensemble_mean/target_field_rel_l2": {
+    "c_median": 0.03795660096942892,
+    "coverage_mean": 0.893,
+    "median_bound_width": 0.005323605442713184,
+    "median_rel_l2": 0.003310680367362313,
+    "bound_over_error": 1.6080094880783098
+   }
+  },
+  "floor_share_of_typical_score": 0.8635592438826322
+ },
+ "F2": {
+  "question": "Section 8 measured the far-field flux on GROUND-TRUTH fields but recommended it as deployable. Does it still beat the surface integrator on PREDICTED fields?",
+  "arms": {
+   "truth": {
+    "rho_surface_vs_official": 0.839446486162154,
+    "rho_phi_outer_vs_official": {
+     "V1": 0.934886372159304,
+     "V2": 0.9734118352958824,
+     "V3": 0.9845781144528614,
+     "V4": 0.9474791869796745,
+     "V5": 0.9470186754668867
+    }
+   },
+   "raw_seed0": {
+    "rho_surface_vs_official": 0.8450086252156304,
+    "rho_phi_outer_vs_official": {
+     "V1": 0.24894022350558764,
+     "V2": 0.3032580814520363,
+     "V3": 0.3690557263931598,
+     "V4": 0.3675481887047176,
+     "V5": 0.3275511887797195
+    }
+   },
+   "raw_seed1": {
+    "rho_surface_vs_official": 0.8284917122928073,
+    "rho_phi_outer_vs_official": {
+     "V1": 0.36499512487812197,
+     "V2": 0.2991959798994975,
+     "V3": 0.41279981999549986,
+     "V4": 0.4399954998874972,
+     "V5": 0.4854931373284332
+    }
+   },
+   "raw_seed2": {
+    "rho_surface_vs_official": 0.8429220730518263,
+    "rho_phi_outer_vs_official": {
+     "V1": -0.008143703592589814,
+     "V2": 0.33077626940673516,
+     "V3": 0.4604635115877897,
+     "V4": 0.40419560489012224,
+     "V5": 0.4170539263481587
+    }
+   }
+  }
+ },
+ "meta": {
+  "date": "2026-09-07 11:30:35",
+  "n_cases": 200,
+  "n_with_official": 200,
+  "runtime_s": 0.13812041282653809
+ }
+}

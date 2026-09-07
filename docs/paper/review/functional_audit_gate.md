@@ -10,10 +10,19 @@ refinement makes worse) and cannot be *descended* (24/24 divergence from the exa
 truth). The open question is whether a **functional** (goal-oriented) reading of
 the *same* residual recovers the certificate the norm-level reading cannot give.
 
+**Answer: no — and read §5.2 before quoting the "certify" leg anywhere.** The
+gate fails on both pre-registered tests, so the branch is Design A. But applying
+the gate's own bar to the *norm* baseline turned up a load-bearing correction to
+the paper's existing "cannot certify" claim, which §5.2 replaces with a measured
+bound width. §8.1 also withdraws a recommendation an earlier draft of this report
+made, after its own control inverted it.
+
 Producer: `scripts/functional_audit_gate.py`.
 Artifacts: `results/review/functional_audit_gate_validation.json`,
 `results/review/functional_audit_gate.json`,
-`results/review/functional_audit_gate_analysis.json`.
+`results/review/functional_audit_gate_analysis.json`,
+`results/review/functional_audit_gate_bootstrap.json`,
+`results/review/functional_audit_gate_followup.json`.
 
 ---
 
@@ -433,13 +442,19 @@ reproduce the whole gate from committed caches in under an hour on one core.
    **magnitude**, not direction.
 3. **A signed functional certificate would be unsafe.** Its most-confident decile
    hides drag errors up to **4.3×** the worst-decile threshold.
-4. **Design A's foil is now measured, not argued.** §3.5 of the design doc says
+4. **A far-field control-volume drag is an excellent instrument on converged
+   fields and a poor one on surrogate fields** — ρ vs official `C_d` 0.985 on
+   ground truth against the surface integrator's 0.839, but 0.37–0.49 against
+   0.83–0.85 on predicted fields (§8.1). Locality relative to where the surrogate
+   is accurate decides the quality of a derived quantity, which is the paper's
+   provenance argument measured on force integration rather than on residuals.
+5. **Design A's foil is now measured, not argued.** §3.5 of the design doc says
    goal-oriented estimation works for ROMs because the residual is evaluated with
    the full-order operator. This gate is the *measurement* of what happens when
    that assumption is removed: the technique does not transfer, and the number is
    0.61 against 0.94.
 
-### 5.2 A correction the paper must make — the inversion premise is model-dependent
+### 5.2 A correction the paper must make — the inversion premise is model-dependent, and the replacement must be a WIDTH, not an assertion
 
 **Do not use the 160/200 inversion as the reason the monitor cannot certify.**
 That figure is `checkpoints/certificates_deq.pt`, a dropout-FNO with
@@ -448,17 +463,46 @@ That figure is `checkpoints/certificates_deq.pt`, a dropout-FNO with
 reviewer holding the repo can compute this in one command, and the paper's
 "cannot certify" leg currently rests on it.
 
-The **correct and model-independent** statement of the same leg is the floor
-*magnitude*, which this gate now quantifies in engineering units:
+**This cuts deeper than a citation fix, and the report says so rather than
+routing around it.** By *this gate's own pre-registered bar* — inversion below
+10% — the residual **norm** on the deployed arm **passes**. So the obvious
+question is why the norm cannot certify either, and "it does not vanish at the
+reference solution" is not an answer: non-vanishing does not prevent a *valid*
+bound, it prevents a *tight* one. Split conformal will always return a valid `c`.
 
-> A threshold on the monitored residual cannot imply an error bound, because the
-> monitor does not vanish at the reference solution: ‖r\*‖ = 0.192 where the error
-> is zero, and in drag units the reference's own functional residual is **an order
-> of magnitude larger than the drag errors to be certified**. The obstruction is
-> the floor's magnitude, not the ordering — the ordering is model-dependent and
-> reverses for a sufficiently over-smoothed backbone.
+So we measured the width instead of asserting the impossibility
+(`--followup`, `results/review/functional_audit_gate_followup.json`; split
+conformal, 90% target, 400 half-splits):
 
-That is sharper, it is true on every arm, and it removes an attackable sentence.
+| arm | target | coverage | median bound width | median error | bound / error |
+|---|---|---:|---:|---:|---:|
+| `raw_seed0` | \|ΔC_d\| | 0.891 | 0.0079 | 0.00142 | **5.6×** |
+| `raw_seed1` | \|ΔC_d\| | 0.895 | 0.0100 | 0.00149 | **6.7×** |
+| `raw_seed2` | \|ΔC_d\| | 0.891 | 0.0086 | 0.00127 | **6.8×** |
+| `ensemble_mean` | field rel-L2 | 0.893 | 0.00532 | 0.00331 | **1.6×** |
+
+and the reason the bound is wide is model-independent: median `‖R(truth)‖` /
+median `‖R(raw_seed0)‖` = **0.864**. **86% of a typical prediction's score is
+already present at zero error.**
+
+**The honest statement of the "certify" leg, which is a partial concession:**
+
+> The monitored residual *does* support a valid conformal bound on the deployed
+> arm — coverage 0.89 at a 0.90 target — so "it cannot certify" is too strong as
+> written. What the floor costs is the bound's *width*: 5.6–6.8× the median drag
+> error and 1.6× the median field error, because 86% of a typical prediction's
+> score is the floor, present at zero error and independent of the model. A
+> conformal interval 1.6× the median error is not useless; one 6× the median drag
+> error is not a design tool. And the width cannot be improved by refining the
+> grid, because the floor grows under refinement.
+
+**What this means for the paper.** The `certify` verb must be restated as
+*certifies, but only to a floor-limited width* rather than *cannot certify*. The
+sharp negatives that survive untouched are **descend** (24/24 divergence from the
+exact truth) and the floor's non-decay under refinement. Those carry the thesis;
+the inversion argument should be retired, and the width number put in its place.
+This is the single most load-bearing correction in this report, and it was forced
+by the gate's own pre-registered bar rather than by a reviewer.
 
 ### 5.3 Exact text for the manuscript
 
@@ -573,56 +617,69 @@ Three readings, and the third is the only constructive one in this report.
 
 ---
 
-## 8. The instrument is not the problem — and a free bonus for Design A
+## 8. The instrument is not the problem — and a bonus that did NOT survive its own control
 
 The obvious last line of defence for Design B is that the *functional* is broken
 rather than the *concept*: a zeroth-order adjoint, an immersed body, a coarse
 grid, so of course it measures nothing. That objection is testable and it is
-refuted, because the identical box machinery — same telescoping, same operator,
-same masks, same sign — applied to the **flux** instead of the **residual**
-recovers drag better than the paper's own force integrator does.
+refuted — the identical box machinery applied to the **flux** instead of the
+**residual** recovers drag on ground-truth fields better than the paper's own
+force integrator does.
 
 `φ_outer` is the far-field momentum-theorem drag on box `V`, obtained purely by
-telescoping the conservative residual. On the 200 ground-truth fields, against
+telescoping the conservative residual. On the 200 **ground-truth** fields against
 the official AirfRANS OpenFOAM `C_d` labels:
 
 | score on truth | ρ vs official `C_d` |
 |---|---:|
 | deployed surface integrator (`force_coefficients`) | +0.839 |
-| `φ_outer` (V1) | **+0.935** |
-| `φ_outer` (V2) | **+0.973** |
-| `φ_outer` (V3) | **+0.985** |
-| `φ_outer` (V4) | +0.947 |
-| `φ_outer` (V5) | +0.947 |
+| `φ_outer` (V1 / V3 / V5) | **+0.935 / +0.985 / +0.947** |
 | `I_T0` — the **residual** functional (V3) | +0.377 |
 
-The +0.839 reproduces the repo's committed `rho_D_gt_vs_official` of 0.839
-exactly, so the comparison is anchored.
+The +0.839 reproduces the repo's committed `rho_D_gt_vs_official` exactly, so the
+comparison is anchored.
 
-**Two conclusions, and they point in opposite directions.**
+**The negative is therefore not instrumental.** The same integration that ranks
+drag at ρ = 0.985 ranks nothing useful when what is integrated is the residual
+(ρ = 0.31–0.38 against the label; AUROC 0.61–0.70 against drag *error*). "Your
+control volume is too small / your adjoint too crude / your grid too coarse"
+would each have to explain why the identical control volume, adjoint weight and
+grid recover the drag label at ρ = 0.985.
 
-1. **The negative is not instrumental.** The same integration that ranks drag at
-   ρ = 0.985 ranks nothing useful when what is integrated is the residual
-   (ρ = 0.31–0.38 against the label, AUROC 0.61–0.70 against drag *error*). The
-   machinery sees drag; the residual functional does not see drag error. That is
-   the cleanest possible answer to "your control volume is too small / your
-   adjoint is too crude / your grid is too coarse" — those objections would have
-   to explain why the identical control volume, adjoint weight and grid recover
-   the drag *label* at ρ = 0.985.
-2. **A free improvement to the deployed integrator, for Design A.** A far-field
-   control-volume drag telescoped from the same residual machinery ranks official
-   `C_d` at **ρ 0.94–0.99 against the surface integrator's 0.84**, at zero
-   marginal cost on fields that already exist. This is directly responsive to
-   B-ATTACK-3 (332% median magnitude error on perfect fields, ρ_D = 0.84 as a
-   ceiling): for *ranking* purposes the ceiling is not 0.84, it is 0.985, and the
-   better instrument was already in the fields.
+### 8.1 The bonus this report first claimed, and then withdrew
 
-   Stated with its scope: this is a **rank** result on the ground-truth fields,
-   it is a box-size-sensitive quantity (0.935 → 0.985 → 0.947 across V1–V5, best
-   at V3), viscous drag remains unavailable at 128², and no magnitude claim is
-   made. It belongs in "what remains deployable" and it does not resurrect
-   Design B — a better drag *estimator* is not a drag-error *certificate*, and
-   §3 measured the certificate and found nothing.
+An earlier draft of this section recommended `φ_outer` as a free upgrade to the
+deployed force integrator for Design A — "the ranking ceiling is not 0.84, it is
+0.985". **That claim was measured on ground-truth fields and is withdrawn.** What
+would actually be deployed ranks drag from a *predicted* field, so the control is
+to repeat it there (`--followup`, F2):
+
+| field | surface integrator | `φ_outer`, best box |
+|---|---:|---:|
+| ground truth | +0.839 | **+0.985** |
+| `raw_seed0` | **+0.845** | +0.369 |
+| `raw_seed1` | **+0.828** | +0.485 |
+| `raw_seed2` | **+0.843** | +0.460 |
+
+**The ordering inverts.** On predicted fields the surface integrator holds at
+ρ ≈ 0.83–0.85 while the far-field flux collapses to 0.37–0.49. The mechanism is
+the one B-ATTACK-4 already names: `φ_outer` integrates over a contour 0.4–1.4
+chords out, so it is dominated by the surrogate's far-field and wake error, while
+a surface integral stays local to the body where the prediction is anchored by
+the geometry. A far-field control-volume drag is an excellent instrument on a
+*converged* field and a poor one on a *surrogate* field.
+
+Two things follow, and both are worth keeping.
+
+1. **No deployable bonus.** Design A gains nothing here, and this report does not
+   hand the author a recommendation that a reviewer would overturn with one
+   control. The §8 headline is the instrument check, not an integrator upgrade.
+2. **It is itself evidence for the paper's thesis**, and cheaply obtained: the
+   quality of a derived quantity depends on *where* the operator samples the
+   field relative to where the surrogate is accurate. That is the same
+   provenance/locality argument the paper makes about residual operators, now
+   measured on force integration. One sentence in "what remains deployable",
+   scoped to ranking against official labels on this corpus.
 
 ---
 
