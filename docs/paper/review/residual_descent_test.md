@@ -371,11 +371,33 @@ whose error increased):
 | 10⁴ | 0.459 | 0.00479 → 0.00723 | **+31.5 %** | 0.90 |
 | ≥ 10⁵ | diverges | — | — | 1.00 |
 
-**The reading is monotone and it is the answer to the objection: the more the residual
-actually falls, the worse the field error gets.** There is no learning rate at which the
-residual is meaningfully reduced *and* the error improves. A ~13 % residual reduction
-(η = 10²) is roughly error-neutral (−0.8 % median); anything that cuts the residual by
-≥ 25 % is harmful, sharply.
+**On the deployed backbone the reading is monotone, and it is the answer to the objection:
+the more the residual actually falls, the worse the field error gets.** There is no
+learning rate at which the residual is meaningfully reduced *and* the error improves. A
+~13 % residual reduction (η = 10²) is roughly error-neutral (−0.8 % median); anything that
+cuts the residual by ≥ 25 % is harmful, sharply. It is not a bad-η artifact in either
+direction: η below 10¹ simply does not move the field, and η above 10⁴ diverges.
+
+**From the dropout-FNO, BC-constrained — the honest counter-column.** Here the same sweep
+runs the *other* way, and we report it rather than omit it:
+
+| η | `J/J₀` | rel-L2 med. start → end | Δ | frac. worse | frac. diverged |
+|---|---|---|---|---|---|
+| 10⁻⁴ … 10⁰ | 0.994–1.000 | 0.01306 → 0.01306 | −0.0…−0.1 % | 0.00 | 0.00 |
+| 10¹ | 0.942 | 0.01306 → 0.01301 | −0.6 % | 0.00 | 0.00 |
+| 10² | 0.668 | 0.01306 → 0.01274 | −4.2 % | 0.00 | 0.00 |
+| 10³ | 0.340 | 0.01306 → 0.01141 | **−14.8 %** | 0.00 | 0.00 |
+| 10⁴ | — | 0.01306 → 0.01103 | **−20.2 %** | 0.28 | 0.17 |
+| ≥ 10⁵ | diverges | — | — | 1.00 | 1.00 |
+
+So over the range this 200-step sweep reaches (`J/J₀ ≥ 0.34`), deeper residual reduction
+*helps* the FNO. **The "monotone in achieved `J`" statement therefore holds for the
+deployed backbone, not universally, and we do not claim otherwise.** The FNO's gain turns
+over further along the path than this sweep goes: at 500 Armijo steps (`J/J₀ = 0.238`) the
+error minimum is already interior on 78.5 % of cases, and Adam at `J/J₀ = 0.178` recovers
+only −6.7 % against −15.3 % at 0.392 (§5.1). The two observations are consistent — a
+U-shape whose minimum lies beyond `J/J₀ ≈ 0.3` — and together they are the point: the
+useful stopping depth is **arm-dependent and invisible to `J`**.
 
 ### 5.1 Adam — "plain gradient descent is a strawman"
 
@@ -399,9 +421,14 @@ Two things fall out, and they close the objection for good.
    better you minimise the objective, the less good it does. This is the stopping-rule
    pathology of §3.3(3) reproduced under a second optimiser.
 
-Because the relation is monotone in the *achieved* `J` across all three step rules, the
-conclusion is **optimiser-independent**: any optimiser that drives `J` lower lands further
-right on these tables. A better minimiser makes the outcome worse, not better.
+**Scope of the optimiser-independence claim, stated precisely.** For the *deployed
+backbone*, all three step rules — Armijo GD, fixed-η GD over 12 decades, Adam at two
+learning rates — agree in sign and are monotone in the *achieved* `J`, so any optimiser
+that drives `J` lower lands further right on these tables and does worse. That is the
+claim the paper needs, and it is now optimiser-independent. For the *FNO* the relation is
+**not** monotone: the gain grows with depth to about `J/J₀ ≈ 0.3` and then decays
+(§5, −14.8 % at 0.34 vs −6.7 % at 0.178). We claim the deployed-arm monotonicity and the
+FNO U-shape as measured, not a universal law.
 
 ---
 
@@ -528,11 +555,12 @@ corrector."*
 > (3 seeds) and the dropout-FNO, with the Dirichlet data pinned at ground truth.*
 >
 > *→ Evidence: error rises on 94–98\% of deployed cases (median $+74$ to $+87\%$,
-> $p<10^{-30}$) and on 200/200 started from the truth; the result is unchanged under fixed
-> $\eta$ over 12 decades and under Adam, and is monotone in the achieved $J$ in all three.
-> Where descent does help (a backbone far from the floor) it delivers $\approx1/35$ of the
-> supervised gain and gives no stopping rule --- driving $J$ lower with Adam cuts the gain
-> from $-15.3\%$ to $-6.7\%$.*
+> $p<10^{-30}$) and on 200/200 started from the truth; on the deployed backbone the result
+> is unchanged under fixed $\eta$ over 12 decades and under Adam, and is monotone in the
+> achieved $J$ in all three, so it is not an artifact of the step rule. Where descent does
+> help (a backbone far from the floor) it delivers $\approx1/35$ of the supervised gain and
+> gives no stopping rule --- driving $J$ lower with Adam cuts the gain from $-15.3\%$ to
+> $-6.7\%$.*
 
 ---
 
@@ -543,10 +571,21 @@ corrector."*
 * Zero backbone forward passes for the Transolver arms (re-used
   `data/cache/acceptance_gate/`); 200 CPU FNO forwards (312 s), cached to
   `data/cache/residual_descent_fno/`.
-* Main sweep: ≈ 700 s per arm × mode combo at n = 200 × 500 steps on 8 threads.
-  η sweep: ≈ 70 s per (arm, mode, η) at n = 40 × 200 steps on 4 threads.
-* Every combo writes its own JSON and is skipped on re-run, so the sweep is resumable
-  (this box loses power without warning; it was in fact interrupted twice and resumed).
+* **Measured compute, summed from the `wall_s` field of each result JSON: 12 469 s
+  (3.5 h) for the 16 descent runs, plus 2 878 s for the η stage and 312 s for the FNO
+  cache — 4.3 h total.** Per-combo timings are logged per run (661–1 233 s at n = 200 ×
+  500 steps). These are *not* clean per-run timings: two of the sweeps ran concurrently
+  and another agent's job was competing for the same CPU, so a single-job re-run should be
+  faster. The `wall_s` in each JSON is the authoritative per-run figure.
+* Thread counts used: 8 for the main sweep, 4–6 for the η and Adam sweeps (of 24 cores),
+  deliberately leaving headroom for the concurrent jobs.
+* Every combo and every (arm, mode) η block writes its own JSON and is skipped on re-run,
+  so the sweep is resumable — it was in fact interrupted twice and resumed.
+  A single shared accumulator file is *not* safe here: the Windows venv launcher runs the
+  script as a parent+child pair and two writers with independent in-memory accumulators
+  silently truncated each other's keys. That bug was caught and fixed (per-file writes,
+  merged into `eta_sensitivity.json` at the end); it is worth knowing about for any other
+  script in this repo that accumulates into one JSON.
 
 ```bash
 CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=8 PYTHONPATH=src \
