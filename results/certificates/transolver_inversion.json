@@ -1,0 +1,299 @@
+{
+  "artifact": "transolver_inversion",
+  "purpose": "Test whether the prediction-below-truth-floor inversion (160/200, published on the over-smoothed dropout-FNO) survives on the paper's SOTA Transolver backbone and on the deployed Transolver+DEQ field.",
+  "verdict": "INVERSION_DISAPPEARS",
+  "gates": {
+    "gate_a_ruler_identity": {
+      "status": "recomputed norm_truth vs committed residual_floor_realdata.json",
+      "n_matched": 200,
+      "max_abs_diff": 0.0,
+      "names_all_found": true,
+      "order_identical": true,
+      "tolerance": 1e-09,
+      "passed": true
+    },
+    "gate_b_reproduce_fno_160": {
+      "status": "re-derived dropout-FNO inversion count from scratch",
+      "recomputed": 160,
+      "published": 160,
+      "published_n": 200,
+      "n": 200,
+      "passed": true
+    }
+  },
+  "metadata": {
+    "dataset": "AirfRANS task=full test split",
+    "grid_cache": "data/cache/airfrans_full_test_r128_n200.pkl",
+    "pointcloud_cache": "data/cache/airfrans_pc_full_test_n200.pkl",
+    "n_cases": 200,
+    "resolution": [
+      128,
+      128
+    ],
+    "device_transolver": "cuda",
+    "device_fno": "cpu",
+    "wall_clock_seconds_this_invocation": 0.3862760066986084,
+    "wall_clock_note": "This is the wall clock of THIS invocation only. Stages served from the resume cache cost ~0 here, so on a merge pass the number is small and is NOT the measurement cost. The real per-seed Transolver cost is transolver.seed*.seconds (~1600 s/seed on an RTX 4070 Ti, ~7.8 s/case); the dropout-FNO stage took 298 s on CPU.",
+    "transolver_checkpoints": "checkpoints/v2_transolver",
+    "seeds_scored": [
+      "seed0",
+      "seed1",
+      "seed2"
+    ],
+    "seeds_available_not_scored": "seed3, seed4 exist; 0/1/2 are the paper's headline seeds",
+    "monitored_residual": "continuity + momentum_x + momentum_y (BC EXCLUDED)",
+    "norm": "RMS over fluid cells of sqrt(cont^2+mom_x^2+mom_y^2) on SCALED maps",
+    "masking_policy": "solid + solid-adjacent fluid wall ring zeroed (diagnose)",
+    "prediction_masking": "predicted fields re-wrapped with TRUTH mask/sdf",
+    "deployed_field": "neural_residual_iteration(field0, ..., Config().correction) with the seed-matched _corr_with DEQ corrector -- identical to NeuroForgeEngine.solve's path (predict once, then loop)",
+    "smoothness_bands": {
+      "near_body": "0 < sdf <= 0.15",
+      "far_field": "sdf > 1.0",
+      "provenance": "pre-registered in scripts/control_cylinder_nearwall_artifact.py",
+      "wall_ring": "removed (diagnose zeroes the residual there)"
+    },
+    "smoothness_metric": "G = <|grad u|^2 + |grad v|^2> * (L/u_inf)^2, dimensionless; reported as the per-case ratio G_pred / G_truth. <1 => smoother than truth. norm_*_std is ALSO reported for comparability with the published number but is a spread across cases, NOT a smoothness measure.",
+    "smoothness_caveat": "The FNO predicts on the grid; Transolver predicts on the native cloud and is then rasterised. Cross-backbone gradient-energy comparison therefore carries a rasterisation confound; banding localises but does not remove it."
+  },
+  "truth_floor": {
+    "norm_truth_mean": 0.1919729242398008,
+    "norm_truth_std": 0.16194227700675493,
+    "norm_truth_median": 0.13254760108565883,
+    "norm_uniform_mean": 0.0,
+    "norm_uniform_std": 0.0,
+    "n_uniform_lt_truth": 200,
+    "n_cases": 200
+  },
+  "dropout_fno": {
+    "label": "dropout_FNO_backbone",
+    "n_cases": 200,
+    "norm_mean": 0.11358129431521029,
+    "norm_std": 0.034288340792058995,
+    "norm_median": 0.10384363942958497,
+    "n_below_truth_floor": 160,
+    "frac_below_truth_floor": 0.8,
+    "median_signed_gap_pred_minus_truth": -0.024123818790033925,
+    "mean_signed_gap_pred_minus_truth": -0.07839162992459055,
+    "sign_test_p_two_sided": 3.3840159775152892e-18,
+    "smoothness": {
+      "near_body": {
+        "grad_energy_ratio_mean": 2.203630044434907,
+        "grad_energy_ratio_median": 1.9603732442077018,
+        "n": 200
+      },
+      "far_field": {
+        "grad_energy_ratio_mean": 6.0403788294338225,
+        "grad_energy_ratio_median": 4.543982986613832,
+        "n": 200
+      },
+      "all_fluid": {
+        "grad_energy_ratio_mean": 1.9343720384189327,
+        "grad_energy_ratio_median": 1.745752692301436,
+        "n": 200
+      }
+    }
+  },
+  "transolver": {
+    "seed0": {
+      "backbone_alone": {
+        "label": "transolver_backbone_seed0",
+        "n_cases": 200,
+        "norm_mean": 0.2115884235034575,
+        "norm_std": 0.16077878814748386,
+        "norm_median": 0.15322509522161712,
+        "n_below_truth_floor": 8,
+        "frac_below_truth_floor": 0.04,
+        "median_signed_gap_pred_minus_truth": 0.013490781973372307,
+        "mean_signed_gap_pred_minus_truth": 0.019615499263656647,
+        "sign_test_p_two_sided": 7.152472728108974e-47,
+        "smoothness": {
+          "near_body": {
+            "grad_energy_ratio_mean": 1.0009817970789394,
+            "grad_energy_ratio_median": 1.0019039686457862,
+            "n": 200
+          },
+          "far_field": {
+            "grad_energy_ratio_mean": 1.058443265395991,
+            "grad_energy_ratio_median": 1.0413919088495,
+            "n": 200
+          },
+          "all_fluid": {
+            "grad_energy_ratio_mean": 1.0019412647171173,
+            "grad_energy_ratio_median": 1.0011527383480057,
+            "n": 200
+          }
+        }
+      },
+      "deq_deployed": {
+        "label": "transolver_deq_deployed_seed0",
+        "n_cases": 200,
+        "norm_mean": 0.21489102777101735,
+        "norm_std": 0.157921988416013,
+        "norm_median": 0.16564017651084814,
+        "n_below_truth_floor": 12,
+        "frac_below_truth_floor": 0.06,
+        "median_signed_gap_pred_minus_truth": 0.0132830330804029,
+        "mean_signed_gap_pred_minus_truth": 0.0229181035312165,
+        "sign_test_p_two_sided": 8.113775994575524e-42,
+        "smoothness": {
+          "near_body": {
+            "grad_energy_ratio_mean": 1.0131694527129556,
+            "grad_energy_ratio_median": 1.008703163234252,
+            "n": 200
+          },
+          "far_field": {
+            "grad_energy_ratio_mean": 1.9293462573563387,
+            "grad_energy_ratio_median": 1.5375365716011187,
+            "n": 200
+          },
+          "all_fluid": {
+            "grad_energy_ratio_mean": 1.0108505689001879,
+            "grad_energy_ratio_median": 1.005168408489347,
+            "n": 200
+          }
+        }
+      },
+      "seconds": 1644.6375761032104
+    },
+    "seed1": {
+      "backbone_alone": {
+        "label": "transolver_backbone_seed1",
+        "n_cases": 200,
+        "norm_mean": 0.21188942515736797,
+        "norm_std": 0.16013292821905273,
+        "norm_median": 0.15514058010594142,
+        "n_below_truth_floor": 5,
+        "frac_below_truth_floor": 0.025,
+        "median_signed_gap_pred_minus_truth": 0.015173492283293469,
+        "mean_signed_gap_pred_minus_truth": 0.019916500917567147,
+        "sign_test_p_two_sided": 3.2380445534845885e-51,
+        "smoothness": {
+          "near_body": {
+            "grad_energy_ratio_mean": 1.004775494984419,
+            "grad_energy_ratio_median": 1.0027815299101586,
+            "n": 200
+          },
+          "far_field": {
+            "grad_energy_ratio_mean": 1.1115442547001273,
+            "grad_energy_ratio_median": 1.0909201914644195,
+            "n": 200
+          },
+          "all_fluid": {
+            "grad_energy_ratio_mean": 1.0118643526052196,
+            "grad_energy_ratio_median": 1.0080211346109942,
+            "n": 200
+          }
+        }
+      },
+      "deq_deployed": {
+        "label": "transolver_deq_deployed_seed1",
+        "n_cases": 200,
+        "norm_mean": 0.21240136950631605,
+        "norm_std": 0.15768312948308305,
+        "norm_median": 0.15840073720928388,
+        "n_below_truth_floor": 9,
+        "frac_below_truth_floor": 0.045,
+        "median_signed_gap_pred_minus_truth": 0.014811633163892064,
+        "mean_signed_gap_pred_minus_truth": 0.020428445266515185,
+        "sign_test_p_two_sided": 1.5344874793053407e-45,
+        "smoothness": {
+          "near_body": {
+            "grad_energy_ratio_mean": 1.0090491431855535,
+            "grad_energy_ratio_median": 1.0060479530816888,
+            "n": 200
+          },
+          "far_field": {
+            "grad_energy_ratio_mean": 2.392007755233375,
+            "grad_energy_ratio_median": 1.9547498292123615,
+            "n": 200
+          },
+          "all_fluid": {
+            "grad_energy_ratio_mean": 1.0086097585477924,
+            "grad_energy_ratio_median": 1.0034363977373058,
+            "n": 200
+          }
+        }
+      },
+      "seconds": 1321.884733915329
+    },
+    "seed2": {
+      "backbone_alone": {
+        "label": "transolver_backbone_seed2",
+        "n_cases": 200,
+        "norm_mean": 0.2108293357533133,
+        "norm_std": 0.16181265844135592,
+        "norm_median": 0.15239945060110732,
+        "n_below_truth_floor": 5,
+        "frac_below_truth_floor": 0.025,
+        "median_signed_gap_pred_minus_truth": 0.013653868149138028,
+        "mean_signed_gap_pred_minus_truth": 0.018856411513512524,
+        "sign_test_p_two_sided": 3.2380445534845885e-51,
+        "smoothness": {
+          "near_body": {
+            "grad_energy_ratio_mean": 1.0008039274617233,
+            "grad_energy_ratio_median": 0.9996174969828281,
+            "n": 200
+          },
+          "far_field": {
+            "grad_energy_ratio_mean": 1.0785931566267128,
+            "grad_energy_ratio_median": 1.0662156221632921,
+            "n": 200
+          },
+          "all_fluid": {
+            "grad_energy_ratio_mean": 1.0023649234819876,
+            "grad_energy_ratio_median": 0.9995709848573362,
+            "n": 200
+          }
+        }
+      },
+      "deq_deployed": {
+        "label": "transolver_deq_deployed_seed2",
+        "n_cases": 200,
+        "norm_mean": 0.2122970156734973,
+        "norm_std": 0.15796968002300224,
+        "norm_median": 0.16092253218592753,
+        "n_below_truth_floor": 14,
+        "frac_below_truth_floor": 0.07,
+        "median_signed_gap_pred_minus_truth": 0.013471035121941588,
+        "mean_signed_gap_pred_minus_truth": 0.02032409143369643,
+        "sign_test_p_two_sided": 1.5864176725511623e-39,
+        "smoothness": {
+          "near_body": {
+            "grad_energy_ratio_mean": 1.0174176029549669,
+            "grad_energy_ratio_median": 1.0154172740720324,
+            "n": 200
+          },
+          "far_field": {
+            "grad_energy_ratio_mean": 2.7865935516621607,
+            "grad_energy_ratio_median": 2.0536092347163297,
+            "n": 200
+          },
+          "all_fluid": {
+            "grad_energy_ratio_mean": 1.0117598194791713,
+            "grad_energy_ratio_median": 1.006311856205354,
+            "n": 200
+          }
+        }
+      },
+      "seconds": 1028.7839379310608
+    }
+  },
+  "aggregate": {
+    "transolver_backbone_inversions_per_seed": [
+      8,
+      5,
+      5
+    ],
+    "transolver_deq_inversions_per_seed": [
+      12,
+      9,
+      14
+    ],
+    "n_scored_per_seed": [
+      200,
+      200,
+      200
+    ],
+    "dropout_fno_inversions": 160
+  }
+}

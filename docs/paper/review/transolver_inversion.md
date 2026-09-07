@@ -1,8 +1,7 @@
 # Does the prediction-below-truth-floor inversion survive on the SOTA backbone?
 
-**Status:** seed 0 complete (n=200); seeds 1-2 running. Table updated as seeds land.
-**Verdict (already decisive on seed 0): the objection STANDS. The inversion DISAPPEARS
-on Transolver.**
+**Status:** complete — 3 seeds x 200 cases, both identity gates PASS.
+**Verdict: the objection STANDS. The inversion DISAPPEARS on Transolver.**
 
 Script: `scripts/probe_transolver_inversion.py`
 Result JSON: `results/certificates/transolver_inversion.json`
@@ -115,12 +114,16 @@ Uniform freestream: **exactly 0 on 200/200**.
 | backbone | field | below floor | `‖R_h‖` mean | `‖R_h‖` std | median signed gap `pred − truth` | sign test |
 |---|---|---|---|---|---|---|
 | dropout-FNO (published, reproduced) | backbone | **160/200 (80%)** | 0.1136 | 0.0343 | **−0.0241** | p = 3.4e−18 |
-| Transolver seed 0 | backbone alone | **8/200 (4%)** | 0.2116 | 0.1608 | **+0.0135** | p = 7.2e−47 |
-| Transolver seed 0 | **+ DEQ (deployed)** | **12/200 (6%)** | 0.2149 | 0.1579 | **+0.0133** | p = 8.1e−42 |
-| Transolver seed 1 | backbone alone | _pending_ | | | | |
-| Transolver seed 1 | + DEQ (deployed) | _pending_ | | | | |
-| Transolver seed 2 | backbone alone | _pending_ | | | | |
-| Transolver seed 2 | + DEQ (deployed) | _pending_ | | | | |
+| Transolver seed 0 | backbone alone | **8/200 (4.0%)** | 0.2116 | 0.1608 | **+0.0135** | p = 7.2e−47 |
+| Transolver seed 1 | backbone alone | **5/200 (2.5%)** | 0.2119 | 0.1601 | **+0.0152** | p = 3.2e−51 |
+| Transolver seed 2 | backbone alone | **5/200 (2.5%)** | 0.2108 | 0.1618 | **+0.0137** | p = 3.2e−51 |
+| Transolver seed 0 | **+ DEQ (deployed)** | **12/200 (6.0%)** | 0.2149 | 0.1579 | **+0.0133** | p = 8.1e−42 |
+| Transolver seed 1 | **+ DEQ (deployed)** | **9/200 (4.5%)** | 0.2124 | 0.1577 | **+0.0148** | p = 1.5e−45 |
+| Transolver seed 2 | **+ DEQ (deployed)** | **14/200 (7.0%)** | 0.2123 | 0.1580 | **+0.0135** | p = 1.6e−39 |
+
+Seed agreement is complete: all three seeds land in 2.5-4.0% (backbone) and
+4.5-7.0% (deployed), against 80% for the dropout-FNO. There is no seed on which
+the inversion survives.
 
 The sign test is two-sided exact binomial; note both are astronomically
 significant but **in opposite directions** — the FNO sits below the floor, the
@@ -135,14 +138,21 @@ Gradient-energy ratio `G_pred / G_truth` (median over cases; `<1` = smoother):
 | truth `u*` (reference) | 1.000 | 1.000 | 1.000 | 0.1619 |
 | dropout-FNO | **1.960** | 4.544 | **1.746** | **0.0343** |
 | Transolver seed 0, backbone | **1.002** | 1.041 | **1.001** | 0.1608 |
+| Transolver seed 1, backbone | **1.003** | 1.091 | **1.008** | 0.1601 |
+| Transolver seed 2, backbone | **1.000** | 1.066 | **1.000** | 0.1618 |
 | Transolver seed 0, + DEQ | 1.009 | 1.538 | 1.005 | 0.1579 |
+| Transolver seed 1, + DEQ | 1.006 | 1.955 | 1.003 | 0.1577 |
+| Transolver seed 2, + DEQ | 1.015 | 2.054 | 1.006 | 0.1580 |
 
 Two things follow, and they are different:
 
-1. **Transolver is not smoothed.** Its gradient energy matches the truth to 0.1%
-   in every band, and its residual-norm spread (0.161) tracks the truth's (0.162)
-   — i.e. its monitored residual varies with case difficulty. The FNO's spread
-   (0.034) is nearly flat: its residual barely responds to the case at all.
+1. **Transolver is not smoothed.** Its near-body and all-fluid gradient energy
+   matches the truth to within 0.8% on every seed, and its residual-norm spread
+   (0.160-0.162) tracks the truth's (0.162) — i.e. its monitored residual varies
+   with case difficulty. The FNO's spread (0.034) is nearly flat: its residual
+   barely responds to the case at all. (The DEQ step adds some far-field
+   structure, ratio 1.5-2.1, while leaving the near-body band at ~1.01; this is
+   the corrector writing into the wake, and it does not change any count.)
 2. **The word "over-smoothed" in the current paper text is itself unsupported.**
    The dropout-FNO has ~1.75x the truth's gradient energy overall and ~1.96x
    near the body — it is *rougher*, not smoother. So the reviewer's stated
@@ -156,13 +166,14 @@ Two things follow, and they are different:
 **CONCEDED — the objection stands. The 160/200 inversion is a property of the
 weak backbone and cannot support a general claim about residual monitors.**
 
-- On the paper's SOTA backbone the inversion essentially vanishes: 4% (backbone)
-  and 6% (deployed) versus 80% on the dropout-FNO.
+- On the paper's SOTA backbone the inversion essentially vanishes: **2.5-4.0%**
+  (backbone) and **4.5-7.0%** (deployed) across 3 seeds, versus **80%** on the
+  dropout-FNO. No seed dissents.
 - The direction *reverses*: the Transolver's monitored residual sits a median
-  **+0.0135 above** the floor, the FNO's a median **−0.0241 below** it.
+  **+0.013 to +0.015 above** the floor, the FNO's a median **−0.024 below** it.
 - The deployed Transolver+DEQ field — the one a user actually receives — also
   sits above the floor. The DEQ correction nudges the monitored residual slightly
-  *up* (0.2116 → 0.2149), consistent with the paper's existing
+  *up* on every seed (e.g. 0.2116 → 0.2149), consistent with the paper's existing
   `bc_inclusive_sweep` finding and with the "bad fixer" leg.
 
 **This is not a loss for the paper.** It is a cleaner story than the one being
@@ -202,8 +213,9 @@ backbone-specific, and we report it as such. Writing the first-order expansion
 a prediction sits \emph{below} the floor only when its error is systematically
 anti-aligned with $r^\star$; unbiased error of any magnitude raises the monitored residual.
 Accordingly, on the deployed Transolver backbone the monitored residual sits \emph{above}
-the floor---in $192/200$ cases for the backbone alone and $188/200$ for the deployed
-Transolver$+$DEQ field (seed~0; median gap $+0.013$)---whereas the weaker dropout-FNO of
+the floor---in $192/195/195$ of $200$ cases for the backbone alone and $188/191/186$ for the
+deployed Transolver$+$DEQ field (seeds $0,1,2$; median gap $+0.013$ to $+0.015$)---whereas
+the weaker dropout-FNO of
 \texttt{checkpoints/certificates\_deq.pt} sits \emph{below} it in $160/200$ cases (median
 gap $-0.024$). The two backbones are measured with an identical ruler: the harness
 reproduces the published dropout-FNO row to all digits
@@ -236,9 +248,10 @@ Changes made and why:
 > **Response:** Agreed, and we have measured it. We re-ran the statistic on our
 > deployed SOTA Transolver over the same 200 cases with a harness that reproduces
 > the published dropout-FNO row to all digits (identical residual operator,
-> masking and non-dimensionalisation). The inversion does not survive: 8/200
-> (backbone) and 12/200 (deployed Transolver+DEQ) versus 160/200 for the
-> dropout-FNO, with the sign of the median gap reversing (+0.013 vs −0.024). We
+> masking and non-dimensionalisation). The inversion does not survive on any of
+> the three headline seeds: 8/5/5 of 200 (backbone) and 12/9/14 of 200 (deployed
+> Transolver+DEQ) versus 160/200 for the dropout-FNO, with the sign of the median
+> gap reversing (+0.013…+0.015 vs −0.024). We
 > have scoped the claim to that backbone in the revised text and removed the
 > "over-smoothed" characterisation, which our gradient-energy diagnostic shows is
 > also wrong (the FNO carries 1.75x the truth's gradient energy; Transolver
@@ -250,7 +263,12 @@ Changes made and why:
 ## 8. Cost and reproduction
 
 - **Wall clock:** truth floor + uniform ~30 s; dropout-FNO stage 298 s (**CPU**);
-  Transolver ~1645 s/seed (**GPU**, RTX 4070 Ti, inference only, ~7.8 s/case).
+  Transolver 1645 / 1322 / 1029 s for seeds 0 / 1 / 2 (**GPU**, RTX 4070 Ti,
+  inference only, ~5-8 s/case; the spread is contention from other jobs on the
+  box, not a change in the work done). Total measurement ~68 min.
+  Note `wall_clock_seconds_this_invocation` in the JSON is the cost of that
+  invocation only — on a cache-served merge pass it is ~0 and is **not** the
+  measurement cost; per-seed cost is `transolver.seed*.seconds`.
 - **GPU used:** yes, for the Transolver forwards only (78 s/case on CPU would be
   ~13 h for the 3x200 matrix). The dropout-FNO stage stayed on CPU. No other
   heavy GPU job was running; `nvidia-smi` was checked before launch.

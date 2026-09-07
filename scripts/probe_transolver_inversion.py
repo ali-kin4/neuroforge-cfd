@@ -572,7 +572,15 @@ def main(argv=None) -> int:
             "resolution": list(pairs[0][1].shape),
             "device_transolver": str(device),
             "device_fno": "cpu",
-            "wall_clock_seconds": wall,
+            "wall_clock_seconds_this_invocation": wall,
+            "wall_clock_note": (
+                "This is the wall clock of THIS invocation only. Stages served "
+                "from the resume cache cost ~0 here, so on a merge pass the "
+                "number is small and is NOT the measurement cost. The real "
+                "per-seed Transolver cost is transolver.seed*.seconds "
+                "(~1600 s/seed on an RTX 4070 Ti, ~7.8 s/case); the dropout-FNO "
+                "stage took 298 s on CPU."
+            ),
             "transolver_checkpoints": TRANSOLVER_DIR,
             "seeds_scored": list(trans.keys()),
             "seeds_available_not_scored": "seed3, seed4 exist; 0/1/2 are the paper's headline seeds",
