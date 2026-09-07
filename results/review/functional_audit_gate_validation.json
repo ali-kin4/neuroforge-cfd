@@ -1,0 +1,128 @@
+{
+  "artifact": "functional_audit_gate_validation",
+  "purpose": "Plumbing validation of the functional residual BEFORE any hypothesis test: telescoping, surface-term closure, and the sign convention against scripts/design_force_integrator.py.",
+  "checks": {
+    "V_A": "box entirely in fluid: sum_V div(F) dA == telescoped edge flux.  Machine precision expected.",
+    "V_B": "box containing the body: phi_outer == I_T0 + i_solid + i_ring.  Machine precision expected -- this is what makes the surface term explicit rather than dropped.",
+    "V_C": "sign of e_D.phi_outer against cv_coefficients' drag on the same field.  SIGN = -1 is chosen so that a positive phi_outer is a positive drag.",
+    "V_D": "what the surface integrator reports on the same truth field, for the honest magnitude statement."
+  },
+  "SIGN": -1.0,
+  "boxes": [
+    {
+      "name": "V1",
+      "half_x": 0.75,
+      "half_y": 0.4,
+      "centre_x": 0.5
+    },
+    {
+      "name": "V2",
+      "half_x": 1.0,
+      "half_y": 0.65,
+      "centre_x": 0.5
+    },
+    {
+      "name": "V3",
+      "half_x": 1.25,
+      "half_y": 0.9,
+      "centre_x": 0.5
+    },
+    {
+      "name": "V4",
+      "half_x": 1.45,
+      "half_y": 1.15,
+      "centre_x": 0.5
+    },
+    {
+      "name": "V5",
+      "half_x": 1.45,
+      "half_y": 1.4,
+      "centre_x": 0.5
+    }
+  ],
+  "n_cases": 6,
+  "max_V_A_rel_err": 5.224609043915107e-13,
+  "max_V_B_rel_err": 5.903947620344331e-15,
+  "n_sign_agrees": 6,
+  "runtime_s": 0.11830472946166992,
+  "per_case": [
+    {
+      "name": "airFoil2D_SST_31.812_1.334_0.371_3.287_0.0_19.548",
+      "V_A_rel_err_telescoping": 2.4231287104705314e-13,
+      "V_B_rel_err_closure": 3.646132400544493e-15,
+      "V_B_phi_outer": 0.012845812687542377,
+      "V_B_I_T0": 0.029550669760306278,
+      "V_B_i_solid": 0.03262219529955222,
+      "V_B_i_ring": -0.04932705237231608,
+      "V_C_phi_outer_V5": 0.012845812687542377,
+      "V_C_cv_coefficients_cd": 0.016025750021538332,
+      "V_C_sign_agrees": true,
+      "V_D_cd_surface_integrator": 0.027975490207110997
+    },
+    {
+      "name": "airFoil2D_SST_39.741_14.642_3.175_3.316_1.0_10.583",
+      "V_A_rel_err_telescoping": 5.224609043915107e-13,
+      "V_B_rel_err_closure": 1.4544059875423183e-15,
+      "V_B_phi_outer": 0.026240208578885073,
+      "V_B_I_T0": -0.051613764753334845,
+      "V_B_i_solid": 0.08021705235322678,
+      "V_B_i_ring": -0.0023630790210068214,
+      "V_C_phi_outer_V5": 0.026240208578885073,
+      "V_C_cv_coefficients_cd": 0.02493832863519381,
+      "V_C_sign_agrees": true,
+      "V_D_cd_surface_integrator": 0.19434102094647168
+    },
+    {
+      "name": "airFoil2D_SST_85.752_6.341_0.382_6.715_8.448",
+      "V_A_rel_err_telescoping": 6.56892752508071e-14,
+      "V_B_rel_err_closure": 4.500173764525912e-15,
+      "V_B_phi_outer": 0.009251501297934747,
+      "V_B_I_T0": 0.013039803238299197,
+      "V_B_i_solid": 0.004295807746107028,
+      "V_B_i_ring": -0.00808410968647152,
+      "V_C_phi_outer_V5": 0.009251501297934747,
+      "V_C_cv_coefficients_cd": 0.00625949881296192,
+      "V_C_sign_agrees": true,
+      "V_D_cd_surface_integrator": 0.05287293716887404
+    },
+    {
+      "name": "airFoil2D_SST_80.247_1.078_1.298_5.983_0.0_5.593",
+      "V_A_rel_err_telescoping": 2.673425881970958e-13,
+      "V_B_rel_err_closure": 1.9207742639958387e-15,
+      "V_B_phi_outer": 0.007676669675450631,
+      "V_B_I_T0": 0.0033944871033621286,
+      "V_B_i_solid": 0.013670402136246033,
+      "V_B_i_ring": -0.009388219564157517,
+      "V_C_phi_outer_V5": 0.007676669675450631,
+      "V_C_cv_coefficients_cd": 0.008086063971921928,
+      "V_C_sign_agrees": true,
+      "V_D_cd_surface_integrator": 0.003253454963251886
+    },
+    {
+      "name": "airFoil2D_SST_61.728_9.994_3.311_7.957_1.0_7.685",
+      "V_A_rel_err_telescoping": 2.5597614518452513e-13,
+      "V_B_rel_err_closure": 5.903947620344331e-15,
+      "V_B_phi_outer": 0.015278865354420773,
+      "V_B_I_T0": -0.007926340592481814,
+      "V_B_i_solid": -0.038775414036223345,
+      "V_B_i_ring": 0.06198061998312602,
+      "V_C_phi_outer_V5": 0.015278865354420773,
+      "V_C_cv_coefficients_cd": 0.018103644728033923,
+      "V_C_sign_agrees": true,
+      "V_D_cd_surface_integrator": 1.3003014330701237
+    },
+    {
+      "name": "airFoil2D_SST_65.202_-3.411_1.499_5.063_12.467",
+      "V_A_rel_err_telescoping": 6.102083161956725e-14,
+      "V_B_rel_err_closure": 2.2735822695416806e-15,
+      "V_B_phi_outer": 0.00915589551809709,
+      "V_B_I_T0": 0.01842778291678679,
+      "V_B_i_solid": 0.04441019714162309,
+      "V_B_i_ring": -0.053682084540312765,
+      "V_C_phi_outer_V5": 0.00915589551809709,
+      "V_C_cv_coefficients_cd": 0.013864931546771276,
+      "V_C_sign_agrees": true,
+      "V_D_cd_surface_integrator": 0.02172983066903492
+    }
+  ]
+}
