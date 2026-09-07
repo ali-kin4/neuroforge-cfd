@@ -207,20 +207,42 @@ def c2(root, field):
 def c3_ungated(root, which):
     """Fraction of cases where an UNGATED half step raises the monitored residual.
 
-    Split by path: the deployed DEQ arm and the backbone/ensemble arm behave very
-    differently, and an earlier draft had the two numbers the wrong way round.
+    Split by path, and mind the key naming, which is the opposite of what it looks
+    like. The artifact's own ``meta.arms`` block maps ``backbone_seed*`` to the
+    DEPLOYED backbone+DEQ path and bare ``seed*`` to the ENSEMBLE-mean path. Its
+    ``pooled`` block states the same thing outright: deployed 1.0%, ensemble 8.8%.
+
+    A previous version of this function read ``backbone`` as the ensemble arm and so
+    certified the swapped pair that reached the manuscript. Cross-check against
+    ``d["pooled"]`` rather than trusting the key prefix.
     """
     d = review(root, "control3_fixed_step.json")
     if d is None:
         return None
-    dep, bb = [], []
+    dep, ens = [], []
     for k, v in d["summary"].items():
         f = v.get("certificate_at_fixed_0.5", {}).get("frac_residual_increases")
         if f is None:
             continue
-        (bb if k.startswith("backbone") else dep).append(f)
-    vals = bb if which == "ensemble" else dep
-    return float(100.0 * np.mean(vals)) if vals else None
+        (dep if k.startswith("backbone") else ens).append(f)
+    vals = ens if which == "ensemble" else dep
+    if not vals:
+        return None
+    # Guard: the pooled block is authoritative; if the per-seed mean disagrees with it
+    # by more than a point, the key convention has changed and this must be revisited.
+    pooled = d.get("pooled", {})
+    key = "ensemble_mean_path" if which == "ensemble" else "deployed_backbone_DEQ"
+    ref = pooled.get(key, {}).get("certificate_at_fixed_0.5", {}).get(
+        "frac_residual_increases"
+    )
+    out = float(100.0 * np.mean(vals))
+    if ref is not None and abs(out - 100.0 * float(ref)) > 1.0:
+        raise AssertionError(
+            "c3_ungated(%s): per-seed mean %.2f%% disagrees with pooled %.2f%%; "
+            "the arm-naming convention in control3_fixed_step.json has changed"
+            % (which, out, 100.0 * float(ref))
+        )
+    return out
 
 
 def c4_drag_auroc(root):
@@ -325,9 +347,9 @@ CLAIMS = [
     ("C2 fraction of the association surviving (%)",
      lambda r: 100 * c2(r, "fraction_of_rho_surviving"), 92.0, 0.5),
     ("C3 ungated raises residual, DEPLOYED path (%)",
-     lambda r: c3_ungated(r, "deployed"), 8.8, 0.1),
+     lambda r: c3_ungated(r, "deployed"), 1.0, 0.1),
     ("C3 ungated raises residual, ensemble path (%)",
-     lambda r: c3_ungated(r, "ensemble"), 1.0, 0.1),
+     lambda r: c3_ungated(r, "ensemble"), 8.8, 0.1),
     ("C4 residual AUROC on drag error",
      c4_drag_auroc, 0.952, 0.001),
     ("floor share of a typical score (%)",
