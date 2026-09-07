@@ -14,19 +14,12 @@
 %   morin2000data, bochevgunzburger2009book, rhiechow1983, lei2026newtonkrylov,
 %   zhang2026phymgn.
 %
-% REWRITE 2026-09-07 (theory/formal-guarantees). Changes from the previous version:
-%  - opening sentence corrected: tab:iters shows residual RISING while error FALLS.
-%  - NEW Theorem 1 (consistency floor): proves (H2) has a nonzero continuum limit,
-%    which body.tex's contribution list already asserts in bold and which existed
-%    nowhere in the paper. Includes the exact 2-D identity |T| = sqrt2 ||S||_F |grad nu_t|.
-%  - the closure-omission mechanism is DEMOTED throughout: it is ~4.5% of the floor
-%    and full stress repair moves the floor <0.1% (floor_resolution_decomposition.json).
-%  - detector paragraph no longer rests on sigma_min (the constant purged from leg
-%    (iii)); restated as a measured between-case claim.
-%  - kernel paragraph replaced by Proposition 1 (counting bound, exact solid
-%    invisibility, exact diagonal nu_t block, Nyquist/Rhie-Chow mode).
-%  - contribution (a) no longer advertises the upper bound ||r*||/sigma_min.
-%  - goal-oriented/operator-availability line added (the novelty sentence).
+% Structure: Theorem 1 (consistency floor, nonzero continuum limit, with the exact
+%   2-D identity |T| = sqrt2 ||S||_F |grad nu_t|); Theorem 2 (misplaced minimum,
+%   displaced minimiser, local divergence); Proposition 1 (kernel: counting bound,
+%   exact solid invisibility, diagonal nu_t block, Nyquist/Rhie-Chow mode).
+% The closure-omission term is ~4.5% of the floor and full stress repair moves it
+%   <0.1% (floor_resolution_decomposition.json) -- kept in proportion throughout.
 % ---------------------------------------------------------------------------
 
 \section{The residual floor: what an operator-inconsistent monitor can and cannot do}
@@ -238,8 +231,8 @@ identically and the manufactured field is an exact solution of the monitored ope
 \emph{for any} $\nu_t$. The same artifact records this directly---multiplying $\nu_t$ by
 $50$ changes the monitored norm by $6.7\times10^{-6}$ relative. An MMS gate built on a
 field that annihilates the very term at issue measures truncation and is structurally
-blind to inconsistency. We report the gate because it certifies the discretisation, and we
-state its blind spot because a reviewer would otherwise supply it.
+blind to inconsistency. The gate certifies the discretisation; it cannot certify the
+operator, and we state the blind spot alongside it.
 
 \subsection{The truth is not a minimiser, and residual descent leaves it}
 
@@ -299,8 +292,9 @@ $\operatorname{range}L$, only the \emph{projected} floor is reachable, which giv
 constant $\|Pr^\star\|$ and not $\|r^\star\|$.
 \end{proof}
 
-\paragraph{Scope, stated before a reviewer states it for us.}
-Legs (iii) and (iv) are statements about the \emph{linearised} objective at $u^\star$ and
+\paragraph{Scope of legs (iii) and (iv).}
+Legs (iii) and (iv) of \autoref{thm:residual-floor} are statements about the
+\emph{linearised} objective at $u^\star$ and
 about gradient flow; the deployed corrector is supervised toward truth and the acceptance
 gate uses the residual as a one-bit veto, so neither leg describes the deployed loop. They
 describe residual descent---which this paper does run, from the exact truth and with no
@@ -315,8 +309,8 @@ detection limit.
 
 \subsection{The kernel: what the monitor cannot see at all}
 
-The previous version of this section offered two examples of null modes. The situation is
-considerably worse than two examples, and it is provable by counting.
+The undetectable subspace is not a matter of a few isolated null modes. It is large, and
+its size is provable by counting.
 
 \begin{proposition}[Structure of the undetectable subspace]
 \label{prop:kernel}
@@ -444,8 +438,8 @@ Because every field on a given case is scored against the same mask, that factor
 any comparison, so the counts below are identical under either convention. A
 trained backbone's prediction (the dropout-FNO of
 \texttt{checkpoints/certificates\_deq.pt}, distinct from the Transolver headline) sits
-\emph{below} the truth floor in $160/200$ cases. We give that number with its
-counterweight rather than on its own, because it is the flattering one: on the
+\emph{below} the truth floor in $160/200$ cases. That is the flattering number, and it does
+not generalise: on the
 \emph{deployed} Transolver the same inversion occurs on only $2.5$--$7.0\%$ of cases
 across seeds ($8/5/5$ of $200$ for the backbone alone and $12/9/14$ for
 Transolver$+$DEQ, seeds $0,1,2$;
@@ -455,8 +449,8 @@ truth is the best-scoring field on more than $93\%$ of them, and the median gap 
 sign ($+0.013$ to $+0.015$ \emph{above} the floor, against $-0.024$ below it for the
 dropout-FNO). Both backbones are scored with an identical ruler: the harness reproduces
 the published dropout-FNO row to all digits. The inversion is a property of that one
-backbone and we rest no claim on it. We also decline the obvious explanation, because it
-does not survive measurement: the inversion is \emph{not} simply over-smoothing. The
+backbone and we rest no claim on it. The obvious explanation does not survive
+measurement: the inversion is \emph{not} over-smoothing. The
 accurate backbone is not smoother than the truth---its velocity-gradient energy is
 $1.00\times$ the truth's in a near-body band---so smoothing cannot be what separates the
 two. (The dropout-FNO measures \emph{rougher} still, $1.75\times$ over the fluid, though we
@@ -503,17 +497,15 @@ cost (\texttt{scripts/bc\_weight\_sweep.py}, \texttt{results/control/bc\_weight\
 minimum: it has both a smaller interior residual and a smaller no-slip term than the truth
 ($\overline{r_{bc}^2}=0.0053$ versus $0.0073$; the ordering holds in $14/16$ cases of the
 resolution study), hence $\rho_\lambda(u_\infty)<\rho_\lambda(u^\star)$ for all
-$\lambda\ge0$ \emph{at that resolution}. We claim no more, and state the limitation rather
-than the closed form we previously claimed for every grid: this leg is
-resolution-contingent. The framework's proximity weight decays over $3\min(dx,dy)$ and so
+$\lambda\ge0$ \emph{at that resolution}. This leg is resolution-contingent and we claim no
+more. The framework's proximity weight decays over $3\min(dx,dy)$ and so
 scores a physically \emph{thinner} band as the grid refines, and the margin collapses
 monotonically---$+9.3\%$ at $128^2$, $+7.4\%$ at $181^2$, $+6.9\%$ at $256^2$, $+3.9\%$ at
 $362^2$, and $-2.8\%$ at $512^2$ in a $16$-case run, where it has crossed. A $24$-case run
 over $128^2/256^2/512^2$ agrees on the collapse but still has the truth above by $1.5\%$ at
 the finest rung (\texttt{results/floor\_resolution\_ladder.json}); a ${\pm}2\%$ disagreement
 between two subsets at a margin that has already collapsed to ${\sim}2\%$ is subset noise,
-and we take the cautious reading. Either way the claim we withdraw is the
-resolution-independent one. Where it crosses, the crossover
+and we take the cautious reading. Where it crosses, the crossover
 weight
 $\lambda^\star=\|R_h(u^\star)\|^2/(\overline{r_{bc}^2}(u_\infty)-\overline{r_{bc}^2}(u^\star))$
 has median $599$ at $512^2$, the rung where it crosses. Since the deployed trust map uses
@@ -540,12 +532,11 @@ hypotheses live: it holds on a compact subset of the open fluid domain on which 
 solution is $C^4$ and $\nu_t$ is $C^1$, which excludes a neighbourhood of the wall---the
 same methodological restriction the refinement ladder makes when it scores a region fixed
 in physical units. (H2) therefore holds here for a reason that is \emph{not} grid
-resolution, and we have retired the earlier claim that it followed from the $128^2$ grid
-under-resolving the boundary layer. It follows from operator provenance: the floor grows
+resolution. It follows from operator provenance: the floor grows
 under refinement, the individually grid-converged convective and pressure-gradient terms
 ($0.183\!\to\!0.199$ and $0.180\!\to\!0.181$) fail to cancel under a discretisation
 different from the one that produced the labels, and restoring the omitted stress
-divergence moves the floor by under $0.1\%$. One further honest bound: the measured
+divergence moves the floor by under $0.1\%$. One further bound: the measured
 $r^\star$ is evaluated on a \emph{rasterised} $u^\star$---a linear interpolant of an
 unstructured finite-volume solution---which is not $C^4$ and carries its own
 representation error, so the measured floor mixes the theorem's term with that error. That
@@ -597,19 +588,15 @@ operator \emph{is} the solver's own, residual-driven correction works on steady 
 \citep{lei2026newtonkrylov}, which locates our negative rather than contradicting it.
 
 That a residual blind to certain modes makes the truth a non-minimiser is, in its bare
-form, elementary---the pressure gauge above. Our contribution is threefold and narrower
-than earlier drafts of this work claimed. \textbf{(a)} A \emph{proof} that this floor has a
+form, elementary---the pressure gauge above. Our contribution is threefold.
+\textbf{(a)} A \emph{proof} that this floor has a
 nonzero continuum limit (\autoref{thm:consistency-floor}), so it is a property of operator
 provenance rather than of the mesh and cannot be refined away even in principle---the
 $\nu_{\mathrm{eff}}\nabla^2u$ simplification of the RANS momentum equation is the standard
 choice in physics-informed CFD surrogates, so this is a floor an entire practice has not
-accounted for. We previously advertised instead an upper bound
-$\|e_\infty\|\le\|r^\star\|/\sigma_{\min}$ as ``the quantified floor''; that inequality
-points in the wrong direction for the thesis and is numerically vacuous at this problem
-size, and we withdraw it. \textbf{(b)} An exact characterisation of the undetectable
+accounted for. \textbf{(b)} An exact characterisation of the undetectable
 subspace (\autoref{prop:kernel})---a counting bound of at least a quarter of the fluid
 state, exact nonlinear invisibility of the solid, a diagonal $\nu_t$ block with closed-form
-entries, and the Nyquist pressure mode---replacing what was previously an existence claim
-with two examples. \textbf{(c)} The demonstration on a learned neural-operator CFD
+entries, and the Nyquist pressure mode. \textbf{(c)} The demonstration on a learned neural-operator CFD
 corrector on AirfRANS that the resulting monitor can rank predictions, cannot be
 descended, and certifies them only at a width the floor rather than the model sets.

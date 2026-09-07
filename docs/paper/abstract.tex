@@ -15,9 +15,9 @@ other, by a pre-registered rule.
 The consequence for correction is direct: started at the exact ground truth, with
 no network in the loop, line-searched gradient descent on the residual drives the field
 error up on $200/200$ cases, and on $94$--$98\%$ from the deployed surrogate across three
-seeds ($p<10^{-30}$), unchanged under three step rules. We do not claim descent always
-harms---from a perturbed start it often helps before overshooting---but the residual never
-selects the error-optimal iterate, failing to in $24/24$ cases on both arms. What survives
-is narrower: the monitor still \emph{ranks}, flagging worst-decile drag error at AUROC
-$0.952$, and still \emph{certifies} under split conformal, at valid $0.89$ coverage but a
-width $5.6$--$6.8\times$ the drag error it bounds.
+seeds ($p<10^{-30}$), unchanged under three step rules. Descent does not always harm---from
+a perturbed start it often helps before overshooting---but the residual never selects the
+error-optimal iterate, failing to in $24/24$ cases on both arms. What the monitor does
+deliver is triage and a certificate: it flags worst-decile drag error at AUROC $0.952$ and
+supports a valid split-conformal band at $0.89$ coverage, at a width $5.6$--$6.8\times$ the
+drag error it bounds.
