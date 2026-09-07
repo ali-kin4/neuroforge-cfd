@@ -421,7 +421,14 @@ gives $\|R_h(u_\infty)\|=0$ in every case---the objective strictly prefers a phy
 wrong field to the truth (\texttt{results/certificates/residual\_floor\_realdata.json}). A
 trained backbone's over-smoothed prediction (the dropout-FNO of
 \texttt{checkpoints/certificates\_deq.pt}, distinct from the Transolver headline) sits
-\emph{below} the truth floor in $160/200$ cases. The floor is not an artifact of the
+\emph{below} the truth floor in $160/200$ cases. We give that number with its
+counterweight rather than on its own, because it is the flattering one: on the
+\emph{deployed} Transolver the same inversion occurs on only $2.5$--$7.0\%$ of cases
+across seeds (\texttt{results/review/functional\_audit\_gate\_analysis.json}), so the
+truth is the best-scoring field on more than $93\%$ of them. The inversion is largely a
+property of an over-smoothed backbone---a smooth field has small derivatives---and we do
+not rest any claim on it. What does not depend on the backbone is the floor itself, which
+no model enters. The floor is not an artifact of the
 deployed grid: re-rasterised from the source point clouds at $128^2$--$512^2$ and scored on
 a region fixed in physical units it \emph{increases} by $2.6\times$, fitting
 $\|r^\star\|\sim h^p$ with $p=-0.64\pm0.29$ and decaying in $0/16$ cases, while a
@@ -554,5 +561,5 @@ subspace (\autoref{prop:kernel})---a counting bound of at least a quarter of the
 state, exact nonlinear invisibility of the solid, a diagonal $\nu_t$ block with closed-form
 entries, and the Nyquist pressure mode---replacing what was previously an existence claim
 with two examples. \textbf{(c)} The demonstration on a learned neural-operator CFD
-corrector on AirfRANS that the resulting monitor can rank predictions but cannot certify
-them and cannot be descended.
+corrector on AirfRANS that the resulting monitor can rank predictions, cannot be
+descended, and certifies them only at a width the floor rather than the model sets.

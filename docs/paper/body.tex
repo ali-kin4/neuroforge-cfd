@@ -111,7 +111,8 @@ scored on a region fixed in physical units, $\|r^\star\|$ goes $0.0624\to0.0779\
 rising in $21/24$ cases, fitting $\|r^\star\|\sim h^{p}$ with $p=-0.387$
 (\autoref{sec:floor_ladder}). The decision rule was registered before the measurement.
 The omitted closure term grows as predicted but accounts for only ${\approx}4\%$ of the
-floor: restoring it moves the floor by $-0.01\%$ to $+0.18\%$. Neither a higher-order
+floor: restoring it moves each level's mean by $-0.01\%$ to $+0.18\%$, and no
+individual case by more than $1.5\%$. Neither a higher-order
 interpolant (cubic \emph{raises} the floor by $6$--$12\%$) nor operator repair removes it.
 What sets its size is the mismatch between our Cartesian stencil and the body-fitted
 discrete balance the reference solved.
@@ -159,7 +160,7 @@ acceptance gate admits a step on $99.8\%$ of deployed cases and lowers true erro
 $89.3\%$ of them---but an \emph{ungated} fixed half-step does better on accuracy alone
 ($95.8\%$, median $6.2\%$), so the gate's accuracy comes from damping the correction, not
 from testing the residual. What the gate uniquely buys is the \textbf{certificate}: an
-ungated step raises the monitored residual on $1.0\%$ of deployed cases ($8.8\%$ on the
+ungated step raises the monitored residual on $8.8\%$ of deployed cases ($1.0\%$ on the
 ensemble path), and the gate makes that impossible by construction
 (\autoref{sec:iters}).
 
@@ -217,7 +218,14 @@ cost and strong accuracy on PDE benchmarks; Transolver++ \citep{luo2025transolve
 scales it to million-scale meshes. We use Transolver in two ways: as a matched-budget
 baseline for our grid backbone (\autoref{sec:baseline}), and as the SOTA backbone our
 trust layer and corrector actually run on (\autoref{sec:v2}), where the residual is a
-calibrated detector and a supervised learned corrector reduces field MSE.
+calibrated detector and a supervised learned corrector reduces field MSE. ``SOTA''
+here means Transolver's standing as a published state-of-the-art architecture at the
+time of our experiments (ICML 2024); an independent 2026 benchmark still places
+Transolver(++) among the strongest aerodynamic surrogates
+\citep{scherz2026evaluation}, while newer architectures have since advanced the
+AirfRANS accuracy frontier \citep{rigotti2026gist}. Our claims concern what the
+monitored residual can and cannot do \emph{on} a competitive backbone, not a
+leaderboard position.
 
 \paragraph{Learned solver-correctors and the ``fixer'' premise.} Several lines of work
 use the discretised residual or a coarse-solution error as a \emph{correction
@@ -1098,7 +1106,8 @@ The single-seed figures were artifacts of an undertrained run and are \textbf{re
 \label{sec:ood}
 
 We evaluate each arm on the regime-disjoint \texttt{reynolds} and \texttt{aoa} splits
-(trained on the train range, tested on the held-out range---true extrapolation).
+(trained on the train range, tested on the held-out range---true extrapolation);
+\autoref{tab:ood} reports both.
 
 \begin{table}[t]
 \centering
@@ -1275,8 +1284,8 @@ unconditionally, never consulting the residual. It improves true error on $95.8\
 deployed cases by a median $6.2\%$, against the gate's $89.3\%$ and $5.8\%$. The gate's
 accuracy advantage is therefore not there; what improves the field is damping the
 correction, and the residual test is not what earns that. What the gate uniquely buys is
-the \textbf{certificate}. The ungated half step raises the monitored residual on $1.0\%$
-of deployed cases ($8.8\%$ on the ensemble path), and the gate makes that outcome
+the \textbf{certificate}. The ungated half step raises the monitored residual on $8.8\%$
+of deployed cases ($1.0\%$ on the ensemble path), and the gate makes that outcome
 impossible by construction rather than improbable in practice. That is a guarantee, not
 an accuracy claim, and it is the only thing we claim for it.
 
@@ -1351,9 +1360,11 @@ rose in & & $21/24$ & $21/24$ & $21/24$ & --- \\
 monitor gives $p=2.06$ in the interior band, so the discretisation converges as
 claimed and the behaviour on real data is a statement about the data.
 \emph{Restoring the omitted closure term does nothing.} Adding
-$(\partial_j\nu_t)(\partial_j u_i+\partial_i u_j)$ back changes the floor by
-$-0.01\%$ to $+0.18\%$ across five rungs; the term itself is $3.5$--$4.8\%$ of the
-floor. At $Re\approx2\times10^6$ the entire viscous term is $1$--$4\%$ of convection,
+$(\partial_j\nu_t)(\partial_j u_i+\partial_i u_j)$ back changes each rung's mean
+floor by $-0.01\%$ to $+0.18\%$ across five rungs, and no individual case by more
+than $1.5\%$ (the per-case range is $-1.06\%$ to $+1.45\%$, wider than the range
+of means and still two orders of magnitude too small to matter); the term itself
+is $3.5$--$4.8\%$ of the floor. At $Re\approx2\times10^6$ the entire viscous term is $1$--$4\%$ of convection,
 so no part of it can carry a floor of this size---the floor lives in the
 convection/pressure block.
 \emph{A higher-order interpolant does not reduce it.} Rasterising the same source
@@ -1546,6 +1557,25 @@ introduced by the corrector. We therefore ship the certificate refit on the corr
 recalibration matters most for correctors that trade field error for residual reduction (the
 dropout-FNO above), and is benign-to-beneficial for the deployed Transolver, whose bands it
 sharpens.
+
+\paragraph{What the floor costs the certificate: valid, but wide.} The certificates above
+are stated on field-error targets. The quantity an engineer actually wants bounded is a
+force coefficient, and conformalising the monitored residual against $|\Delta C_D|$ shows
+exactly what the floor does to a certificate that remains formally valid. Over $400$
+random half-splits at a $0.90$ target on the deployed backbone
+(\texttt{results/review/functional\_audit\_gate\_followup.json}), coverage comes out at
+$0.891$--$0.895$ across three seeds---so the guarantee holds, and the floor does
+\emph{not} invalidate split conformal, which needs only exchangeability and never
+supposed the score vanished at the truth. What the floor destroys is tightness. The median
+bound is $\mathbf{5.6}$--$\mathbf{6.8\times}$ the median drag error it certifies, because
+the median truth-to-prediction residual ratio is $0.864$: about $86\%$ of a typical
+prediction's monitored score is already present at zero error, a fraction set by the
+operator rather than by the model, and a nonconformity score that is $86\%$ constant
+cannot separate cases finely. \autoref{sec:floor_ladder} closes the obvious escape---the
+floor grows under refinement, so a finer grid widens this certificate rather than
+narrowing it. This is the precise sense in which the audit can certify and yet not
+certify usefully, and it is why we describe the residual's certification role as priced
+rather than absent.
 
 \paragraph{Split-resampling robustness (20 splits).} Because the certificates above are
 computed on one $100/100$ calibration/test draw, we re-draw the split $20$ times

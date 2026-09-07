@@ -1,4 +1,4 @@
-\begin{thebibliography}{41}
+\begin{thebibliography}{43}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 \providecommand{\url}[1]{\texttt{#1}}
 \providecommand{\href}[2]{#2}
@@ -18,7 +18,8 @@
 \newblock \bibinfo{title}{Reliable and efficient steady {CFD} from surrogate
   predictions through {Newton--Krylov} correction},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2608.04400}
-  (\bibinfo{year}{2026}). \bibinfo{note}{Submitted 5 August 2026}.
+  (\bibinfo{year}{2026}). \DOIprefix\doi{10.48550/arXiv.2608.04400},
+  \bibinfo{note}{submitted 5 August 2026}.
 %Type = Inproceedings
 \bibitem[{Li et~al.(2021)Li, Kovachki, Azizzadenesheli, Liu, Bhattacharya,
   Stuart, and Anandkumar}]{li2021fno}
@@ -38,7 +39,7 @@
 \newblock \bibinfo{title}{Fourier neural operator with learned deformations for
   pdes on general geometries},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2207.05209}
-  (\bibinfo{year}{2022}).
+  (\bibinfo{year}{2022}). \DOIprefix\doi{10.48550/arXiv.2207.05209}.
 %Type = Article
 \bibitem[{Ranade et~al.(2025)Ranade, Nabian, Tangsali, Kamenev, Hennigh,
   Cherukuri, and Choudhry}]{ranade2025domino}
@@ -49,7 +50,8 @@
 \newblock \bibinfo{title}{{DoMINO}: A decomposable multi-scale iterative neural
   operator for modeling large scale engineering simulations},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2501.13350}
-  (\bibinfo{year}{2025}). \bibinfo{note}{NVIDIA}.
+  (\bibinfo{year}{2025}). \DOIprefix\doi{10.48550/arXiv.2501.13350},
+  \bibinfo{note}{nVIDIA}.
 %Type = Inproceedings
 \bibitem[{Wu et~al.(2024)Wu, Luo, Wang, Wang, and Long}]{wu2024transolver}
 \bibinfo{author}{H.~Wu}, \bibinfo{author}{H.~Luo}, \bibinfo{author}{H.~Wang},
@@ -67,7 +69,24 @@
 \newblock \bibinfo{title}{Transolver++: An accurate neural solver for {PDE}s on
   million-scale geometries},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2502.02414}
-  (\bibinfo{year}{2025}).
+  (\bibinfo{year}{2025}). \DOIprefix\doi{10.48550/arXiv.2502.02414}.
+%Type = Article
+\bibitem[{Scherz et~al.(2026)Scherz, Hines, and
+  Bekemeyer}]{scherz2026evaluation}
+\bibinfo{author}{J.~Scherz}, \bibinfo{author}{D.~Hines},
+  \bibinfo{author}{P.~Bekemeyer},
+\newblock \bibinfo{title}{Evaluation of state-of-the-art deep learning
+  architectures for aerodynamical predictions},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2607.13866}
+  (\bibinfo{year}{2026}). \DOIprefix\doi{10.48550/arXiv.2607.13866}.
+%Type = Article
+\bibitem[{Rigotti et~al.(2026)Rigotti, Thumiger, and Frick}]{rigotti2026gist}
+\bibinfo{author}{M.~Rigotti}, \bibinfo{author}{N.~Thumiger},
+  \bibinfo{author}{T.~Frick},
+\newblock \bibinfo{title}{{GIST}: Gauge-invariant spectral transformers for
+  scalable graph neural operators},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2603.16849}
+  (\bibinfo{year}{2026}). \DOIprefix\doi{10.48550/arXiv.2603.16849}.
 %Type = Inproceedings
 \bibitem[{Hsieh et~al.(2019)Hsieh, Zhao, Eismann, Mirabella, and
   Ermon}]{hsieh2019neuralpde}
@@ -115,7 +134,8 @@
 \newblock \bibinfo{title}{{PhysicsCorrect}: A training-free approach for stable
   neural {PDE} simulations},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2507.02227}
-  (\bibinfo{year}{2025}). \bibinfo{note}{AAAI 2026}.
+  (\bibinfo{year}{2025}). \DOIprefix\doi{10.48550/arXiv.2507.02227},
+  \bibinfo{note}{aAAI 2026}.
 %Type = Article
 \bibitem[{Raissi et~al.(2019)Raissi, Perdikaris, and
   Karniadakis}]{raissi2019pinn}
@@ -133,7 +153,7 @@
 \newblock \bibinfo{title}{{ANCHOR}: Error-controlled adaptive numerical
   correction for neural operator time marching},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2512.19643}
-  (\bibinfo{year}{2025}).
+  (\bibinfo{year}{2025}). \DOIprefix\doi{10.48550/arXiv.2512.19643}.
 %Type = Article
 \bibitem[{Song et~al.(2026)Song, Li, Deng, Li, Pan, Lai, and
   Wang}]{song2026structureaware}
@@ -143,7 +163,7 @@
 \newblock \bibinfo{title}{Structure-aware epistemic uncertainty quantification
   for neural operator {PDE} surrogates},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2603.11052}
-  (\bibinfo{year}{2026}).
+  (\bibinfo{year}{2026}). \DOIprefix\doi{10.48550/arXiv.2603.11052}.
 %Type = Article
 \bibitem[{Gopakumar et~al.(2025)Gopakumar, Gray, Zanisi, Nunn, Giles, Kusner,
   Pamela, and Deisenroth}]{gopakumar2025pre}
@@ -154,7 +174,7 @@
 \newblock \bibinfo{title}{Calibrated physics-informed uncertainty
   quantification},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2502.04406}
-  (\bibinfo{year}{2025}).
+  (\bibinfo{year}{2025}). \DOIprefix\doi{10.48550/arXiv.2502.04406}.
 %Type = Article
 \bibitem[{Becker and Rannacher(2001)}]{beckerrannacher2001dwr}
 \bibinfo{author}{R.~Becker}, \bibinfo{author}{R.~Rannacher},
@@ -179,7 +199,7 @@
 \newblock \bibinfo{title}{Rigorous error certification for neural {PDE}
   solvers: From empirical residuals to solution guarantees},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2603.19165}
-  (\bibinfo{year}{2026}).
+  (\bibinfo{year}{2026}). \DOIprefix\doi{10.48550/arXiv.2603.19165}.
 %Type = Inproceedings
 \bibitem[{Lakshminarayanan et~al.(2017)Lakshminarayanan, Pritzel, and
   Blundell}]{lakshminarayanan2017ensembles}
@@ -230,7 +250,7 @@
 \newblock \bibinfo{title}{Multi-granularity conformal prediction for reliable
   neural-operator automotive aerodynamic surrogates},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2607.17297}
-  (\bibinfo{year}{2026}).
+  (\bibinfo{year}{2026}). \DOIprefix\doi{10.48550/arXiv.2607.17297}.
 %Type = Inproceedings
 \bibitem[{Bonnet et~al.(2022)Bonnet, Mazari, Cinnella, and
   Gallinari}]{bonnet2022airfrans}
@@ -273,7 +293,7 @@
 \newblock \bibinfo{title}{{DeepCFD}: Efficient steady-state laminar flow
   approximation with deep convolutional neural networks},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2004.08826}
-  (\bibinfo{year}{2020}).
+  (\bibinfo{year}{2020}). \DOIprefix\doi{10.48550/arXiv.2004.08826}.
 %Type = Article
 \bibitem[{Zhang et~al.(2026)Zhang, Mallon, Luo, Thiyagalingam, Tzeferacos,
   Bingham, and Gregori}]{zhang2026phymgn}
@@ -284,7 +304,8 @@
 \newblock \bibinfo{title}{Data-driven modeling of shock physics by
   physics-informed {MeshGraphNets}},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2602.14918}
-  (\bibinfo{year}{2026}). \bibinfo{note}{Submitted 16 February 2026}.
+  (\bibinfo{year}{2026}). \DOIprefix\doi{10.48550/arXiv.2602.14918},
+  \bibinfo{note}{submitted 16 February 2026}.
 %Type = Article
 \bibitem[{McGreivy and Hakim(2024)}]{mcgreivy2024weak}
 \bibinfo{author}{N.~McGreivy}, \bibinfo{author}{A.~Hakim},
@@ -362,7 +383,7 @@
 \newblock \bibinfo{title}{{AhmedML}: High-fidelity computational fluid dynamics
   dataset for incompressible, low-speed bluff body aerodynamics},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2407.20801}
-  (\bibinfo{year}{2024}).
+  (\bibinfo{year}{2024}). \DOIprefix\doi{10.48550/arXiv.2407.20801}.
 %Type = Article
 \bibitem[{Elrefaie et~al.(2024)Elrefaie, Morar, Dai, and
   Ahmed}]{elrefaie2024drivaernet}
@@ -371,6 +392,6 @@
 \newblock \bibinfo{title}{{DrivAerNet++}: A large-scale multimodal car dataset
   with computational fluid dynamics simulations and deep learning benchmarks},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2406.09624}
-  (\bibinfo{year}{2024}).
+  (\bibinfo{year}{2024}). \DOIprefix\doi{10.48550/arXiv.2406.09624}.
 
 \end{thebibliography}
