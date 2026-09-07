@@ -78,7 +78,7 @@ def check_keywords(root: str, fails: list[str]) -> None:
 
 
 def check_highlights(root: str, fails: list[str]) -> None:
-    path = os.path.join(root, "docs", "paper", "highlights.txt")
+    path = os.path.join(root, "docs", "paper", "submission", "highlights.txt")
     if not os.path.isfile(path):
         fails.append("highlights.txt missing (required at submission)")
         print("  highlights    MISSING -- the journal requires them at submission")

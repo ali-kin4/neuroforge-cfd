@@ -1,73 +1,109 @@
-# Cover Letter — Journal of Computational Physics
+# Cover Letter — Computers & Fluids
 
 Dear Editors,
 
-I am pleased to submit **"NeuroForge: Self-Auditing Neural CFD Surrogates with Calibrated
-Physics-Residual Trust"** for consideration as a full-length article in the *Journal of
-Computational Physics*.
+I am pleased to submit **"The ground truth fails its own physics check: what a
+surrogate-side RANS residual can and cannot certify"** for consideration as an original
+research paper in *Computers & Fluids*.
 
-**Why this belongs in JCP.** The manuscript extends a line the journal has recently opened:
-Yu, Ho and Wang's conformal-prediction framework for physics-informed networks (*JCP* 561:114979,
-2026) and Garg and Chakraborty's deep-ensemble uncertainty quantification for operator
-surrogates (*JCP* 534:114012, 2025). Both establish that a learned PDE surrogate can carry a
-calibrated statement about its own reliability. Our paper asks the question those results
-raise next and answers it in both directions: **precisely which jobs can the discretised
-steady-RANS residual do, and which can it provably not do?** We show the residual is a
-calibrated, backbone-agnostic *trust signal* yet a poor *correction objective*, and we prove
-a floor theorem identifying the operator's undetectable kernel modes — a formal mechanism
-for why smallness in residual space cannot by itself certify accuracy in solution space.
-That is a statement about a discrete operator, not about a network architecture, and we
-believe it is of direct interest to JCP's readership.
+**What the paper reports.** A widely adopted proposal for trusting machine-learning CFD
+surrogates is to have the surrogate check itself against the governing equations, by
+evaluating a discrete RANS residual on its own prediction. We show that this check is built
+on an operator the ground truth itself cannot pass. On 200 of 200 real AirfRANS cases the
+monitored residual of the *exact* field is substantially nonzero (mean 0.192), while the
+physically wrong uniform-freestream field scores an exact zero — so the objective strictly
+prefers a wrong field to the truth. The natural objection is that this is a resolution
+artifact, and we test it: refining the grid from 128² to 512² makes the floor **larger**,
+in 21 of 24 cases, under a decision rule registered in the repository before the
+measurement was run. Restoring the omitted turbulent-stress term moves the floor by less
+than 0.2%, and rasterising the same reference data with a higher-order interpolant *raises*
+it. The consequence for correction is then measured directly rather than argued: starting
+from the exact ground truth, with no neural network in the loop, gradient descent on the
+residual cuts it by 84% while driving the field error from zero to the range a trained
+surrogate starts in.
 
-**Contributions.**
-- A **two-way dissociation** established head-to-head on one benchmark, validated across
-  **three architecturally distinct backbones** (Transolver, Geo-FNO, MeshGraphNet) and **two
-  datasets** (turbulent-RANS AirfRANS airfoils; laminar DeepCFD bluff bodies), with
-  case-level bootstrap confidence intervals throughout.
-- A **residual-floor theorem** for the monitored discrete operator, quantifying the
-  operator-specific detection limit and the undetectable modes.
-- **Near-oracle selective prediction**: AUROC 0.87–0.91 for detecting worst-decile-error
-  cases; fused with deep-ensemble spread, AUROC 0.905, recovering ~91% of the oracle's
-  achievable error reduction at a 10% rejection budget (residual alone recovers ~67%). A
-  **distribution-free split-conformal certificate**, calibrated on the deployed corrected
-  field, holds coverage 0.895–0.902 against a 0.90 target across 20 re-draws.
-- A **measured cost model** (Section 5.7): the full audit costs 1.13 ms against a 3.82 s
-  prediction — **0.03%**, roughly one part in 3,400 — so the certificate is effectively free,
-  while the ensemble arm costs 4.86x a single backbone. The trust/accuracy trade-off is
-  therefore priced, not asserted.
-- A **repaired force-measurement pipeline**: a control-volume integrator recovers official
-  AirfRANS lift at Spearman 0.998 (per-seed median magnitude error 3.6–3.9%) and decomposes
-  the residual drag error into measurement-limited versus model-limited parts.
+**Why this belongs in Computers & Fluids.** The journal's scope names "uncertainty
+quantification in fluid flow simulations, reduced-order and surrogate models for fluid
+flows", and states that machine-learning papers are welcome provided they show excellent
+scientific character. The four specific things the scope asks of such papers map onto this
+manuscript as follows.
 
-**Reproducibility.** Every headline number maps to a committed script and result file via
-`docs/REPRODUCE.md`, with a manifest recording seeds, environment and SHA-256 file hashes.
-The package is CPU-first, runs end-to-end with zero downloads, and is permanently archived
-at Zenodo (DOI 10.5281/zenodo.21277928). The paper is explicit throughout about what is
-*measured* versus *assumed* and preserves its negative results rather than hiding them —
-including a self-falsifying control on a force-ranking metric that led us to recompute
-against official benchmark labels and repair the integrator.
+- *Comparison with traditional numerical reconstruction methods.* This is the axis on which
+  we are most exposed and we would rather say so plainly than have it discovered. The paper
+  makes no controlled speed-up claim: it states in the text that the ~286× figure is not a
+  controlled measurement, and that the OpenFOAM and SU2 verification backends described in
+  the software are unimplemented. What the paper does contain is the comparison that bears
+  on its actual claim — a direct contrast against *solver-consistent* residual correction
+  (Newton–Krylov and related methods), which succeeds on steady CFD precisely because the
+  residual being driven is the solver's own. That contrast is the paper's organising result,
+  not an aside: it locates the boundary at operator consistency rather than at the problem
+  class.
+- *Clear presentation of training versus validation cases, with sufficient diversity.* Two
+  datasets (turbulent-RANS AirfRANS airfoils, laminar DeepCFD bluff bodies), three backbone
+  families, an explicit out-of-distribution regime shift, five seeds on the headline
+  backbone, and case-level bootstrap confidence intervals throughout.
+- *Physical consistency and theoretical analysis of the model.* This is now the spine of the
+  paper rather than an appendix. We show the monitored operator is an inconsistent
+  discretisation of RANS, so its floor has a nonzero continuum limit and cannot be removed
+  by refinement; and we characterise the operator's kernel, the modes it can neither detect
+  nor correct.
+- *Limitations as well as merits.* The paper withdraws or narrows seven claims made in
+  earlier versions of this work, including one of its own headline numbers. Most pointedly,
+  we report an *ungated fixed half-step control that outperforms our own acceptance gate on
+  accuracy* (95.8% of cases improved against 89.3%), and conclude that the gate's value is
+  the guarantee it provides rather than the accuracy it was credited with. We also report
+  that a physics-free uncertainty score matches the physics residual at ranking field error,
+  and that the physics wins outright only on drag.
 
-**Suggested reviewers** (all arms-length; no shared institution or prior collaboration with
-either author):
-1. Souvik Chakraborty — deep-ensemble UQ for operator surrogates (*JCP* 534:114012, 2025)
-2. Yangshuai Wang — conformal prediction for PINNs (*JCP* 561:114979, 2026)
-3. Paris Perdikaris — physics-informed machine learning and operator learning
-4. Nikola Kovachki — neural operator theory
-5. Vignesh Gopakumar — conformal prediction for PDE surrogates
+**Reproducibility.** Every headline number maps to a committed script and result file
+through `docs/REPRODUCE.md`, with a manifest recording seeds, environment and SHA-256
+hashes. The package is CPU-first, runs end to end with no downloads via a synthetic data
+generator, and is permanently archived at Zenodo (DOI 10.5281/zenodo.21277928), which also
+serves as the deposited research dataset the journal's Option C data policy requires. The
+grid-refinement study's decision rule was committed before the study was run, and the commit
+is identifiable in the public history.
 
-The manuscript is original and is not under consideration elsewhere; a preprint is posted to
-arXiv (arXiv:2607.10333), consistent with Elsevier's preprint policy. Both authors have
-approved this submission, declare no competing interests, and the manuscript includes the
-declarations of generative-AI use required by Elsevier policy. We confirm the work complies
-with the journal's authorship and research-integrity policies.
+**Preprint disclosure.** A preprint of an earlier version is posted at arXiv:2607.10333,
+consistent with Elsevier's preprint policy. It carries a different title and a substantially
+different framing: that version led with a calibrated trust layer. The present manuscript is
+a substantial revision built around the grid-refinement and residual-descent measurements
+described above, which are new, and several claims in the preprint are explicitly withdrawn
+here. An updated preprint reflecting the present version will be posted. I mention this so
+that a search on the title does not suggest either a concurrent submission or an unexplained
+divergence between the two documents.
+
+**Suggested reviewers** are listed separately. The manuscript is original, is not under
+consideration elsewhere, and both authors have approved this submission. We declare no
+competing interests and include the declaration of generative-AI use required by Elsevier
+policy, together with a CRediT contribution statement. We have selected the **subscription**
+publishing route.
 
 Thank you for your consideration.
 
 Sincerely,
+
 Ali Jabbary (corresponding author, on behalf of both authors)
-Department of Mechanical Engineering, Urmia University
-st_a.jabbary@urmia.ac.ir | https://alijabbary.com
+Department of Mechanical Engineering, Urmia University, Urmia, Iran
+st_a.jabbary@urmia.ac.ir | https://alijabbary.com | ORCID 0000-0003-0573-6909
 
 Kasra Ghanavati
-School of Computing and Mathematical Sciences, University of Greenwich
-kg1111r@gre.ac.uk
+School of Computing and Mathematical Sciences, University of Greenwich, London, UK
+kg1111r@gre.ac.uk | ORCID 0009-0009-0888-3307
+
+---
+
+## Note to self — not part of the letter
+
+**On disclosing the two desk rejections (CMAME 2026-08-02, JCP 2026-09-07):** the letter
+above does **not** mention them. That is a deliberate decision, taken on the venue plan's
+recommendation: there is no obligation to disclose, prior rejection is not discoverable by
+the editor, and volunteering it hands them a pre-authorised reason to decline. What *is*
+disclosed is the preprint, because that is discoverable and would otherwise look like a
+concurrent submission. Reverse this only if you would rather lead with the revision history.
+
+**On the numbers:** every figure in this letter is checked against the manuscript as built
+on 2026-09-07 — 0.192 floor, 21/24, <0.2%, 84%, 95.8% vs 89.3%. The earlier JCP letter
+quoted "three architecturally distinct backbones" and an audit cost of "1.13 ms against
+3.82 s — 0.03%"; the first is now qualified in the paper (the third backbone is evaluated
+off its training density) and so is not claimed here, and the second is stated in the paper
+with both its measurements. Do not reinstate either phrasing without re-checking.

@@ -305,6 +305,8 @@ def descend(Y0, GT, KEEP, FLUID, FREE, cs, ms, *, dx, dy, nu, n_steps, rule, eta
     step_t = torch.full((B, 1, 1, 1), 1e8 if rule == "armijo" else float(eta), dtype=F64)
     stationary = torch.zeros(B, dtype=torch.bool)   # Armijo found no admissible step
     dead = torch.zeros(B, dtype=torch.bool)         # fixed-eta run went non-finite
+    m_adam = torch.zeros_like(Y)                    # Adam moments (rule == 'adam')
+    v_adam = torch.zeros_like(Y)
 
     def record(k, J, m):
         traj["step"].append(int(k))
@@ -341,6 +343,18 @@ def descend(Y0, GT, KEEP, FLUID, FREE, cs, ms, *, dx, dy, nu, n_steps, rule, eta
             step_t = t
             Y = Ynew
             stationary |= ~ok        # no admissible step => at a stationary point of J
+        elif rule == "adam":
+            # Closes "plain gradient descent is a strawman". eta is the Adam lr, in
+            # field units (u ~ 50 m/s), so eta ~ 1e-2 .. 1e-1 is the sensible band.
+            b1, b2, eps = 0.9, 0.999, 1e-12
+            m_adam = b1 * m_adam + (1 - b1) * g
+            v_adam = b2 * v_adam + (1 - b2) * g * g
+            mh = m_adam / (1 - b1 ** k)
+            vh = v_adam / (1 - b2 ** k)
+            cand = Y - float(eta) * proj * mh / (vh.sqrt() + eps)
+            bad = ~torch.isfinite(cand).flatten(1).all(dim=1)
+            dead |= bad
+            Y = torch.where((bad | dead).view(-1, 1, 1, 1), Y, cand)
         else:
             cand = Y - float(eta) * g
             bad = ~torch.isfinite(cand).flatten(1).all(dim=1)
@@ -565,13 +579,18 @@ def main(argv=None) -> int:
     p.add_argument("--n-cases", type=int, default=200)
     p.add_argument("--resolution", type=int, default=128)
     p.add_argument("--n-steps", type=int, default=300)
-    p.add_argument("--stage", default="all", choices=["verify", "eta", "main", "all"])
+    p.add_argument("--stage", default="all",
+                   choices=["verify", "eta", "main", "adam", "analyse", "all"])
     p.add_argument("--eta-cases", type=int, default=40)
     p.add_argument("--eta-steps", type=int, default=150)
     p.add_argument("--batch", type=int, default=50)
     p.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
     p.add_argument("--fno-ckpt", default=os.path.join("checkpoints", "certificates_deq.pt"))
     p.add_argument("--objective", default="monitored", choices=["monitored", "raw", "both"])
+    p.add_argument("--adam-lr", type=float, nargs="+", default=[0.03],
+                   help="Adam learning rates for --stage adam (field units)")
+    p.add_argument("--adam-arms", nargs="+",
+                   default=["transolver_seed0", "fno"], help="arms for --stage adam")
     p.add_argument("--out-dir", default=RESULTS)
     a = p.parse_args(argv)
 
@@ -644,11 +663,17 @@ def main(argv=None) -> int:
     # ---- stage: eta sensitivity ------------------------------------------ #
     if a.stage in ("eta", "all"):
         etas = [10.0 ** k for k in range(-4, 8)]
+        eta_path = os.path.join(a.out_dir, "eta_sensitivity.json")
         eta_out = {}
+        if os.path.exists(eta_path):        # resumable, written after every arm|mode
+            eta_out = json.load(open(eta_path))["rows"]
         for arm in ("truth", "transolver_seed0", "fno"):
             if arm not in arms:
                 continue
-            for mode in ("free", "bc"):
+            for mode in ("bc", "free"):
+                if f"{arm}|{mode}" in eta_out:
+                    log(f"eta {arm}/{mode}: cached, skipped")
+                    continue
                 rows = []
                 for eta in etas:
                     t0 = time.time()
@@ -663,9 +688,9 @@ def main(argv=None) -> int:
                         f"({'n/a' if pc is None else f'{pc:+.1f}%'}) "
                         f"frac_err_up={ag['frac_error_increased']:.2f} ({time.time()-t0:.0f}s)")
                 eta_out[f"{arm}|{mode}"] = rows
-        with open(os.path.join(a.out_dir, "eta_sensitivity.json"), "w") as f:
-            json.dump({"n_cases": a.eta_cases, "n_steps": a.eta_steps,
-                       "etas": etas, "rows": eta_out}, f, indent=2)
+                with open(eta_path, "w") as f:
+                    json.dump({"n_cases": a.eta_cases, "n_steps": a.eta_steps,
+                               "etas": etas, "rows": eta_out}, f, indent=2)
 
     # ---- stage: main (Armijo, full n) ------------------------------------- #
     if a.stage in ("main", "all"):
@@ -708,6 +733,82 @@ def main(argv=None) -> int:
                     f"frac_err_up={ag['frac_error_increased']:.3f} "
                     f"mse_u {ag['mse_u_mean_0']:.3f}->{ag['mse_u_mean_final']:.3f} "
                     f"({time.time()-t0:.0f}s)")
+
+    # ---- stage: Adam ------------------------------------------------------ #
+    if a.stage in ("adam", "all"):
+        for arm in a.adam_arms:
+            if arm not in arms:
+                continue
+            for lr in a.adam_lr:
+                tag = f"{arm}_bc_uvp_adam{lr:g}"
+                path = os.path.join(a.out_dir, f"descent_{tag}.json")
+                if os.path.exists(path):
+                    log(f"ADAM {tag}: cached, skipped")
+                    continue
+                t0 = time.time()
+                recs, traj = run(arm, "bc", "uvp", "adam", lr, a.n_steps, "monitored")
+                ag = aggregate(recs)
+                ag["wall_s"] = time.time() - t0
+                summary["runs"][tag] = ag
+                with open(path, "w") as f:
+                    json.dump({"tag": tag, "arm": arm, "mode": "bc", "vars": "uvp",
+                               "rule": "adam", "lr": lr, "objective": "monitored",
+                               "n_steps": a.n_steps, "aggregate": ag,
+                               "trajectory_batch0": traj, "per_case": recs}, f, indent=2)
+                pc = ag["rel_l2_median_pct_change"]
+                log(f"ADAM {tag}: J_ratio_med={ag['J_ratio_median']:.3g} "
+                    f"resid {ag['residual_norm_mean_0']:.4f}->"
+                    f"{ag['residual_norm_mean_final']:.4f} | rel_l2 "
+                    f"{ag['rel_l2_median_0']:.5f}->{ag['rel_l2_median_final']:.5f} "
+                    f"({'n/a' if pc is None else f'{pc:+.1f}%'}) "
+                    f"frac_err_up={ag['frac_error_increased']:.3f} ({time.time()-t0:.0f}s)")
+
+    # ---- stage: regime boundary ------------------------------------------ #
+    # The theorem's own regime parameter is rho = ||R_h(u_hat)|| / ||r*||: far from the
+    # truth ||Le|| >> ||r*|| and the residual tracks the error (detector regime); near
+    # the truth the floor dominates and the minimiser is displaced. We can measure the
+    # crossover directly because the truth arm gives ||r*|| per case.
+    if a.stage in ("main", "all", "analyse"):
+        truth_path = os.path.join(a.out_dir, "descent_truth_bc_uvp_armijo.json")
+        if os.path.exists(truth_path):
+            floor = {r["name"]: r["rn0"]
+                     for r in json.load(open(truth_path))["per_case"]}
+            reg = {}
+            for fn in sorted(os.listdir(a.out_dir)):
+                if not (fn.startswith("descent_") and fn.endswith("_bc_uvp_armijo.json")):
+                    continue
+                d = json.load(open(os.path.join(a.out_dir, fn)))
+                if d["arm"] == "truth":
+                    continue
+                rows = [(r["rn0"] / max(floor.get(r["name"], np.nan), 1e-12),
+                         r["rel_l2_speed_final"] < r["rel_l2_speed_0"])
+                        for r in d["per_case"] if r["name"] in floor]
+                rho = np.array([x[0] for x in rows])
+                imp = np.array([x[1] for x in rows], bool)
+                bins = [(1.0, 1.5), (1.5, 2.0), (2.0, 3.0), (3.0, 5.0), (5.0, 1e9)]
+                reg[d["arm"]] = {
+                    "rho_median": float(np.median(rho)),
+                    "frac_improved": float(imp.mean()),
+                    "by_rho_bin": [
+                        {"rho_lo": lo, "rho_hi": hi,
+                         "n": int(((rho >= lo) & (rho < hi)).sum()),
+                         "frac_improved": (float(imp[(rho >= lo) & (rho < hi)].mean())
+                                           if ((rho >= lo) & (rho < hi)).any() else None)}
+                        for lo, hi in bins],
+                }
+            with open(os.path.join(a.out_dir, "regime_boundary.json"), "w") as f:
+                json.dump({"definition": "rho = ||R_h(start)|| / ||R_h(u*)|| per case; "
+                                         "improved = rel_l2_speed decreased after 500 "
+                                         "Armijo steps of BC-constrained residual descent",
+                           "arms": reg}, f, indent=2)
+            for k, v in reg.items():
+                bins_s = []
+                for b in v["by_rho_bin"]:
+                    fi = b["frac_improved"]
+                    bins_s.append(f"[{b['rho_lo']},{b['rho_hi']}) n={b['n']} "
+                                  f"imp={'-' if fi is None else round(fi, 2)}")
+                log(f"regime {k}: rho_med={v['rho_median']:.2f} "
+                    f"frac_improved={v['frac_improved']:.3f} | " + "  ".join(bins_s))
 
     summary["meta"]["wall_s_total"] = time.time() - t_start
     with open(os.path.join(a.out_dir, "summary.json"), "w") as f:

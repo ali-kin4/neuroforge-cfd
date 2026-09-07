@@ -251,11 +251,14 @@ lowers it by seven orders of magnitude \emph{while} reducing field and aerodynam
 error \citep{lei2026newtonkrylov}. It fails where the monitor is instead a
 surrogate-side operator that a deployed system can afford, inconsistent with the one
 that produced the labels. Carrying \emph{some} floor is not sufficient for that
-failure---every discrete monitor carries one---so the operative quantity is the
-signal-to-floor ratio at the operating point. Ours is
-$\|R_h(\hat u)\|/\|r^\star\|\approx 0.59$ in the mean and below $1$ on $80\%$ of
-cases: the prediction's residual sits \emph{beneath} the truth's, so no threshold on
-it can imply an error bound. The floor is a necessary condition for the failure mode
+failure---every discrete monitor carries one---so the operative quantity is how much
+of a prediction's score the floor already accounts for. On the deployed arm the median
+truth-to-prediction residual ratio is $0.864$: \textbf{$86\%$ of a typical
+prediction's score is present at zero error}, a fraction set by the operator rather
+than the model. That does not prevent a \emph{valid} bound---split conformal returns
+one, at $0.89$ coverage against a $0.90$ target---it prevents a \emph{tight} one,
+costing a width of $5.6$--$6.8\times$ the median drag error being certified. Nor can
+refinement recover it, since the floor grows. The floor is a necessary condition for the failure mode
 we report, and the prior successes operate where it is absent. Our negative is scoped
 to that deployment-realistic regime.
 
@@ -383,7 +386,7 @@ Residual as an error detector
 \addlinespace
 Cost at deployment
  & A solver-grade operator per correction step.
- & ${\sim}1.7$\,ms per case (\autoref{sec:cost}), which is why it is the one a
+ & ${\sim}1.1$\,ms per case (\autoref{sec:cost}), which is why it is the one a
    deployed surrogate can actually afford. \\
 \bottomrule
 \end{tabular}
@@ -1589,8 +1592,13 @@ variable itself, which a pure difficulty proxy could not do.
 
 The audit is also essentially free at the point of use: computing the full
 residual diagnostic and trust map, the case-level score, the ensemble spread, and the
-conformal band costs a median $1.7$\,ms per case on a single CPU thread
-(\texttt{scripts/measure\_audit\_cost.py}, \texttt{results/control/audit\_cost.json}),
+conformal band costs a median $1.13$\,ms per case on a single CPU thread
+(\autoref{sec:cost}, $n=100$;
+\texttt{results/control/inference\_cost.json}). An independent re-measurement over
+$200$ cases taken while a GPU training run was competing for the same CPU puts it at
+$1.65$\,ms (\texttt{scripts/measure\_audit\_cost.py},
+\texttt{results/control/audit\_cost.json}); we quote the clean measurement and treat
+the contended one as the conservative upper bound. Either way it is measured
 against the ${\sim}25$-minute, $16$-core RANS solve that produced each AirfRANS case
 \citep{bonnet2022airfrans} --- the certificate costs ${\sim}10^{-6}$ of the computation
 it vouches for.

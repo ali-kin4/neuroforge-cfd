@@ -135,16 +135,32 @@ the whole reframe.
 **The correct statement is sharper, and it is three verbs with three
 independently measured verdicts:**
 
-> An operator-inconsistent residual monitor can **rank** predictions, but it
-> cannot **certify** them and it cannot be **descended**. The obstruction is a
-> non-vanishing floor at the reference solution, and refinement makes it worse,
-> not better.
+> An operator-inconsistent residual monitor can **rank** predictions, can
+> **certify** them only to a floor-limited width, and cannot be **descended**.
+> The obstruction is a non-vanishing floor at the reference solution, and
+> refinement makes it worse, not better.
+
+Note the middle verb carefully. An earlier draft of this document wrote "cannot
+certify". That is too strong and the functional-audit gate proved it so against
+its own pre-registered bar. Non-vanishing prevents a *tight* bound, not a *valid*
+one, and split conformal returns a valid one every time.
 
 | verb | verdict | the evidence |
 |---|---|---|
 | **rank** | YES | rho 0.61; AUROC 0.871 on field error, **0.952 on drag**; survives the difficulty confound at 92% |
-| **certify** | NO | floor 0.192 sits above prediction 0.113, so no threshold on the norm implies a bound |
+| **certify** | ONLY TO A FLOOR-LIMITED WIDTH | a valid conformal bound exists (0.89 coverage at a 0.90 target) but is **5.6-6.8x** the median drag error, because **86%** of a typical score is floor present at zero error |
 | **descend** | NO | 24 of 24 cases diverge when descending from the exact truth |
+
+**Two corrections the functional-audit gate forced, and they are load-bearing.**
+
+1. **Retire the 160/200 inversion argument.** That figure is a dropout-FNO with
+   `mse_u` about 3.92. On the deployed Transolver the norm-level inversion is
+   **2.5-6.5%**, so the truth IS the best-scoring field on 93.5-97.5% of cases. A
+   reviewer holding the repository computes this in one command.
+2. **"Cannot certify" is too strong and must not be written.** Non-vanishing does
+   not prevent a valid bound, only a tight one. The measured concession is the
+   width. The negatives that survive untouched are **descend** (24 of 24) and the
+   floor's non-decay under refinement. Those carry the thesis.
 
 The abstract, introduction, positioning and conclusion must all say the same
 three verbs. This is the spine of the paper.
