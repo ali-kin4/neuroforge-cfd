@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-07T07:10:19.764867+00:00",
-  "git_head": "b532917d0b6292223a32db103ffbb157ffc655ca",
-  "git_head_short": "b532917",
+  "generated_utc": "2026-09-07T07:53:12.094266+00:00",
+  "git_head": "1fb1445714e6fccbfaaa16c24134c5533fa1bafe",
+  "git_head_short": "1fb1445",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -12,7 +12,7 @@
     "cuda_toolkit": "12.4",
     "gpu": "NVIDIA GeForce RTX 4070 Ti"
   },
-  "n_files": 48,
+  "n_files": 52,
   "n_missing": 0,
   "missing": [],
   "files": [
@@ -493,8 +493,48 @@
       "claims": "iters sweep re-run on the retained checkpoint with every channel kept (same permuted 80-case subset as run_sensitivity, reproduction-gated against iters.json): recovers the mse_v / mse_p / mse_nut columns tab:iters omits",
       "sha256": "af2f0a9ade045782da16e6e61f18c6f910d93b277245105b8b3ea149598cad5b",
       "bytes": 11113,
-      "git_tracked": false,
-      "last_commit": ""
+      "git_tracked": true,
+      "last_commit": "ea75f79"
+    },
+    {
+      "path": "results/review/functional_audit_gate_validation.json",
+      "script": "scripts/functional_audit_gate.py --validate",
+      "tier": "cpu-verify",
+      "claims": "plumbing validation of the drag-direction functional residual BEFORE the hypothesis tests: box telescoping closes to 5.2e-13 on a body-free box; the surface-term identity phi_outer = I_T0 + i_solid + i_ring closes to 5.9e-15, so the immersed body's term is accounted rather than dropped; the sign agrees with design_force_integrator.py's control-volume convention on 6/6 cases",
+      "sha256": "ade28354f45307b957c2da49b144b5301c79431cb5d078011d23cda78d76d7cc",
+      "bytes": 4788,
+      "git_tracked": true,
+      "last_commit": "282b00e"
+    },
+    {
+      "path": "results/review/functional_audit_gate.json",
+      "script": "scripts/functional_audit_gate.py --run",
+      "tier": "cpu",
+      "claims": "per-case drag-direction functional residual I(w;V) = e_D.int_V R dV on 200 AirfRANS full/test cases x 8 fields (truth, raw+corrected for 3 v2_transolver seeds, ensemble mean) x 5 nested control volumes x advective/conservative forms x 3 wall-ring treatments, plus the unsigned contrasts and the telescoped far-field flux; zero forward passes, committed caches only",
+      "sha256": "1018730362411a77e0e5f5fa5f4ba57ea957c532e6204c953518956eeda1870f",
+      "bytes": 7921240,
+      "git_tracked": true,
+      "last_commit": "27e11c5"
+    },
+    {
+      "path": "results/review/functional_audit_gate_analysis.json",
+      "script": "scripts/functional_audit_gate.py --analyse",
+      "tier": "cpu",
+      "claims": "the pre-registered gate (rule committed in 282b00e BEFORE the run) applied mechanically: (a) FAILS -- functional inversion 27-36%% against a 10%% bar and a 2.5-6.5%% matched norm-level baseline; (b) FAILS -- AUROC 0.61-0.70 against the residual norm's 0.94-0.96; (c) not built; branch = Design A. Also records that the truth's own functional residual is 9.6-10.3x the median |dCd| it would certify, so the floor does not cancel under integration",
+      "sha256": "28f41c3c74ce99eac4eb1d97cd9e8db692243b0f70f05b643c9efa0d9aac5a5a",
+      "bytes": 319124,
+      "git_tracked": true,
+      "last_commit": "1fb1445"
+    },
+    {
+      "path": "results/review/functional_audit_gate_bootstrap.json",
+      "script": "scripts/functional_audit_gate.py (targeted paired bootstrap)",
+      "tier": "cpu-verify",
+      "claims": "paired case-level bootstrap, 10^4 draws, top-decile threshold held fixed: the signed functional is significantly WORSE than the residual norm (dAUROC -0.25 to -0.47, every CI excludes zero), while the UNSIGNED integral of the same cells is indistinguishable on AUROC (CIs include zero) and significantly better on Spearman (+0.059..+0.132, 3/3 CIs exclude zero) -- cancellation identified as the mechanism by measurement rather than by argument",
+      "sha256": "3b799632b2f18426ae8b118e45d1c11d09fa3cf925af36b51eb5954c5f67fbb1",
+      "bytes": 5316,
+      "git_tracked": true,
+      "last_commit": "a81c9bd"
     }
   ]
 }

@@ -234,6 +234,38 @@ HEADLINE: list[dict] = [
      "claims": "iters sweep re-run on the retained checkpoint with every channel kept (same "
                "permuted 80-case subset as run_sensitivity, reproduction-gated against iters.json): "
                "recovers the mse_v / mse_p / mse_nut columns tab:iters omits"},
+
+    # --- the functional audit gate (docs/paper/review/functional_audit_gate.md) ---
+    {"path": "results/review/functional_audit_gate_validation.json",
+     "script": "scripts/functional_audit_gate.py --validate", "tier": "cpu-verify",
+     "claims": "plumbing validation of the drag-direction functional residual BEFORE the "
+               "hypothesis tests: box telescoping closes to 5.2e-13 on a body-free box; the "
+               "surface-term identity phi_outer = I_T0 + i_solid + i_ring closes to 5.9e-15, so "
+               "the immersed body's term is accounted rather than dropped; the sign agrees with "
+               "design_force_integrator.py's control-volume convention on 6/6 cases"},
+    {"path": "results/review/functional_audit_gate.json",
+     "script": "scripts/functional_audit_gate.py --run", "tier": "cpu",
+     "claims": "per-case drag-direction functional residual I(w;V) = e_D.int_V R dV on 200 "
+               "AirfRANS full/test cases x 8 fields (truth, raw+corrected for 3 v2_transolver "
+               "seeds, ensemble mean) x 5 nested control volumes x advective/conservative forms "
+               "x 3 wall-ring treatments, plus the unsigned contrasts and the telescoped "
+               "far-field flux; zero forward passes, committed caches only"},
+    {"path": "results/review/functional_audit_gate_analysis.json",
+     "script": "scripts/functional_audit_gate.py --analyse", "tier": "cpu",
+     "claims": "the pre-registered gate (rule committed in 282b00e BEFORE the run) applied "
+               "mechanically: (a) FAILS -- functional inversion 27-36%% against a 10%% bar and a "
+               "2.5-6.5%% matched norm-level baseline; (b) FAILS -- AUROC 0.61-0.70 against the "
+               "residual norm's 0.94-0.96; (c) not built; branch = Design A. Also records that "
+               "the truth's own functional residual is 9.6-10.3x the median |dCd| it would "
+               "certify, so the floor does not cancel under integration"},
+    {"path": "results/review/functional_audit_gate_bootstrap.json",
+     "script": "scripts/functional_audit_gate.py (targeted paired bootstrap)", "tier": "cpu-verify",
+     "claims": "paired case-level bootstrap, 10^4 draws, top-decile threshold held fixed: the "
+               "signed functional is significantly WORSE than the residual norm (dAUROC -0.25 to "
+               "-0.47, every CI excludes zero), while the UNSIGNED integral of the same cells is "
+               "indistinguishable on AUROC (CIs include zero) and significantly better on "
+               "Spearman (+0.059..+0.132, 3/3 CIs exclude zero) -- cancellation identified as the "
+               "mechanism by measurement rather than by argument"},
 ]
 
 
