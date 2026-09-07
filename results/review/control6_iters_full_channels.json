@@ -1,0 +1,392 @@
+{
+ "artifact": "control6_iters_full_channels",
+ "question": "Do the channels tab:iters omits (mse_v, volume mse_p, mse_nut) rise along the correction sweep? tab:indist documents this corrector family inflating mse_v +129% and mse_p +57%.",
+ "provenance": "run_sensitivity.py already CALLS per_channel_mse, which computes mse_u, mse_v, mse_p, mse_speed and mse_nut, then keeps only pm['mse_u'] before aggregating (scripts/run_sensitivity.py ~line 184). The other channels were computed and dropped on write. This script re-runs the identical sweep on the identical retained checkpoint and keeps the whole dict.",
+ "meta": {
+  "date": "2026-09-07 10:39:01",
+  "runtime_s": 2027.5660445690155,
+  "ckpt": "checkpoints/certificates_deq.pt",
+  "device": "cpu",
+  "n_eval": 80,
+  "task": "full",
+  "resolution": 128,
+  "iter_grid": [
+   0,
+   1,
+   3,
+   5,
+   10,
+   15
+  ],
+  "swept_knob": "DEQCorrector.max_iter (internal fixed-point cap)"
+ },
+ "reproduction_gate": {
+  "ref": "results/sensitivity/iters.json",
+  "checked": [
+   {
+    "n_iters": 0,
+    "metric": "mse_u",
+    "recovered": 3.9200415514103772,
+    "committed": 3.923773992619553,
+    "rel_diff": 0.0009512375626619336,
+    "within_tol": true
+   },
+   {
+    "n_iters": 0,
+    "metric": "surface_mse_p",
+    "recovered": 540623.3108318254,
+    "committed": 541203.9648868717,
+    "rel_diff": 0.0010728932024135444,
+    "within_tol": true
+   },
+   {
+    "n_iters": 0,
+    "metric": "residual_norm",
+    "recovered": 0.11102782087400556,
+    "committed": 0.11262006154283881,
+    "rel_diff": 0.01413816194930408,
+    "within_tol": true
+   },
+   {
+    "n_iters": 1,
+    "metric": "mse_u",
+    "recovered": 2.4650448772195857,
+    "committed": 2.4603128107080745,
+    "rel_diff": 0.0019233597008135174,
+    "within_tol": true
+   },
+   {
+    "n_iters": 1,
+    "metric": "surface_mse_p",
+    "recovered": 429679.549527747,
+    "committed": 428560.20412922336,
+    "rel_diff": 0.0026118743358309973,
+    "within_tol": true
+   },
+   {
+    "n_iters": 1,
+    "metric": "residual_norm",
+    "recovered": 0.33578340895473957,
+    "committed": 0.3355632131919265,
+    "rel_diff": 0.0006561975632505562,
+    "within_tol": true
+   },
+   {
+    "n_iters": 3,
+    "metric": "mse_u",
+    "recovered": 2.299622144006133,
+    "committed": 2.2874115067434295,
+    "rel_diff": 0.005338190013780136,
+    "within_tol": true
+   },
+   {
+    "n_iters": 3,
+    "metric": "surface_mse_p",
+    "recovered": 339481.9668748202,
+    "committed": 336718.1999415,
+    "rel_diff": 0.00820795232868426,
+    "within_tol": true
+   },
+   {
+    "n_iters": 3,
+    "metric": "residual_norm",
+    "recovered": 0.5400276742875576,
+    "committed": 0.5418833289295435,
+    "rel_diff": 0.003424454200596321,
+    "within_tol": true
+   },
+   {
+    "n_iters": 5,
+    "metric": "mse_u",
+    "recovered": 2.4523623876778258,
+    "committed": 2.4387229704013222,
+    "rel_diff": 0.005592852259992037,
+    "within_tol": true
+   },
+   {
+    "n_iters": 5,
+    "metric": "surface_mse_p",
+    "recovered": 311532.8146573741,
+    "committed": 308381.3726539468,
+    "rel_diff": 0.010219300784304271,
+    "within_tol": true
+   },
+   {
+    "n_iters": 5,
+    "metric": "residual_norm",
+    "recovered": 0.5909967850893736,
+    "committed": 0.5935137506574393,
+    "rel_diff": 0.00424078728635626,
+    "within_tol": true
+   },
+   {
+    "n_iters": 10,
+    "metric": "mse_u",
+    "recovered": 2.583736182469702,
+    "committed": 2.5697800306960223,
+    "rel_diff": 0.005430874085319938,
+    "within_tol": true
+   },
+   {
+    "n_iters": 10,
+    "metric": "surface_mse_p",
+    "recovered": 303505.8389051108,
+    "committed": 300298.06511763704,
+    "rel_diff": 0.010681966219852734,
+    "within_tol": true
+   },
+   {
+    "n_iters": 10,
+    "metric": "residual_norm",
+    "recovered": 0.6152694661170244,
+    "committed": 0.6178580850362778,
+    "rel_diff": 0.004189665850373142,
+    "within_tol": true
+   },
+   {
+    "n_iters": 15,
+    "metric": "mse_u",
+    "recovered": 2.5895474848138282,
+    "committed": 2.5754771669350722,
+    "rel_diff": 0.005463188747854554,
+    "within_tol": true
+   },
+   {
+    "n_iters": 15,
+    "metric": "surface_mse_p",
+    "recovered": 303833.37699226046,
+    "committed": 300664.06122011464,
+    "rel_diff": 0.010541052892336113,
+    "within_tol": true
+   },
+   {
+    "n_iters": 15,
+    "metric": "residual_norm",
+    "recovered": 0.6173251550644636,
+    "committed": 0.6198838077485561,
+    "rel_diff": 0.004127632714565707,
+    "within_tol": true
+   }
+  ],
+  "pass": true,
+  "case_subset": "run_sensitivity subset: permutation(seed=0) of the first 160 cases, first 80 taken",
+  "note": "The gate compares the columns the committed sweep DID retain (mse_u, surface_mse_p, residual_norm). It passes only if this re-run reproduces the committed sweep, which requires the same case subset: run_sensitivity.py takes a seeded permutation of N_EVAL+N_CALIB cases, NOT the first N_EVAL (see --first-n, which reproduces the wrong subset and fails this gate by ~11% on mse_u). A failure here means the recovered rows are NOT absolute replacements for tab:iters and may only be read as direction of travel; it does not abort, so the mismatch is visible."
+ },
+ "rows": [
+  {
+   "n_iters": 0,
+   "mse_u": 3.9200415514103772,
+   "mse_v": 0.46993873831004435,
+   "mse_p": 3199.4313112171812,
+   "mse_speed": 4.0146983268159975,
+   "mse_nut": 4.69915823856024e-08,
+   "surface_mse_p": 540623.3108318254,
+   "residual_norm": 0.11102782087400556,
+   "residual_error_spearman": 0.40398499765588375,
+   "deq_iters_mean": 0.0
+  },
+  {
+   "n_iters": 1,
+   "mse_u": 2.4650448772195857,
+   "mse_v": 0.4827162698397597,
+   "mse_p": 2668.803956858226,
+   "mse_speed": 2.5200596386754825,
+   "mse_nut": 4.5862334067547434e-08,
+   "surface_mse_p": 429679.549527747,
+   "residual_norm": 0.33578340895473957,
+   "residual_error_spearman": 0.6432255039849978,
+   "deq_iters_mean": 1.0
+  },
+  {
+   "n_iters": 3,
+   "mse_u": 2.299622144006133,
+   "mse_v": 0.6208458919676408,
+   "mse_p": 3085.2879208916647,
+   "mse_speed": 2.2523560525776225,
+   "mse_nut": 4.633278021982179e-08,
+   "surface_mse_p": 339481.9668748202,
+   "residual_norm": 0.5400276742875576,
+   "residual_error_spearman": 0.6432489451476794,
+   "deq_iters_mean": 3.0
+  },
+  {
+   "n_iters": 5,
+   "mse_u": 2.4523623876778258,
+   "mse_v": 0.6606139716444058,
+   "mse_p": 3455.72226471657,
+   "mse_speed": 2.3709358133996394,
+   "mse_nut": 4.6783747777624334e-08,
+   "surface_mse_p": 311532.8146573741,
+   "residual_norm": 0.5909967850893736,
+   "residual_error_spearman": 0.6728316924519456,
+   "deq_iters_mean": 5.0
+  },
+  {
+   "n_iters": 10,
+   "mse_u": 2.583736182469702,
+   "mse_v": 0.6765906665514283,
+   "mse_p": 3766.483221950427,
+   "mse_speed": 2.4827043583877675,
+   "mse_nut": 4.711762537962403e-08,
+   "surface_mse_p": 303505.8389051108,
+   "residual_norm": 0.6152694661170244,
+   "residual_error_spearman": 0.7033755274261604,
+   "deq_iters_mean": 10.0
+  },
+  {
+   "n_iters": 15,
+   "mse_u": 2.5895474848138282,
+   "mse_v": 0.6776879928790892,
+   "mse_p": 3806.0664134749095,
+   "mse_speed": 2.48667984368588,
+   "mse_nut": 4.713950144427013e-08,
+   "surface_mse_p": 303833.37699226046,
+   "residual_norm": 0.6173251550644636,
+   "residual_error_spearman": 0.710196905766526,
+   "deq_iters_mean": 15.0
+  }
+ ],
+ "direction_of_travel": {
+  "mse_u": {
+   "available": true,
+   "values": [
+    3.9200415514103772,
+    2.4650448772195857,
+    2.299622144006133,
+    2.4523623876778258,
+    2.583736182469702,
+    2.5895474848138282
+   ],
+   "at_iter0": 3.9200415514103772,
+   "min_value": 2.299622144006133,
+   "argmin_iter": 3,
+   "at_last_iter": 2.5895474848138282,
+   "pct_change_0_to_last": -33.940815400741236,
+   "pct_change_min_to_last": 12.60752082960121,
+   "rises_after_mse_u_minimum": true,
+   "monotone_decreasing": false,
+   "monotone_increasing": false
+  },
+  "mse_v": {
+   "available": true,
+   "values": [
+    0.46993873831004435,
+    0.4827162698397597,
+    0.6208458919676408,
+    0.6606139716444058,
+    0.6765906665514283,
+    0.6776879928790892
+   ],
+   "at_iter0": 0.46993873831004435,
+   "min_value": 0.46993873831004435,
+   "argmin_iter": 0,
+   "at_last_iter": 0.6776879928790892,
+   "pct_change_0_to_last": 44.207731270704755,
+   "pct_change_min_to_last": 44.207731270704755,
+   "rises_after_mse_u_minimum": true,
+   "monotone_decreasing": false,
+   "monotone_increasing": true
+  },
+  "mse_p": {
+   "available": true,
+   "values": [
+    3199.4313112171812,
+    2668.803956858226,
+    3085.2879208916647,
+    3455.72226471657,
+    3766.483221950427,
+    3806.0664134749095
+   ],
+   "at_iter0": 3199.4313112171812,
+   "min_value": 2668.803956858226,
+   "argmin_iter": 1,
+   "at_last_iter": 3806.0664134749095,
+   "pct_change_0_to_last": 18.960716553934766,
+   "pct_change_min_to_last": 42.613188342072675,
+   "rises_after_mse_u_minimum": true,
+   "monotone_decreasing": false,
+   "monotone_increasing": false
+  },
+  "mse_speed": {
+   "available": true,
+   "values": [
+    4.0146983268159975,
+    2.5200596386754825,
+    2.2523560525776225,
+    2.3709358133996394,
+    2.4827043583877675,
+    2.48667984368588
+   ],
+   "at_iter0": 4.0146983268159975,
+   "min_value": 2.2523560525776225,
+   "argmin_iter": 3,
+   "at_last_iter": 2.48667984368588,
+   "pct_change_0_to_last": -38.06060527446824,
+   "pct_change_min_to_last": 10.403496855663409,
+   "rises_after_mse_u_minimum": true,
+   "monotone_decreasing": false,
+   "monotone_increasing": false
+  },
+  "mse_nut": {
+   "available": true,
+   "values": [
+    4.69915823856024e-08,
+    4.5862334067547434e-08,
+    4.633278021982179e-08,
+    4.6783747777624334e-08,
+    4.711762537962403e-08,
+    4.713950144427013e-08
+   ],
+   "at_iter0": 4.69915823856024e-08,
+   "min_value": 4.5862334067547434e-08,
+   "argmin_iter": 1,
+   "at_last_iter": 4.713950144427013e-08,
+   "pct_change_0_to_last": 0.3147777775473511,
+   "pct_change_min_to_last": 2.7847849497621424,
+   "rises_after_mse_u_minimum": true,
+   "monotone_decreasing": false,
+   "monotone_increasing": false
+  },
+  "surface_mse_p": {
+   "available": true,
+   "values": [
+    540623.3108318254,
+    429679.549527747,
+    339481.9668748202,
+    311532.8146573741,
+    303505.8389051108,
+    303833.37699226046
+   ],
+   "at_iter0": 540623.3108318254,
+   "min_value": 303505.8389051108,
+   "argmin_iter": 10,
+   "at_last_iter": 303833.37699226046,
+   "pct_change_0_to_last": -43.79943097074933,
+   "pct_change_min_to_last": 0.10791821611447722,
+   "rises_after_mse_u_minimum": false,
+   "monotone_decreasing": false,
+   "monotone_increasing": false
+  },
+  "residual_norm": {
+   "available": true,
+   "values": [
+    0.11102782087400556,
+    0.33578340895473957,
+    0.5400276742875576,
+    0.5909967850893736,
+    0.6152694661170244,
+    0.6173251550644636
+   ],
+   "at_iter0": 0.11102782087400556,
+   "min_value": 0.11102782087400556,
+   "argmin_iter": 0,
+   "at_last_iter": 0.6173251550644636,
+   "pct_change_0_to_last": 456.00943097406605,
+   "pct_change_min_to_last": 456.00943097406605,
+   "rises_after_mse_u_minimum": true,
+   "monotone_decreasing": false,
+   "monotone_increasing": true
+  }
+ },
+ "mse_u_argmin_iter": 3
+}

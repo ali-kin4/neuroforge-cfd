@@ -23,7 +23,7 @@ Artifacts
 | 3 | Fixed-half-step control on the gate | **CONCEDED-WITH-MITIGATION** | ungated fixed 0.5 improves **95.8%** of cases vs the gate's **89.2%** |
 | 4 | Risk-coverage on drag | **RESOLVED** — and stronger than the paper claims | residual AUROC **0.952** on \|ΔC_d\| vs 0.871 on field error |
 | 5 | Undisclosed MGN density control | **PARTIALLY-RESOLVED** — non-disclosure confirmed, brief's stronger claim unsupported | **0** manuscript mentions; but the file measures MSE, not ρ, on **4** cases |
-| 6 | Omitted channels in `tab:iters` | **CONCEDED** | `mse_v` **+96%** and `mse_p` **+41%** over iterations 0→3, while `mse_u` falls 27% |
+| 6 | Omitted channels in `tab:iters` | **CONCEDED** — channels recovered, not lost | `mse_v` rises **monotonically +44.2%** and `mse_p` **+19.0%** across the sweep, while the two reported channels fall |
 
 **Three premises in the brief turned out to be wrong or overstated** and are flagged
 in place: control 1's "σ outranks the residual" (true nominally, not statistically),
@@ -468,7 +468,54 @@ dropped on write**, and the sweep's checkpoint (`checkpoints/certificates_deq.pt
 sweep — same checkpoint, same iteration grid, same `n_eval`, same metric
 functions — keeping the whole dict (`scripts/control_iters_channels.py`).
 
-<!-- FULL_SWEEP_RESULTS -->
+**Reproduction gate: PASS.** Getting the case subset right mattered: `run_sensitivity.py`
+loads `N_EVAL + N_CALIB` = 160 cases and takes `permutation(seed=0)[:80]`, *not*
+the first 80. Using the first 80 put `mse_u` 11% off the committed sweep; the
+correct subset reproduces every retained column to within **1.41%**
+(`mse_u` 3.920 vs 3.9238, 2.465 vs 2.4603; `residual_norm` 0.1110 vs 0.1126;
+ρ 0.404 vs 0.423). The recovered channels are therefore **absolute rows**, not
+merely a direction of travel.
+
+### The full channel set (n_eval = 80, task `full`, `checkpoints/certificates_deq.pt`)
+
+| `n_iters` | `mse_u` | **`mse_v`** | **`mse_p`** | **`mse_nut`** | surf `mse_p` | `residual_norm` |
+|---|---|---|---|---|---|---|
+| 0 | 3.9200 | **0.4699** | **3199** | 4.699e−8 | 540623 | 0.1110 |
+| 1 | 2.4650 | **0.4827** | **2669** | 4.586e−8 | 429680 | 0.3358 |
+| **3** | **2.2996** ← min | **0.6208** | **3085** | 4.633e−8 | 339482 | 0.5400 |
+| 5 | 2.4524 | **0.6606** | **3456** | 4.678e−8 | 311533 | 0.5910 |
+| 10 | 2.5837 | **0.6766** | **3766** | 4.712e−8 | 303506 | 0.6153 |
+| 15 | 2.5896 | **0.6777** | **3806** | 4.714e−8 | 303833 | 0.6173 |
+
+Percentage change from iteration 0:
+
+| `n_iters` | `mse_u` | `mse_v` | `mse_p` | `mse_nut` | surf `mse_p` |
+|---|---|---|---|---|---|
+| 1 | −37.1% | **+2.7%** | −16.6% | −2.4% | −20.5% |
+| **3** | **−41.3%** | **+32.1%** | −3.6% | −1.4% | −37.2% |
+| 5 | −37.4% | **+40.6%** | **+8.0%** | −0.4% | −42.4% |
+| 10 | −34.1% | **+44.0%** | **+17.7%** | +0.3% | −43.9% |
+| 15 | −33.9% | **+44.2%** | **+19.0%** | +0.3% | −43.8% |
+
+### The answer: yes, the omitted channels rise — and one rises monotonically
+
+- **`mse_v` is monotone increasing across the entire sweep**, +44.2% end to end.
+  It is the *only* channel with no minimum after iteration 0.
+- **`mse_p` (volume) ends +19.0% above baseline**, and +42.6% above its own
+  iteration-1 minimum.
+- `mse_nut` is flat (±3%).
+- The two channels `tab:iters` *does* report are exactly the two that improve:
+  `mse_u` −33.9% and surface `mse_p` −43.8%.
+- At iteration 3 — the setting the table's own `mse_u` column identifies as best —
+  **`mse_v` is already +32.1%**.
+
+The sign pattern reproduces `tab:indist`'s finding (that corrector family inflates
+`mse_v` and volume `mse_p`) on this sweep, at smaller magnitude. **The figure built
+on `tab:iters` does not invert, but the table is selective:** it reports a
+two-channel improvement from a correction that degrades a third channel
+monotonically and a fourth by a fifth.
+
+
 
 ### 6b — The non-monotonicity is CONFIRMED
 
@@ -514,13 +561,31 @@ Replace `body.tex:1101-1104` with:
 > monotone relation holds across the sweep — which is the clean statement of
 > detector ≠ fixer."
 
-Plus the per-channel disclosure (see 6a) and, if `tab:iters` gains channels, a
-caption note that the sweep is `n_eval` = 80, task `full`, single checkpoint.
+**And `tab:iters` must gain the missing columns.** They now exist, reproduce the
+committed sweep to 1.41%, and are committed at
+`results/review/control6_iters_full_channels.json`. Add `mse_v`, volume `mse_p`
+and `mse_nut` to the table, with a caption note that the sweep is `n_eval` = 80,
+task `full`, a single checkpoint (`checkpoints/certificates_deq.pt`), and the
+seeded 80-of-160 subset `run_sensitivity.py` uses. Then add:
+
+> "The channels the table now reports in full make the trade explicit: over the
+> sweep `mse_u` falls 33.9% and surface `mse_p` 43.8%, while `mse_v` rises
+> **monotonically** by 44.2% and volume `mse_p` by 19.0%. At iteration 3, where
+> `mse_u` is minimised, `mse_v` is already 32.1% above the uncorrected baseline.
+> The correction is not a uniform improvement; it reallocates error across
+> channels, which is the same pattern \autoref{tab:indist} reports for this
+> corrector family."
+
+Leaving these columns out is the single most reopenable presentational choice in
+the paper: the two channels reported are exactly the two that improve.
 
 **Rebuttal line.** Reviewer said `tab:iters` hides channels and its monotonicity
 claim inverts → we confirmed the non-monotonicity from the paper's own table and
-re-ran the sweep to recover every dropped channel → the dissociation survives, the
-"opposite directions" wording and the single-channel table do not.
+re-ran the sweep (reproduction-gated to 1.41% on the retained columns) to recover
+every dropped channel → `mse_v` rises monotonically +44.2% and volume `mse_p`
++19.0% while the two reported channels fall, and `mse_u` is non-monotonic. The
+dissociation survives; the "opposite directions" wording and the two-channel
+table do not.
 
 ---
 
