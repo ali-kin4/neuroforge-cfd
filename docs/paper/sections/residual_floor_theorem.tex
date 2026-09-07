@@ -43,7 +43,7 @@ minimiser nor a stationary point, so no \emph{threshold} on the residual norm im
 bound on the error. A calibrated bound is still available by conformalising the score
 against held-out data, and we report one; what the floor destroys is its tightness, since
 $86\%$ of a typical prediction's score is present at zero error and the resulting
-certificate is $5.6$--$6.8\times$ the quantity being certified (\autoref{sec:conformal}).
+certificate is $6.5$--$7.9\times$ the quantity being certified (\autoref{sec:conformal}).
 \textbf{Descend: no}, by \autoref{thm:residual-floor}(iii)--(iv), measured in
 \autoref{sec:descent}. \textbf{Rank: yes}---nothing here contradicts that, and we are
 explicit below about why a floor that defeats certification leaves between-case triage
@@ -384,7 +384,7 @@ checkerboard as an exact null mode---the border stencils mean it is not one.
 Certification \emph{from the residual norm alone} asks for a map from $\|R_h(\hat u)\|$ to
 a bound on $\|\hat u-u^\star\|$.
 The floor does \emph{not} make such a bound invalid---split conformal returns one
-whatever the score, and ours attains $0.891$--$0.895$ coverage against a $0.90$ target.
+whatever the score, and ours attains $0.901$--$0.903$ coverage against a $0.90$ target.
 What the floor costs is the bound's \textbf{width}. Because $u^\star$ itself is rejected
 at every threshold below $\|r^\star\|$ (\autoref{thm:residual-floor}(i)) and the sublevel
 sets are unbounded in the directions of \autoref{prop:kernel}, a fixed, irreducible part

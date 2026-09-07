@@ -1660,14 +1660,19 @@ force coefficient, and conformalising the monitored residual against $|\Delta C_
 exactly what the floor does to a certificate that remains formally valid. Over $400$
 random half-splits at a $0.90$ target on the deployed backbone
 (\texttt{results/review/functional\_audit\_gate\_followup.json}), coverage comes out at
-$0.891$--$0.895$ across three seeds---so the guarantee holds, and the floor does
+$0.901$--$0.903$ across three seeds---so the guarantee holds, and the floor does
 \emph{not} invalidate split conformal, which needs only exchangeability and never
 supposed the score vanished at the truth. What the floor destroys is tightness. The median
-bound is $\mathbf{5.6}$--$\mathbf{6.8\times}$ the median drag error it certifies, because
-the median truth-to-prediction residual ratio is $0.864$: about $86\%$ of a typical
-prediction's monitored score is already present at zero error, a fraction set by the
-operator rather than by the model, and a nonconformity score that is $86\%$ constant
-cannot separate cases finely. \autoref{sec:floor_ladder} closes the obvious escape---the
+bound is $\mathbf{6.5}$--$\mathbf{7.9\times}$ the median drag error it certifies. We
+tested the obvious explanation---that the floor is what makes it wide---and it is
+\emph{wrong}. Removing the floor exactly, by scoring the field difference
+$\|R_h(\hat u)-R_h(u^\star)\|$, makes the bound \textbf{wider} ($7.35\times$ to
+$11.33\times$, $3/3$ seeds; a scale-invariance gate passes at exactly $0.0$, so this is
+not an artifact of the counterfactual score having a smaller median). What sets the
+width is the heavy tail of the drag error itself: its $0.9$ quantile is $15.1\times$ its
+median, so a score carrying no information at all would give $15.1\times$. Against that
+reference the monitor is worth $\mathbf{2.34\times}$, and that---not the floor---is the
+honest statement of what it buys. \autoref{sec:floor_ladder} closes the obvious escape---the
 floor grows under refinement, so a finer grid widens this certificate rather than
 narrowing it. This is the precise sense in which the audit can certify and yet not
 certify usefully, and it is why we describe the residual's certification role as priced
@@ -2037,8 +2042,9 @@ off.
 ($0.91/0.93/0.94$ at $\alpha=0.1$; SOTA backbone $0.902$, deep-ensemble band adaptive at
 ECE $0.074$, \autoref{tab:uq}); \emph{empirical only OOD} (\autoref{sec:conformal}).
 Coverage was never in doubt; \emph{width} is what the floor costs. Conformalising the
-residual against $|\Delta C_D|$ stays valid ($0.891$--$0.895$ at a $0.90$ target) at a
-median bound $5.6$--$6.8\times$ the drag error it certifies (\autoref{sec:conformal}).
+residual against $|\Delta C_D|$ stays valid ($0.901$--$0.903$ at a $0.90$ target) at a
+median bound $6.5$--$7.9\times$ the drag error it certifies, which is $2.34\times$
+tighter than the same certificate built without it (\autoref{sec:conformal}).
 \item \textbf{H5 (DEQ contraction).} \emph{Supported} (measured factor
 $0.78 < \kappa = 0.9 < 1$).
 \item \textbf{Not pre-registered: the residual as a correction \emph{objective}.} The
@@ -2230,8 +2236,9 @@ two; the physics wins outright on drag (AUROC $0.952$). The detector is not mere
 difficulty proxy: conditioning on each case's own floor leaves partial $\rho=0.561$
 against a raw $0.610$. The split-conformal layer holds target coverage in and out of
 distribution, and needs no operator at all; where the residual is the score being
-conformalised, the certificate stays valid ($0.891$--$0.895$ at a $0.90$ target) but at a
-width the floor rather than the model sets---$5.6$--$6.8\times$ the drag error it bounds.
+conformalised, the certificate stays valid ($0.901$--$0.903$ at a $0.90$ target) but
+wide---$6.5$--$7.9\times$ the drag error it bounds, against the $15.1\times$ an
+uninformative score would give, so the monitor is worth $2.34\times$ and no more.
 The monotone-residual gate is a genuine
 guarantee---it cannot raise the monitored residual---but its \emph{accuracy} advantage
 does not survive an ungated fixed half step, so we claim the certificate and not the
