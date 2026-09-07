@@ -45,10 +45,12 @@ operator consistency, not the problem class.}}
 \paragraph{Why this is not a statement about our grid.} The obvious reply to a nonzero
 residual at the truth is that the grid is too coarse. We test it directly and it is wrong:
 refining from $128^2$ to $512^2$ makes the floor \emph{larger}, in $21$ of $24$ cases, by
-a rule registered before the measurement (\autoref{sec:floor_ladder}). Restoring the
-omitted closure term moves it by less than $0.2\%$; a higher-order interpolant raises
-rather than lowers it; and a manufactured analytic solution pushed through the same
-rasteriser behaves in the opposite direction. The uniform freestream, meanwhile, scores an
+a rule registered before the measurement (\autoref{sec:floor_ladder}). The sharpest
+control is on the real data rather than a manufactured one: rasterising the \emph{same}
+reference cloud with cubic instead of linear interpolation \emph{raises} the floor by
+$6$--$12\%$, and lowers it in only $2$--$4$ of $16$ cases, so the kinks of a piecewise
+linear reconstruction are not what sets it. Restoring the omitted closure term moves it
+by less than $0.2\%$. The uniform freestream, meanwhile, scores an
 exact zero at every resolution, because a spatially constant field has identically zero
 finite differences---so the gap by which the objective prefers a wrong field to the truth
 widens as the grid improves.
@@ -179,17 +181,23 @@ argument, so it is worth saying where each kind of evidence lives.
 \autoref{sec:method} defines the audit and proves its two properties---contraction under
 the acceptance gate, and split-conformal coverage---and \autoref{sec:residual_floor}
 states the residual-floor theorem that bounds what the audit can detect at all.
-\emph{Does it work?} \autoref{sec:v2} (trust signal and learned correction on a
-competitive backbone) and \autoref{sec:conformal} (calibrated bands, selective
-prediction). \emph{Does it keep working?} \autoref{sec:v2} and \autoref{sec:ood} across
-three backbone families, two datasets and a regime shift, with five-seed spreads and
-case-level bootstrap intervals throughout, and \autoref{sec:indist-ablation} for the
-controls---including the ones that falsified claims we had previously made.
+\emph{Is the floor real, or is it our grid?} \autoref{sec:floor_ladder} refines the grid
+and finds it grows, with the controls that rule out the operator, the interpolant and the
+pipeline. \emph{What does the floor do to a correction?} \autoref{sec:descent} minimises
+the residual directly, starting from the exact truth. \emph{Then why does anyone report
+residual correction working?} \autoref{sec:regime} draws the boundary at operator
+consistency. \emph{What of the audit still works?} \autoref{sec:v2} (detector across
+backbones, and the learned correction), \autoref{sec:selective} (where the physics does
+and does not beat a physics-free score) and \autoref{sec:conformal} (calibrated bands).
+\emph{Does it keep working?} \autoref{sec:ood} across three backbone families, two
+datasets and a regime shift, with five-seed spreads and case-level bootstrap intervals
+throughout, and \autoref{sec:indist-ablation} for the controls---including the ones that
+falsified claims we had previously made.
 \emph{What does it cost?} \autoref{sec:cost} times every stage of the deployed pipeline.
 \emph{Can it be checked?} Every number here maps to a committed script and result file
 through \texttt{docs/REPRODUCE.md}, with a manifest recording seeds, environment and
 SHA-256 hashes. Readers who want only the central result can read
-\autoref{sec:v2}, \autoref{sec:iters} and \autoref{sec:cost}.
+\autoref{sec:floor_ladder} and \autoref{sec:descent}.
 
 \section{Related Work}
 
@@ -336,16 +344,15 @@ about what follows from that.
 discriminating question is whether the residual being monitored or minimised is the
 discrete operator whose root the reference solution is. Where it is, the floor at the
 truth is zero by construction and minimising the residual is minimising the error. Where
-it is not---the affordable, deployment-time case---the floor is nonzero, provably so, and
-the objective's minimiser is displaced from the truth. Prior residual-correction successes
-and this paper's negative result are not in conflict; they sit on opposite sides of this
-line.}
+it is not---the affordable, deployment-time case, where a cheap proxy operator stands in
+for the generator's---the floor is nonzero and the objective's minimiser is displaced from
+the truth. Prior residual-correction successes and this paper's negative result are not in
+conflict; they sit on opposite sides of this line.}
 \label{tab:positioning}
 \begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{p{0.17\textwidth} p{0.36\textwidth} p{0.40\textwidth}}
 \toprule
- & \textbf{Solver-consistent operator} \newline (the generator's own residual)
- & \textbf{Surrogate-side proxy operator} \newline (affordable, inconsistent) \\
+ & \textbf{Solver-consistent operator} & \textbf{Surrogate-side proxy operator} \\
 \midrule
 Floor at the truth
  & Zero by construction.
@@ -354,9 +361,7 @@ Floor at the truth
    (\autoref{sec:floor_ladder}). \\
 \addlinespace
 Residual as a correction objective
- & Works: residual $\downarrow$ and error $\downarrow$ together
-   \citep{lei2026newtonkrylov, huang2025physicscorrect,
-   learned2023residualcorrection}.
+ & Works: residual $\downarrow$ and error $\downarrow$ together \citep{lei2026newtonkrylov, huang2025physicscorrect, learned2023residualcorrection}.
  & Fails: the residual-selected iterate is never the error-optimal one, in $24/24$
    cases, and descent from the exact truth drives error from zero
    (\autoref{sec:descent}). \\
@@ -1875,11 +1880,28 @@ Every number comes from the committed, reproducible harness
 field MSE by $8$--$25\%$ on the SOTA Transolver backbone (\autoref{sec:v2}) but is
 flat-to-unhelpful on the weak grid backbone (\autoref{sec:indist-ablation}). We report both
 regimes; we do not claim the corrector helps on an arbitrary backbone, only that it helps on a
-strong one. The trust signal, by contrast, is positive and substantial across all three backbones tested
+strong one. The trust signal, by contrast, is positive across all three backbones tested
 ($\rho=0.611$ SOTA Transolver, $\approx 0.40$--$0.83$ weak grid backbone, $0.851$ bare
-MeshGraphNet GNN). We make no competitiveness claim for the grid backbone (it
-trails SOTA $\sim 4$--$60\times$); the Transolver backbone we run \emph{on} is itself
-competitive.
+MeshGraphNet GNN)---but the third of those is not a like-for-like point: that model was
+trained on $16$k-point subsamples and evaluated at $\approx180$k, and our own density
+control returns \textsc{density-driven}, so the matched-density range is
+$\rho\approx0.40$--$0.61$ (\autoref{sec:v2}). We make no competitiveness claim for the
+grid backbone (it trails SOTA $\sim 4$--$60\times$); the Transolver backbone we run
+\emph{on} is itself competitive.
+\item \textbf{The resolution ladder has its own ceiling.} The floor's growth is measured
+over $128^2$--$512^2$, and at the finest level the raster spacing is only $1.27\times$ the
+source cloud's far-field nearest-neighbour spacing, so a still finer level would begin
+differentiating the interpolant rather than sampling the solution. The
+$128^2\!\to\!256^2$ leg is clear of that limit and already shows the rise, but we cannot
+extend the ladder further on this data and do not claim an asymptotic rate---only that the
+floor does not decay over the range a $128^2$-trained surrogate is deployed in.
+\item \textbf{The descent is Adam, not gradient flow.} \autoref{sec:descent} minimises the
+residual with a first-order optimiser and per-channel scaling, not by integrating the
+gradient flow theorem leg (iv) describes. Consequently the field error rises overall but
+not monotonically, and our claim is about endpoints and about which iterate the residual
+selects, not about the shape of the path. A different optimiser or step schedule would
+change the trajectory; what it would not change is that the residual keeps falling past
+the point where the error has turned.
 \item \textbf{Grid resolution and near-wall blindness.} A uniform $128^2$ Cartesian grid
 cannot resolve a Re $\approx 10^6$ boundary layer (sub-cell), so wall quantities are
 approximate and the absolute MSE values are not comparable to body-fitted solvers.
@@ -1954,37 +1976,57 @@ residual--error divergence robustly in direction but are not multi-seed.
 
 \section{Conclusion}
 
-We set out to use the steady-RANS physics residual of a neural-CFD surrogate, and we found
-that it plays \textbf{two distinct roles with two distinct verdicts}. \emph{As a trust
-signal} it is a reliable, backbone-robust (three architecturally-distinct backbones) case-level detector of error---it tells you \emph{where} a prediction is wrong: $\rho=0.611{\pm}0.054$ (five seeds, positive on every seed) on a
-SOTA Transolver backbone, $\approx 0.40$--$0.83$ on a weak grid backbone, $0.851{\pm}0.058$ on a
-bare message-passing GNN (MeshGraphNet), and---under distribution
-shift on the weak backbone---regime-invariant ($\approx 0.74$, rescuing an \texttt{aoa}
-collapse from $0.31$ to $0.75$) where the one-shot signal collapses. \emph{As
-a correction objective} it fails: more iterations raise the residual while error falls---minimising the residual is
-not minimising the error. The monotone-residual \emph{gate} built on that same residual,
-by contrast, we measure to be real and useful: it admits a step on $99.8\%$ of deployed
-cases and that step lowers true error on $89.3\%$ of them by a median $5.8\%$. Alongside the trust signal we deploy a learned, supervised
-correction that works on a strong backbone: the DEQ corrector cuts volume field MSE by
-$8$--$25\%$ on all 5 seeds of the SOTA Transolver model (gate-verified), with force ranking
-held; a controlled ablation attributes that gain to the learned correction rather than to the
-residual input (the residual tells you \emph{where} to look, not \emph{how} to fix). On the strength of the detector result we package a backbone-robust
-conformal trust layer that holds target coverage both in-distribution
-($0.91/0.93/0.94$ at $0.90$, weak backbone) and on the SOTA backbone ($0.902$), and empirically
-retains coverage out-of-distribution via uncertainty inflation; pairing it with a deep-ensemble
-$\sigma$ makes the band input-adaptive even on the near-deterministic SOTA model ($q=2.35$,
-ECE $0.074$), where MC-dropout alone gives a near-constant one. Two honest caveats
-accompany the corrector: correction quality is backbone-dependent (flat on the weak backbone),
-and a controlled ablation attributes its gain to the learned correction rather than to the
-residual input it ingests. By the criteria of the self-auditing definition in the
-introduction, the surrogate passes all three audits it can pass---a validated trust score
-(i), a calibrated band that survives split-resampling (ii), and near-oracle triage
-(iii)---while the residual-floor theorem fixes the audit's blind spot and the failed
-\emph{objective} role marks its licence boundary: the audit tells you when \emph{not} to
-trust a prediction, and a separately-supervised corrector, not residual minimisation, does
-the fixing---though the cheap monotone-residual gate is a genuine safety net around it. That self-auditing, backbone-robust trust layer and the learned corrector it
-accompanies---demonstrated on a competitive surrogate, reproducible end-to-end from the
-committed harness---are the durable contribution.
+We set out to have a neural-CFD surrogate audit itself against the governing equations,
+and found that the operator such an audit can afford is not the operator that produced its
+training data. The consequences follow from that one fact.
+
+\textbf{The ground truth fails the check.} On $200/200$ AirfRANS cases the monitored
+residual of the exact field is substantially nonzero (mean $0.192$) while the physically
+wrong uniform freestream scores an exact zero, so the objective strictly prefers a wrong
+field to the truth. This is not an artifact of resolution. Refining from $128^2$ to
+$512^2$ makes the floor \emph{larger}, in $21$ of $24$ cases, under a rule fixed before the
+measurement; restoring the omitted closure term moves it by under $0.2\%$; and a
+higher-order interpolant on the same reference data raises rather than lowers it. What
+sets the floor is the mismatch between an affordable Cartesian monitor and the body-fitted
+discrete balance the reference actually solved, and refinement resolves more of that
+mismatch, not less.
+
+\textbf{So the residual cannot be minimised, in a precise sense.} Descending it from the
+\emph{exact} ground truth---no network anywhere in the loop, so no appeal to an
+over-smoothed surrogate can explain it away---cuts the residual by $84\%$ in $24/24$ cases
+while driving the field error from zero to the range a trained backbone starts in. We
+state the claim in the form that holds universally rather than the form that reads best:
+residual descent does \emph{not} always harm the field, since from a perturbed start it
+reduces error in $18/24$ cases; what never happens is that the residual selects the right
+iterate. The error-minimising and residual-minimising iterates differ in $24/24$ cases and
+the residual-selected one is strictly worse in $24/24$.
+
+\textbf{The boundary is the operator, not the problem class.} Newton--Krylov and related
+corrections succeed on steady CFD precisely because the residual they drive is the
+solver's own, whose floor at the truth is zero by construction. Our negative result and
+those positive ones are not in tension; they are opposite sides of operator consistency,
+and that is a sharper boundary than the steady-versus-transient or
+resolved-versus-under-resolved lines earlier drafts of this work drew.
+
+\textbf{What survives, stated at its real strength.} The residual remains a useful
+between-case error \emph{detector}---positive on every backbone tested---but on field
+error a physics-free ensemble score matches it and a paired bootstrap cannot separate the
+two; the physics wins outright only on drag (AUROC $0.952$). The detector is not merely a
+difficulty proxy: conditioning on each case's own floor leaves partial $\rho=0.561$
+against a raw $0.610$. The split-conformal layer holds target coverage in and out of
+distribution, and needs no operator at all. The monotone-residual gate is a genuine
+guarantee---it cannot raise the monitored residual---but its \emph{accuracy} advantage
+does not survive an ungated fixed half step, so we claim the certificate and not the
+accuracy. And the learned corrector that improves a competitive backbone is supervised
+toward truth, with a controlled ablation attributing its gain to the learned correction
+rather than to the residual it ingests.
+
+The durable contribution is therefore a measurement and the boundary it draws, not a
+system: an audit built on a proxy operator can tell you \emph{which} predictions to
+distrust, and cannot tell you how to fix them, because the field it would move you toward
+is not the one you want. Anyone building a surrogate-side physics check should measure
+their operator's floor on their own ground truth first; if it is not near zero, the
+detector may still be worth having, but the objective is not.
 
 \section*{Code and data availability}
 The complete source, training/evaluation harnesses, and per-claim reproduction map

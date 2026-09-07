@@ -1,23 +1,23 @@
 % Shared abstract prose. Included by BOTH neuroforge_cfd.tex (TMLR) and
 % neuroforge_cfd_elsevier.tex (elsarticle) so the two cannot drift.
-% Computers & Fluids has no hard abstract cap, but we keep to the 250-word
-% limit the earlier JCP submission was built to. Count excludes Keywords.
+% Kept to the 250-word limit the earlier JCP submission was built to; the
+% Keywords line is a separate Editorial Manager field and is not counted.
 Machine-learning surrogates for computational fluid dynamics predict steady flow fields
 far faster than classical solvers, and the standard proposal for trusting them is to have
-the surrogate check itself against the governing equations. We show that this check is
-built on an operator the truth itself cannot pass. On $200/200$ real AirfRANS cases the
+the surrogate check itself against the governing equations. We show that this check rests
+on an operator the truth itself cannot pass. On $200/200$ real AirfRANS cases the
 monitored discrete Reynolds-averaged residual of the \emph{ground-truth} field is
 substantially nonzero (mean $0.192$), while the physically wrong uniform-freestream field
-scores an exact zero---so the objective prefers a wrong field to the truth. This floor is
-not a resolution artifact. The monitored operator is an inconsistent discretisation, so
-nothing forces its floor to vanish; measured over $24$ cases at
-$128^2$--$512^2$ it does not merely persist but \emph{grows}, rising in $21/24$ cases,
-and neither restoring the omitted closure term nor using a higher-order interpolant
-removes it. Descending the residual is therefore harmful in a specific, measurable way:
-started at the exact ground truth, with no network involved, gradient descent cuts the
-residual by $84\%$ while driving field error from zero to the range a trained surrogate
-starts in, and the residual-selected iterate is strictly worse than the error-optimal one
-in $24/24$ cases. The boundary is the operator, not the problem class---residual
-correction succeeds where the residual is the solver's own. What survives is narrower and
-we quantify it: the residual ranks errors usefully but is matched by a physics-free
-uncertainty score except on drag, and a conformal layer retains calibrated coverage.
+scores an exact zero---the objective prefers a wrong field to the truth. This is not a
+resolution artifact. The monitored operator is an inconsistent discretisation, so its
+floor has a nonzero continuum limit; measured over $24$ cases at $128^2$--$512^2$ it does
+not merely persist but \emph{grows}, rising in $21/24$. Restoring the omitted closure term
+moves it under $0.2\%$, and a higher-order interpolant \emph{raises} it by $6$--$12\%$, so
+neither is what sets it. The consequence for correction is stated in the form that holds
+universally: started at the exact ground truth, with no network involved, gradient descent
+cuts the residual by $84\%$ while driving field error from zero to the range a trained
+surrogate starts in, and the residual-selected iterate is strictly worse than the
+error-optimal one in $24/24$ cases---a failure of iterate selection, not of uniform harm,
+since from a perturbed start descent often reduces error before overshooting. The boundary
+is the operator, not the problem class: residual correction succeeds where the residual is
+the solver's own.
