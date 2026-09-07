@@ -314,6 +314,24 @@ def summarise_grad(ratios: dict[str, list[float]]) -> dict:
 # Stage: truth floor + uniform + GATE A
 # --------------------------------------------------------------------------- #
 def stage_truth(pairs, n, checker):
+    """Truth floor + uniform, in BOTH norm conventions.
+
+    Two conventions are in play in the paper and they must not be confused:
+
+      * ``rms_over_fluid``  -- RMS over FLUID cells. This is what
+        ``scripts/probe_residual_floor.py`` uses, so it is the convention of the
+        published 0.192 floor and of the 160/200 dropout-FNO count.
+      * whole-grid RMS      -- RMS over ALL cells, i.e. exactly
+        ``Diagnostics.residual_norm`` (``core/types.py``), the deployed scalar
+        that ``residual_floor_theorem.tex`` names.
+
+    Since residuals are zeroed on solid and wall-ring cells, the two differ by a
+    PURELY GEOMETRIC per-case factor sqrt(|fluid| / |Omega|) -- verified below to
+    machine precision. Because every field on a given case is scored with the
+    SAME (truth) mask, that factor is identical for truth and prediction and
+    CANCELS in any comparison. Hence all inversion counts and all gap SIGNS are
+    exactly invariant to the choice; only absolute magnitudes move (~0.5%).
+    """
     per_case, truth_norms = [], []
     for i in range(n):
         case, truth = pairs[i]
@@ -321,12 +339,49 @@ def stage_truth(pairs, n, checker):
             continue
         fluid = np.asarray(truth.mask, dtype=np.float64)
         diag_t = checker.diagnose(truth, case)
-        r_truth = rms_over_fluid(monitored_m2(diag_t), fluid)
+        m2 = monitored_m2(diag_t)
+        r_truth = rms_over_fluid(m2, fluid)
+        r_truth_whole = float(np.sqrt(np.mean(m2)))  # == Diagnostics.residual_norm
         r_unif = norm_of(uniform_field(case, truth), case, truth, checker)
-        per_case.append({"index": i, "name": case.name,
-                         "norm_truth": r_truth, "norm_uniform": r_unif})
+        per_case.append({
+            "index": i, "name": case.name,
+            "norm_truth": r_truth,
+            "norm_truth_whole_grid": r_truth_whole,
+            "norm_uniform": r_unif,
+            "fluid_fraction": float((fluid > 0.5).sum()) / fluid.size,
+        })
         truth_norms.append(r_truth)
     return per_case, truth_norms
+
+
+def norm_convention_check(per_case) -> dict:
+    """Verify whole_grid / fluid == sqrt(fluid_fraction) to machine precision.
+
+    This is what licenses the claim that the inversion counts do not depend on
+    which of the two norms the paper quotes.
+    """
+    rf = np.array([c["norm_truth"] for c in per_case], dtype=np.float64)
+    rw = np.array([c["norm_truth_whole_grid"] for c in per_case], dtype=np.float64)
+    fr = np.array([c["fluid_fraction"] for c in per_case], dtype=np.float64)
+    nz = rf > 0
+    dev = float(np.max(np.abs(rw[nz] / rf[nz] - np.sqrt(fr[nz])))) if np.any(nz) else 0.0
+    return {
+        "fluid_cell_rms_mean": float(rf.mean()),
+        "fluid_cell_rms_std": float(rf.std()),
+        "whole_grid_rms_mean": float(rw.mean()),
+        "whole_grid_rms_std": float(rw.std()),
+        "mean_fluid_fraction": float(fr.mean()),
+        "max_abs_dev_from_sqrt_fluid_fraction": dev,
+        "factor_is_geometric": bool(dev < 1e-12),
+        "implication": (
+            "The whole-grid and fluid-cell norms differ by the per-case geometric "
+            "factor sqrt(|fluid|/|Omega|) ONLY. Truth and prediction on a given case "
+            "are scored with the same (truth) mask, so the factor cancels in every "
+            "comparison: all inversion counts and gap signs reported here are EXACTLY "
+            "invariant to the choice of convention; only absolute magnitudes move "
+            "(~0.5%, e.g. truth floor 0.192 fluid-cell vs 0.191 whole-grid)."
+        ),
+    }
 
 
 def gate_a(per_case) -> dict:
@@ -518,6 +573,10 @@ def main(argv=None) -> int:
     per_case, truth_norms = stage_truth(pairs, n, checker)
     tn = np.asarray(truth_norms, dtype=np.float64)
     un = np.asarray([c["norm_uniform"] for c in per_case], dtype=np.float64)
+    ncc = norm_convention_check(per_case)
+    log(f"norm convention: fluid-cell mean={ncc['fluid_cell_rms_mean']:.4f} vs "
+        f"whole-grid mean={ncc['whole_grid_rms_mean']:.4f}; ratio is geometric "
+        f"(max dev {ncc['max_abs_dev_from_sqrt_fluid_fraction']:.1e}) => counts invariant")
     gA = gate_a(per_case)
     log(f"GATE A (ruler identity): passed={gA['passed']} "
         f"max_abs_diff={gA['max_abs_diff']:.3e} order_ok={gA['order_identical']}")
@@ -565,6 +624,7 @@ def main(argv=None) -> int:
         ),
         "verdict": verdict,
         "gates": {"gate_a_ruler_identity": gA, "gate_b_reproduce_fno_160": gB},
+        "norm_convention": ncc,
         "metadata": {
             "dataset": "AirfRANS task=full test split",
             "grid_cache": GRID_CACHE, "pointcloud_cache": a.pc_cache,

@@ -218,6 +218,39 @@ gap, and a citation to the artifact whose harness reproduces the published
 dropout-FNO row to all digits, so the cross-backbone comparison is checkable.
 The word "over-smoothed" no longer appears in the file.
 
+Two further corrections were applied after review:
+
+- **The gradient-energy number no longer carries the load-bearing sentence.**
+  The negative claim that survives the rasterisation confound is *Transolver is
+  not smoother than the truth* (1.00x near-body) — that is enough to refute the
+  smoothing mechanism. The FNO's 1.75x is now explicitly hedged in the `.tex`
+  with the confound stated, because the FNO is grid-native while the Transolver
+  field is rasterised from the cloud. The inversion counts are confound-free.
+- **The norm convention was mis-attributed** (see §4a).
+
+### 4a. Norm convention — the two are not interchangeable, but the counts are
+
+The section defines `‖R_h‖` as `Diagnostics.residual_norm`, an RMS over the
+**whole grid**; `probe_residual_floor.py` (and therefore the published 0.192 and
+160/200, and this work) uses an RMS over **fluid cells**. Measured on the 200
+truth fields:
+
+| convention | mean | std |
+|---|---|---|
+| fluid-cell RMS (cited artifact, this work) | **0.1920** | 0.1619 |
+| whole-grid RMS (`Diagnostics.residual_norm`) | **0.1912** | 0.1616 |
+
+The `.tex` had attributed 0.192 to the whole-grid norm; it is the fluid-cell
+value. Corrected, with both quoted.
+
+Crucially the ratio is **exactly** the geometric factor `sqrt(|Ω_f|/|Ω|)` —
+verified to machine precision, `max_abs_dev = 2.2e-16` over 200 cases
+(`norm_convention` block in the result JSON). Because every field on a given case
+is scored with the same (truth) mask, that factor is identical for truth and
+prediction and **cancels in every comparison**. Therefore all inversion counts and
+all gap *signs* reported here are exactly invariant to the convention; only
+absolute magnitudes move by ~0.5%. The headline is untouched either way.
+
 ### Reference: full standalone replacement paragraph
 
 Kept for reference (use if the paragraph is ever rewritten from scratch):

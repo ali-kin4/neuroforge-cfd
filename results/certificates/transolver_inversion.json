@@ -21,6 +21,16 @@
       "passed": true
     }
   },
+  "norm_convention": {
+    "fluid_cell_rms_mean": 0.1919729242398008,
+    "fluid_cell_rms_std": 0.16194227700675493,
+    "whole_grid_rms_mean": 0.19121252564358762,
+    "whole_grid_rms_std": 0.16162027494242576,
+    "mean_fluid_fraction": 0.9905447387695312,
+    "max_abs_dev_from_sqrt_fluid_fraction": 2.220446049250313e-16,
+    "factor_is_geometric": true,
+    "implication": "The whole-grid and fluid-cell norms differ by the per-case geometric factor sqrt(|fluid|/|Omega|) ONLY. Truth and prediction on a given case are scored with the same (truth) mask, so the factor cancels in every comparison: all inversion counts and gap signs reported here are EXACTLY invariant to the choice of convention; only absolute magnitudes move (~0.5%, e.g. truth floor 0.192 fluid-cell vs 0.191 whole-grid)."
+  },
   "metadata": {
     "dataset": "AirfRANS task=full test split",
     "grid_cache": "data/cache/airfrans_full_test_r128_n200.pkl",
@@ -32,7 +42,7 @@
     ],
     "device_transolver": "cuda",
     "device_fno": "cpu",
-    "wall_clock_seconds_this_invocation": 0.3862760066986084,
+    "wall_clock_seconds_this_invocation": 0.4487135410308838,
     "wall_clock_note": "This is the wall clock of THIS invocation only. Stages served from the resume cache cost ~0 here, so on a merge pass the number is small and is NOT the measurement cost. The real per-seed Transolver cost is transolver.seed*.seconds (~1600 s/seed on an RTX 4070 Ti, ~7.8 s/case); the dropout-FNO stage took 298 s on CPU.",
     "transolver_checkpoints": "checkpoints/v2_transolver",
     "seeds_scored": [

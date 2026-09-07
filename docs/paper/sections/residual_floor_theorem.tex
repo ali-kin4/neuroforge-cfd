@@ -420,9 +420,13 @@ truth.
 
 \paragraph{Empirical confirmation.} On $200/200$ real AirfRANS test cases the monitored
 residual of the ground-truth field is substantially nonzero: $\|r^\star\|$ has mean $0.192$
-(median $0.133$) in the whole-grid norm named above, while the uniform-freestream field
+(median $0.133$) when averaged over fluid cells, the convention of the cited artifact, and
+$0.191$ in the whole-grid norm named above---the two differ only by the geometric factor
+$(|\Omega_f|/|\Omega|)^{1/2}$, here $0.995$. Meanwhile the uniform-freestream field
 gives $\|R_h(u_\infty)\|=0$ in every case---the objective strictly prefers a physically
-wrong field to the truth (\texttt{results/certificates/residual\_floor\_realdata.json}). A
+wrong field to the truth (\texttt{results/certificates/residual\_floor\_realdata.json}).
+Because every field on a given case is scored against the same mask, that factor cancels in
+any comparison, so the counts below are identical under either convention. A
 trained backbone's prediction (the dropout-FNO of
 \texttt{checkpoints/certificates\_deq.pt}, distinct from the Transolver headline) sits
 \emph{below} the truth floor in $160/200$ cases. We give that number with its
@@ -436,15 +440,20 @@ truth is the best-scoring field on more than $93\%$ of them, and the median gap 
 sign ($+0.013$ to $+0.015$ \emph{above} the floor, against $-0.024$ below it for the
 dropout-FNO). Both backbones are scored with an identical ruler: the harness reproduces
 the published dropout-FNO row to all digits. The inversion is a property of that one
-backbone and we rest no claim on it. It is worth naming the mechanism correctly, since the
-natural guess is wrong: the dropout-FNO is not a \emph{smoother} field---its
-velocity-gradient energy is $1.75\times$ the truth's over the fluid (and $1.96\times$ in a
-near-body band), against $1.00\times$ for Transolver. What distinguishes it is that its
-monitored residual is nearly case-\emph{independent} (spread $0.034$ versus the truth's
-$0.162$, the Transolver's $0.161$), so it neither tracks case difficulty nor clears the
-floor. By \eqref{eq:rf-decomp} a prediction can fall below the floor only when its error is
-systematically anti-aligned with $r^\star$; unbiased error of any magnitude raises the
-monitored residual, which is why the accurate backbone sits above it. What does not depend
+backbone and we rest no claim on it. We also decline the obvious explanation, because it
+does not survive measurement: the inversion is \emph{not} simply over-smoothing. The
+accurate backbone is not smoother than the truth---its velocity-gradient energy is
+$1.00\times$ the truth's in a near-body band---so smoothing cannot be what separates the
+two. (The dropout-FNO measures \emph{rougher} still, $1.75\times$ over the fluid, though we
+lean on that number only lightly: it is a grid-native field whereas the Transolver field is
+rasterised from the native cloud, so the cross-backbone gradient comparison carries a
+rasterisation confound that the inversion counts themselves do not.) What does separate
+them is that the dropout-FNO's monitored residual is nearly case-\emph{independent} (spread
+$0.034$ versus the truth's $0.162$ and the Transolver's $0.161$), so it neither tracks case
+difficulty nor clears the floor. That is what \eqref{eq:rf-decomp} predicts: a prediction
+falls below the floor only when its error is systematically anti-aligned with $r^\star$,
+whereas unbiased error of any magnitude \emph{raises} the monitored residual---which is why
+the accurate backbone sits above it. What does not depend
 on the backbone is the floor itself, which no model enters. The floor is not an artifact of the
 deployed grid: re-rasterised from the source point clouds at $128^2$--$512^2$ and scored on
 a region fixed in physical units it \emph{increases} by $2.6\times$, fitting
