@@ -1202,7 +1202,7 @@ out-of-distribution signal is therefore the field-wide residual \emph{magnitude}
 spatial ratio; and the residual remains a local-violation detector, not a global-correctness
 oracle. It complements, not replaces, the quantitative regime-shift results above.
 
-\subsection{Residual-as-objective fails: the residual and the error move apart}
+\subsection{Residual-as-objective fails: cutting the error buys no residual reduction}
 \label{sec:iters}
 
 The direct evidence that the residual is a poor \emph{objective} is the descent experiment
@@ -2047,9 +2047,21 @@ the surrogate predicts. Sharpening $\nu_t$ on the weaker backbones is future wor
 \item \textbf{Classical fallback is a stub interface.} The trust-gated fallback fixes the
 integration seam and reports what would run; the OpenFOAM/SU2 backends are not implemented
 and bear on no quantitative claim.
-\item \textbf{Sensitivity sweeps are light.} The iteration and toggle sweeps
-(\autoref{sec:iters}) are single-checkpoint, unseeded sweeps; they illustrate the
-residual--error divergence robustly in direction but are not multi-seed.
+\item \textbf{The iteration sweep supports decoupling, not divergence.} The sweeps of
+\autoref{sec:iters} are single-checkpoint and unseeded, and the checkpoints needed to
+seed them no longer exist, so that $n=1$ dependency cannot be removed without
+retraining. Re-running the equivalent sweep on the five-seed Transolver$+$DEQ arm
+(\texttt{scripts/iters\_sweep\_seeded.py}, $24$ cases) returns
+\textsc{direction-only} against a bar declared in advance: the residual is higher at
+$k{=}15$ in $5/5$ seeds, but by only $+1.5\%$, at $1.3\times$ the across-seed standard
+deviation where we required $2\times$; it is monotone in $0/5$ seeds; and paired per
+case it is higher in $45/120=38\%$, below chance. The invalidating control passes---the
+fixed-point cap binds in $100\%$ of cases at $k\le10$, so the flat tail is a genuine
+equilibrium rather than a stalled solve. We therefore claim only that cutting field
+error by $9.4\%$ buys \emph{no} residual reduction, which is enough to reject the
+residual as an objective, and we do not claim the two quantities move in opposite
+directions. The unqualified claim rests on \autoref{sec:descent} and on the W1 control
+($0/5$ seeds), neither of which has this dependency.
 \end{itemize}
 
 \section{Conclusion}
