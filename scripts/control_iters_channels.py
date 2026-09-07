@@ -116,6 +116,12 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--iter-grid", type=int, nargs="+", default=[0, 1, 3, 5, 10, 15])
     p.add_argument("--n-eval", type=int, default=80)
+    p.add_argument("--n-calib", type=int, default=80,
+                   help="run_sensitivity.N_CALIB -- needed to rebuild its case subset")
+    p.add_argument("--subset-seed", type=int, default=0, help="run_sensitivity.SEED")
+    p.add_argument("--first-n", action="store_true",
+                   help="use the FIRST n_eval cases instead of the committed permuted "
+                        "subset (will legitimately fail the reproduction gate)")
     p.add_argument("--resolution", type=int, default=128)
     p.add_argument("--task", default="full")
     p.add_argument("--device", default="cpu")
@@ -131,10 +137,25 @@ def main(argv=None):
     checker = PhysicsChecker(cfg.physics)
     log(f"engine on {engine.predictor.device}, corrector={type(engine.corrector).__name__}")
 
-    pairs = load_airfrans(root="data", task=a.task, train=False, resolution=a.resolution,
-                          limit=a.n_eval, cache_dir="data/cache", download=False,
-                          progress=False)
-    log(f"{len(pairs)} test pairs")
+    # run_sensitivity.py does NOT take the first n_eval cases: it loads
+    # N_EVAL + N_CALIB and takes a seeded permutation's first N_EVAL
+    # (scripts/run_sensitivity.py:573-576). Rebuild that exact subset, or the
+    # sweep is a different case set and the reproduction gate fails for a reason
+    # that has nothing to do with the channels we are recovering.
+    if a.first_n:
+        pairs = load_airfrans(root="data", task=a.task, train=False,
+                              resolution=a.resolution, limit=a.n_eval,
+                              cache_dir="data/cache", download=False, progress=False)
+        subset = "first_n"
+    else:
+        allp = load_airfrans(root="data", task=a.task, train=False,
+                             resolution=a.resolution, limit=a.n_eval + a.n_calib,
+                             cache_dir="data/cache", download=False, progress=False)
+        idx = np.random.default_rng(a.subset_seed).permutation(len(allp))
+        pairs = [allp[i] for i in idx[: a.n_eval]]
+        subset = (f"run_sensitivity subset: permutation(seed={a.subset_seed}) of the "
+                  f"first {a.n_eval + a.n_calib} cases, first {a.n_eval} taken")
+    log(f"{len(pairs)} test pairs -- {subset}")
 
     rows = []
     for k in a.iter_grid:
@@ -161,9 +182,16 @@ def main(argv=None):
                                         "rel_diff": rel, "within_tol": bool(rel <= a.tol)})
                 ok = ok and rel <= a.tol
         gate["pass"] = bool(ok)
-        gate["note"] = ("committed sweep used n_eval=80; a smaller --n-eval will fail this "
-                        "gate legitimately (different case subset), which is why the gate "
-                        "reports rather than aborts.")
+        gate["case_subset"] = subset
+        gate["note"] = (
+            "The gate compares the columns the committed sweep DID retain (mse_u, "
+            "surface_mse_p, residual_norm). It passes only if this re-run reproduces "
+            "the committed sweep, which requires the same case subset: "
+            "run_sensitivity.py takes a seeded permutation of N_EVAL+N_CALIB cases, "
+            "NOT the first N_EVAL (see --first-n, which reproduces the wrong subset "
+            "and fails this gate by ~11% on mse_u). A failure here means the recovered "
+            "rows are NOT absolute replacements for tab:iters and may only be read as "
+            "direction of travel; it does not abort, so the mismatch is visible.")
 
     # direction of travel per channel, from the mse_u minimum onward
     iu = int(np.argmin([r["mse_u"] for r in rows]))

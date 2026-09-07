@@ -277,6 +277,29 @@ def control1(a):
                 "note": "positive delta_auroc/spearman favours the FIRST-named score; "
                         "NEGATIVE delta_retained_risk favours it (lower risk is better).",
             }
+        # Robustness of one methodological choice a reviewer will probe: the fused
+        # score is a RANK fusion computed on the full sample and then held fixed
+        # under resampling (a per-case property, consistent with the fixed
+        # threshold). Re-fusing WITHIN each draw is a different estimand. We check
+        # it changes nothing rather than asserting it does not.
+        if "fused" in scores and "residual" in scores and "sigma_vel" in scores:
+            sres, ssig, sfus = scores["residual"], scores["sigma_vel"], scores["fused"]
+
+            def refused(i):
+                return 0.5 * (rankdata(sres[i]) + rankdata(ssig[i]))
+
+            rec["fusion_refit_robustness"] = {
+                "full_sample_rank_corr_committed_vs_refused": spearman(
+                    sfus, 0.5 * (rankdata(sres) + rankdata(ssig))),
+                "delta_auroc_fused_minus_sigma_refused_per_draw": boot_ci(
+                    lambda i: auroc(refused(i), lab[i]) - auroc(ssig[i], lab[i]),
+                    n, a.n_boot, a.seed),
+                "delta_spearman_fused_minus_sigma_refused_per_draw": boot_ci(
+                    lambda i: spearman(refused(i), err[i]) - spearman(ssig[i], err[i]),
+                    n, a.n_boot, a.seed),
+                "note": ("compare against paired['fused_minus_sigma_vel']; if these agree "
+                         "the fixed-score choice is immaterial."),
+            }
         out["arms"][arm] = rec
         log(f"  C1 {arm}: " + ", ".join(
             f"{k} auroc={v['auroc_top_decile']:.4f}" for k, v in rec["marginal"].items()))

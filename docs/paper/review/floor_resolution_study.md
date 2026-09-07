@@ -110,14 +110,17 @@ so the verdict does not rest on the marginal level.
 
 ## 2. The corroborating study, at more rungs and fewer cases
 
-An independent pass (3 cases, **5 rungs**, three exclusion bands) reaches the
-same verdict on every band of every case: **PLATEAU**, order `p` from −0.91 to
-+0.31. Bands of 0.05, 0.1 and 0.25 chord all agree, as do the repaired-operator
-variants. Its per-case ladders are in
-`results/certificates/floor_resolution_decomposition.json`.
+An independent pass (**16 cases**, **5 rungs**, three exclusion bands) reaches
+the same verdict on every band of every case: **PLATEAU**, order `p` from −0.91
+to +0.31. Bands of 0.05, 0.1 and 0.25 chord all agree, as do the
+repaired-operator variants. Its per-case ladders are in
+`results/certificates/floor_resolution_decomposition.json`, and §6 reports it in
+full.
 
-The two studies trade off exactly the right way: 24 cases × 3 levels here,
-3 cases × 5 rungs there. Neither is a fluke of its own design.
+The two studies trade off the right way: 24 cases × 3 levels here, 16 cases × 5
+rungs there, different exclusion policies, same verdict. Neither is a fluke of
+its own design. Where they disagree — leg (A) at the finest rung — §7 settles it
+in favour of the finer ladder.
 
 ---
 
@@ -152,7 +155,9 @@ The λ-sweep's closed form requires
 | 256² | 0.00279 > 0.00256 | 0.01383 > 0.01246 |
 | 512² | 0.00128 > 0.00126 | 0.04489 > 0.04044 |
 
-So "for every λ ≥ 0" stands. **But** under the framework's own no-slip band —
+So leg (A) holds at all three levels *of this ladder*; §7's finer ladder does not
+reproduce that at 512², and its reading is the one to use. **In both studies**,
+under the framework's own no-slip band —
 which decays over `3·min(dx,dy)` and therefore *shrinks* as the grid refines —
 the margin narrows from 9.4% to 9.0% to **1.6%**. Under a band fixed in physical
 units it is stable at 9–11%. The paper should say the closed form is verified at

@@ -71,10 +71,22 @@ top-decile threshold held **fixed** at its full-sample value (0.0068018) so
    on AUROC, Spearman *and* retained risk (P(σ better) = 0.79 / 0.81 / 0.76).
    The correct statement is that the physics residual and the physics-free
    ensemble spread are **statistically indistinguishable** on field-error triage —
-   not that the residual is beaten.
+   not that the residual is beaten. Stated precisely: with n = 200 the paired CI
+   ([−0.035, +0.083]) cannot resolve a difference of this size **in either
+   direction**. This is *underpowered*, not *equivalent* — the paper should not
+   claim equivalence any more than the reviewer should claim superiority.
 2. **The fusion gain over the residual alone is real** on all three metrics.
 3. **The fusion gain over σ alone is marginal** — significant on Spearman only,
-   not on AUROC and not on retained risk. The paper should not lean on it.
+   not on AUROC and not on retained risk. Even the Spearman result sits on the
+   boundary (CI lower bound +0.0015). The paper should not lean on it.
+   *Robustness of the one methodological choice a reviewer will probe:* the fused
+   score is a rank fusion computed on the full sample and then held fixed under
+   resampling (a per-case property, consistent with the fixed threshold).
+   Re-fusing *within* each draw is a different estimand, so we checked rather than
+   asserted: ΔAUROC +0.0105 CI [−0.0212, +0.0436] and Δρ +0.0485 CI [+0.0002,
+   +0.0969], against +0.0113 / [−0.0208, +0.0446] and +0.0486 / [+0.0015, +0.0966]
+   with the score held fixed. No conclusion moves; the committed `fused` column
+   reproduces the re-fused score at rank correlation 1.000.
 4. **The brief's "do this on every arm" is not satisfiable.** `sigma_vel` is
    dumped per-case only for `ensemble_mean`; `corrected_seed*` and `deepcfd_seed*`
    carry the residual alone. All arms' marginal statistics are in the JSON.
@@ -229,14 +241,27 @@ error unchanged".
 Head-to-head gate vs fixed-0.5: 290/600 exact ties (the gate admitted 0.5 there),
 fixed-0.5 better on 175, gate better on 135.
 
+**This is not a cherry-picked step.** Three of the four fixed steps beat the gate
+on at least one metric: 0.25 on fraction-improving (0.978 vs 0.892), 0.75 on mean
+retained error (0.0050950 vs 0.0051083), and 0.5 on both. Only the undamped
+step 1.0 loses to the gate.
+
 Ensemble-mean path (n = 600): gate 0.7333 / −2.56% / 0.0039034; fixed 0.5
 **0.7917 / −3.22% / 0.0038741**. Same conclusion.
 
 ### What the gate *does* uniquely deliver
 
 An ungated fixed half step **violates the monotone-residual guarantee** on
-**6/600 = 1.0%** of deployed backbone cases and **53/600 = 8.8%** of
-ensemble-path cases. The gate never does, by construction.
+**6/600 = 1.0%** of deployed backbone cases — the paper's headline arm — and on
+53/600 = 8.8% of ensemble-path cases. The gate never does, by construction.
+
+**Do not let the 8.8% carry the argument.** On the arm the paper actually
+headlines, the certificate binds on **six cases out of six hundred**. A reviewer
+is entitled to ask whether a guarantee that is active on 1% of cases justifies
+"certified self-correction" as a framing, and the honest answer is that it
+justifies the guarantee as *stated* (it is free, and it is never violated) but not
+as a headline mechanism. The mitigation for a conceded accuracy claim is real but
+thin, and the paper should present it that way.
 
 ### Verdict: CONCEDED-WITH-MITIGATION
 
@@ -335,12 +360,26 @@ New paragraph in `sec:conformal` after the selective-prediction paragraph:
 > "**Triage on the engineering quantity.** Field MSE is not what an aerodynamicist
 > rejects on. Re-scoring the same trust signals against per-case |ΔC_d| (three
 > v2_transolver seeds, 200 AirfRANS test cases,
-> `scripts/decisive_controls.py --control 4`), the residual detects worst-decile
+> `scripts/decisive_controls.py --control 4`) — both prediction and reference
+> integrated through the same operator, so the target is model error in drag
+> rather than integrator bias — the residual detects worst-decile
 > drag error with AUROC 0.952 — *better* than its 0.871 on field error — recovering
 > 77–81% of the oracle's achievable reduction. Here the physics residual
 > significantly outperforms the physics-free ensemble σ (ΔAUROC +0.055 to +0.088,
 > 95% CIs excluding zero), and rank fusion no longer helps. The trust signal is
 > therefore strongest precisely on the quantity of engineering interest."
+
+Quote the **`vs_gt_nf`** numbers (AUROC 0.952, ρ 0.585, oracle recovery 0.805) in
+that sentence, not the `vs_official` ones, and say which target they are. A
+caution on the secondary target: against the official labels the seed-to-seed
+Spearman spread is 0.7637–0.7676 for the residual and 0.4870–0.4909 for σ — a
+spread of 0.004 across *independently trained* backbones, against 0.550–0.613 on
+the primary target. The benign explanation is the intended one: mean |ΔC_d| vs
+official is 0.204 (median 0.039), so that target is dominated by a **shared**
+integrator bias, nearly identical across seeds, which compresses seed variance.
+But it also means the `vs_official` ρ of 0.766 is substantially ranking
+*integrator bias* rather than model error, so the manuscript claim must rest on
+`vs_gt_nf` or it is attackable as integrator-driven.
 
 ---
 

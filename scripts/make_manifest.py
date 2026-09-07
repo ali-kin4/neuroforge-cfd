@@ -195,6 +195,45 @@ HEADLINE: list[dict] = [
     {"path": "results/figures/graphical_abstract.pdf",
      "script": "scripts/make_graphical_abstract.py", "tier": "cpu",
      "claims": "predict -> audit -> calibrate -> decide strip; median-error showcase case, committed numbers only"},
+    # --- decisive controls from the adversarial reviews (docs/paper/review/decisive_controls.md) ---
+    {"path": "results/review/control1_physics_vs_physicsfree.json",
+     "script": "scripts/decisive_controls.py --control 1", "tier": "cpu-verify",
+     "claims": "paired case-level bootstrap (1e4 draws, fixed top-decile threshold) of the "
+               "residual/sigma_vel/fused differences: sigma-residual dAUROC +0.023 CI [-0.035,+0.083] "
+               "(includes zero, underpowered at n=200); fused-residual +0.035 CI [+0.005,+0.069] (real); "
+               "fused-sigma significant on Spearman only"},
+    {"path": "results/review/control2_difficulty_confound.json",
+     "script": "scripts/decisive_controls.py --control 2", "tier": "cpu-verify",
+     "claims": "partial Spearman given ||r(truth)||: 0.561 vs raw 0.610 on the Transolver arm "
+               "(92%% survives, drop CI includes zero); the deployable residual significantly "
+               "outranks the oracle difficulty variable itself (drho +0.094 CI [+0.055,+0.142])"},
+    {"path": "results/review/control3_fixed_step.json",
+     "script": "scripts/control_fixed_step.py", "tier": "cpu",
+     "claims": "ungated fixed-step control on the acceptance gate: fixed 0.5 improves 95.8%% of "
+               "deployed cases (median -6.2%%) vs the gate's 89.2%% (-5.8%%), so the accuracy is "
+               "damping not the residual test; the gate's exclusive contribution is the certificate "
+               "(ungated 0.5 breaks monotonicity on 1.0%% deployed / 8.8%% ensemble-path cases)"},
+    {"path": "results/review/control4_riskcoverage_drag.json",
+     "script": "scripts/decisive_controls.py --control 4", "tier": "cpu-verify",
+     "claims": "risk-coverage with |dCd| as the error target: residual AUROC 0.952 (vs 0.871 on "
+               "field error), oracle recovery 0.805; physics beats physics-free here "
+               "(dAUROC +0.055..+0.088, CIs exclude zero in 5/6 arms) and fusion stops helping"},
+    {"path": "results/review/control5_mgn_density_disclosure.json",
+     "script": "scripts/decisive_controls.py --control 5", "tier": "cpu-verify",
+     "claims": "disclosure audit: mgn_density_control.json has 0 mentions in docs/paper outside "
+               "review notes; it shows a 11x train/eval density mismatch inflating velocity MSE "
+               "2.44x on 4 cases, but measures MSE not rho and does NOT establish that rho=0.851 "
+               "is a density artifact"},
+    {"path": "results/review/control6_iters_channels.json",
+     "script": "scripts/decisive_controls.py --control 6", "tier": "cpu-verify",
+     "claims": "tab:iters channel availability + monotonicity: mse_v/mse_p/mse_nut absent from the "
+               "committed sweep; mse_u bottoms at iter 3 (2.287) and rises 12.6%% to 2.575 by iter 15 "
+               "while residual_norm rises 14.4%%, so over iters 3-15 residual and error move the SAME way"},
+    {"path": "results/review/control6_iters_full_channels.json",
+     "script": "scripts/control_iters_channels.py", "tier": "cpu",
+     "claims": "iters sweep re-run on the retained checkpoint with every channel kept (same "
+               "permuted 80-case subset as run_sensitivity, reproduction-gated against iters.json): "
+               "recovers the mse_v / mse_p / mse_nut columns tab:iters omits"},
 ]
 
 

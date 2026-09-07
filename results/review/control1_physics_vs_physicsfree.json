@@ -227,6 +227,36 @@
     "retained_risk_at_0pct": 0.003983091610794806,
     "oracle_retained_risk_at_10pct": 0.0034498444523534543,
     "max_achievable_reduction": 0.0005332471584413513
+   },
+   "fusion_refit_robustness": {
+    "full_sample_rank_corr_committed_vs_refused": 1.0,
+    "delta_auroc_fused_minus_sigma_refused_per_draw": {
+     "point": 0.011388888888888893,
+     "ci95": [
+      -0.021188613221399324,
+      0.043603946778997656
+     ],
+     "boot_mean": 0.010538714897238342,
+     "boot_std": 0.016269442318851975,
+     "frac_draws_gt_0": 0.7412,
+     "frac_draws_lt_0": 0.2555,
+     "excludes_zero": false,
+     "n_boot_valid": 10000
+    },
+    "delta_spearman_fused_minus_sigma_refused_per_draw": {
+     "point": 0.04852726913962169,
+     "ci95": [
+      0.00023440599501466854,
+      0.0969001843807292
+     ],
+     "boot_mean": 0.04850316622077372,
+     "boot_std": 0.024745458461133102,
+     "frac_draws_gt_0": 0.9754,
+     "frac_draws_lt_0": 0.0246,
+     "excludes_zero": true,
+     "n_boot_valid": 10000
+    },
+    "note": "compare against paired['fused_minus_sigma_vel']; if these agree the fixed-score choice is immaterial."
    }
   },
   "corrected_seed0": {
