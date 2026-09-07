@@ -1,0 +1,123 @@
+arXiv v4 REPLACE -- arXiv:2607.10333
+====================================================================
+Upload: arxiv_v4_source.tar.gz  (files at archive top level, matching the
+v2/v3 layout; TMLR build, 41 pp, 10 figures and 10 tables, builds clean
+with pdflatex x3 -- verified by scripts/build_arxiv_package.py, which
+refuses to emit a tarball that does not compile). The archive carries 9
+image files: fig:pipeline is drawn inline, not included.
+
+v3 announced 2026-08-25, so this is a genuine v4 replacement.
+
+**This replacement changes the TITLE and the ABSTRACT.** v2 and v3 did not.
+Both new strings are given in full below and must be pasted into the arXiv
+metadata form; leaving the old ones in place would leave the record
+describing a paper this is no longer.
+
+--------------------------------------------------------------------
+WHY v4 EXISTS
+--------------------------------------------------------------------
+v3 was the manuscript as submitted to JCP, which desk-rejected it on
+2026-09-07 for questionable originality (CMAME had done the same on
+2026-08-02). The paper was reframed rather than reformatted, and two new
+experiments were run. The public record should carry the reframed version.
+
+NEW MEASUREMENTS
+
+1. Grid-refinement ladder for the residual floor. 24 AirfRANS cases at
+   128^2 / 256^2 / 512^2, scored on a region fixed in physical units. The
+   floor does NOT decay: 0.0624 -> 0.0779 -> 0.1067, rising in 21 of 24
+   cases, fitted exponent p = -0.387. The decision rule was committed
+   before the run (repository commit bf5106c).
+   Controls: restoring the omitted turbulent-stress term moves the floor
+   -0.01% to +0.18%; cubic instead of linear interpolation of the same
+   reference cloud RAISES it 6-12%; a manufactured analytic solution
+   through the same rasteriser gives a residual that falls.
+
+2. Direct residual descent, which no earlier version of this work
+   contained. Starting from the EXACT ground truth with no network in the
+   loop, 300 steps on J = 0.5||R_h||^2 cut the residual 84% in 24/24 cases
+   and take field error from zero to a median of 0.91.
+
+CORRECTIONS TO CLAIMS MADE IN v3  -- read this before writing the comments
+field, because one of them retracts something v3 announced as a result.
+
+* v3's comments field says the no-slip-weight objection is closed "in
+  closed form ... for every lambda >= 0. There is no crossover weight."
+  **That is now known to be false at finer resolution.** The margin
+  collapses monotonically with refinement (+9.3% at 128^2, +6.9% at 256^2,
+  +3.9% at 362^2, -2.8% at 512^2) and the crossover weight where it flips
+  is of order 10^2-10^3. The claim is restated in v4 as a statement at the
+  deployed resolution. This retraction is the single most important reason
+  v4 exists and it should be visible in the comments field.
+* The acceptance gate's accuracy advantage does not survive an ungated
+  fixed half-step control (95.8% of cases improved vs the gate's 89.3%).
+  v4 claims the gate for its guarantee, not its accuracy.
+* "AUROC ~ 0.9" is reattributed from the physics residual to the fused
+  score; a physics-free ensemble score matches the residual on field error
+  and a paired bootstrap cannot separate them. The physics wins outright
+  only on drag (AUROC 0.952).
+* The residual-floor theorem's leg (iii) advertised an upper bound where
+  the thesis needs a lower one. Restated as a lower bound on the
+  displacement of the minimiser.
+* The third backbone (MeshGraphNet) is disclosed as evaluated off its
+  training point density.
+
+A full ledger of what was fixed, measured, conceded and refuted is in the
+repository at docs/paper/review/RESOLUTION.md.
+
+--------------------------------------------------------------------
+TITLE  (CHANGED -- paste this)
+--------------------------------------------------------------------
+The ground truth fails its own physics check: what a surrogate-side RANS residual can and cannot certify
+
+--------------------------------------------------------------------
+ABSTRACT  (CHANGED -- paste this; plain text, no LaTeX)
+--------------------------------------------------------------------
+Machine-learning surrogates for computational fluid dynamics predict steady
+flow fields far faster than classical solvers, and the standard proposal for
+trusting them is to have the surrogate check itself against the governing
+equations. We show that this check rests on an operator the truth itself
+cannot pass. On 200/200 real AirfRANS cases the monitored discrete
+Reynolds-averaged residual of the ground-truth field is substantially
+nonzero (mean 0.192), while the physically wrong uniform-freestream field
+scores an exact zero -- the objective prefers a wrong field to the truth.
+This is not a resolution artifact. The monitored operator is an inconsistent
+discretisation, so its floor has a nonzero continuum limit; measured over 24
+cases at 128^2 to 512^2 it does not merely persist but grows, rising in
+21/24. Restoring the omitted closure term moves it under 0.2%, and a
+higher-order interpolant raises it by 6-12%, so neither is what sets it. The
+consequence for correction is stated in the form that holds universally:
+started at the exact ground truth, with no network involved, gradient
+descent cuts the residual by 84% while driving field error from zero to the
+range a trained surrogate starts in, and the residual-selected iterate is
+strictly worse than the error-optimal one in 24/24 cases -- a failure of
+iterate selection, not of uniform harm, since from a perturbed start descent
+often reduces error before overshooting. The boundary is the operator, not
+the problem class: residual correction succeeds where the residual is the
+solver's own.
+
+--------------------------------------------------------------------
+COMMENTS field  (arXiv caps this at 400 characters; this is 366)
+--------------------------------------------------------------------
+41 pages, 10 figures. v4 substantially reframes the paper and retracts a v3 claim: the no-slip-weight objection is NOT closed for all lambda -- the margin crosses zero by 512^2. New: a grid-refinement ladder showing the residual floor grows rather than decays, and direct residual descent from the exact ground truth. Code: https://github.com/ali-kin4/neuroforge-cfd
+
+--------------------------------------------------------------------
+UPLOAD CHECKLIST
+--------------------------------------------------------------------
+- This is a REPLACE on 2607.10333, not a new submission.
+- Keep the primary category physics.flu-dyn (cross-list physics.comp-ph).
+- PASTE THE NEW TITLE AND ABSTRACT. Unlike v3, this replacement changes
+  both, and arXiv keeps the old ones unless they are overwritten.
+- UNTICK the pre-ticked "delete .bbl" box on the Review Files step. arXiv
+  must use the shipped .bbl; letting it re-run BibTeX is untested here.
+- Authors: Ali Jabbary (Urmia University); Kasra Ghanavati (University of
+  Greenwich). Corresponding: st_a.jabbary@urmia.ac.ir.
+- Do not touch the licence.
+
+--------------------------------------------------------------------
+SEQUENCING AGAINST THE JOURNAL SUBMISSION
+--------------------------------------------------------------------
+The Computers & Fluids cover letter discloses the preprint and states that
+an updated version reflecting the submitted manuscript will be posted. Post
+v4 at or before submission so that an editor who searches the title finds a
+preprint matching what they are reading, rather than the superseded v3.
