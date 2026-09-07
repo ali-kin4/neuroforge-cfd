@@ -387,15 +387,50 @@ def analyse(records: list[dict], levels) -> dict:
     else:
         verdict = "SPLIT: both mechanisms contribute."
 
-    # Label-side fact: how much of drag is viscous, and of lift is pressure.
+    # Label-side facts. The rank structure matters as much as the magnitude
+    # share: cdv is the bigger PART of cd but cdp carries almost all of its
+    # RANKING, so drag ranking is recoverable from surface pressure in
+    # principle -- which is what stops us over-reading the DD-RNO comparison.
     share = {
         "median_cdv_over_cd": float(np.median(lab["cdv"] / lab["cd"])),
         "median_cdp_over_cd": float(np.median(lab["cdp"] / lab["cd"])),
         "median_clp_over_cl": float(np.median(lab["clp"] / lab["cl"])),
+        "rho_label_cdp_vs_cd": float(spearmanr(lab["cdp"], lab["cd"]).statistic),
+        "rho_label_cdv_vs_cd": float(spearmanr(lab["cdv"], lab["cd"]).statistic),
+        "rho_label_cdp_vs_cdv": float(spearmanr(lab["cdp"], lab["cdv"]).statistic),
+        "_note": "rho_label_cdp_vs_cd is the ceiling a perfect surface-pressure "
+                 "integrator could reach on TOTAL drag ranking without any "
+                 "viscous information at all.",
     }
+
+    # P5 resolution requirement: extrapolate the ladder.
+    Ns = np.array([float(N) for N in levels])
+    extrap = {}
+    if len(Ns) >= 2:
+        ratio = np.array([per_level[str(int(N))]["rt_pipeline"]["cdv_ratio_median"]
+                          for N in levels])
+        sl, ic = np.polyfit(np.log(Ns), np.log(ratio), 1)
+        extrap["cdv_ratio_power_in_N"] = float(sl)
+        extrap["N_for_cdv_ratio_1"] = float(np.exp((0.0 - ic) / sl))
+        rcd = np.array([per_level[str(int(N))]["rt_pipeline"]["rho_cd"] for N in levels])
+        sl2, ic2 = np.polyfit(np.log(Ns), rcd, 1)
+        target = share["rho_label_cdp_vs_cd"]
+        extrap["N_for_rho_cd_reaching_cdp_ceiling"] = float(np.exp((target - ic2) / sl2))
+        extrap["_note"] = ("Log-linear extrapolations well beyond the measured range; "
+                           "reported as an order of magnitude, not a prediction.")
+    # Independent scale argument (P4): y+ = 5 on a 3-chord crop.
+    NU = 1.56e-5
+    Uarr = U
+    ut_over_U = float(np.sqrt(0.003 / 2))
+    y5 = 5.0 * (NU / (Uarr * 1.0)) / ut_over_U
+    extrap["yplus5_chord_min"] = float(y5.min())
+    extrap["yplus5_chord_max"] = float(y5.max())
+    extrap["N_for_yplus5_min"] = float(3.0 / y5.max())
+    extrap["N_for_yplus5_max"] = float(3.0 / y5.min())
+
     return {"covariate_control": cov, "per_level": per_level,
             "verdict_primary_128": verdict, "rho_D_rt_128": rho,
-            "label_composition": share}
+            "label_composition": share, "resolution_requirement": extrap}
 
 
 # --------------------------------------------------------------------------- #
