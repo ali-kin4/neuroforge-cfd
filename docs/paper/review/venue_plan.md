@@ -562,3 +562,51 @@ Journal of Computational Science, Engineering with Computers.
 | Ordering | JCP → EAAI → C&F | **JCP is dead. New order: C&F → EAAI → RESS → CPC → JOCS/EwC → JMLMC.** |
 | Physics of Fluids | Not considered | **Considered and ruled out** — the 2026 "Physics First" policy is a live scope narrowing. |
 | Negative-results venues | Not considered | **Considered and ruled out as a category** — structurally gold-OA. |
+
+---
+
+## 12. VERIFIED IN-BROWSER 2026-09-07 — supersedes the [S] rows for Computers & Fluids
+
+The 403 problem was a limitation of automated fetching, not of access. Both pages
+below were read directly in the browser, so every row here is [V] and replaces the
+search-extracted version above. **§7's must-eyeball list is cleared for C&F.**
+
+Sources, read 2026-09-07:
+`sciencedirect.com/journal/computers-and-fluids/publish/guide-for-authors` and
+`.../publish/open-access-options`.
+
+| Item | Verified value | Consequence |
+|---|---|---|
+| **Manuscript length limit** | **None.** The guide sets no word, page or figure cap. | The single biggest open risk is closed. ~14,700 words is not disqualifying, and no cutting is needed. |
+| **Abstract** | **250 words max** | Ours is 241. |
+| **Keywords** | **1–7**; multi-word keywords joined by "and"/"of" discouraged | Ours is 7, none joined that way. |
+| **Highlights** | **REQUIRED at submission.** 3–5 bullets, **≤85 characters each including spaces**, separate editable file with "highlights" in the filename. | **This did not exist.** Now `docs/paper/highlights.txt`, 5 bullets at 76–79 chars. |
+| **Peer review** | **Single anonymized** | Confirmed. No anonymisation rework; the arXiv preprint, system name, GitHub and Zenodo links all stay. |
+| **Subscription route** | *"Subscription — **No open access publication fee**."* Verbatim. APC of **USD 3890** applies only if open access is chosen, and "your publication choice will have no effect on the peer review process or acceptance". | [[no-apc-venues-only]] satisfied. Take the subscription licence at the licensing step. |
+| **Self-archiving embargo** | **24 months** for the accepted manuscript; the published version may not go on ResearchGate/Academia.edu. | Same as JCP. The arXiv preprint is unaffected. |
+| **Research data** | **Option C: deposit in a repository, cite and link it, or state why not.** A data statement is required at submission. | Already satisfied by the Zenodo DOI, which the paper cites. |
+| **Preprints** | Sharing a preprint does not count as prior publication. | arXiv 2607.10333 is safe to disclose. |
+| **Article types** | Original research papers accepted. | No issue. |
+| **AI-use declaration** | Required as a titled section before the reference list. | Already present. |
+| **CRediT** | Required. | Already present. |
+| **Appeals** | One formal appeal permitted per submission, per Elsevier's Appeal Policy. | Noted for later; irrelevant to JCP, which will not reconsider. |
+
+### The scope paragraph is a four-part checklist, and the editor will read against it
+
+Verbatim from Aims and scope: machine-learning papers are welcome *"provided they
+show excellent scientific character. In particular, the authors are encouraged to
+perform comparisons with traditional numerical reconstruction methods, to provide
+a clear presentation of training vs validation cases, together with sufficient
+diversity in these cases, to analyze the physical consistency/theoretical analysis
+of the ML model, and to discuss the limitations of the method as well as its
+merits."*
+
+| Asked for | Where we stand |
+|---|---|
+| Comparison with traditional numerical reconstruction methods | **Weakest of the four.** The paper concedes the 286× figure is not a controlled speed-up and that the OpenFOAM/SU2 backends are unimplemented. Pre-empt in the cover letter; the operator-boundary framing helps, since §`sec:regime` is precisely a comparison against solver-consistent correction. |
+| Training vs validation cases, with diversity | Strong: AirfRANS splits, a second dataset (DeepCFD), an OOD regime shift, three backbones. |
+| Physical consistency / theoretical analysis of the ML model | **Strongest.** This is now the paper's spine, not an appendix. |
+| Limitations as well as merits | Strong, and now stronger: seven claims withdrawn or narrowed, with an ungated baseline that beats our own gate. |
+
+Three of four are strengths under the reframe. Only the first needs handling, and
+it needs a sentence in the cover letter rather than an experiment.

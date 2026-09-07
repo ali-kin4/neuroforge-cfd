@@ -140,10 +140,16 @@ construction.
 
 ## Still open
 
-- **Venue formatting.** `venue_plan.md` recommends Computers & Fluids and flags
-  that ScienceDirect returned 403 to automated fetches, so the guide rows came
-  from search extraction. **Eyeball the author guide manually before filing**,
-  especially any length limit — the manuscript is long.
+- ~~**Venue formatting.**~~ **Closed 2026-09-07.** The guide and open-access pages
+  were read directly in the browser (the 403 was an artifact of automated
+  fetching), and `venue_plan.md` §12 records every value as verified. The
+  headline results: **there is no manuscript length limit**, which was the
+  single biggest open risk at ~14,700 words; the subscription route carries
+  **no publication fee**, verbatim; review is **single anonymized**, so nothing
+  needs anonymising. One requirement was missing entirely and is now met —
+  **Highlights**, which the journal requires at submission (3–5 bullets, ≤85
+  characters each): `docs/paper/highlights.txt`. `scripts/check_submission.py`
+  verifies the abstract, keyword and highlight limits mechanically.
 - **Two author decisions**, detailed in `venue_plan.md` §8: whether to disclose
   the two prior desk rejections in the cover letter (recommendation: no), and how
   to pre-empt the scope's request for comparison against traditional numerical

@@ -103,7 +103,7 @@ field to the truth (\autoref{sec:residual_floor}). This is a property of the
 \item \textbf{The floor cannot be refined away, and in practice it grows.} Two separate
 statements, which we are careful not to conflate. \emph{Provably}, the monitored operator
 is an inconsistent discretisation of RANS---it uses $\nu_{\mathrm{eff}}\nabla^2 u$ in
-place of $\nabla\!\cdot\!(\nu_{\mathrm{eff}}\nabla u)$---so its floor has a nonzero
+place of $\nabla\!\cdot\!(\nu_{\mathrm{eff}}(\nabla u+\nabla u^{\top}))$---so its floor has a nonzero
 continuum limit rather than converging to zero as $h\to0$, so (H2) stops being an
 assumption (\autoref{sec:residual_floor}). \emph{Empirically}, the floor does not merely
 persist but \textbf{rises} under refinement: over $24$ cases at $128^2/256^2/512^2$,
@@ -238,16 +238,26 @@ feed the residual as an input \emph{feature} to a corrector supervised toward gr
 controlled ablation shows the residual input is not the source of the gain: zeroing it at
 train and inference (3 seeds) matches or slightly exceeds the deployed corrector
 (\autoref{sec:v2}, \texttt{results/control/w1\_capture.json}). The residual's value is as a
-\emph{trust signal}---it tells you \emph{where} a prediction is wrong---not as a correction
-mechanism telling you \emph{how} to fix it; the learned correction does the fixing.
-The prior successes and our negative are consistent, and the residual-floor theorem
-(\autoref{sec:residual_floor}) marks the boundary between them: residual-driven correction
-works where the discrete residual is (near-)exact at the true solution---resolved
-transient PDEs stepped on their training grid \citep{huang2025physicscorrect}, variational
-problems with certified residuals \citep{learned2023residualcorrection}---and fails where
-the monitored residual carries a nonzero floor at the dataset truth, as for our
-under-resolved steady-RANS closure monitor. Our negative is scoped to the latter,
-deployment-realistic regime.
+\emph{trust signal}---it ranks which predictions to distrust---not as a correction
+mechanism telling you \emph{how} to fix them; the learned correction does the fixing.
+The prior successes and our negative are consistent, and what separates them is the
+\emph{operator}, not the problem class. Residual-driven correction works where the
+monitored residual is the solver's own, hence (near-)exact at the true solution:
+resolved transient PDEs stepped on their training grid \citep{huang2025physicscorrect},
+variational problems with certified residuals \citep{learned2023residualcorrection},
+and---on steady CFD, so the boundary is demonstrably not steady versus
+transient---a Newton--Krylov correction driven by the solver's own residual, which
+lowers it by seven orders of magnitude \emph{while} reducing field and aerodynamic
+error \citep{lei2026newtonkrylov}. It fails where the monitor is instead a
+surrogate-side operator that a deployed system can afford, inconsistent with the one
+that produced the labels. Carrying \emph{some} floor is not sufficient for that
+failure---every discrete monitor carries one---so the operative quantity is the
+signal-to-floor ratio at the operating point. Ours is
+$\|R_h(\hat u)\|/\|r^\star\|\approx 0.59$ in the mean and below $1$ on $80\%$ of
+cases: the prediction's residual sits \emph{beneath} the truth's, so no threshold on
+it can imply an error bound. The floor is a necessary condition for the failure mode
+we report, and the prior successes operate where it is absent. Our negative is scoped
+to that deployment-realistic regime.
 
 \paragraph{Residual-based, data-free error signals.} Closest to our \emph{trust-signal}
 half is recent work that reads the PDE residual as a reference-free indicator of prediction
@@ -281,8 +291,8 @@ complement, where the discrete monitored residual provably does \emph{not} vanis
 dataset truth. We share the premise that the residual is a data-free error signal and do not
 claim to originate it. Our distinct contributions are (i)~the head-to-head \emph{dissociation}---the residual is a
 good trust signal but a poor correction objective, established on the same steady-state RANS
-benchmark; (ii)~the \emph{residual-floor theorem} quantifying the operator-specific detection
-limit and the undetectable kernel modes; and (iii)~a split-conformal certificate calibrated on
+benchmark; (ii)~the \emph{residual-floor theorem} establishing a nonzero continuum limit for
+the floor and characterising the undetectable kernel modes; and (iii)~a split-conformal certificate calibrated on
 the \emph{deployed, corrected} field. Our setting is steady-state external aerodynamics with
 per-case spatial trust, rather than time-marching error control.
 
@@ -1277,7 +1287,11 @@ differentiates a piecewise-linear reconstruction rather than sampling a solution
 \paragraph{Result.} The floor rises monotonically as the grid is refined
 (\autoref{tab:floor_ladder}): $0.0624\to0.0779\to0.1067$ while $h$ falls by $4\times$,
 rising in $\mathbf{21/24}$ cases, with $p=-0.387$---not merely inside the
-pre-registered \textsc{plateau} band but the wrong \emph{sign} for decay. Meanwhile
+pre-registered \textsc{plateau} band but the wrong \emph{sign} for decay. (These are
+band-restricted values, scored on the physically fixed region of protocol~\emph{(i)},
+and are therefore smaller than the whole-grid RMS floor of mean $0.192$ quoted in
+\autoref{sec:residual_floor}; the two score different regions and are not directly
+comparable.) Meanwhile
 $\|R_h(u_\infty)\|=0$ exactly at every level, as it must: a spatially constant field
 has identically zero finite differences at any $h$. The gap the objective must be
 blamed for therefore \emph{widens} with refinement.
@@ -1356,7 +1370,7 @@ must, and does, recover the truth.
 \paragraph{Result: the truth is not a fixed point.} Starting at $u^\star$, descent cuts
 the monitored residual by $84\%$ in $\mathbf{24/24}$ cases and drives the field error
 from exactly zero to a median of $0.91$---the range in which a trained backbone
-\emph{starts}. This is theorem leg (ii) as a measurement rather than an algebraic
+\emph{starts}. This is \autoref{thm:residual-floor}(ii) as a measurement rather than an algebraic
 remark: the same descent applied to the \emph{error} objective from the same point does
 not move at all, because $\nabla\|e\|^2=0$ there exactly, while $\nabla J\ne0$. The
 compact-stencil monitor we report falls in $24/24$ cases too, so this is not the
