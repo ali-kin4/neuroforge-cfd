@@ -135,7 +135,14 @@ non-vanishing component and *not* the driver. An earlier draft of this report
 called it "the cleanest component to point at"; that was wrong, and the paper
 must not lead with it.
 
-**H-C held — leg (A) needs no weakening.** The λ-sweep's closed form requires
+**H-C held at these three levels — but see §7, which supersedes this heading.** The
+16-case × 5-rung run finds the margin crossing zero by 512² (−2.8%), so the
+conclusion below ("needs no weakening") does not survive the finer ladder. What both
+studies agree on — a margin that collapses monotonically under refinement, and so a
+claim that must be stated at the deployed resolution rather than as
+resolution-independent — is the paragraph's last sentence, which stands.
+
+The λ-sweep's closed form requires
 `r_bc²(u*) > r_bc²(u_∞)`, and the theorem file attributes that inequality to the
 128² boundary layer being sub-cell. It survives at every level in both bands:
 
