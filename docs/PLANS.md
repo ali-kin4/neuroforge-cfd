@@ -1531,6 +1531,28 @@ whether a given seed will help.
 
 ## 5. Gotchas that cost time — do not rediscover these
 
+- **Never accumulate results into ONE shared JSON from a long-running script.**
+  The Windows venv launcher runs `python.exe script.py` as a **parent+child
+  pair**, and both can execute the body. Two writers with independent in-memory
+  accumulators silently truncate each other: `results/residual_descent/eta_sensitivity.json`
+  lost four of its six keys this way, and it looks like a *successful* write, not
+  a crash — the file is valid JSON, just missing most of it. Write **one file per
+  unit of work** (`eta_<arm>_<mode>.json`) and merge at the end; per-file writes
+  are idempotent under double execution and give you free resume. `scripts/residual_descent_test.py`
+  does this for both its stages and is the pattern to copy.
+- **`physics_residual_torch` is NOT the monitored residual.** It is the
+  *training-loss* twin: raw, dimensional, solid-mask only, `nu_eff >= nu`.
+  `Diagnostics.residual_norm()` additionally zeroes the solid-adjacent wall ring
+  and non-dimensionalises (continuity by `u_inf/L`, momentum by `u_inf^2/L`), and
+  clips `nu_eff >= 0`. Any experiment that claims to act on "the residual the
+  paper monitors" must rebuild the monitored one from
+  `physics/operators.py` (`ddx`/`ddy`/`laplacian` duck-type onto torch, so
+  gradients flow) and **verify it numerically** — ours matches to 9.9e-8 relative
+  (`results/residual_descent/verification.json`). Descending the wrong functional
+  is a free rebuttal for a reviewer.
+- **Do residual/field optimisation in float64.** Advection gives `||L|| ~ U/h`,
+  so a stable explicit step is ~1e-8; in float32 with `u ~ 50` the update rounds
+  away and you conclude, wrongly, that descent is inert.
 - **Read `solver/scoring.py` before writing a new analysis script.** Every rule
   in it was learned by getting a sign wrong here (§3.7).
 - **Score a Reynolds sweep one Reynolds number at a time.** The floor moves three

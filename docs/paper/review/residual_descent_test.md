@@ -26,6 +26,20 @@ strict extension, and it closes three things that study explicitly leaves open:
 The iterate-selection claim the paper now makes is reproduced at n = 200: `argmin_k J ≠
 argmin_k error` on **79–100 %** of cases in every arm (24/24 there).
 
+**Reconciling the two truth-arm depths before a reviewer does.** `sec:descent` reports
+descent cutting the monitored residual by **84 %** from the truth; the arms here reach
+**72 %** (`free`, `uvp`) and **35 %** (`bc`, `uvp`). This is not a disagreement, it is four
+known differences in how far the objective is *allowed* to go: (a) Adam with per-channel
+scaling for 300 steps versus Armijo gradient descent, which takes the largest step the
+Armijo condition admits and therefore stalls at a genuine stationary point; (b) `nut` free
+there versus **frozen** here — and freeing it demonstrably buys depth, since our own
+`uvpn` arm reaches a different `J` and quarters the velocity damage by dumping error into
+`mse_nut` (§3.5); (c) the `bc` arm pins the far-field and near-wall rings, which removes
+the descent directions that carry most of the residual reduction; and (d) a different
+non-dimensionalisation of the reported norm. **The sign, the fraction (200/200 vs 24/24)
+and the conclusion are identical; only the achievable depth differs, and the shallower our
+descent, the more conservative our number.**
+
 ---
 
 ## 1. The objection, in its strongest form
@@ -511,10 +525,39 @@ Insert after "The claim we make, and the one we do not":
 > minimised, the worse the field. This removes the ``Adam, not gradient flow'' caveat and
 > supplies the endpoint claim on the deployed system.
 
+and the table it references (numbers from `results/residual_descent/descent_*.json`,
+independently re-derived in §3):
+
+```latex
+\begin{table}[t]
+\centering
+\small
+\caption{Armijo-line-searched gradient descent on the monitored objective
+$J=\tfrac12\|R_h\|^2$, $500$ steps, $n=200$ AirfRANS \texttt{full} test cases, with the
+far-field and near-wall Dirichlet data pinned at ground truth. $J$ is monotone
+non-increasing by construction. rel-$L_2$ is the fluid-masked rel-$L_2$ of speed (the
+\texttt{measure\_acceptance\_gate} formula); $\Delta$ is the median per-case change.
+\texttt{scripts/residual\_descent\_test.py}.}
+\label{tab:descent200}
+\begin{tabular}{l r r r r r}
+\toprule
+start field & $\|R_h\|$ start$\to$end & $J/J_0$ & $\Delta$ rel-$L_2$ & frac.\ worse & $\texttt{mse\_u}$ start$\to$end \\
+\midrule
+ground truth $u^\star$ & $0.191\to0.125$ & $0.398$ & --- ($0\to0.0069$) & $\mathbf{200/200}$ & $0.000\to0.499$ \\
+Transolver seed 0      & $0.218\to0.144$ & $0.406$ & $+76.5\%$ & $0.965$ & $0.119\to0.556$ \\
+Transolver seed 1      & $0.218\to0.142$ & $0.388$ & $+73.9\%$ & $0.940$ & $0.120\to0.553$ \\
+Transolver seed 2      & $0.217\to0.141$ & $0.390$ & $+86.9\%$ & $0.980$ & $0.103\to0.544$ \\
+dropout-FNO            & $0.286\to0.153$ & $0.238$ & $-18.7\%$ & $0.250$ & $0.898\to0.930$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+```
+
 ### 7.5 `sec:descent` / `sec:regime` — make the regime boundary quantitative
 
-Replace the qualitative *"from the perturbed start it reduces error in 18/24 cases"* with
-the measured boundary:
+**Append after** (do *not* replace) the existing *"from the perturbed start it reduces
+error in 18/24 cases, typically by 60 %"* sentence — that concession is load-bearing and
+this run confirms it rather than supersedes it. The addition makes it quantitative:
 
 > *The boundary is measurable in the theorem's own variable
 > $\rho=\|R_h(\hat u)\|/\|r^\star\|$, since the truth arm supplies $\|r^\star\|$ for the
