@@ -391,6 +391,13 @@ the objective must be blamed for widens with refinement.
 
 ## 8. Exact text changes for `sections/residual_floor_theorem.tex`
 
+*All four anchor strings below were verified present in the current file with
+whitespace normalised (the source is hard-wrapped, so match on the phrase, not on the
+line breaks): `(H2) holds here because $R_h$ omits the no-slip closure` ·
+`\textbf{(A)}~The uniform field remains a spurious minimum` ·
+`$\|r^\star\|$ has mean $0.192$ (median $0.133$)` ·
+`the \emph{quantified} operator-specific floor`.*
+
 **(a) §"Assumptions, stated plainly" — delete the grid concession.** Replace
 
 > "(H2) holds here because $R_h$ omits the no-slip closure *and* the $128^2$ grid
