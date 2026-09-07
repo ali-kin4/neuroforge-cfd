@@ -59,6 +59,15 @@ error, because the manufactured field has no boundary layer and is genuinely
 easier to interpolate. The argument against interpolation as the driver is §1a
 below, not this control.
 
+**A higher-order interpolant does not reduce the floor.** This is the strongest
+check against the interpolation objection, because it uses the real data rather
+than a manufactured field. Rasterising the *same* source cloud with cubic
+instead of linear interpolation changes the floor by **+11.4% / +11.9% / +6.4%**
+at 128² / 256² / 512² — it goes *up*, and is lower in only 2–4 of 16 cases. If
+linear interpolation's kinks were setting the floor, cubic would cut it
+substantially. It does not cut it at all. Together with the repaired-operator
+number in §11 this retires the domain-expert report's §2d objection.
+
 **A curve that was in the first draft of this report and should not be quoted.**
 The ladder also scores a set restricted to cells holding ≥8 source points, which
 fits `p = −0.909`. That number is not evidence: the qualifying cell count falls
@@ -576,14 +585,20 @@ is high by roughly a factor of 20. At `Re ≈ 2×10⁶` the entire *viscous* ter
 1.2–3.7% of convection, so no sub-part of it can carry a floor of order the
 convective terms.
 
-**3. The lockstep of §1a is explained.** The interior momentum balance here is
-convection against pressure gradient — 0.1832 against 0.1802 at 128². Under
-refinement **convection sharpens (0.1832 → 0.1994) while pressure stays flat
-(0.1802 → 0.1807)**, and the floor is what their discrete imbalance leaves
-behind. That imbalance is common to continuity and momentum alike, which is why
-`p_cont` and `p_mom` track each other, and it is exactly the
-reference-operator mismatch: the AirfRANS field satisfies a body-fitted discrete
-balance, and no Cartesian stencil reproduces it at any `h`.
+**3. The floor lives in the convection/pressure block.** This follows from 1 and
+2 by elimination and is airtight: the viscous term is 1.2–3.7% of convection at
+`Re ≈ 2×10⁶`, so nothing viscous can carry a floor of this size, and what
+remains is convection and pressure.
+
+*Candidate, not yet established:* the term magnitudes move apart under
+refinement — convection 0.1832 → 0.1994 while pressure holds at 0.1802 → 0.1807
+— which is suggestive of a balance that fails to close. It is **not** proof: the
+floor at 512² is 0.107 while that gap in RMS magnitude is 0.018, and
+cancellation is pointwise and sign-dependent, so a gap in RMS magnitudes does
+not imply a residual of that size. Settling it needs a per-cell correlation
+between the floor map and the convective-term map, which is not run. The paper
+should say the floor sits in the convection/pressure block, and should not
+assert the sharpening narrative as measured.
 
 ### What survives of F3, stated precisely
 

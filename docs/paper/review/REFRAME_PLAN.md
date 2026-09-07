@@ -41,6 +41,32 @@
 >
 > Remaining before submission: the rewrite itself (§8 steps 3–6), and the
 > `tab:positioning` decision in step 4.
+>
+> ### The outline to write against — supersedes FINDINGS' "The paper this should become"
+>
+> FINDINGS builds item 1 on F3's closed-form floor `2S·∇ν_t ≈ 0.13`. **That
+> attribution is refuted** (`floor_resolution_study.md` §11): adding the omitted
+> term back moves the floor by −0.01% to +0.18%, and the term is ~4% of it, not
+> 90%. Do not write 0.13. The corrected outline:
+>
+> 1. The monitored residual is **inconsistent with the data generator**, so the
+>    truth itself fails the check. Two separable statements, never conflated:
+>    *(a)* the inconsistency is provable, so the floor is bounded away from zero
+>    even as `h → 0` — this is F3's theorem and it survives; *(b)* the floor's
+>    measured **size** is set by the discretisation-and-mesh mismatch, and it
+>    **grows** under refinement (`p = −0.387`, 21/24), with the closure omission
+>    a ~4% component. Neither linear-vs-cubic interpolation nor operator repair
+>    moves it.
+> 2. Therefore it cannot be minimised — shown by actual residual descent, and
+>    stated as **iterate selection** (24/24) rather than as harm (6/24).
+> 3. Where the operator IS solver-consistent, residual correction works (Lei et
+>    al.), so the boundary is the operator, not the problem class.
+> 4. It still ranks errors usefully, but physics earns its keep only in fusion.
+> 5. What remains deployable: the conformal layer, and the gate's certificate —
+>    conceding that the gate's *accuracy* is damping (C3).
+>
+> Write order, to avoid rework: contributions → abstract → title → intro →
+> `tab:positioning`.
 
 
 Created 2026-09-07. Living document: update as the six research reports land.
