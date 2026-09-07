@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-07T17:21:51.841640+00:00",
-  "git_head": "3d487200696e32248298cbcba66a1ae974ad64cf",
-  "git_head_short": "3d48720",
+  "generated_utc": "2026-09-07T17:26:00.996943+00:00",
+  "git_head": "fe279609f97f4a57210eec927a47404d71107978",
+  "git_head_short": "fe27960",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -681,10 +681,10 @@
       "script": "scripts/floor_subtraction_gate.py",
       "tier": "cpu",
       "claims": "kills the manuscript's causal clause that the conformal bound is wide BECAUSE 86%% of a typical score is floor. Oracle counterfactual: sigma' = ||R(u_hat) - R(u*)|| (a FIELD difference; a difference of norms is not a valid decomposition and ||R(u_hat)|| < ||r*|| on 2.5-4.0%% of cases). Removing the floor exactly makes the bound WIDER, 7.4x -> 11.3x, on 3/3 seeds, against a pre-registered FLOOR-CAUSAL threshold of <=2x. Mechanism: the width tracks Q_0.9/median of the nonconformity ratio (15.1 uninformative / 6.3 deployed / 10.5 floor-subtracted) and floor subtraction IMPROVES the ranking (Spearman 0.62->0.68) while DEGRADING the scale. Since the oracle r* dominates any learned r_hat*, this also closes the constructive half of Target C. The deployed monitor buys 2.34x over no monitor at all",
-      "sha256": "af91784513e93a698dccdf3a9121813eb001a88d24e36ad66d30548f4bfdd05c",
-      "bytes": 209820,
+      "sha256": "cf997cdde3002d5faa6ec5fe1f088bb50fb13c87faf1082669d090c6c8da33dd",
+      "bytes": 210277,
       "git_tracked": true,
-      "last_commit": "3d48720"
+      "last_commit": "fe27960"
     },
     {
       "path": "results/review/functional_audit_gate_followup.json",
