@@ -195,9 +195,32 @@ defended, for three reasons:
 3. It removes a number that a reviewer would otherwise have used to discredit the
    section.
 
-## 6. Exact replacement text for the "Empirical confirmation" paragraph
+## 6. Paper change — APPLIED
 
-Replace the current paragraph (`residual_floor_theorem.tex`, lines 109-117) with:
+**Status: applied** to `docs/paper/sections/residual_floor_theorem.tex` (commit
+`59f3180`).
+
+While this measurement was running, a concurrent agent independently scoped the
+paragraph to the deployed backbone and quoted the 2.5-7.0% range (consistent with
+these numbers; their `results/review/functional_audit_gate_analysis.json` records
+`norm_baseline_inversion_rate` = 0.06 for corrected seed 0, matching 12/200). Two
+things were still wrong and are what this change fixes:
+
+- It explained the inversion as **over-smoothing** ("a smooth field has small
+  derivatives"). Measured, that is false — the dropout-FNO carries **1.75x** the
+  truth's gradient energy over the fluid and **1.96x** near the body, versus
+  **1.00x** for Transolver. It is *rougher* than the truth.
+- The correct discriminator is that the FNO's monitored residual is nearly
+  **case-independent** (spread 0.034 vs the truth's 0.162 and Transolver's 0.161).
+
+The applied text also adds the per-seed counts, the sign reversal of the median
+gap, and a citation to the artifact whose harness reproduces the published
+dropout-FNO row to all digits, so the cross-backbone comparison is checkable.
+The word "over-smoothed" no longer appears in the file.
+
+### Reference: full standalone replacement paragraph
+
+Kept for reference (use if the paragraph is ever rewritten from scratch):
 
 ```latex
 \paragraph{Empirical confirmation.} On $200/200$ real AirfRANS test cases, the monitored
