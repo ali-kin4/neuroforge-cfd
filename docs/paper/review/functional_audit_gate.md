@@ -403,11 +403,18 @@ All four §1.6 predictions were borne out, including the one that mattered most
 (the unsigned contrast outranking the signed functional), which is the difference
 between a measured mechanism and a post-hoc story.
 
-**Wall-clock.** 6 s validation, 311 s for the 200-case × 8-field sweep, ~20 min
-for the 10⁴-draw paired bootstrap; total compute under half an hour, CPU-only,
-zero forward passes, against the three days budgeted. The saving is entirely
-because the prediction field caches were already committed. Analyst time, not
-compute, was the cost.
+The decision was also applied **mechanically** by `_decide()` in the committed
+script, without a human in the loop: `a_pass = false`, `b_pass = false`,
+`branch = A`, `test_c.built = false`. It agrees with the reading above, which is
+the point of committing the rule as code rather than as prose.
+
+**Wall-clock.** 6 s plumbing validation; **311 s** for the 200-case × 8-field
+sweep; **62 s** for the targeted paired bootstrap that carries §7; **1844 s
+(30.7 min)** for the exhaustive 9-variant × 5-box × 6-arm × 10⁴-draw bootstrap.
+Total compute **≈ 37 minutes**, CPU-only, zero forward passes, against the three
+days budgeted. The saving is entirely because the prediction field caches were
+already committed; analyst time, not compute, was the cost. A reviewer can
+reproduce the whole gate from committed caches in under an hour on one core.
 
 ---
 
@@ -563,3 +570,56 @@ Three readings, and the third is the only constructive one in this report.
    "what remains deployable" section rather than in the certificate section. It
    should be stated with its scope: it is an improvement in rank correlation only,
    the AUROC is unchanged, and it certifies nothing.
+
+---
+
+## 8. The instrument is not the problem — and a free bonus for Design A
+
+The obvious last line of defence for Design B is that the *functional* is broken
+rather than the *concept*: a zeroth-order adjoint, an immersed body, a coarse
+grid, so of course it measures nothing. That objection is testable and it is
+refuted, because the identical box machinery — same telescoping, same operator,
+same masks, same sign — applied to the **flux** instead of the **residual**
+recovers drag better than the paper's own force integrator does.
+
+`φ_outer` is the far-field momentum-theorem drag on box `V`, obtained purely by
+telescoping the conservative residual. On the 200 ground-truth fields, against
+the official AirfRANS OpenFOAM `C_d` labels:
+
+| score on truth | ρ vs official `C_d` |
+|---|---:|
+| deployed surface integrator (`force_coefficients`) | +0.839 |
+| `φ_outer` (V1) | **+0.935** |
+| `φ_outer` (V2) | **+0.973** |
+| `φ_outer` (V3) | **+0.985** |
+| `φ_outer` (V4) | +0.947 |
+| `φ_outer` (V5) | +0.947 |
+| `I_T0` — the **residual** functional (V3) | +0.377 |
+
+The +0.839 reproduces the repo's committed `rho_D_gt_vs_official` of 0.839
+exactly, so the comparison is anchored.
+
+**Two conclusions, and they point in opposite directions.**
+
+1. **The negative is not instrumental.** The same integration that ranks drag at
+   ρ = 0.985 ranks nothing useful when what is integrated is the residual
+   (ρ = 0.31–0.38 against the label, AUROC 0.61–0.70 against drag *error*). The
+   machinery sees drag; the residual functional does not see drag error. That is
+   the cleanest possible answer to "your control volume is too small / your
+   adjoint is too crude / your grid is too coarse" — those objections would have
+   to explain why the identical control volume, adjoint weight and grid recover
+   the drag *label* at ρ = 0.985.
+2. **A free improvement to the deployed integrator, for Design A.** A far-field
+   control-volume drag telescoped from the same residual machinery ranks official
+   `C_d` at **ρ 0.94–0.99 against the surface integrator's 0.84**, at zero
+   marginal cost on fields that already exist. This is directly responsive to
+   B-ATTACK-3 (332% median magnitude error on perfect fields, ρ_D = 0.84 as a
+   ceiling): for *ranking* purposes the ceiling is not 0.84, it is 0.985, and the
+   better instrument was already in the fields.
+
+   Stated with its scope: this is a **rank** result on the ground-truth fields,
+   it is a box-size-sensitive quantity (0.935 → 0.985 → 0.947 across V1–V5, best
+   at V3), viscous drag remains unavailable at 128², and no magnitude claim is
+   made. It belongs in "what remains deployable" and it does not resurrect
+   Design B — a better drag *estimator* is not a drag-error *certificate*, and
+   §3 measured the certificate and found nothing.

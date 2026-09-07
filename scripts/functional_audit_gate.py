@@ -415,7 +415,8 @@ def run_validate(a) -> int:
         "per_case": rows,
     }
     os.makedirs(os.path.dirname(OUT_VAL), exist_ok=True)
-    with open(OUT_VAL, "w", encoding="utf-8") as fh:
+    # newline="\n": the repo stores result JSON with LF; Windows would emit CRLF.
+    with open(OUT_VAL, "w", newline="\n", encoding="utf-8") as fh:
         json.dump(out, fh, indent=2, allow_nan=False)
     log(f"V-A max rel err {out['max_V_A_rel_err']:.3e}")
     log(f"V-B max rel err {out['max_V_B_rel_err']:.3e}")
@@ -510,7 +511,8 @@ def run_gate(a) -> int:
         "per_case": per_case,
     }
     os.makedirs(os.path.dirname(OUT_RUN), exist_ok=True)
-    with open(OUT_RUN, "w", encoding="utf-8") as fh:
+    # newline="\n": the repo stores result JSON with LF; Windows would emit CRLF.
+    with open(OUT_RUN, "w", newline="\n", encoding="utf-8") as fh:
         json.dump(out, fh, indent=2, allow_nan=False)
     log(f"wrote {OUT_RUN} ({time.time() - t0:.0f}s)")
     return 0
