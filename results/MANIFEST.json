@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-07T08:51:44.144026+00:00",
-  "git_head": "4807d2ba7f8a797619dd777d842b480c7f694baa",
-  "git_head_short": "4807d2b",
+  "generated_utc": "2026-09-07T08:52:27.392773+00:00",
+  "git_head": "fe3ce362501f1dffe54e8248a4f94c1054eed46c",
+  "git_head_short": "fe3ce36",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -12,7 +12,7 @@
     "cuda_toolkit": "12.4",
     "gpu": "NVIDIA GeForce RTX 4070 Ti"
   },
-  "n_files": 55,
+  "n_files": 58,
   "n_missing": 0,
   "missing": [],
   "files": [
@@ -157,6 +157,16 @@
       "last_commit": "79d643b"
     },
     {
+      "path": "results/certificates/floor_resolution_decomposition.json",
+      "script": "scripts/floor_resolution_decomposition.py",
+      "tier": "cpu",
+      "claims": "the residual floor does NOT decay under refinement: p=-0.64+-0.29 on a fixed physical region, 0/16 cases decay, 15/16 rise, x2.34 over 128^2-512^2; MMS truncation gate p=2.02; 128^2 rung reproduces the published floor to 3e-8",
+      "sha256": "63b188a9d20ea5c113d4a3737f1ca7d3eaa778f852b6e70d8c49e8ca57f95fb4",
+      "bytes": 475069,
+      "git_tracked": true,
+      "last_commit": "f9acead"
+    },
+    {
       "path": "results/certificates/probe_conformal_after_deq.json",
       "script": "scripts/probe_conformal_after_deq.py",
       "tier": "cpu",
@@ -195,6 +205,26 @@
       "bytes": 1569,
       "git_tracked": true,
       "last_commit": "8836fe8"
+    },
+    {
+      "path": "results/sensitivity/iters_seeded.json",
+      "script": "scripts/iters_sweep_seeded.py",
+      "tier": "gpu",
+      "claims": "seeded tab:iters on 5 Transolver+DEQ seeds: DIRECTION-ONLY. Residual up in 5/5 seeds but only +1.5% (1.3x seed sd) and higher per case in 30/72 = 42%; monotone in 0/5. Decoupling, not divergence.",
+      "sha256": "a202f43810009109fb99269f1b1dfedd9e8772185f8cb686bb3ce5a474454ee0",
+      "bytes": 34357,
+      "git_tracked": true,
+      "last_commit": "4807d2b"
+    },
+    {
+      "path": "results/sensitivity/iters_seeded.csv",
+      "script": "scripts/iters_sweep_seeded.py",
+      "tier": "gpu",
+      "claims": "mean+-sd over 5 seeds per iteration cap (csv form)",
+      "sha256": "d3bd06558583438e731660ac801591fb7548ced26d986505b9797f3022d05f4a",
+      "bytes": 746,
+      "git_tracked": true,
+      "last_commit": "4807d2b"
     },
     {
       "path": "results/sensitivity/toggles.json",

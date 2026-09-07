@@ -102,6 +102,11 @@ HEADLINE: list[dict] = [
     {"path": "results/certificates/residual_floor_realdata.json",
      "script": "scripts/probe_residual_floor.py", "tier": "cpu",
      "claims": "residual floor: ||r*|| mean 0.192; uniform field gives 0 (theorem H2)"},
+    {"path": "results/certificates/floor_resolution_decomposition.json",
+     "script": "scripts/floor_resolution_decomposition.py", "tier": "cpu",
+     "claims": "the residual floor does NOT decay under refinement: p=-0.64+-0.29 on a "
+               "fixed physical region, 0/16 cases decay, 15/16 rise, x2.34 over 128^2-512^2; "
+               "MMS truncation gate p=2.02; 128^2 rung reproduces the published floor to 3e-8"},
     {"path": "results/certificates/probe_conformal_after_deq.json",
      "script": "scripts/probe_conformal_after_deq.py", "tier": "cpu",
      "claims": "conformal survives DEQ (20/20 independent split)"},
@@ -115,6 +120,14 @@ HEADLINE: list[dict] = [
     {"path": "results/sensitivity/iters.json",
      "script": "scripts/run_sensitivity.py", "tier": "cpu",
      "claims": "iteration-sensitivity sweep (json form of tab:iters)"},
+    {"path": "results/sensitivity/iters_seeded.json",
+     "script": "scripts/iters_sweep_seeded.py", "tier": "gpu",
+     "claims": "seeded tab:iters on 5 Transolver+DEQ seeds: DIRECTION-ONLY. Residual up in "
+               "5/5 seeds but only +1.5% (1.3x seed sd) and higher per case in 30/72 = 42%; "
+               "monotone in 0/5. Decoupling, not divergence."},
+    {"path": "results/sensitivity/iters_seeded.csv",
+     "script": "scripts/iters_sweep_seeded.py", "tier": "gpu",
+     "claims": "mean+-sd over 5 seeds per iteration cap (csv form)"},
     {"path": "results/sensitivity/toggles.json",
      "script": "scripts/run_sensitivity.py", "tier": "cpu",
      "claims": "trust-gate / acceptance-test toggles are structural no-ops on DEQ"},
