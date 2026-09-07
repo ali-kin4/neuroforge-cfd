@@ -1,0 +1,149 @@
+{
+  "definition": "rho = ||R_h(start)|| / ||R_h(u*)|| per case; improved = rel_l2_speed decreased after 500 Armijo steps of BC-constrained residual descent",
+  "arms": {
+    "fno": {
+      "rho_median": 1.6853287610003065,
+      "frac_improved": 0.75,
+      "by_rho_bin": [
+        {
+          "rho_lo": 1.0,
+          "rho_hi": 1.5,
+          "n": 70,
+          "frac_improved": 0.4
+        },
+        {
+          "rho_lo": 1.5,
+          "rho_hi": 2.0,
+          "n": 73,
+          "frac_improved": 0.9726027397260274
+        },
+        {
+          "rho_lo": 2.0,
+          "rho_hi": 3.0,
+          "n": 44,
+          "frac_improved": 1.0
+        },
+        {
+          "rho_lo": 3.0,
+          "rho_hi": 5.0,
+          "n": 7,
+          "frac_improved": 1.0
+        },
+        {
+          "rho_lo": 5.0,
+          "rho_hi": 1000000000.0,
+          "n": 0,
+          "frac_improved": null
+        }
+      ]
+    },
+    "transolver_seed0": {
+      "rho_median": 1.1362780103639816,
+      "frac_improved": 0.035,
+      "by_rho_bin": [
+        {
+          "rho_lo": 1.0,
+          "rho_hi": 1.5,
+          "n": 177,
+          "frac_improved": 0.005649717514124294
+        },
+        {
+          "rho_lo": 1.5,
+          "rho_hi": 2.0,
+          "n": 18,
+          "frac_improved": 0.2777777777777778
+        },
+        {
+          "rho_lo": 2.0,
+          "rho_hi": 3.0,
+          "n": 4,
+          "frac_improved": 0.25
+        },
+        {
+          "rho_lo": 3.0,
+          "rho_hi": 5.0,
+          "n": 0,
+          "frac_improved": null
+        },
+        {
+          "rho_lo": 5.0,
+          "rho_hi": 1000000000.0,
+          "n": 0,
+          "frac_improved": null
+        }
+      ]
+    },
+    "transolver_seed1": {
+      "rho_median": 1.1370661932283332,
+      "frac_improved": 0.06,
+      "by_rho_bin": [
+        {
+          "rho_lo": 1.0,
+          "rho_hi": 1.5,
+          "n": 177,
+          "frac_improved": 0.0
+        },
+        {
+          "rho_lo": 1.5,
+          "rho_hi": 2.0,
+          "n": 19,
+          "frac_improved": 0.47368421052631576
+        },
+        {
+          "rho_lo": 2.0,
+          "rho_hi": 3.0,
+          "n": 4,
+          "frac_improved": 0.75
+        },
+        {
+          "rho_lo": 3.0,
+          "rho_hi": 5.0,
+          "n": 0,
+          "frac_improved": null
+        },
+        {
+          "rho_lo": 5.0,
+          "rho_hi": 1000000000.0,
+          "n": 0,
+          "frac_improved": null
+        }
+      ]
+    },
+    "transolver_seed2": {
+      "rho_median": 1.1320989154898378,
+      "frac_improved": 0.02,
+      "by_rho_bin": [
+        {
+          "rho_lo": 1.0,
+          "rho_hi": 1.5,
+          "n": 180,
+          "frac_improved": 0.005555555555555556
+        },
+        {
+          "rho_lo": 1.5,
+          "rho_hi": 2.0,
+          "n": 15,
+          "frac_improved": 0.13333333333333333
+        },
+        {
+          "rho_lo": 2.0,
+          "rho_hi": 3.0,
+          "n": 4,
+          "frac_improved": 0.25
+        },
+        {
+          "rho_lo": 3.0,
+          "rho_hi": 5.0,
+          "n": 0,
+          "frac_improved": null
+        },
+        {
+          "rho_lo": 5.0,
+          "rho_hi": 1000000000.0,
+          "n": 0,
+          "frac_improved": null
+        }
+      ]
+    }
+  }
+}

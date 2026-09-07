@@ -1,9 +1,0 @@
-{
-  "n_cases": 25,
-  "max_rel_err_vs_Diagnostics_residual_norm": 9.90234862286478e-08,
-  "mean_rel_err": 3.82249876843123e-08,
-  "truth_residual_norm_mean": 0.17813721507787705,
-  "truth_residual_norm_median": 0.11155529320240021,
-  "uniform_field_residual_norm_max": 0.0,
-  "H2_holds_truth_residual_nonzero": true
-}

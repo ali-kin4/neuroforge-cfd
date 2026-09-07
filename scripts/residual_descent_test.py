@@ -663,15 +663,16 @@ def main(argv=None) -> int:
     # ---- stage: eta sensitivity ------------------------------------------ #
     if a.stage in ("eta", "all"):
         etas = [10.0 ** k for k in range(-4, 8)]
-        eta_path = os.path.join(a.out_dir, "eta_sensitivity.json")
-        eta_out = {}
-        if os.path.exists(eta_path):        # resumable, written after every arm|mode
-            eta_out = json.load(open(eta_path))["rows"]
+        # One file per (arm, mode), exactly like the main stage. A single shared
+        # accumulator file is NOT safe here: the Windows venv launcher runs the script in
+        # a parent+child pair, and two writers with independent in-memory accumulators
+        # silently truncate each other's keys. Per-(arm,mode) writes are idempotent.
         for arm in ("truth", "transolver_seed0", "fno"):
             if arm not in arms:
                 continue
             for mode in ("bc", "free"):
-                if f"{arm}|{mode}" in eta_out:
+                part = os.path.join(a.out_dir, f"eta_{arm}_{mode}.json")
+                if os.path.exists(part):
                     log(f"eta {arm}/{mode}: cached, skipped")
                     continue
                 rows = []
@@ -687,10 +688,10 @@ def main(argv=None) -> int:
                         f"rel_l2 {ag['rel_l2_median_0']:.5f}->{ag['rel_l2_median_final']:.5f} "
                         f"({'n/a' if pc is None else f'{pc:+.1f}%'}) "
                         f"frac_err_up={ag['frac_error_increased']:.2f} ({time.time()-t0:.0f}s)")
-                eta_out[f"{arm}|{mode}"] = rows
-                with open(eta_path, "w") as f:
-                    json.dump({"n_cases": a.eta_cases, "n_steps": a.eta_steps,
-                               "etas": etas, "rows": eta_out}, f, indent=2)
+                with open(part, "w") as f:
+                    json.dump({"arm": arm, "mode": mode, "n_cases": a.eta_cases,
+                               "n_steps": a.eta_steps, "etas": etas, "rows": rows},
+                              f, indent=2)
 
     # ---- stage: main (Armijo, full n) ------------------------------------- #
     if a.stage in ("main", "all"):
@@ -810,6 +811,22 @@ def main(argv=None) -> int:
                 log(f"regime {k}: rho_med={v['rho_median']:.2f} "
                     f"frac_improved={v['frac_improved']:.3f} | " + "  ".join(bins_s))
 
+    # Always rebuild the summary and the merged eta table from the per-run files on disk,
+    # so a partial, resumed or double-executed run still leaves a complete, correct index.
+    eta_rows = {}
+    for fn in sorted(os.listdir(a.out_dir)):
+        p = os.path.join(a.out_dir, fn)
+        if fn.startswith("descent_") and fn.endswith(".json"):
+            d = json.load(open(p))
+            summary["runs"][d["tag"]] = d["aggregate"]
+        elif fn.startswith("eta_") and fn.endswith(".json"):
+            d = json.load(open(p))
+            eta_rows[f"{d['arm']}|{d['mode']}"] = d["rows"]
+    if eta_rows:
+        with open(os.path.join(a.out_dir, "eta_sensitivity.json"), "w") as f:
+            json.dump({"n_cases": a.eta_cases, "n_steps": a.eta_steps,
+                       "etas": [10.0 ** k for k in range(-4, 8)],
+                       "rows": eta_rows}, f, indent=2)
     summary["meta"]["wall_s_total"] = time.time() - t_start
     with open(os.path.join(a.out_dir, "summary.json"), "w") as f:
         json.dump(summary, f, indent=2)
