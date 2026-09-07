@@ -117,6 +117,27 @@ HEADLINE: list[dict] = [
                "fixed physical region, 0/16 cases decay, 15/16 rise, x2.34 ratio-of-means over "
                "128^2-512^2 (x2.56 mean-of-per-case-ratios, the JSON fine_over_coarse field); "
                "MMS truncation gate p=2.02; 128^2 rung reproduces the published floor to 3e-8"},
+    {"path": "results/certificates/floor_cloud_decimation.json",
+     "script": "scripts/floor_cloud_decimation.py", "tier": "cpu",
+     "claims": "the discriminating test for the floor's MECHANISM. Holding h fixed and "
+               "decimating the source point cloud (nested subsets D=1/2/4/8, geometry built "
+               "from the FULL cloud so sdf/mask/bands are identical at every D) raises the "
+               "floor in 16/16 cases, on all three bands, at both rungs: exponent "
+               "q = d log(floor)/d log(s) = +0.55/+0.45 (band 0.1, n=128/256), rise x1.8 at "
+               "D=8. Operator provenance predicted q=0 and is REFUTED (sign test p=3e-5); "
+               "the pre-registered representation model predicted q=1-p_h=1.64 and is ALSO "
+               "refuted (1/16 cases reach q>=1). Registered branch: REPRESENTATION-PARTIAL. "
+               "Gates: D=1 reproduces floor_resolution_decomposition.json per-case to "
+               "worst_rel 0.0 over 128 comparisons; hull fallback 0 at every D"},
+    {"path": "results/certificates/floor_collapse_analysis.json",
+     "script": "scripts/floor_collapse_analysis.py", "tier": "cpu",
+     "claims": "POST-HOC, not pre-registered. Pools the decimation grid with the committed "
+               "5-rung ladder (11 points per case per band). The registered model q-1=r holds "
+               "in 1/16 cases; the one-group s/h form q=r holds in 7/16 and wins on adjusted "
+               "R^2 in 13-14/16. Pooled over 3 bands x 5 rungs x 4 decimations (33 cells) "
+               "floor ~ (h/s)^-0.48, R^2=0.71, median scatter 12%%. The s-exponent is 66-92%% "
+               "of the h-exponent, so most of the refinement-driven growth is reproduced by "
+               "thinning the cloud at fixed grid. Per-case the collapse does NOT hold"},
     {"path": "results/certificates/probe_conformal_after_deq.json",
      "script": "scripts/probe_conformal_after_deq.py", "tier": "cpu",
      "claims": "conformal survives DEQ (20/20 independent split)"},
@@ -341,14 +362,31 @@ HEADLINE: list[dict] = [
                "indistinguishable on AUROC (CIs include zero) and significantly better on "
                "Spearman (+0.059..+0.132, 3/3 CIs exclude zero) -- cancellation identified as the "
                "mechanism by measurement rather than by argument"},
+    {"path": "results/review/floor_subtraction_gate.json",
+     "script": "scripts/floor_subtraction_gate.py", "tier": "cpu",
+     "claims": "kills the manuscript's causal clause that the conformal bound is wide BECAUSE "
+               "86%% of a typical score is floor. Oracle counterfactual: sigma' = "
+               "||R(u_hat) - R(u*)|| (a FIELD difference; a difference of norms is not a valid "
+               "decomposition and ||R(u_hat)|| < ||r*|| on 2.5-4.0%% of cases). Removing the "
+               "floor exactly makes the bound WIDER, 7.4x -> 11.3x, on 3/3 seeds, against a "
+               "pre-registered FLOOR-CAUSAL threshold of <=2x. Mechanism: the width tracks "
+               "Q_0.9/median of the nonconformity ratio (15.1 uninformative / 6.3 deployed / "
+               "10.5 floor-subtracted) and floor subtraction IMPROVES the ranking "
+               "(Spearman 0.62->0.68) while DEGRADING the scale. Since the oracle r* dominates "
+               "any learned r_hat*, this also closes the constructive half of Target C. The "
+               "deployed monitor buys 2.34x over no monitor at all"},
     {"path": "results/review/functional_audit_gate_followup.json",
      "script": "scripts/functional_audit_gate.py --followup", "tier": "cpu-verify",
      "claims": "two controls the gate's own results forced. F1: the residual NORM passes the "
                "gate's own inversion bar on the deployed arm, so the 'cannot certify' leg is "
-               "restated as a WIDTH -- split conformal attains 0.89 coverage at a 0.90 target "
-               "with a bound 5.6-6.8x the median |dCd| and 1.6x the median field rel-L2, because "
+               "restated as a WIDTH -- split conformal at the EXACT ceil((1-a)(n+1)) order "
+               "statistic attains 0.901-0.903 coverage at a 0.90 target with a bound 6.5-7.9x "
+               "the median |dCd| and 1.7x the median field rel-L2. (Before 2026-09-07 this used "
+               "a plain np.quantile, which lands at position 90.1/100 and delivered exactly the "
+               "predicted 0.891-0.895; the fix raised the width by 15-17%%.) "
                "median ||R(truth)||/median ||R(pred)|| = 0.864, i.e. 86%% of a typical score is "
-               "floor present at zero error. F2: the far-field flux beats the surface integrator "
+               "floor present at zero error -- but see floor_subtraction_gate.json: that share "
+               "is NOT what makes the bound wide. F2: the far-field flux beats the surface integrator "
                "on GROUND-TRUTH fields (rho 0.985 vs 0.839) and LOSES on PREDICTED fields "
                "(0.37-0.49 vs 0.83-0.85), which withdraws an integrator recommendation an earlier "
                "draft of the report made"},

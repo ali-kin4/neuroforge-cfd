@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-07T10:55:58.186720+00:00",
-  "git_head": "fc1b4bdd4a047d19f02be3432786547080dd938d",
-  "git_head_short": "fc1b4bd",
+  "generated_utc": "2026-09-07T17:21:51.841640+00:00",
+  "git_head": "3d487200696e32248298cbcba66a1ae974ad64cf",
+  "git_head_short": "3d48720",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -12,7 +12,7 @@
     "cuda_toolkit": "12.4",
     "gpu": "NVIDIA GeForce RTX 4070 Ti"
   },
-  "n_files": 65,
+  "n_files": 68,
   "n_missing": 0,
   "missing": [],
   "files": [
@@ -175,6 +175,26 @@
       "bytes": 475069,
       "git_tracked": true,
       "last_commit": "f9acead"
+    },
+    {
+      "path": "results/certificates/floor_cloud_decimation.json",
+      "script": "scripts/floor_cloud_decimation.py",
+      "tier": "cpu",
+      "claims": "the discriminating test for the floor's MECHANISM. Holding h fixed and decimating the source point cloud (nested subsets D=1/2/4/8, geometry built from the FULL cloud so sdf/mask/bands are identical at every D) raises the floor in 16/16 cases, on all three bands, at both rungs: exponent q = d log(floor)/d log(s) = +0.55/+0.45 (band 0.1, n=128/256), rise x1.8 at D=8. Operator provenance predicted q=0 and is REFUTED (sign test p=3e-5); the pre-registered representation model predicted q=1-p_h=1.64 and is ALSO refuted (1/16 cases reach q>=1). Registered branch: REPRESENTATION-PARTIAL. Gates: D=1 reproduces floor_resolution_decomposition.json per-case to worst_rel 0.0 over 128 comparisons; hull fallback 0 at every D",
+      "sha256": "11a66fd475229b948bae0592cc17c354b62ffe10388e7bc2f31d5e06a2dbda71",
+      "bytes": 143905,
+      "git_tracked": true,
+      "last_commit": "3d48720"
+    },
+    {
+      "path": "results/certificates/floor_collapse_analysis.json",
+      "script": "scripts/floor_collapse_analysis.py",
+      "tier": "cpu",
+      "claims": "POST-HOC, not pre-registered. Pools the decimation grid with the committed 5-rung ladder (11 points per case per band). The registered model q-1=r holds in 1/16 cases; the one-group s/h form q=r holds in 7/16 and wins on adjusted R^2 in 13-14/16. Pooled over 3 bands x 5 rungs x 4 decimations (33 cells) floor ~ (h/s)^-0.48, R^2=0.71, median scatter 12%%. The s-exponent is 66-92%% of the h-exponent, so most of the refinement-driven growth is reproduced by thinning the cloud at fixed grid. Per-case the collapse does NOT hold",
+      "sha256": "0c29de8e520a6821ebd4d509b0c4fb8d8101cc14560d4e2c785d40cfc127259b",
+      "bytes": 24339,
+      "git_tracked": true,
+      "last_commit": "3d48720"
     },
     {
       "path": "results/certificates/probe_conformal_after_deq.json",
@@ -657,14 +677,24 @@
       "last_commit": "a81c9bd"
     },
     {
+      "path": "results/review/floor_subtraction_gate.json",
+      "script": "scripts/floor_subtraction_gate.py",
+      "tier": "cpu",
+      "claims": "kills the manuscript's causal clause that the conformal bound is wide BECAUSE 86%% of a typical score is floor. Oracle counterfactual: sigma' = ||R(u_hat) - R(u*)|| (a FIELD difference; a difference of norms is not a valid decomposition and ||R(u_hat)|| < ||r*|| on 2.5-4.0%% of cases). Removing the floor exactly makes the bound WIDER, 7.4x -> 11.3x, on 3/3 seeds, against a pre-registered FLOOR-CAUSAL threshold of <=2x. Mechanism: the width tracks Q_0.9/median of the nonconformity ratio (15.1 uninformative / 6.3 deployed / 10.5 floor-subtracted) and floor subtraction IMPROVES the ranking (Spearman 0.62->0.68) while DEGRADING the scale. Since the oracle r* dominates any learned r_hat*, this also closes the constructive half of Target C. The deployed monitor buys 2.34x over no monitor at all",
+      "sha256": "af91784513e93a698dccdf3a9121813eb001a88d24e36ad66d30548f4bfdd05c",
+      "bytes": 209820,
+      "git_tracked": true,
+      "last_commit": "3d48720"
+    },
+    {
       "path": "results/review/functional_audit_gate_followup.json",
       "script": "scripts/functional_audit_gate.py --followup",
       "tier": "cpu-verify",
-      "claims": "two controls the gate's own results forced. F1: the residual NORM passes the gate's own inversion bar on the deployed arm, so the 'cannot certify' leg is restated as a WIDTH -- split conformal attains 0.89 coverage at a 0.90 target with a bound 5.6-6.8x the median |dCd| and 1.6x the median field rel-L2, because median ||R(truth)||/median ||R(pred)|| = 0.864, i.e. 86%% of a typical score is floor present at zero error. F2: the far-field flux beats the surface integrator on GROUND-TRUTH fields (rho 0.985 vs 0.839) and LOSES on PREDICTED fields (0.37-0.49 vs 0.83-0.85), which withdraws an integrator recommendation an earlier draft of the report made",
-      "sha256": "9bbb50bbe7fb58eadaca03137054293f46404e50fa131e5539cdc30d820114b4",
-      "bytes": 2758,
+      "claims": "two controls the gate's own results forced. F1: the residual NORM passes the gate's own inversion bar on the deployed arm, so the 'cannot certify' leg is restated as a WIDTH -- split conformal at the EXACT ceil((1-a)(n+1)) order statistic attains 0.901-0.903 coverage at a 0.90 target with a bound 6.5-7.9x the median |dCd| and 1.7x the median field rel-L2. (Before 2026-09-07 this used a plain np.quantile, which lands at position 90.1/100 and delivered exactly the predicted 0.891-0.895; the fix raised the width by 15-17%%.) median ||R(truth)||/median ||R(pred)|| = 0.864, i.e. 86%% of a typical score is floor present at zero error -- but see floor_subtraction_gate.json: that share is NOT what makes the bound wide. F2: the far-field flux beats the surface integrator on GROUND-TRUTH fields (rho 0.985 vs 0.839) and LOSES on PREDICTED fields (0.37-0.49 vs 0.83-0.85), which withdraws an integrator recommendation an earlier draft of the report made",
+      "sha256": "3a042e7691c396b3c94acfaaa295af7491bacaa9a05e9029153a3acce82e7d43",
+      "bytes": 2783,
       "git_tracked": true,
-      "last_commit": "367553e"
+      "last_commit": "3d48720"
     }
   ]
 }
