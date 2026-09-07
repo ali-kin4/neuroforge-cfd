@@ -669,22 +669,33 @@ def main(argv=None) -> int:
 
     # ---- stage: main (Armijo, full n) ------------------------------------- #
     if a.stage in ("main", "all"):
-        combos = []
-        for arm in arms:
-            for mode in ("bc", "free"):
-                combos.append((arm, mode, "uvp"))
+        # Priority order: the headline (bc-constrained) arms first, then the
+        # ill-posedness (free) arms, then the extra seeds and the all-4-channel variant.
+        # Each combo writes its own JSON and is skipped on re-run, so the ordering also
+        # doubles as a resume order if the box loses power mid-sweep.
+        order = ["truth", "transolver_seed0", "fno",
+                 "transolver_seed1", "transolver_seed2"]
+        order = [x for x in order if x in arms] + [x for x in arms if x not in order]
+        combos = [(arm, "bc", "uvp") for arm in order]
+        combos += [(arm, "free", "uvp") for arm in order]
         combos.append(("truth", "bc", "uvpn"))
         combos.append(("transolver_seed0", "bc", "uvpn"))
         for obj_name in obj_list:
             for arm, mode, varset in combos:
                 tag = f"{arm}_{mode}_{varset}_armijo" + ("" if obj_name == "monitored"
                                                          else f"_{obj_name}")
+                path = os.path.join(a.out_dir, f"descent_{tag}.json")
+                if os.path.exists(path):          # resumable: this box loses power
+                    with open(path) as f:
+                        summary["runs"][tag] = json.load(f)["aggregate"]
+                    log(f"MAIN {tag}: cached, skipped")
+                    continue
                 t0 = time.time()
                 recs, traj = run(arm, mode, varset, "armijo", 1e-6, a.n_steps, obj_name)
                 ag = aggregate(recs)
                 ag["wall_s"] = time.time() - t0
                 summary["runs"][tag] = ag
-                with open(os.path.join(a.out_dir, f"descent_{tag}.json"), "w") as f:
+                with open(path, "w") as f:
                     json.dump({"tag": tag, "arm": arm, "mode": mode, "vars": varset,
                                "rule": "armijo", "objective": obj_name,
                                "n_steps": a.n_steps, "aggregate": ag,

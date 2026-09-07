@@ -1,4 +1,4 @@
-\begin{thebibliography}{40}
+\begin{thebibliography}{41}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 \providecommand{\url}[1]{\texttt{#1}}
 \providecommand{\href}[2]{#2}
@@ -294,6 +294,14 @@
 \newblock \bibinfo{journal}{Nature Machine Intelligence} \bibinfo{volume}{6}
   (\bibinfo{year}{2024}) \bibinfo{pages}{1256--1269}.
   \DOIprefix\doi{10.1038/s42256-024-00897-5}.
+%Type = Article
+\bibitem[{Rhie and Chow(1983)}]{rhiechow1983}
+\bibinfo{author}{C.~M. Rhie}, \bibinfo{author}{W.~L. Chow},
+\newblock \bibinfo{title}{Numerical study of the turbulent flow past an airfoil
+  with trailing edge separation},
+\newblock \bibinfo{journal}{AIAA Journal} \bibinfo{volume}{21}
+  (\bibinfo{year}{1983}) \bibinfo{pages}{1525--1532}.
+  \DOIprefix\doi{10.2514/3.8284}.
 %Type = Inproceedings
 \bibitem[{Krishnapriyan et~al.(2021)Krishnapriyan, Gholami, Zhe, Kirby, and
   Mahoney}]{krishnapriyan2021failure}
@@ -340,14 +348,12 @@
 \newblock \bibinfo{journal}{SIAM Journal on Numerical Analysis}
   \bibinfo{volume}{38} (\bibinfo{year}{2000}) \bibinfo{pages}{466--488}.
   \DOIprefix\doi{10.1137/S0036142999360044}.
-%Type = Article
-\bibitem[{Bochev and Gunzburger(2009)}]{bochev2009lsfem}
-\bibinfo{author}{P.~Bochev}, \bibinfo{author}{M.~Gunzburger},
-\newblock \bibinfo{title}{A locally conservative least-squares method for
-  {D}arcy flows},
-\newblock \bibinfo{journal}{Communications in Numerical Methods in Engineering}
-  \bibinfo{volume}{24} (\bibinfo{year}{2009}) \bibinfo{pages}{97--110}.
-  \DOIprefix\doi{10.1002/cnm.1029}.
+%Type = Book
+\bibitem[{Bochev and Gunzburger(2009)}]{bochevgunzburger2009book}
+\bibinfo{author}{P.~B. Bochev}, \bibinfo{author}{M.~D. Gunzburger},
+  \bibinfo{title}{Least-Squares Finite Element Methods}, Applied Mathematical
+  Sciences, \bibinfo{publisher}{Springer}, \bibinfo{address}{New York},
+  \bibinfo{year}{2009}. \DOIprefix\doi{10.1007/b13382}.
 %Type = Article
 \bibitem[{Ashton et~al.(2024)Ashton, Maddix, Gundry, and
   Shabestari}]{ahmedml2024}

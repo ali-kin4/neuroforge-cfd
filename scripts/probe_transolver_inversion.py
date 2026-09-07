@@ -87,6 +87,13 @@ dropout-FNO stage is a small grid model and stays on CPU. The device actually
 used is recorded in the output JSON. Writes ONE JSON; touches nothing under
 ``results/mgn/``, ``checkpoints/mgn/``.
 
+RESUMABILITY (this run WAS killed once mid-seed and lost 50 min of GPU)
+-----------------------------------------------------------------------
+Each stage writes an ATOMIC per-stage cache under ``--cache-dir`` the moment it
+finishes (tmp + ``os.replace``), and a completed stage/seed is skipped instantly
+on re-run. Re-issuing the IDENTICAL command continues from the last saved seed.
+The 1.86 GB cloud pickle is loaded once, and only if some seed still needs work.
+
 Always import ``neuroforge`` FIRST (BLAS thread caps).
 
 Run (full, the deciding measurement):
@@ -129,6 +136,7 @@ REFERENCE_JSON = "results/certificates/residual_floor_realdata.json"
 FNO_CKPT = "checkpoints/certificates_deq.pt"
 TRANSOLVER_DIR = "checkpoints/v2_transolver"
 OUT_JSON = "results/certificates/transolver_inversion.json"
+CACHE_DIR = "results/certificates/inversion_cache"
 
 # Pre-registered sdf bands, reused verbatim from the committed
 # scripts/control_cylinder_nearwall_artifact.py (NOT invented here).
@@ -142,6 +150,15 @@ PUBLISHED_N = 200
 
 def log(msg: str) -> None:
     print(f"[inv] {msg}", flush=True)
+
+
+def _atomic_json(obj, path: str) -> None:
+    """Write JSON atomically (tmp + os.replace) so a kill cannot corrupt a cache."""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(obj, fh, indent=2, allow_nan=False)
+    os.replace(tmp, path)
 
 
 # --------------------------------------------------------------------------- #
@@ -342,7 +359,13 @@ def gate_a(per_case) -> dict:
 # --------------------------------------------------------------------------- #
 # Stage: dropout-FNO (GATE B) -- CPU, grid backbone
 # --------------------------------------------------------------------------- #
-def stage_fno(pairs, per_case, checker, n):
+def stage_fno(pairs, per_case, checker, n, cache_dir):
+    """Score the dropout-FNO. Cached: a completed stage is reloaded, not redone."""
+    cpath = os.path.join(cache_dir, "fno.json")
+    if os.path.exists(cpath):
+        log("dropout-FNO stage already complete -- loading cache")
+        return json.load(open(cpath, encoding="utf-8")), None
+
     import neuroforge as nf
 
     t0 = time.time()
@@ -367,14 +390,32 @@ def stage_fno(pairs, per_case, checker, n):
 
     summary = summarise(norms, truths, "dropout_FNO_backbone")
     summary["smoothness"] = summarise_grad(ratios)
+    _atomic_json(summary, cpath)
     return summary, norms
 
 
 # --------------------------------------------------------------------------- #
 # Stage: Transolver backbone + deployed DEQ field
 # --------------------------------------------------------------------------- #
-def stage_transolver(pairs, per_case, checker, seeds, device, pc_cache, n):
+def stage_transolver(pairs, per_case, checker, seeds, device, pc_cache, n, cache_dir):
+    """Score each seed. RESUMABLE: a completed seed is cached and skipped.
+
+    The point-cloud pickle (1.86 GB) is loaded ONCE and reused across seeds, and
+    only if at least one seed still needs work.
+    """
     from make_cylinder_ood_figure import load_backbone, load_corrector
+
+    out = {}
+    todo = []
+    for seed in seeds:
+        cpath = os.path.join(cache_dir, f"seed{seed}.json")
+        if os.path.exists(cpath):
+            log(f"seed {seed}: already complete -- loading cache")
+            out[f"seed{seed}"] = json.load(open(cpath, encoding="utf-8"))
+        else:
+            todo.append(seed)
+    if not todo:
+        return out
 
     log(f"loading point clouds {pc_cache} (once, reused across seeds) ...")
     t0 = time.time()
@@ -383,8 +424,7 @@ def stage_transolver(pairs, per_case, checker, seeds, device, pc_cache, n):
     log(f"loaded {len(pcs)} clouds in {time.time() - t0:.1f}s")
 
     cfg = Config()  # deployed defaults -- same as run_w1_capture.py
-    out = {}
-    for seed in seeds:
+    for seed in todo:
         bb = os.path.join(TRANSOLVER_DIR, f"seed{seed}.pt")
         cc = os.path.join(TRANSOLVER_DIR, f"seed{seed}_corr_with.pt")
         if not (os.path.exists(bb) and os.path.exists(cc)):
@@ -428,11 +468,10 @@ def stage_transolver(pairs, per_case, checker, seeds, device, pc_cache, n):
         s_bb["smoothness"] = summarise_grad(bb_ratios)
         s_deq = summarise(deq_norms, truths, f"transolver_deq_deployed_seed{seed}")
         s_deq["smoothness"] = summarise_grad(deq_ratios)
-        out[f"seed{seed}"] = {
-            "backbone_alone": s_bb,
-            "deq_deployed": s_deq,
-            "seconds": dt,
-        }
+        rec = {"backbone_alone": s_bb, "deq_deployed": s_deq, "seconds": dt}
+        out[f"seed{seed}"] = rec
+        # Persist IMMEDIATELY: a kill after this point never costs this seed.
+        _atomic_json(rec, os.path.join(cache_dir, f"seed{seed}.json"))
         del model, predictor
         if device.type == "cuda":
             torch.cuda.empty_cache()
@@ -450,9 +489,12 @@ def main(argv=None) -> int:
     p.add_argument("--device", default="cuda")
     p.add_argument("--pc-cache", default=PC_CACHE)
     p.add_argument("--out", default=OUT_JSON)
+    p.add_argument("--cache-dir", default=CACHE_DIR,
+                   help="per-stage resume cache (a completed seed is skipped)")
     p.add_argument("--skip-fno", action="store_true")
     p.add_argument("--skip-transolver", action="store_true")
     a = p.parse_args(argv)
+    os.makedirs(a.cache_dir, exist_ok=True)
 
     device = torch.device(a.device if a.device != "auto"
                           else ("cuda" if torch.cuda.is_available() else "cpu"))
@@ -474,7 +516,7 @@ def main(argv=None) -> int:
     fno_summary, gB = None, None
     if not a.skip_fno:
         log("dropout-FNO stage (CPU) ...")
-        fno_summary, _ = stage_fno(pairs, per_case, checker, n)
+        fno_summary, _ = stage_fno(pairs, per_case, checker, n, a.cache_dir)
         k = fno_summary["n_below_truth_floor"]
         gB = {
             "status": "re-derived dropout-FNO inversion count from scratch",
@@ -489,7 +531,8 @@ def main(argv=None) -> int:
     trans = {}
     if not a.skip_transolver:
         log(f"Transolver stage on {device} ...")
-        trans = stage_transolver(pairs, per_case, checker, a.seeds, device, a.pc_cache, n)
+        trans = stage_transolver(pairs, per_case, checker, a.seeds, device,
+                                 a.pc_cache, n, a.cache_dir)
 
     # ---- verdict -------------------------------------------------------- #
     bb_counts = [v["backbone_alone"]["n_below_truth_floor"] for v in trans.values()]

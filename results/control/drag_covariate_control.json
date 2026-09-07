@@ -1,0 +1,77 @@
+{
+  "meta": {
+    "purpose": "Separate force information from case identity in AirfRANS drag/lift rank correlations. Covariates (U, alpha) are parsed from the simulation NAME, exactly as Simulation.reset() does.",
+    "n_cases": 200,
+    "geometry_not_controlled": "NACA digits are also in the name; rho_cov is therefore a LOWER bound on case identity."
+  },
+  "covariate_baseline": {
+    "rho_alpha_vs_cd": 0.8001020025500639,
+    "rho_absalpha_vs_cd": 0.8179820062934673,
+    "rho_U_vs_cd": -0.1953288832220806,
+    "rho_fit_U_a_vs_cd": 0.8296647416185405,
+    "rho_fit_U_a_a2_vs_cd": 0.8741618540463513,
+    "rho_alpha_vs_cl": 0.933543838595965,
+    "rho_fit_U_a_vs_cl": 0.9342578564464113,
+    "rho_fit_U_a_a2_vs_cl": 0.9342578564464113
+  },
+  "per_arm": {
+    "legacy_gt_nf": {
+      "rho_cd_marginal": 0.8394464861621541,
+      "rho_cd_partial_U_a": 0.646689292479417,
+      "rho_cd_partial_U_a_a2": 0.5601077356025148,
+      "rho_cl_marginal": 0.8757398934973376,
+      "rho_cl_partial_U_a": 0.8555311356585397
+    },
+    "multischeme_legacy": {
+      "rho_cd_marginal": 0.8394464861621541,
+      "rho_cd_partial_U_a": 0.646689292479417,
+      "rho_cd_partial_U_a_a2": 0.5601077356025148,
+      "rho_cl_marginal": 0.8757398934973376,
+      "rho_cl_partial_U_a": 0.8555311356585397
+    },
+    "multischeme_wall": {
+      "rho_cd_marginal": 0.8002955073876847,
+      "rho_cd_partial_U_a": 0.5576613856053747,
+      "rho_cd_partial_U_a_a2": 0.44859308734552555,
+      "rho_cl_marginal": 0.8821975549388735,
+      "rho_cl_partial_U_a": 0.8519013224368591
+    },
+    "multischeme_cv": {
+      "rho_cd_marginal": 0.6109412735318384,
+      "rho_cd_partial_U_a": 0.5312880817055755,
+      "rho_cd_partial_U_a_a2": 0.49600467854167,
+      "rho_cl_marginal": 0.9999924998124954,
+      "rho_cl_partial_U_a": 0.9999432441761922
+    },
+    "pred_seed0": {
+      "rho_cd_marginal": 0.8450086252156306,
+      "rho_cd_partial_U_a": 0.6533205326253811,
+      "rho_cd_partial_U_a_a2": 0.5670911502650284,
+      "rho_cl_marginal": 0.8796969924248107,
+      "rho_cl_partial_U_a": 0.8572807283560763
+    },
+    "pred_seed1": {
+      "rho_cd_marginal": 0.8284917122928074,
+      "rho_cd_partial_U_a": 0.6245626908546584,
+      "rho_cd_partial_U_a_a2": 0.5258673191498862,
+      "rho_cl_marginal": 0.8785944648616216,
+      "rho_cl_partial_U_a": 0.8574505694868665
+    },
+    "pred_seed2": {
+      "rho_cd_marginal": 0.8429220730518263,
+      "rho_cd_partial_U_a": 0.6414881534997936,
+      "rho_cd_partial_U_a_a2": 0.5555352443411103,
+      "rho_cl_marginal": 0.8789724743118579,
+      "rho_cl_partial_U_a": 0.8586731222827435
+    }
+  },
+  "arms_not_beating_covariate_baseline_on_cd": [
+    "legacy_gt_nf",
+    "multischeme_legacy",
+    "multischeme_wall",
+    "multischeme_cv",
+    "pred_seed0",
+    "pred_seed1",
+    "pred_seed2"
+  ]
+}

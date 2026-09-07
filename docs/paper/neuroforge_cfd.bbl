@@ -1,4 +1,4 @@
-\begin{thebibliography}{40}
+\begin{thebibliography}{41}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -26,12 +26,12 @@ Roland Becker and Rolf Rannacher.
 \newblock \emph{Acta Numerica}, 10:\penalty0 1--102, 2001.
 \newblock \doi{10.1017/S0962492901000010}.
 
-\bibitem[Bochev \& Gunzburger(2009)Bochev and Gunzburger]{bochev2009lsfem}
-Pavel Bochev and Max Gunzburger.
-\newblock A locally conservative least-squares method for {D}arcy flows.
-\newblock \emph{Communications in Numerical Methods in Engineering},
-  24\penalty0 (2):\penalty0 97--110, 2009.
-\newblock \doi{10.1002/cnm.1029}.
+\bibitem[Bochev \& Gunzburger(2009)Bochev and
+  Gunzburger]{bochevgunzburger2009book}
+Pavel~B. Bochev and Max~D. Gunzburger.
+\newblock \emph{Least-Squares Finite Element Methods}.
+\newblock Applied Mathematical Sciences. Springer, New York, 2009.
+\newblock \doi{10.1007/b13382}.
 
 \bibitem[Bonnet et~al.(2022)Bonnet, Mazari, Cinnella, and
   Gallinari]{bonnet2022airfrans}
@@ -243,6 +243,13 @@ Rishikesh Ranade, Mohammad~Amin Nabian, Kaustubh Tangsali, Alexey Kamenev,
   modeling large scale engineering simulations.
 \newblock \emph{arXiv preprint arXiv:2501.13350}, 2025.
 \newblock NVIDIA.
+
+\bibitem[Rhie \& Chow(1983)Rhie and Chow]{rhiechow1983}
+C.~M. Rhie and W.~L. Chow.
+\newblock Numerical study of the turbulent flow past an airfoil with trailing
+  edge separation.
+\newblock \emph{AIAA Journal}, 21\penalty0 (11):\penalty0 1525--1532, 1983.
+\newblock \doi{10.2514/3.8284}.
 
 \bibitem[Ribeiro et~al.(2020)Ribeiro, Rehman, Ahmed, and
   Dengel]{ribeiro2020deepcfd}

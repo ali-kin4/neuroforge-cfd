@@ -1,0 +1,12 @@
+Highlights
+
+Computers & Fluids requires 3-5 bullets, each at most 85 characters including
+spaces, submitted as a separate editable file with "highlights" in the filename.
+All five below are within the limit (76-79 characters); character counts are
+verified by scripts/check_submission.py.
+
+- The RANS residual a surrogate can afford is nonzero at the ground truth itself
+- Refining the grid from 128^2 to 512^2 makes that floor grow, in 21 of 24 cases
+- Descending it from the exact truth cuts it 84% and drives field error from zero
+- The residual-selected iterate is never the error-optimal one, in 24 of 24 runs
+- The limit is operator consistency, not steady versus transient or resolution
