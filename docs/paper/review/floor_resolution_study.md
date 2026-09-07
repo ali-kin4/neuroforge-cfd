@@ -549,13 +549,15 @@ fixed point in the *field*, not the eval collapsing to duplicate rows.
 |---|---|---|
 | sign count ≥ 4/5 | residual higher at k=15 than k=0 in **5/5** seeds (+0.21% … +3.07%) | ✅ |
 | magnitude ≥ 2× across-seed sd | mean rise +0.00314, sd 0.00237 → **1.3×** | ❌ |
-| paired per-case majority | residual higher at the error-minimising k in **30/72 = 42%** of cases (at k=15: 34/72 = 47%) — **at or below chance** | ❌ |
+| paired per-case majority | residual higher at the error-minimising k in **45/120 = 38%** of cases — **below chance**, all 5 seeds | ❌ |
 | "monotonically" | monotone non-decreasing in **0/5** seeds — every seed *dips* at k=1 | ❌ |
 
 **Verdict: DIRECTION-ONLY.** On the SOTA Transolver arm the residual is
 **flat-to-slightly-rising (+1.5% mean)** while `mse_u` falls **9.4%**. That is
 **decoupling, not divergence.** The mean rise is real in sign across all 5 seeds but
 is carried by a minority of cases; the median case's residual does not rise at all.
+With all 5 seeds paired (120 case-pairs) the figure is **38%** — the residual is
+*more often lower* at the error-minimising cap than higher.
 
 ### 10.5 What the paper must change
 
@@ -586,9 +588,10 @@ is carried by a minority of cases; the median case's residual does not rise at a
 **Caveats.** n_eval = 24 (first 24 in cache order) against `tab:iters`'s 80 (shuffled
 index) — a budget deviation, stated in §10.2. Per-case residuals were logged only for
 seeds 0, 3, 4 (the diagnostic was added after seeds 1–2 ran), so the paired statistic
-is n = 72 case-pairs from 3 seeds rather than 120 from 5. A re-run with
-`--seeds 1 2` would complete it at ~35 min and is the one loose end here;
-`--reaggregate` recomputes the verdict from stored per-seed data at zero cost.
+was initially n = 72 from 3 seeds; seeds 1 and 2 were re-run to close that gap, so
+it is now the full **n = 120 case-pairs from all 5 seeds**, and the result moved
+*further* from chance (42% → 38%) rather than toward it. `--reaggregate` recomputes
+the verdict from stored per-seed data at zero cost.
 
 ## 11. Status of the six reports
 

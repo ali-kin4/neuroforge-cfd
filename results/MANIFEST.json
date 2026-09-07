@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-07T09:07:42.550688+00:00",
-  "git_head": "3e0a9c43da934c00cdf94cfa9fb2b08106220ae0",
-  "git_head_short": "3e0a9c4",
+  "generated_utc": "2026-09-07T09:35:42.072608+00:00",
+  "git_head": "4d3b6d23c34b7df2f76b4f1e21679c927acd37c4",
+  "git_head_short": "4d3b6d2",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -211,8 +211,8 @@
       "script": "scripts/iters_sweep_seeded.py",
       "tier": "gpu",
       "claims": "seeded tab:iters on 5 Transolver+DEQ seeds: DIRECTION-ONLY. Residual up in 5/5 seeds but only +1.5% (1.3x seed sd) and higher per case in 30/72 = 42%; monotone in 0/5. Decoupling, not divergence.",
-      "sha256": "a202f43810009109fb99269f1b1dfedd9e8772185f8cb686bb3ce5a474454ee0",
-      "bytes": 34357,
+      "sha256": "29aa352f9be7a3becbcc92830faadee81bc40accf7aafd3d278c6fc67474bb4b",
+      "bytes": 45819,
       "git_tracked": true,
       "last_commit": "4807d2b"
     },
