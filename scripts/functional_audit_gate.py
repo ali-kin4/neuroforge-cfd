@@ -565,6 +565,33 @@ def auroc(score, label):
     return float((r[label].sum() - npos * (npos + 1) / 2.0) / (npos * nneg))
 
 
+def conformal_quantile(ratio, alpha=0.10):
+    """The split-conformal quantile: the ceil((1-alpha)(n+1))-th order statistic.
+
+    NOT ``np.quantile(ratio, 1-alpha)``. The plain empirical quantile with linear
+    interpolation returns the value at position ``1 + (1-alpha)(n-1)``, which for
+    ``n = 100, alpha = 0.10`` is position 90.1 of 100 and predicts coverage
+    ``90.1/101 = 0.892`` -- the deficit that was measured (0.891-0.895) before this
+    was fixed. The finite-sample guarantee ``P(E <= c*sigma) >= 1-alpha`` is a
+    statement about the ``k``-th order statistic with ``k = ceil((1-alpha)(n+1))``,
+    and is recovered only by taking that order statistic exactly. Writing it as an
+    order statistic rather than ``np.quantile(..., method="higher")`` matters:
+    ``method="higher"`` on the rounded level lands on the 92nd rather than the
+    required 91st -- valid, but one step conservative.
+
+    If ``k > n`` the calibration set is too small for the level and the only valid
+    bound is infinite; that is returned rather than silently truncated.
+    """
+    r = np.sort(np.asarray(ratio, float))
+    n = r.size
+    if n == 0:
+        return float("inf")
+    k = int(np.ceil((n + 1) * (1.0 - alpha)))
+    if k > n:
+        return float("inf")
+    return float(r[k - 1])
+
+
 def retained_risk(err, score, frac_reject):
     n = len(err)
     k = int(round(frac_reject * n))
@@ -826,7 +853,7 @@ def _conformal(pc, names, seeds, box_names, cd_t, a) -> dict:
                 idx = rng.permutation(len(names))
                 cal, tst = idx[: len(idx) // 2], idx[len(idx) // 2:]
                 ratio = e[cal] / np.maximum(sc[cal], 1e-30)
-                c = float(np.quantile(ratio, 0.90))
+                c = conformal_quantile(ratio, alpha=0.10)
                 covs.append(float((e[tst] <= c * sc[tst]).mean()))
                 cs.append(c)
             res["arms"][f"seed{s}/{box}"] = {
@@ -873,7 +900,11 @@ def followup(a) -> int:
         for _ in range(reps):
             i = rng.permutation(len(err))
             cal, tst = i[: len(i) // 2], i[len(i) // 2:]
-            c = float(np.quantile(err[cal] / np.maximum(score[cal], 1e-30), q))
+            # Exact split-conformal order statistic, NOT np.quantile: see
+            # conformal_quantile(). The plain quantile predicted -- and delivered --
+            # coverage 0.892 against a 0.90 target.
+            c = conformal_quantile(err[cal] / np.maximum(score[cal], 1e-30),
+                                   alpha=1.0 - q)
             cs.append(c)
             cov.append(float((err[tst] <= c * score[tst]).mean()))
             w.append(float(np.median(c * score[tst])))

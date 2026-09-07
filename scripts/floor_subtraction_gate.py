@@ -231,7 +231,9 @@ def main(argv=None):
            "per_case": per_case}
     os.makedirs(os.path.dirname(a.out), exist_ok=True)
     with open(a.out, "w", newline="\n", encoding="utf-8") as fh:
-        json.dump(out, fh, indent=1, allow_nan=False)
+        # Spearman against a constant score is undefined (the uninformative arm);
+        # JSON has no NaN, so non-finite floats are written as null.
+        json.dump(_clean(out), fh, indent=1, allow_nan=False)
     print(f"\nwrote {a.out} ({time.time() - t0:.0f}s)\n")
 
     hdr = f"{'arm':<46}{'cov':>7}{'width':>10}{'x med err':>11}{'rho':>8}"
@@ -242,6 +244,16 @@ def main(argv=None):
               f"{v['bound_over_error']:>11.2f}{v['spearman_score_vs_err']:>8.3f}")
     print(f"\n=== VERDICT: {br} ===\n  {why}")
     return 0
+
+
+def _clean(o):
+    if isinstance(o, dict):
+        return {k: _clean(v) for k, v in o.items()}
+    if isinstance(o, list):
+        return [_clean(v) for v in o]
+    if isinstance(o, float) and not np.isfinite(o):
+        return None
+    return o
 
 
 def cd_of(field, case):

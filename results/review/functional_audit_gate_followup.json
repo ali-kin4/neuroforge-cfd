@@ -5,32 +5,32 @@
   "method": "split conformal, 90% target, 400 random half-splits",
   "arms": {
    "raw_seed0/target_absdCd": {
-    "c_median": 0.05175856887410242,
-    "coverage_mean": 0.891025,
-    "median_bound_width": 0.007879389892223997,
+    "c_median": 0.0656052595648042,
+    "coverage_mean": 0.9007999999999999,
+    "median_bound_width": 0.009183896380061052,
     "median_abs_dCd": 0.0014151048348425635,
-    "bound_over_error": 5.568060894301596
+    "bound_over_error": 6.489905308734812
    },
    "raw_seed1/target_absdCd": {
-    "c_median": 0.06983207044035682,
-    "coverage_mean": 0.894525,
-    "median_bound_width": 0.0099995876275663,
+    "c_median": 0.07876959885435499,
+    "coverage_mean": 0.9033250000000002,
+    "median_bound_width": 0.011723094275115906,
     "median_abs_dCd": 0.0014866303673278652,
-    "bound_over_error": 6.726344252969888
+    "bound_over_error": 7.8856819642313045
    },
    "raw_seed2/target_absdCd": {
-    "c_median": 0.0556985034546216,
-    "coverage_mean": 0.8909750000000001,
-    "median_bound_width": 0.008608705976715557,
+    "c_median": 0.06351705224576588,
+    "coverage_mean": 0.90105,
+    "median_bound_width": 0.009857204280320454,
     "median_abs_dCd": 0.0012728187686796223,
-    "bound_over_error": 6.763497041802681
+    "bound_over_error": 7.744389478594798
    },
    "ensemble_mean/target_field_rel_l2": {
-    "c_median": 0.03795660096942892,
-    "coverage_mean": 0.893,
-    "median_bound_width": 0.005323605442713184,
+    "c_median": 0.04001346679013294,
+    "coverage_mean": 0.9019499999999999,
+    "median_bound_width": 0.005461289875760135,
     "median_rel_l2": 0.003310680367362313,
-    "bound_over_error": 1.6080094880783098
+    "bound_over_error": 1.6495974451654045
    }
   },
   "floor_share_of_typical_score": 0.8635592438826322
@@ -81,9 +81,9 @@
   }
  },
  "meta": {
-  "date": "2026-09-07 11:30:35",
+  "date": "2026-09-07 20:24:35",
   "n_cases": 200,
   "n_with_official": 200,
-  "runtime_s": 0.13812041282653809
+  "runtime_s": 0.09817934036254883
  }
 }
