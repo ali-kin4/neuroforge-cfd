@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-07T08:02:32.791433+00:00",
-  "git_head": "da23297d2cdcabbadc68ce8745fadc6d8ce9d0ae",
-  "git_head_short": "da23297",
+  "generated_utc": "2026-09-07T08:51:44.144026+00:00",
+  "git_head": "4807d2ba7f8a797619dd777d842b480c7f694baa",
+  "git_head_short": "4807d2b",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -563,8 +563,8 @@
       "claims": "two controls the gate's own results forced. F1: the residual NORM passes the gate's own inversion bar on the deployed arm, so the 'cannot certify' leg is restated as a WIDTH -- split conformal attains 0.89 coverage at a 0.90 target with a bound 5.6-6.8x the median |dCd| and 1.6x the median field rel-L2, because median ||R(truth)||/median ||R(pred)|| = 0.864, i.e. 86%% of a typical score is floor present at zero error. F2: the far-field flux beats the surface integrator on GROUND-TRUTH fields (rho 0.985 vs 0.839) and LOSES on PREDICTED fields (0.37-0.49 vs 0.83-0.85), which withdraws an integrator recommendation an earlier draft of the report made",
       "sha256": "9bbb50bbe7fb58eadaca03137054293f46404e50fa131e5539cdc30d820114b4",
       "bytes": 2758,
-      "git_tracked": false,
-      "last_commit": ""
+      "git_tracked": true,
+      "last_commit": "367553e"
     }
   ]
 }
