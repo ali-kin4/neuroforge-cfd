@@ -522,8 +522,11 @@ We describe all components for completeness and flag, at each one, which role it
 verify--estimate--correct--fall-back loop. Colour marks each component's role: the physics
 residual (amber) acts as a reliable \emph{trust signal} (role~i, green) but not as a
 \emph{correction objective} (role~ii, red); the deployed correction is a \emph{learned}
-corrector (violet) applied under a monotone-residual no-harm test. The two roles, and the
-attribution of the corrector's gain, are established and scoped in the text
+corrector (violet) applied under a monotone-residual no-harm test. The figure marks the
+two roles the residual plays as a \emph{pipeline component}; the third verdict---that the
+conformal certificate it supports is valid but limited in width by the floor---is a
+property of the green block and is quantified in \autoref{sec:conformal}. The roles, and
+the attribution of the corrector's gain, are established and scoped in the text
 (\autoref{sec:method}, \autoref{sec:experiments}).}
 \label{fig:pipeline}
 \end{figure}

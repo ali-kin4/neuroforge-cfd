@@ -359,7 +359,7 @@ were that ring excluded, as the wall ring already is.
 (K1) Rank--nullity, with $\operatorname{rank}L\le3|A|$ and $|A|=|M|-|W|$; the final
 inequality is $|M|+3|W|\ge|M|=\tfrac14\cdot4|M|$.
 (K2) Every interior stencil in \eqref{eq:monitored} reads only a cell's four neighbours
-($D_x,D_y$ reach $(i\pm1,j)$; the compact $\Delta_h$ reaches $(i\pm1,j)$ and $(i,j\pm1)$).
+($D_x$ reaches $(i\pm1,j)$ and $D_y$ reaches $(i,j\pm1)$; the compact $\Delta_h$ reaches both pairs).
 By definition of $W$, no active cell has a solid $4$-neighbour, so no active cell's stencil
 reads a solid value. The one-sided edge stencils reach two cells inward, which is why the
 three-cell separation from the outer border is required; it holds for the $3c\times3c$ crop

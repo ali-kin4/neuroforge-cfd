@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-07T10:00:27.195672+00:00",
-  "git_head": "ccba7619ff2697f8591555d16d1f676db420c28f",
-  "git_head_short": "ccba761",
+  "generated_utc": "2026-09-07T10:55:58.186720+00:00",
+  "git_head": "fc1b4bdd4a047d19f02be3432786547080dd938d",
+  "git_head_short": "fc1b4bd",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -151,10 +151,10 @@
       "script": "scripts/probe_residual_floor.py",
       "tier": "cpu",
       "claims": "residual floor: ||r*|| mean 0.192; uniform field gives 0 (theorem H2)",
-      "sha256": "38a380fde33626c8c4451daa8e41a75ed4b21cef03cba455652c6a2ececfd8d7",
-      "bytes": 113131,
+      "sha256": "196b6ef6764cdb510eaa447dd84b01d5d78ddd9660f2f8680a9eb27e257fb0b4",
+      "bytes": 113281,
       "git_tracked": true,
-      "last_commit": "79d643b"
+      "last_commit": "845dfd9"
     },
     {
       "path": "results/certificates/transolver_inversion.json",
@@ -561,10 +561,10 @@
       "script": "scripts/decisive_controls.py --control 2",
       "tier": "cpu-verify",
       "claims": "partial Spearman given ||r(truth)||: 0.561 vs raw 0.610 on the Transolver arm (92%% survives, drop CI includes zero); the deployable residual significantly outranks the oracle difficulty variable itself (drho +0.094 CI [+0.055,+0.142])",
-      "sha256": "46c3c1b8dbd7f5e060675a3d52969599885235b3f694b7a40b667779ef9e669f",
-      "bytes": 13978,
+      "sha256": "953419cc7c296ede79289d7975f6c2b85a3d4c05f99cec24d77af667228967aa",
+      "bytes": 14068,
       "git_tracked": true,
-      "last_commit": "383863a"
+      "last_commit": "845dfd9"
     },
     {
       "path": "results/review/control3_fixed_step.json",
