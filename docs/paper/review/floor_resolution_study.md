@@ -525,32 +525,68 @@ the engine-level `max_iters` is **inert** on the DEQ branch re-verified and logg
   logs `residual_monotone_nondecreasing` per seed, and the report leads with it rather
   than with `dissociates`.
 
-### 10.4 Result (seed 0 complete; full aggregate in `results/sensitivity/iters_seeded.json`)
+### 10.4 Result — DIRECTION-ONLY, and the paper must not generalise `tab:iters`
 
-Seed 0, 24 cases: residual `0.2073 → 0.2024 → 0.2100 → 0.2116 → 0.2120`,
-`mse_u` `0.1547 → 0.1435 → 0.1424 → 0.1427 → 0.1429`.
+5 seeds × 24 cases, 36.5 min on GPU. `results/sensitivity/iters_seeded.json|csv`.
 
-The dissociation reproduces **in direction** — the error minimum is at `k=3` while the
-residual keeps climbing past it — but the magnitude is nothing like the FNO arm's.
-Residual rises **+2.3%** here against **+450%** in `tab:iters` (0.113 → 0.620), and
-`mse_u` is flat after `k=1` where `tab:iters` shows real over-correction damage
-(2.287 → 2.575).
+| k | mse_u (mean ± sd over seeds) | residual_norm | resid↔err ρ |
+|---:|---|---|---|
+| 0  | 0.1464 ± 0.0177 | 0.2056 ± 0.0010 | 0.669 |
+| 1  | 0.1339 ± 0.0162 | **0.1998** ± 0.0021 | 0.657 |
+| 3  | **0.1326** ± 0.0152 | 0.2070 ± 0.0021 | 0.686 |
+| 5  | 0.1329 ± 0.0150 | 0.2084 ± 0.0022 | 0.694 |
+| 10 | 0.1330 ± 0.0150 | 0.2088 ± 0.0022 | 0.693 |
+| 15 | 0.1330 ± 0.0150 | 0.2088 ± 0.0022 | 0.693 |
 
-**The coherent reading, and the one the paper should adopt:** dissociation magnitude
-scales with how far the corrector moves the field. A well-fit backbone (`mse_u` 0.13)
-barely moves, so its residual barely climbs. **Therefore: keep `tab:iters` with its
-honest n = 1 caption and add the seeded sweep as a robustness table** — do not swap it
-in as the headline. Swapping invites the question "why is your seeded version 100×
-weaker?" with no answer prepared; presenting it as a robustness check answers it in
-advance.
+**The DEQ control passes, so the flat tail is real.** `deq_iters` equals the cap in
+**100% of cases at k = 1, 3, 5, 10**; only at k = 15 does it converge early (8–25% at
+cap). The sweep genuinely sweeps — the plateau after k≈3 is the corrector reaching a
+fixed point in the *field*, not the eval collapsing to duplicate rows.
 
-**Still to verify before this section is final** (both flagged rather than assumed):
-`deq_iters_mean` per cap — on the FNO arm the DEQ never converged early and hit the
-cap at every `k`, so if on the Transolver arm it reaches its fixed point at `k ≈ 2`
-then the `k = 5, 10, 15` rows are near-duplicates and the flat tail means "converged",
-not "residual plateaus"; and a **paired** per-case sign count (residual higher at the
-error-minimising `k` than at `k = 0` in X/24 cases), without which a +2.3% mean over
-24 unpaired cases is not credibly distinguishable from zero.
+**Against the pre-declared rule (§10.3):**
+
+| check | result | passes? |
+|---|---|---|
+| sign count ≥ 4/5 | residual higher at k=15 than k=0 in **5/5** seeds (+0.21% … +3.07%) | ✅ |
+| magnitude ≥ 2× across-seed sd | mean rise +0.00314, sd 0.00237 → **1.3×** | ❌ |
+| paired per-case majority | residual higher at the error-minimising k in **30/72 = 42%** of cases (at k=15: 34/72 = 47%) — **at or below chance** | ❌ |
+| "monotonically" | monotone non-decreasing in **0/5** seeds — every seed *dips* at k=1 | ❌ |
+
+**Verdict: DIRECTION-ONLY.** On the SOTA Transolver arm the residual is
+**flat-to-slightly-rising (+1.5% mean)** while `mse_u` falls **9.4%**. That is
+**decoupling, not divergence.** The mean rise is real in sign across all 5 seeds but
+is carried by a minority of cases; the median case's residual does not rise at all.
+
+### 10.5 What the paper must change
+
+1. **Do not generalise `tab:iters`.** Its strong form — "the residual rises
+   *monotonically* 0.113 → 0.620 (×5.5) while error falls" — is a property of that one
+   weak dropout-FNO checkpoint (`mse_u` 3.92), **not of the method**. On a well-fit
+   backbone (`mse_u` 0.13) the corrector barely moves the field, and the residual
+   barely moves with it. Keep `tab:iters` with its honest n = 1 caption **as an
+   illustration**, and add the seeded table as the robustness check that bounds how
+   far it generalises.
+2. **Drop the word "monotonically"** wherever it describes the residual along the
+   sweep. It is false on 0/5 seeds here, and it is false on the published FNO row too
+   (`iters.csv` rises 0.113 → 0.336 → 0.542 → 0.594 → 0.618 → 0.620 monotonically, so
+   the word survives *there* — but it must not be carried over to the general claim).
+3. **The claim that survives 5 seeds** is the weaker and still-sufficient one:
+   *reducing field error by ~9% produces no reduction in the monitored residual — the
+   residual carries no usable signal about the improvement.* That is enough to kill
+   residual-as-objective (you cannot optimise on a quantity that does not move in the
+   right direction) without asserting an anti-correlation the seeds do not support.
+4. **The load-bearing seeded evidence is elsewhere, and it is strong.** The W1
+   ablation (`results/control/w1_capture.json`, 5 seeds) has the WITH-residual
+   corrector beating the residual-zeroed NULL on **0/5** seeds, and the residual-floor
+   ladder (§0–§7) is 16–24 cases with three passing gates. `tab:iters` should not be
+   asked to carry the headline it was carrying.
+
+**Caveats.** n_eval = 24 (first 24 in cache order) against `tab:iters`'s 80 (shuffled
+index) — a budget deviation, stated in §10.2. Per-case residuals were logged only for
+seeds 0, 3, 4 (the diagnostic was added after seeds 1–2 ran), so the paired statistic
+is n = 72 case-pairs from 3 seeds rather than 120 from 5. A re-run with
+`--seeds 1 2` would complete it at ~35 min and is the one loose end here;
+`--reaggregate` recomputes the verdict from stored per-seed data at zero cost.
 
 ## 11. Status of the six reports
 

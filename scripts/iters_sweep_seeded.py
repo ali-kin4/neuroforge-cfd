@@ -169,9 +169,22 @@ def main(argv=None):
     ap.add_argument("--ckpt-dir", default=CKPT_DIR)
     ap.add_argument("--device", default="auto")
     ap.add_argument("--out", default=OUT_JSON)
+    ap.add_argument("--reaggregate", action="store_true",
+                    help="recompute the aggregate + verdict from the per-seed data "
+                         "already on disk, without re-running any sweep. Everything "
+                         "the verdict needs is stored per seed, so a change to the "
+                         "verdict rule must not cost another full run.")
     a = ap.parse_args(argv)
 
     t_start = time.time()
+    if a.reaggregate:
+        prev = json.load(open(a.out, encoding="utf-8"))
+        per_seed = sorted(prev["per_seed"], key=lambda s: s["seed"])
+        control = prev.get("control")
+        device = prev.get("metadata", {}).get("device", "n/a")
+        log(f"re-aggregating {len(per_seed)} seeds from {a.out} (no sweep re-run)")
+        return _finalise(a, per_seed, control, device, prev.get("metadata", {}),
+                         t_start, reaggregated=True)
     device = torch.device(
         "cuda" if (a.device == "auto" and torch.cuda.is_available()) else
         ("cpu" if a.device == "auto" else a.device))
@@ -282,6 +295,12 @@ def main(argv=None):
         if device.type == "cuda":
             torch.cuda.empty_cache()
 
+
+    return _finalise(a, per_seed, control, device, None, t_start)
+
+
+def _finalise(a, per_seed, control, device, meta, t_start, reaggregated=False):
+    """Aggregate, judge and persist. Split out so --reaggregate can reuse it."""
     per_seed.sort(key=lambda s: s["seed"])
     n = len(per_seed)
     agg_rows = []
@@ -296,11 +315,37 @@ def main(argv=None):
                                          if v else float("nan"))
                             for m, v in vals.items()}})
 
+    # ---- verdict -----------------------------------------------------------
+    # The sign count alone is too generous: `dissociates` only asks whether the
+    # LAST cap's mean residual exceeds the first's. Three further pre-declared
+    # checks decide whether that mean shift is a real effect.
     n_diss = sum(s_["dissociates"] for s_ in per_seed)
-    verdict = ("SEED-ROBUST: the residual/error dissociation reproduces on "
-               f"{n_diss}/{n} seeds of the Transolver+DEQ arm"
-               if n and n_diss >= max(1, int(np.ceil(0.8 * n))) else
-               f"NOT SEED-ROBUST: dissociation on only {n_diss}/{n} seeds")
+    n_mono = sum(s_["residual_monotone_nondecreasing"] for s_ in per_seed)
+    deltas = [s_["residual_norm_end"] - s_["residual_norm_start"] for s_ in per_seed]
+    d_mean = float(np.mean(deltas)) if deltas else float("nan")
+    d_std = float(np.std(deltas, ddof=1)) if len(deltas) > 1 else float("nan")
+    d_snr = (d_mean / d_std) if (d_std and np.isfinite(d_std) and d_std > 0) else float("nan")
+    paired_up = sum(s_.get("paired_residual_up_at_best_k", 0) or 0 for s_ in per_seed)
+    paired_n = sum(s_.get("paired_n", 0) or 0 for s_ in per_seed)
+    paired_frac = (paired_up / paired_n) if paired_n else float("nan")
+
+    sign_ok = bool(n and n_diss >= max(1, int(np.ceil(0.8 * n))))
+    mag_ok = bool(np.isfinite(d_snr) and d_snr >= 2.0)
+    paired_ok = bool(paired_n and paired_frac > 0.5)
+    if sign_ok and mag_ok and paired_ok:
+        verdict = (f"SEED-ROBUST: dissociation on {n_diss}/{n} seeds, mean residual "
+                   f"rise {d_mean:+.5f} at {d_snr:.1f}x seed sd, and higher per case "
+                   f"in {paired_up}/{paired_n}")
+    elif sign_ok:
+        verdict = (f"DIRECTION-ONLY: the residual rise is positive in {n_diss}/{n} "
+                   f"seeds but is NOT a per-case effect (higher in only "
+                   f"{paired_up}/{paired_n} = {100 * paired_frac:.0f}%, at or below "
+                   f"chance) and its magnitude is {d_snr:.1f}x the across-seed sd "
+                   f"(pre-declared bar: 2x). Residual is FLAT-to-slightly-rising "
+                   f"while mse_u falls; report as DECOUPLING, not divergence. "
+                   f"'Monotonically' is false: monotone in {n_mono}/{n} seeds.")
+    else:
+        verdict = f"NOT SEED-ROBUST: dissociation on only {n_diss}/{n} seeds"
 
     out = {
         "artifact": "iters_sweep_seeded",
@@ -327,9 +372,19 @@ def main(argv=None):
             "device": str(device),
         },
         "control": control,
-        "aggregate": {"rows": agg_rows, "n_seeds": n, "n_dissociating": n_diss,
-                      "seeds_dissociating": [s_["seed"] for s_ in per_seed
-                                             if s_["dissociates"]]},
+        "aggregate": {
+            "rows": agg_rows, "n_seeds": n, "n_dissociating": n_diss,
+            "seeds_dissociating": [s_["seed"] for s_ in per_seed if s_["dissociates"]],
+            "n_residual_monotone_nondecreasing": n_mono,
+            "residual_delta_end_minus_start_mean": d_mean,
+            "residual_delta_end_minus_start_std": d_std,
+            "residual_delta_snr_vs_seed_sd": d_snr,
+            "paired_residual_up_at_best_k": paired_up,
+            "paired_n": paired_n,
+            "paired_fraction": paired_frac,
+            "checks": {"sign_count": sign_ok, "magnitude_2x_seed_sd": mag_ok,
+                       "paired_majority": paired_ok},
+        },
         "per_seed": per_seed,
         "wall_clock_s": time.time() - t_start,
     }
@@ -359,6 +414,8 @@ def main(argv=None):
     print(f"\n{verdict}")
     print(f"wrote {a.out} and {OUT_CSV}  [{(time.time() - t_start) / 60:.1f} min]")
     return 0
+
+
 
 
 def _clean(o):
