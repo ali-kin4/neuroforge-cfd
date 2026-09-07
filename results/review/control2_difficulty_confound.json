@@ -4,7 +4,7 @@
  "conditioning_variable": {
   "name": "norm_truth  ==  ||r(truth)||",
   "source": "results/certificates/residual_floor_realdata.json",
-  "definition": "continuity + momentum_x + momentum_y (BC term EXCLUDED, matching physics_residual_torch) -- evaluated on the GROUND-TRUTH field.",
+  "definition": "continuity + momentum_x + momentum_y (BC term EXCLUDED), evaluated by PhysicsChecker.diagnose -- the compact-stencil numpy monitor, NOT the wider differentiable twin physics_residual_torch -- on the GROUND-TRUTH field.",
   "why_this_one": "model-independent per-case discretisation + model-form residual: exactly the 'this geometry is hard to rasterise' quantity the confound objection names.",
   "NOT_the_floor_r_star": "The brief calls this ||r*||. That is a misnomer for this file: its actual minimum is norm_uniform = 0.0 exactly on all 200 cases (frac_uniform_lt_truth = 1.0); the experiment exists to show the monitored residual PREFERS the uniform freestream to the truth. We therefore condition on ||r(truth)||, the residual of the ground-truth field, and name it as such.",
   "norm_pred_NOT_used": "residual_floor_realdata.json also carries norm_pred, but that is a DIFFERENT model (checkpoints/certificates_deq.pt, dropout-FNO, DEQ not applied) than the Transolver arms scored here. Only the model-independent norm_truth is joined."

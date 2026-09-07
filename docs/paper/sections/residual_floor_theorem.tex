@@ -79,7 +79,7 @@ with $D_x,D_y$ second-order central in the interior and first-order one-sided at
 edges of each axis, and $\Delta_h$ the compact three-point second difference per axis. All
 three are set to zero on the solid and on $W$, then non-dimensionalised by $U/\ell$ (continuity)
 and $U^2/\ell$ (momentum), with $U$ the freestream speed and $\ell$ the reference length
-(we reserve $L$ for the Jacobian below). The scalar we write $\|R_h(\cdot)\|$ throughout is the deployed one,
+(we reserve $L$ for the Jacobian below). The scalar we write $\|R_h(\cdot)\|$ in this section is the deployed one,
 \texttt{Diagnostics.residual\_norm}: the root-mean-square over the \textbf{whole grid} of
 $\sqrt{r_c^2+r_x^2+r_y^2}$ after that non-dimensionalisation, with \textbf{no boundary term}.
 We name it because the paper also reports band-restricted norms over a region fixed in
@@ -387,7 +387,8 @@ checkerboard as an exact null mode---the border stencils mean it is not one.
 \subsection{Ranking survives; certification survives only to a floor-limited width}
 
 \paragraph{What the floor costs certification, and why it does not cost triage.}
-Certification asks for a map from $\|R_h(\hat u)\|$ to a bound on $\|\hat u-u^\star\|$.
+Certification \emph{from the residual norm alone} asks for a map from $\|R_h(\hat u)\|$ to
+a bound on $\|\hat u-u^\star\|$.
 The floor does \emph{not} make such a bound invalid---split conformal returns one
 whatever the score, and ours attains $0.891$--$0.895$ coverage against a $0.90$ target.
 What the floor costs is the bound's \textbf{width}. Because $u^\star$ itself is rejected
@@ -472,9 +473,13 @@ on the backbone is the floor itself, which no model enters. The floor is not an 
 deployed grid: re-rasterised from the source point clouds at $128^2$--$512^2$ and scored on
 a region fixed in physical units it \emph{increases} by $2.6\times$, fitting
 $\|r^\star\|\sim h^p$ with $p=-0.64\pm0.29$ and decaying in $0/16$ cases, while a
-manufactured potential flow pushed through the identical rasterisation converges at order
-$2.02\pm0.05$ and a $C^1$ re-rasterisation \emph{raises} rather than lowers the floor
-(\autoref{sec:floor_ladder}). Those band-restricted magnitudes are a different scoring
+manufactured analytic solution converges on the same monitor at order $2.02\pm0.05$ per
+case ($2.06$ fitted on the rung means) and, pushed through the identical rasteriser, still
+\emph{falls} with refinement (fine/coarse $0.65$, rising in only $3/16$ cases) where the
+real truth's rises; and a $C^1$ re-rasterisation \emph{raises} rather than lowers the floor
+(\autoref{sec:floor_ladder}). The manufactured field is a potential flow, so the monitor is
+structurally blind to the inconsistency on it; these controls bound the pipeline's own
+error, and are not evidence that the monitored operator is consistent. Those band-restricted magnitudes are a different scoring
 region from the $0.192$ above and are not comparable to it; the refinement claim is a
 statement about the trend within one scoring policy.
 
@@ -503,10 +508,15 @@ than the closed form we previously claimed for every grid: this leg is
 resolution-contingent. The framework's proximity weight decays over $3\min(dx,dy)$ and so
 scores a physically \emph{thinner} band as the grid refines, and the margin collapses
 monotonically---$+9.3\%$ at $128^2$, $+7.4\%$ at $181^2$, $+6.9\%$ at $256^2$, $+3.9\%$ at
-$362^2$, and $-2.8\%$ at $512^2$, where it has crossed. Where it crosses, the crossover
+$362^2$, and $-2.8\%$ at $512^2$ in a $16$-case run, where it has crossed. A $24$-case run
+over $128^2/256^2/512^2$ agrees on the collapse but still has the truth above by $1.5\%$ at
+the finest rung (\texttt{results/floor\_resolution\_ladder.json}); a ${\pm}2\%$ disagreement
+between two subsets at a margin that has already collapsed to ${\sim}2\%$ is subset noise,
+and we take the cautious reading. Either way the claim we withdraw is the
+resolution-independent one. Where it crosses, the crossover
 weight
 $\lambda^\star=\|R_h(u^\star)\|^2/(\overline{r_{bc}^2}(u_\infty)-\overline{r_{bc}^2}(u^\star))$
-has median ${\approx}600$ (range $359$--$8549$). Since the deployed trust map uses
+has median $599$ at $512^2$, the rung where it crosses. Since the deployed trust map uses
 $\lambda=1$, a monitor that rescued the ordering would be one in which the no-slip term
 outweighs the entire PDE residual by two orders of magnitude---a real technical break, but
 not a practical rescue, because such an object is no longer a PDE monitor. Two further

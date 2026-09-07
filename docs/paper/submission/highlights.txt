@@ -7,6 +7,6 @@ verified by scripts/check_submission.py.
 
 - The RANS residual a surrogate can afford is nonzero at the ground truth itself
 - Refining the grid from 128^2 to 512^2 makes that floor grow, in 21 of 24 cases
-- Descending it from the exact truth cuts it 84% and drives field error from zero
+- Descending it from the exact truth drives field error up on 200 of 200 cases
 - The residual-selected iterate is never the error-optimal one, in 24 of 24 runs
 - The limit is operator consistency, not steady versus transient or resolution

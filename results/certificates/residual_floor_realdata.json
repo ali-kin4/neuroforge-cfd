@@ -17,7 +17,7 @@
       "deq_fno_prediction"
     ],
     "prediction_model": "checkpoints/certificates_deq.pt (dropout-FNO backbone, raw mean prediction; DEQ corrector NOT applied)",
-    "monitored_residual": "continuity + momentum_x + momentum_y (BC term EXCLUDED, matching physics_residual_torch)",
+    "monitored_residual": "continuity + momentum_x + momentum_y (BC term EXCLUDED); evaluated by PhysicsChecker.diagnose -- the compact-stencil numpy monitor, NOT the wider differentiable twin physics_residual_torch (see body.tex Method, 'Two implementation facts')",
     "norm": "RMS over fluid cells of sqrt(cont^2 + mom_x^2 + mom_y^2) on the SCALED residual maps",
     "non_dim_scaling": "continuity / (u_inf/L), momentum / (u_inf^2/L) -- per residuals.py:326-331 via PhysicsChecker.diagnose",
     "masking_policy": "residuals zeroed inside solid AND on the solid-adjacent fluid wall ring (residuals.py:297-319)",

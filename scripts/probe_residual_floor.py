@@ -1,6 +1,9 @@
 """DECISIVE real-data probe for the 'residual is a poor correction objective' theorem.
 
-The monitored / differentiable steady-RANS residual (physics_residual_torch) is
+The monitored steady-RANS residual evaluated here is PhysicsChecker.diagnose --
+the compact-stencil numpy monitor, NOT the wider differentiable twin
+physics_residual_torch, whose repeated first difference has a strictly larger
+kernel (see body.tex Method, 'Two implementation facts').  It is
 continuity + momentum ONLY -- it omits the no-slip BC term. Its global minimiser
 is therefore the trivial uniform-freestream field, not the viscous truth. This
 script demonstrates that on REAL AirfRANS test fields by computing the monitored
@@ -226,7 +229,12 @@ def main() -> None:
                 "checkpoints/certificates_deq.pt (dropout-FNO backbone, raw mean prediction; "
                 "DEQ corrector NOT applied)" if have_pred else None
             ),
-            "monitored_residual": "continuity + momentum_x + momentum_y (BC term EXCLUDED, matching physics_residual_torch)",
+            "monitored_residual": (
+                "continuity + momentum_x + momentum_y (BC term EXCLUDED); evaluated by "
+                "PhysicsChecker.diagnose -- the compact-stencil numpy monitor, NOT the "
+                "wider differentiable twin physics_residual_torch (see body.tex Method, "
+                "'Two implementation facts')"
+            ),
             "norm": "RMS over fluid cells of sqrt(cont^2 + mom_x^2 + mom_y^2) on the SCALED residual maps",
             "non_dim_scaling": "continuity / (u_inf/L), momentum / (u_inf^2/L) -- per residuals.py:326-331 via PhysicsChecker.diagnose",
             "masking_policy": "residuals zeroed inside solid AND on the solid-adjacent fluid wall ring (residuals.py:297-319)",
