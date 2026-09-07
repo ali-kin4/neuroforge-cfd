@@ -105,7 +105,8 @@ HEADLINE: list[dict] = [
     {"path": "results/certificates/floor_resolution_decomposition.json",
      "script": "scripts/floor_resolution_decomposition.py", "tier": "cpu",
      "claims": "the residual floor does NOT decay under refinement: p=-0.64+-0.29 on a "
-               "fixed physical region, 0/16 cases decay, 15/16 rise, x2.34 over 128^2-512^2; "
+               "fixed physical region, 0/16 cases decay, 15/16 rise, x2.34 ratio-of-means over "
+               "128^2-512^2 (x2.56 mean-of-per-case-ratios, the JSON fine_over_coarse field); "
                "MMS truncation gate p=2.02; 128^2 rung reproduces the published floor to 3e-8"},
     {"path": "results/certificates/probe_conformal_after_deq.json",
      "script": "scripts/probe_conformal_after_deq.py", "tier": "cpu",

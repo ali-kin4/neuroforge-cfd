@@ -567,9 +567,11 @@ is carried by a minority of cases; the median case's residual does not rise at a
    illustration**, and add the seeded table as the robustness check that bounds how
    far it generalises.
 2. **Drop the word "monotonically"** wherever it describes the residual along the
-   sweep. It is false on 0/5 seeds here, and it is false on the published FNO row too
-   (`iters.csv` rises 0.113 → 0.336 → 0.542 → 0.594 → 0.618 → 0.620 monotonically, so
-   the word survives *there* — but it must not be carried over to the general claim).
+   sweep *in general*. It is true on the published FNO row (`iters.csv`: 0.113 → 0.336
+   → 0.542 → 0.594 → 0.618 → 0.620), which has no k=1 dip because its residual
+   **triples** at the first iteration; the dip is specific to a backbone the corrector
+   barely moves. So keep the word where it was measured and drop it from any sentence
+   that generalises beyond that checkpoint.
 3. **The claim that survives 5 seeds** is the weaker and still-sufficient one:
    *reducing field error by ~9% produces no reduction in the monitored residual — the
    residual carries no usable signal about the improvement.* That is enough to kill

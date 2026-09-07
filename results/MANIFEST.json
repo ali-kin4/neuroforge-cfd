@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-07T08:52:27.392773+00:00",
-  "git_head": "fe3ce362501f1dffe54e8248a4f94c1054eed46c",
-  "git_head_short": "fe3ce36",
+  "generated_utc": "2026-09-07T09:07:42.550688+00:00",
+  "git_head": "3e0a9c43da934c00cdf94cfa9fb2b08106220ae0",
+  "git_head_short": "3e0a9c4",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -160,7 +160,7 @@
       "path": "results/certificates/floor_resolution_decomposition.json",
       "script": "scripts/floor_resolution_decomposition.py",
       "tier": "cpu",
-      "claims": "the residual floor does NOT decay under refinement: p=-0.64+-0.29 on a fixed physical region, 0/16 cases decay, 15/16 rise, x2.34 over 128^2-512^2; MMS truncation gate p=2.02; 128^2 rung reproduces the published floor to 3e-8",
+      "claims": "the residual floor does NOT decay under refinement: p=-0.64+-0.29 on a fixed physical region, 0/16 cases decay, 15/16 rise, x2.34 ratio-of-means over 128^2-512^2 (x2.56 mean-of-per-case-ratios, the JSON fine_over_coarse field); MMS truncation gate p=2.02; 128^2 rung reproduces the published floor to 3e-8",
       "sha256": "63b188a9d20ea5c113d4a3737f1ca7d3eaa778f852b6e70d8c49e8ca57f95fb4",
       "bytes": 475069,
       "git_tracked": true,
