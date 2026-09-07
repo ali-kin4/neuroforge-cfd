@@ -196,43 +196,75 @@ def bc_terms(diag, field: FlowField):
     return framework, fixed
 
 
-def source_spacing(root: str, task: str, n_cases: int):
-    """Median nearest-neighbour spacing of the AirfRANS point cloud, in chords.
+def source_positions(root: str, task: str, n_cases: int):
+    """Raw AirfRANS point positions and wall distances for the first ``n_cases``.
 
-    Near-wall and far-field. A raster level finer than this is resolving the
-    interpolant rather than the flow, and is excluded from the exponent fit.
+    Loaded once and reused at every level: the interpolation check below needs
+    the source cloud on the *same* cases the ladder scores.
     """
+    from neuroforge.data.airfrans_loader import (_require_airfrans,
+                                                 _resolve_data_root)
+    af = _require_airfrans()
+    data_root = _resolve_data_root(root)
+    if data_root is None:
+        return None
+    dataset, names = af.dataset.load(root=data_root, task=task, train=False)
+    out = {}
+    for i in range(min(n_cases, len(names))):
+        d = np.asarray(dataset[i], dtype=np.float64)
+        pos, sd = d[:, 0:2], np.abs(d[:, 4])
+        keep = ((pos[:, 0] > -1.0) & (pos[:, 0] < 2.0)
+                & (pos[:, 1] > -1.5) & (pos[:, 1] < 1.5))
+        out[str(names[i])] = (pos[keep], sd[keep])
+    del dataset, names
+    return out
+
+
+def source_spacing(positions) -> dict:
+    """Median nearest-neighbour spacing of the source cloud, near-wall and far.
+
+    The FAR-FIELD figure is the binding one. Near the wall the body-fitted mesh
+    is orders of magnitude finer than any raster we build, so no raster level
+    out-resolves it there; the far field is where the raster first overtakes the
+    source and starts differentiating a piecewise-linear interpolant.
+    """
+    if not positions:
+        return {"error": "positions unavailable"}
     try:
         from scipy.spatial import cKDTree
-
-        from neuroforge.data.airfrans_loader import (_require_airfrans,
-                                                     _resolve_data_root)
-        af = _require_airfrans()
-        data_root = _resolve_data_root(root)
-        if data_root is None:
-            return {"error": "manifest.json not found"}
-        dataset, names = af.dataset.load(root=data_root, task=task, train=False)
-        near, far = [], []
-        for i in range(min(n_cases, len(names))):
-            d = np.asarray(dataset[i], dtype=np.float64)
-            pos, sd = d[:, 0:2], np.abs(d[:, 4])
-            keep = ((pos[:, 0] > -1.0) & (pos[:, 0] < 2.0)
-                    & (pos[:, 1] > -1.5) & (pos[:, 1] < 1.5))
-            pos, sd = pos[keep], sd[keep]
-            if len(pos) < 10:
-                continue
-            dist, _ = cKDTree(pos).query(pos, k=2)
-            nn = dist[:, 1]
-            if np.any(sd < 0.02):
-                near.append(float(np.median(nn[sd < 0.02])))
-            if np.any(sd > 0.5):
-                far.append(float(np.median(nn[sd > 0.5])))
-        del dataset, names
-        return {"near_wall": float(np.median(near)) if near else None,
-                "far_field": float(np.median(far)) if far else None,
-                "n_cases": len(near)}
-    except Exception as exc:  # scipy/airfrans absent, or the split will not load
+    except Exception as exc:
         return {"error": f"{type(exc).__name__}: {exc}"}
+    near, far = [], []
+    for pos, sd in positions.values():
+        if len(pos) < 10:
+            continue
+        nn = cKDTree(pos).query(pos, k=2)[0][:, 1]
+        if np.any(sd < 0.02):
+            near.append(float(np.median(nn[sd < 0.02])))
+        if np.any(sd > 0.5):
+            far.append(float(np.median(nn[sd > 0.5])))
+    return {"near_wall": float(np.median(near)) if near else None,
+            "far_field": float(np.median(far)) if far else None,
+            "n_cases": len(near)}
+
+
+def oversampled_cells(field, pos: np.ndarray, min_points: int) -> np.ndarray:
+    """Raster cells containing at least ``min_points`` source points.
+
+    The ladder's own validity limit, made per-cell instead of per-level. Where a
+    cell holds many source points the rasteriser is *averaging* and its field is
+    a faithful sample of the solution; where it holds one or none the raster is
+    *interpolating*, and the second derivatives the residual takes are those of
+    a piecewise-linear reconstruction rather than of the flow. Refining past
+    that point makes the residual rise for a reason that has nothing to do with
+    the physics -- which a two-level read would misreport as a plateau.
+    """
+    dom = field.domain
+    x0, x1, y0, y1 = dom.bounds
+    counts, _, _ = np.histogram2d(
+        pos[:, 1], pos[:, 0],
+        bins=[dom.ny, dom.nx], range=[[y0, y1], [x0, x1]])
+    return counts >= min_points
 
 
 def fit_exponent(hs, vals):
@@ -261,6 +293,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--levels", type=int, nargs="+", default=[128, 256])
     ap.add_argument("--n-cases", type=int, default=24)
     ap.add_argument("--task", default="full")
+    ap.add_argument("--min-points", type=int, default=8,
+                    help="source points a raster cell needs to count as averaged")
     ap.add_argument("--root", default="data")
     ap.add_argument("--cache-dir", default=os.path.join("data", "cache"))
     ap.add_argument("--out",
@@ -269,6 +303,15 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"floor ladder | levels {args.levels} | {args.n_cases} cases | "
           f"D_REF {D_REF:.6f} chord (= 1.5 x h_128)\n")
+
+    print("loading the source point clouds (needed for the interpolation check)")
+    try:
+        positions = source_positions(args.root, args.task, args.n_cases)
+    except Exception as exc:
+        print(f"  ! {type(exc).__name__}: {exc} -- interpolation check unavailable")
+        positions = None
+    spacing = source_spacing(positions)
+    print(f"  source spacing: {spacing}\n")
 
     checker = PhysicsChecker()
     per_level: dict[int, list[dict]] = {}
@@ -291,10 +334,21 @@ def main(argv: list[str] | None = None) -> int:
             d_t, d_u = checker.diagnose(truth, case), checker.diagnose(unif, case)
             bc_t_fw, bc_t_fx = bc_terms(d_t, truth)
             bc_u_fw, bc_u_fx = bc_terms(d_u, unif)
+            # Cells the rasteriser averaged rather than interpolated.
+            if positions and case.name in positions:
+                over = sel & oversampled_cells(truth, positions[case.name][0],
+                                               args.min_points)
+            else:
+                over = np.zeros_like(sel)
             rows.append({
                 "case": case.name,
                 "n_comparable": int(sel.sum()),
+                "n_oversampled": int(over.sum()),
                 "floor": monitored_rms(d_t, sel),
+                "floor_oversampled": monitored_rms(d_t, over) if over.any()
+                else float("nan"),
+                "omitted_oversampled": omitted_closure_rms(case, truth, over)
+                if over.any() else float("nan"),
                 "floor_default_mask": monitored_rms(d_t, dflt),
                 "uniform": monitored_rms(d_u, sel),
                 "cont": rms(d_t.continuity, sel),
@@ -312,12 +366,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  {res:>4}^2  h={3.0 / res:.5f}  floor {avg('floor'):.4f} "
               f"(default mask {avg('floor_default_mask'):.4f})  uniform "
               f"{avg('uniform'):.2e}  omitted {avg('omitted_closure'):.4f}  "
-              f"[{time.time() - t0:.0f}s]")
+              f"oversampled-only {avg('floor_oversampled'):.4f} "
+              f"({avg('n_oversampled'):.0f} cells)  [{time.time() - t0:.0f}s]")
 
-    print("\nsource-mesh spacing (a raster level below this resolves the "
-          "interpolant, not the flow):")
-    spacing = source_spacing(args.root, args.task, min(8, args.n_cases))
-    print(f"  {spacing}")
 
     levels = sorted(per_level)
     hs = [3.0 / r for r in levels]
@@ -335,8 +386,11 @@ def main(argv: list[str] | None = None) -> int:
               f"{mean_over('bc2_truth_fixed', res):>10.5f} "
               f"{mean_over('bc2_uniform_fixed', res):>10.5f}")
 
-    # Levels finer than the source mesh near the wall are excluded from the fit.
-    near = (spacing or {}).get("near_wall")
+    # Levels finer than the source mesh are excluded from the fit. The binding
+    # figure is the FAR-FIELD spacing: near the wall the body-fitted mesh is
+    # orders of magnitude finer than any raster, so the raster never overtakes
+    # it there, and the far field is where it does.
+    near = (spacing or {}).get("far_field")
     usable = [r for r in levels if not (near and 3.0 / r < near)]
     excluded = [r for r in levels if r not in usable]
     if excluded:
@@ -346,7 +400,8 @@ def main(argv: list[str] | None = None) -> int:
     fits = {}
     print("\nfitted exponents  v ~ C h^p   (pre-registered: p>=1 DECAY, "
           "p<0.5 PLATEAU, else PARTIAL)")
-    for key in ("floor", "omitted_closure", "floor_default_mask"):
+    for key in ("floor", "floor_oversampled", "omitted_closure",
+                "omitted_oversampled", "floor_default_mask"):
         f = fit_exponent([3.0 / r for r in usable],
                          [mean_over(key, r) for r in usable])
         fits[key] = f
