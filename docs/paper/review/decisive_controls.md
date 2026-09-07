@@ -23,7 +23,7 @@ Artifacts
 | 3 | Fixed-half-step control on the gate | **CONCEDED-WITH-MITIGATION** | ungated fixed 0.5 improves **95.8%** of cases vs the gate's **89.2%** |
 | 4 | Risk-coverage on drag | **RESOLVED** — and stronger than the paper claims | residual AUROC **0.952** on \|ΔC_d\| vs 0.871 on field error |
 | 5 | Undisclosed MGN density control | **PARTIALLY-RESOLVED** — non-disclosure confirmed, brief's stronger claim unsupported | **0** manuscript mentions; but the file measures MSE, not ρ, on **4** cases |
-| 6 | Omitted channels in `tab:iters` | **CONCEDED** — channels recovered, not lost | `mse_v` rises **monotonically +44.2%** and `mse_p` **+19.0%** across the sweep, while the two reported channels fall |
+| 6 | Omitted channels in `tab:iters` | **CONCEDED** (table is selective; the **figure does not invert**) — channels recovered, not lost | `mse_v` rises **monotonically +44.2%** and `mse_p` **+19.0%** across the sweep, while the two reported channels fall |
 
 **Three premises in the brief turned out to be wrong or overstated** and are flagged
 in place: control 1's "σ outranks the residual" (true nominally, not statistically),
