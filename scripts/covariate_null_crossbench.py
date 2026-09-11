@@ -132,6 +132,15 @@ SOURCES = {
     "drivaerml_geo.csv": HF % ("drivaerml", "geo_parameters_all.csv"),
     "drivaerml_force.csv": HF % ("drivaerml", "force_mom_all.csv"),
     "drivaerml_force_constref.csv": HF % ("drivaerml", "force_mom_constref_all.csv"),
+    # The DrivAerML paper publishes no split. NVIDIA's PhysicsNeMo-CFD benchmarking
+    # framework (arXiv 2507.10747) proposes one and ships it, together with the drag
+    # FORCE label its published R-squared table is computed on. Using their files makes
+    # the DrivAerML comparison an exact head-to-head: same 436 train runs, same 48
+    # validation runs, same target, same metric.
+    "drivaerml_pn_train.csv": ("https://raw.githubusercontent.com/NVIDIA/physicsnemo-cfd/"
+                               "main/workflows/benchmarking/drivaer_ml_files/train.csv"),
+    "drivaerml_pn_val.csv": ("https://raw.githubusercontent.com/NVIDIA/physicsnemo-cfd/"
+                             "main/workflows/benchmarking/drivaer_ml_files/validation.csv"),
 }
 
 # --------------------------------------------------------------------------------------
@@ -142,10 +151,41 @@ SOURCES = {
 # the proceedings PDF (013cf29a9e68e4411d0593040a8a1eb3-Paper-Datasets_and_Benchmarks_Track.pdf,
 # page 8) on 2026-09-11 and cross-checked against arXiv 2406.09624. The paper's own NeurIPS
 # checklist item 3(c) answers "[No]" to error bars, so these carry no seed spread.
+#
+# The last two rows are NOT from the dataset paper. They are the current state of the art
+# on the same DrivAerNet++ drag task, added deliberately so this comparison cannot be
+# accused of only attacking the weakest, oldest entries:
+#   TripNet -- arXiv 2503.17400 Table 5 ("Performance comparison on drag coefficient
+#     prediction DrivAerNet++ test set"), read at source. Note that TripNet's Table 2,
+#     where it reports R2 0.972 and FIGConvNet 0.957, is the DrivAerNet **v1** fastback
+#     task, not this one; the two are easy to conflate and are kept apart here.
+#   PointNet2D+BiLSTM -- arXiv 2601.02112 Table 1, read at source. Preprint.
 DRIVAERNET_PUBLISHED = [
-    ("PointNet",   {"r2": 0.643, "mse": 14.9e-5, "mae": 9.60e-3, "maxae": 12.45e-3}),
-    ("GCNN",       {"r2": 0.596, "mse": 17.1e-5, "mae": 10.43e-3, "maxae": 15.03e-3}),
-    ("RegDGCNN",   {"r2": 0.641, "mse": 14.2e-5, "mae": 9.31e-3, "maxae": 12.79e-3}),
+    ("PointNet",   {"r2": 0.643, "mse": 14.9e-5, "mae": 9.60e-3, "maxae": 12.45e-3,
+                    "source": "dataset paper, NeurIPS 2024 D&B Table 4"}),
+    ("GCNN",       {"r2": 0.596, "mse": 17.1e-5, "mae": 10.43e-3, "maxae": 15.03e-3,
+                    "source": "dataset paper, NeurIPS 2024 D&B Table 4"}),
+    ("RegDGCNN",   {"r2": 0.641, "mse": 14.2e-5, "mae": 9.31e-3, "maxae": 12.79e-3,
+                    "source": "dataset paper, NeurIPS 2024 D&B Table 4"}),
+    ("TripNet",    {"r2": 0.957, "mse": 9.1e-5, "mae": 7.17e-3, "maxae": None,
+                    "source": "arXiv 2503.17400 Table 5 (current SOTA on this task)"}),
+    ("PointNet2D+BiLSTM", {"r2": 0.9528, "mse": 6.50e-5, "mae": 6.046e-3, "maxae": None,
+                           "source": "arXiv 2601.02112 Table 1 (preprint)"}),
+]
+
+# DrivAerML, read at source from arXiv 2507.10747 ("A Benchmarking Framework for AI models
+# in Automotive Aerodynamics", NVIDIA PhysicsNeMo-CFD), Tables 4-7. Models are trained on
+# the 436-run train split and evaluated on the 48-run validation split shipped in that
+# repository -- the same files this script fits and scores on. Table 6 is the surface-mesh
+# evaluation; Table 7 repeats it on a 10M-point uniform point cloud. No seed spread is
+# reported. This is an arXiv preprint, not a peer-reviewed venue, and is labelled as such.
+DRIVAERML_PUBLISHED = [
+    ("X-MeshGraphNet", {"r2_drag_surface": 0.92, "r2_drag_pointcloud": 0.85,
+                        "spearman_drag_surface": 0.96}),
+    ("FIGConvNet",     {"r2_drag_surface": 0.97, "r2_drag_pointcloud": 0.97,
+                        "spearman_drag_surface": 0.99}),
+    ("DoMINO",         {"r2_drag_surface": 0.98, "r2_drag_pointcloud": 0.97,
+                        "spearman_drag_surface": 0.99}),
 ]
 
 # WindsorML (arXiv 2407.19320) SI D.2, verbatim: "using a 60/20/20 split of train,
@@ -621,8 +661,9 @@ def run_drivaernet(n_boot, seed, k):
     table = []
     for model, vals in DRIVAERNET_PUBLISHED:
         row = {"model": model, "published": vals, "published_std": None,
-               "published_source": ("DrivAerNet++ NeurIPS 2024 D&B Table 4, test set of "
-                                    "1200 designs; no seed spread reported")}
+               "published_source": vals["source"],
+               "test_set": "DrivAerNet++ all-cars test set, ~1200 designs",
+               "seed_spread_reported": False}
         for tag, null in (("vs_full_test_null", null_full),
                           ("vs_category_only_null_full_test", null_cat),
                           ("vs_param_null_subset", null_sub)):
@@ -713,6 +754,83 @@ def run_ashton(name, n_boot, seed, k, force_override=None):
 
 
 # --------------------------------------------------------------------------------------
+# benchmark 5: DrivAerML under the PhysicsNeMo-CFD benchmark split -- exact head-to-head
+# --------------------------------------------------------------------------------------
+def run_drivaerml_official(n_boot, seed):
+    geo = read_csv("drivaerml_geo.csv")
+    pcols = [c for c in geo[0] if c != "Run"]
+    gmap = {r["Run"]: np.array([float(r[c]) for c in pcols]) for r in geo}
+    tr = read_csv("drivaerml_pn_train.csv")
+    va = read_csv("drivaerml_pn_val.csv")
+
+    def pack(rows):
+        ids = [r["run_idx"] for r in rows if r["run_idx"] in gmap]
+        y = np.array([float(r["drag"]) for r in rows if r["run_idx"] in gmap])
+        X = np.array([gmap[i] for i in ids])
+        return ids, X, y
+
+    tr_ids, Xtr, ytr = pack(tr)
+    va_ids, Xva, yva = pack(va)
+    one_tr = np.ones((len(ytr), 1))
+    one_va = np.ones((len(yva), 1))
+
+    res = {
+        "benchmark": "DrivAerML (PhysicsNeMo-CFD benchmark split)",
+        "target": "drag FORCE in newtons -- the exact label shipped in the split files, "
+                  "and the quantity the published R-squared table is computed on",
+        "n_train": len(ytr), "n_val": len(yva), "n_params": len(pcols),
+        "split_source": ("NVIDIA PhysicsNeMo-CFD workflows/benchmarking/drivaer_ml_files/. "
+                         "Their README states the validation set deliberately includes the "
+                         "extremes of the drag distribution, so it is partly "
+                         "out-of-distribution and therefore HARDER than a random 10%."),
+        "targets": {"drag_force": {}},
+    }
+    sets = {
+        "intercept_only": (one_tr, one_va),
+        "params_linear": (np.hstack([one_tr, Xtr]), np.hstack([one_va, Xva])),
+        "params_linear_squares": (np.hstack([one_tr, Xtr, Xtr ** 2]),
+                                  np.hstack([one_va, Xva, Xva ** 2])),
+    }
+    for nm, (A_, B_) in sets.items():
+        res["targets"]["drag_force"][nm] = score_official(A_, ytr, B_, yva, n_boot, seed)
+
+    res["label_spread"] = {
+        "train_drag_sd": float(np.std(ytr, ddof=1)),
+        "val_drag_sd": float(np.std(yva, ddof=1)),
+        "val_drag_range": [float(yva.min()), float(yva.max())],
+        "train_drag_range": [float(ytr.min()), float(ytr.max())],
+    }
+    res["near_duplicate_check"] = nn_leak_check(Xtr, Xva)
+
+    null = res["targets"]["drag_force"]["params_linear"]
+    null_sq = res["targets"]["drag_force"]["params_linear_squares"]
+    table = []
+    for model, vals in DRIVAERML_PUBLISHED:
+        row = {"model": model, "published": vals,
+               "published_source": ("arXiv 2507.10747 Tables 4, 6 and 7 (preprint, not "
+                                    "peer reviewed); no seed spread reported")}
+        for tag, nl in (("vs_null_linear", null), ("vs_null_linear_squares", null_sq)):
+            row[tag] = {
+                "null_r2": nl["out_of_sample"]["r2"],
+                "null_r2_ci95": nl["ci95"]["r2"][:2],
+                "verdict_r2_surface": verdict(vals["r2_drag_surface"],
+                                              nl["out_of_sample"]["r2"],
+                                              *nl["ci95"]["r2"][:2]),
+                "verdict_r2_pointcloud": verdict(vals["r2_drag_pointcloud"],
+                                                 nl["out_of_sample"]["r2"],
+                                                 *nl["ci95"]["r2"][:2]),
+                "null_spearman": nl["out_of_sample"]["spearman"],
+                "null_spearman_ci95": nl["ci95"]["spearman"][:2],
+                "verdict_spearman": verdict(vals["spearman_drag_surface"],
+                                            nl["out_of_sample"]["spearman"],
+                                            *nl["ci95"]["spearman"][:2]),
+            }
+        table.append(row)
+    res["published_vs_null"] = table
+    return res
+
+
+# --------------------------------------------------------------------------------------
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--download", action="store_true")
@@ -757,6 +875,9 @@ def main():
     out["benchmarks"]["DrivAerML_constref"] = run_ashton(
         "DrivAerML", args.boot, args.seed, args.folds,
         force_override="drivaerml_force_constref.csv")
+    print("== DrivAerML (PhysicsNeMo-CFD benchmark split, exact head-to-head) ==")
+    out["benchmarks"]["DrivAerML_benchmark_split"] = run_drivaerml_official(
+        args.boot, args.seed)
 
     # WindsorML published bound
     w = out["benchmarks"]["WindsorML"]["targets"]["cd"]["params_linear"]
@@ -830,6 +951,21 @@ def main():
                     tgt, fs, r["out_of_sample"]["r2"], r["ci95"]["r2"][0],
                     r["ci95"]["r2"][1], r["out_of_sample"]["mse"],
                     r["out_of_sample"]["spearman"]))
+    dm = out["benchmarks"]["DrivAerML_benchmark_split"]
+    print("\nDrivAerML, PhysicsNeMo-CFD split (fit %d, score %d, target drag force):"
+          % (dm["n_train"], dm["n_val"]))
+    for nm, r in dm["targets"]["drag_force"].items():
+        print("  %-24s R2=%7.4f [%.4f, %.4f]  rho=%6.3f [%.3f, %.3f]" % (
+            nm, r["out_of_sample"]["r2"], r["ci95"]["r2"][0], r["ci95"]["r2"][1],
+            r["out_of_sample"]["spearman"], r["ci95"]["spearman"][0],
+            r["ci95"]["spearman"][1]))
+    for row in dm["published_vs_null"]:
+        print("    %-16s published R2 %.2f (surface) / %.2f (10M pc) -> vs linear null: "
+              "%s / %s" % (row["model"], row["published"]["r2_drag_surface"],
+                           row["published"]["r2_drag_pointcloud"],
+                           row["vs_null_linear"]["verdict_r2_surface"],
+                           row["vs_null_linear"]["verdict_r2_pointcloud"]))
+
     wv = out["benchmarks"]["WindsorML"]["published_vs_null"][0]
     print("\nWindsorML published MGN drag MSE bound %.2e vs null %.2e -> %s" % (
         wv["published_cd_mse_bound"], wv["null_cd_mse"], wv["verdict"]))

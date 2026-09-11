@@ -16,7 +16,9 @@
     "windsorml_force.csv": "https://huggingface.co/datasets/neashton/windsorml/resolve/main/force_mom_all.csv",
     "drivaerml_geo.csv": "https://huggingface.co/datasets/neashton/drivaerml/resolve/main/geo_parameters_all.csv",
     "drivaerml_force.csv": "https://huggingface.co/datasets/neashton/drivaerml/resolve/main/force_mom_all.csv",
-    "drivaerml_force_constref.csv": "https://huggingface.co/datasets/neashton/drivaerml/resolve/main/force_mom_constref_all.csv"
+    "drivaerml_force_constref.csv": "https://huggingface.co/datasets/neashton/drivaerml/resolve/main/force_mom_constref_all.csv",
+    "drivaerml_pn_train.csv": "https://raw.githubusercontent.com/NVIDIA/physicsnemo-cfd/main/workflows/benchmarking/drivaer_ml_files/train.csv",
+    "drivaerml_pn_val.csv": "https://raw.githubusercontent.com/NVIDIA/physicsnemo-cfd/main/workflows/benchmarking/drivaer_ml_files/validation.csv"
   },
   "download_policy": "per-case parameters and force labels only; no field data",
   "benchmarks": {
@@ -624,10 +626,13 @@
             "r2": 0.643,
             "mse": 0.000149,
             "mae": 0.0096,
-            "maxae": 0.01245
+            "maxae": 0.01245,
+            "source": "dataset paper, NeurIPS 2024 D&B Table 4"
           },
           "published_std": null,
-          "published_source": "DrivAerNet++ NeurIPS 2024 D&B Table 4, test set of 1200 designs; no seed spread reported",
+          "published_source": "dataset paper, NeurIPS 2024 D&B Table 4",
+          "test_set": "DrivAerNet++ all-cars test set, ~1200 designs",
+          "seed_spread_reported": false,
           "vs_full_test_null": {
             "null_r2": 0.7364711158772645,
             "null_r2_ci95": [
@@ -680,10 +685,13 @@
             "r2": 0.596,
             "mse": 0.000171,
             "mae": 0.01043,
-            "maxae": 0.01503
+            "maxae": 0.01503,
+            "source": "dataset paper, NeurIPS 2024 D&B Table 4"
           },
           "published_std": null,
-          "published_source": "DrivAerNet++ NeurIPS 2024 D&B Table 4, test set of 1200 designs; no seed spread reported",
+          "published_source": "dataset paper, NeurIPS 2024 D&B Table 4",
+          "test_set": "DrivAerNet++ all-cars test set, ~1200 designs",
+          "seed_spread_reported": false,
           "vs_full_test_null": {
             "null_r2": 0.7364711158772645,
             "null_r2_ci95": [
@@ -736,10 +744,13 @@
             "r2": 0.641,
             "mse": 0.000142,
             "mae": 0.00931,
-            "maxae": 0.01279
+            "maxae": 0.01279,
+            "source": "dataset paper, NeurIPS 2024 D&B Table 4"
           },
           "published_std": null,
-          "published_source": "DrivAerNet++ NeurIPS 2024 D&B Table 4, test set of 1200 designs; no seed spread reported",
+          "published_source": "dataset paper, NeurIPS 2024 D&B Table 4",
+          "test_set": "DrivAerNet++ all-cars test set, ~1200 designs",
+          "seed_spread_reported": false,
           "vs_full_test_null": {
             "null_r2": 0.7364711158772645,
             "null_r2_ci95": [
@@ -783,6 +794,124 @@
               8.867222486818947e-05
             ],
             "verdict_mse": "BELOW THE NULL",
+            "comparable_test_set": false
+          }
+        },
+        {
+          "model": "TripNet",
+          "published": {
+            "r2": 0.957,
+            "mse": 9.1e-05,
+            "mae": 0.00717,
+            "maxae": null,
+            "source": "arXiv 2503.17400 Table 5 (current SOTA on this task)"
+          },
+          "published_std": null,
+          "published_source": "arXiv 2503.17400 Table 5 (current SOTA on this task)",
+          "test_set": "DrivAerNet++ all-cars test set, ~1200 designs",
+          "seed_spread_reported": false,
+          "vs_full_test_null": {
+            "null_r2": 0.7364711158772645,
+            "null_r2_ci95": [
+              0.7049980903603935,
+              0.764277085568821
+            ],
+            "verdict_r2": "clears",
+            "null_mse": 0.00010933535270098617,
+            "null_mse_ci95": [
+              9.830923791914002e-05,
+              0.00012149876553668086
+            ],
+            "verdict_mse": "clears",
+            "comparable_test_set": true
+          },
+          "vs_category_only_null_full_test": {
+            "null_r2": 0.4479676510361874,
+            "null_r2_ci95": [
+              0.40388452843927186,
+              0.4864801734516194
+            ],
+            "verdict_r2": "clears",
+            "null_mse": 0.00022903239535671517,
+            "null_mse_ci95": [
+              0.00020905571336573116,
+              0.00025013258142454173
+            ],
+            "verdict_mse": "clears",
+            "comparable_test_set": true
+          },
+          "vs_param_null_subset": {
+            "null_r2": 0.8515299891292344,
+            "null_r2_ci95": [
+              0.8285216919454356,
+              0.8713332641340816
+            ],
+            "verdict_r2": "clears",
+            "null_mse": 7.897575132575622e-05,
+            "null_mse_ci95": [
+              6.958018921379678e-05,
+              8.867222486818947e-05
+            ],
+            "verdict_mse": "BELOW THE NULL",
+            "comparable_test_set": false
+          }
+        },
+        {
+          "model": "PointNet2D+BiLSTM",
+          "published": {
+            "r2": 0.9528,
+            "mse": 6.5e-05,
+            "mae": 0.006046,
+            "maxae": null,
+            "source": "arXiv 2601.02112 Table 1 (preprint)"
+          },
+          "published_std": null,
+          "published_source": "arXiv 2601.02112 Table 1 (preprint)",
+          "test_set": "DrivAerNet++ all-cars test set, ~1200 designs",
+          "seed_spread_reported": false,
+          "vs_full_test_null": {
+            "null_r2": 0.7364711158772645,
+            "null_r2_ci95": [
+              0.7049980903603935,
+              0.764277085568821
+            ],
+            "verdict_r2": "clears",
+            "null_mse": 0.00010933535270098617,
+            "null_mse_ci95": [
+              9.830923791914002e-05,
+              0.00012149876553668086
+            ],
+            "verdict_mse": "clears",
+            "comparable_test_set": true
+          },
+          "vs_category_only_null_full_test": {
+            "null_r2": 0.4479676510361874,
+            "null_r2_ci95": [
+              0.40388452843927186,
+              0.4864801734516194
+            ],
+            "verdict_r2": "clears",
+            "null_mse": 0.00022903239535671517,
+            "null_mse_ci95": [
+              0.00020905571336573116,
+              0.00025013258142454173
+            ],
+            "verdict_mse": "clears",
+            "comparable_test_set": true
+          },
+          "vs_param_null_subset": {
+            "null_r2": 0.8515299891292344,
+            "null_r2_ci95": [
+              0.8285216919454356,
+              0.8713332641340816
+            ],
+            "verdict_r2": "clears",
+            "null_mse": 7.897575132575622e-05,
+            "null_mse_ci95": [
+              6.958018921379678e-05,
+              8.867222486818947e-05
+            ],
+            "verdict_mse": "clears",
             "comparable_test_set": false
           }
         }
@@ -2094,7 +2223,300 @@
         "reading": "A ratio near 1 means test designs are no closer to the train set than train designs are to each other, i.e. the split does not leak by near-duplication. A ratio well below 1 would indicate leakage.",
         "note": "Computed within the single pool, since there is no published split; the test-to-train column is therefore leave-one-out and equals the train column by construction."
       }
+    },
+    "DrivAerML_benchmark_split": {
+      "benchmark": "DrivAerML (PhysicsNeMo-CFD benchmark split)",
+      "target": "drag FORCE in newtons -- the exact label shipped in the split files, and the quantity the published R-squared table is computed on",
+      "n_train": 436,
+      "n_val": 48,
+      "n_params": 16,
+      "split_source": "NVIDIA PhysicsNeMo-CFD workflows/benchmarking/drivaer_ml_files/. Their README states the validation set deliberately includes the extremes of the drag distribution, so it is partly out-of-distribution and therefore HARDER than a random 10%.",
+      "targets": {
+        "drag_force": {
+          "intercept_only": {
+            "protocol": "official_split_trainfit_testscore",
+            "n_fit": 436,
+            "n_score": 48,
+            "out_of_sample": {
+              "r2": -0.004592268567937152,
+              "spearman": NaN,
+              "mse": 4846.796729305251,
+              "mae": 57.79859120268773,
+              "maxae": 132.93237319379028
+            },
+            "in_sample_on_fit_set": {
+              "r2": 0.0,
+              "spearman": NaN,
+              "mse": 2194.7742915087574,
+              "mae": 38.72820893141851,
+              "maxae": 111.64713393464223
+            },
+            "in_sample_inflation_r2": 0.004592268567937152,
+            "ci95": {
+              "r2": [
+                -0.1439829375300443,
+                -3.2743509509986015e-05,
+                10000
+              ],
+              "spearman": [
+                NaN,
+                NaN,
+                0
+              ],
+              "mse": [
+                3362.9399975990523,
+                6450.640857228193,
+                10000
+              ],
+              "mae": [
+                47.13598861629267,
+                68.92592534887189,
+                10000
+              ],
+              "maxae": [
+                128.5320922472535,
+                132.93237319379028,
+                10000
+              ]
+            }
+          },
+          "params_linear": {
+            "protocol": "official_split_trainfit_testscore",
+            "n_fit": 436,
+            "n_score": 48,
+            "out_of_sample": {
+              "r2": 0.9730580198150222,
+              "spearman": 0.9836083369518019,
+              "mse": 129.98537369564352,
+              "mae": 9.14618554837409,
+              "maxae": 33.63356029615932
+            },
+            "in_sample_on_fit_set": {
+              "r2": 0.9594429280801596,
+              "spearman": 0.9817798005873936,
+              "mse": 89.01361878853737,
+              "mae": 7.374989067884653,
+              "maxae": 40.631780951392784
+            },
+            "in_sample_inflation_r2": -0.013615091734862528,
+            "ci95": {
+              "r2": [
+                0.9580772227747316,
+                0.9826207956902174,
+                10000
+              ],
+              "spearman": [
+                0.9563845986512944,
+                0.9908710536325601,
+                10000
+              ],
+              "mse": [
+                83.68135564725395,
+                188.4152364527594,
+                10000
+              ],
+              "mae": [
+                7.280691543612457,
+                11.159553601761477,
+                10000
+              ],
+              "maxae": [
+                19.092968280500315,
+                33.63356029615932,
+                10000
+              ]
+            }
+          },
+          "params_linear_squares": {
+            "protocol": "official_split_trainfit_testscore",
+            "n_fit": 436,
+            "n_score": 48,
+            "out_of_sample": {
+              "r2": 0.9841312887847301,
+              "spearman": 0.9901215805471123,
+              "mse": 76.56082972458051,
+              "mae": 6.877644572638808,
+              "maxae": 20.576520779216878
+            },
+            "in_sample_on_fit_set": {
+              "r2": 0.9724033634193939,
+              "spearman": 0.9876965911057027,
+              "mse": 60.56838849922435,
+              "mae": 6.212061987549918,
+              "maxae": 31.58514784969657
+            },
+            "in_sample_inflation_r2": -0.011727925365336178,
+            "ci95": {
+              "r2": [
+                0.9724189990804709,
+                0.9904833365961898,
+                10000
+              ],
+              "spearman": [
+                0.9723532898341496,
+                0.9952150703503158,
+                10000
+              ],
+              "mse": [
+                48.739133714795315,
+                108.72337730859236,
+                10000
+              ],
+              "mae": [
+                5.423610053008723,
+                8.510629147531006,
+                10000
+              ],
+              "maxae": [
+                15.876606494603323,
+                20.576520779216878,
+                10000
+              ]
+            }
+          }
+        }
+      },
+      "label_spread": {
+        "train_drag_sd": 46.90223608368962,
+        "val_drag_sd": 70.19467652877748,
+        "val_drag_range": [
+          338.7213419168361,
+          590.8326976399285
+        ],
+        "train_drag_range": [
+          355.14301488813095,
+          569.5474583807804
+        ]
+      },
+      "near_duplicate_check": {
+        "test_to_train_nn_median": 3.1158442407076223,
+        "test_to_train_nn_min": 2.5857749567706674,
+        "test_to_train_nn_p05": 2.5857769991811885,
+        "train_to_train_nn_median": 3.2621659545360226,
+        "train_to_train_nn_min": 2.5857720306903413,
+        "ratio_median_test_over_train": 0.9551458399518452,
+        "reading": "A ratio near 1 means test designs are no closer to the train set than train designs are to each other, i.e. the split does not leak by near-duplication. A ratio well below 1 would indicate leakage."
+      },
+      "published_vs_null": [
+        {
+          "model": "X-MeshGraphNet",
+          "published": {
+            "r2_drag_surface": 0.92,
+            "r2_drag_pointcloud": 0.85,
+            "spearman_drag_surface": 0.96
+          },
+          "published_source": "arXiv 2507.10747 Tables 4, 6 and 7 (preprint, not peer reviewed); no seed spread reported",
+          "vs_null_linear": {
+            "null_r2": 0.9730580198150222,
+            "null_r2_ci95": [
+              0.9580772227747316,
+              0.9826207956902174
+            ],
+            "verdict_r2_surface": "BELOW THE NULL",
+            "verdict_r2_pointcloud": "BELOW THE NULL",
+            "null_spearman": 0.9836083369518019,
+            "null_spearman_ci95": [
+              0.9563845986512944,
+              0.9908710536325601
+            ],
+            "verdict_spearman": "straddles"
+          },
+          "vs_null_linear_squares": {
+            "null_r2": 0.9841312887847301,
+            "null_r2_ci95": [
+              0.9724189990804709,
+              0.9904833365961898
+            ],
+            "verdict_r2_surface": "BELOW THE NULL",
+            "verdict_r2_pointcloud": "BELOW THE NULL",
+            "null_spearman": 0.9901215805471123,
+            "null_spearman_ci95": [
+              0.9723532898341496,
+              0.9952150703503158
+            ],
+            "verdict_spearman": "BELOW THE NULL"
+          }
+        },
+        {
+          "model": "FIGConvNet",
+          "published": {
+            "r2_drag_surface": 0.97,
+            "r2_drag_pointcloud": 0.97,
+            "spearman_drag_surface": 0.99
+          },
+          "published_source": "arXiv 2507.10747 Tables 4, 6 and 7 (preprint, not peer reviewed); no seed spread reported",
+          "vs_null_linear": {
+            "null_r2": 0.9730580198150222,
+            "null_r2_ci95": [
+              0.9580772227747316,
+              0.9826207956902174
+            ],
+            "verdict_r2_surface": "straddles",
+            "verdict_r2_pointcloud": "straddles",
+            "null_spearman": 0.9836083369518019,
+            "null_spearman_ci95": [
+              0.9563845986512944,
+              0.9908710536325601
+            ],
+            "verdict_spearman": "straddles"
+          },
+          "vs_null_linear_squares": {
+            "null_r2": 0.9841312887847301,
+            "null_r2_ci95": [
+              0.9724189990804709,
+              0.9904833365961898
+            ],
+            "verdict_r2_surface": "BELOW THE NULL",
+            "verdict_r2_pointcloud": "BELOW THE NULL",
+            "null_spearman": 0.9901215805471123,
+            "null_spearman_ci95": [
+              0.9723532898341496,
+              0.9952150703503158
+            ],
+            "verdict_spearman": "straddles"
+          }
+        },
+        {
+          "model": "DoMINO",
+          "published": {
+            "r2_drag_surface": 0.98,
+            "r2_drag_pointcloud": 0.97,
+            "spearman_drag_surface": 0.99
+          },
+          "published_source": "arXiv 2507.10747 Tables 4, 6 and 7 (preprint, not peer reviewed); no seed spread reported",
+          "vs_null_linear": {
+            "null_r2": 0.9730580198150222,
+            "null_r2_ci95": [
+              0.9580772227747316,
+              0.9826207956902174
+            ],
+            "verdict_r2_surface": "straddles",
+            "verdict_r2_pointcloud": "straddles",
+            "null_spearman": 0.9836083369518019,
+            "null_spearman_ci95": [
+              0.9563845986512944,
+              0.9908710536325601
+            ],
+            "verdict_spearman": "straddles"
+          },
+          "vs_null_linear_squares": {
+            "null_r2": 0.9841312887847301,
+            "null_r2_ci95": [
+              0.9724189990804709,
+              0.9904833365961898
+            ],
+            "verdict_r2_surface": "straddles",
+            "verdict_r2_pointcloud": "BELOW THE NULL",
+            "null_spearman": 0.9901215805471123,
+            "null_spearman_ci95": [
+              0.9723532898341496,
+              0.9952150703503158
+            ],
+            "verdict_spearman": "straddles"
+          }
+        }
+      ]
     }
   },
-  "wall_clock_seconds": 106.3
+  "wall_clock_seconds": 115.1
 }
