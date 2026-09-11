@@ -71,8 +71,11 @@ peer reviewed. No seed spread reported.
 **Verdict: RESOLVED — the null travels, decisively.** Same 436 training runs, same 48
 validation runs, same target, same metric, no subset mismatch and no metric adaptation.
 X-MeshGraphNet is BELOW THE NULL under the pre-registered rule. FIGConvNet and DoMINO
-straddle it: a 16-coefficient linear model is statistically indistinguishable from two
-models that read multi-million-point geometry and cost GPU-days.
+straddle it -- the null's 95% interval contains both published point estimates. (They
+report no seed spread, so the statement is one-sided by necessity: our interval covers
+their values; no interval exists on their side to test the converse.) A 16-coefficient
+linear model is not separated from two models that read multi-million-point geometry and
+cost GPU-days.
 
 Two honest qualifications, neither of which touches the head-to-head:
 
@@ -111,6 +114,17 @@ lower bound on what published metadata supports.
 | category + 23 params (parametric subset) | 559 | 0.8515 [0.8285, 0.8713] | 7.898e-5 | 0.923 |
 | 23 params alone (subset) | 559 | 0.5160 [0.4608, 0.5636] | 2.575e-4 | 0.714 |
 | + frontal area (**diagnostic only**) | 559 | 0.8510 [0.8279, 0.8709] | 7.924e-5 | 0.923 |
+
+**The two parameter rows are one fit, not two pieces of evidence.** The F_D category dummy
+is group-exclusive and the parameter columns are identically zero on F_D rows, so by
+Frisch–Waugh the shared coefficients in `category + params where published` are determined
+entirely by the non-F_D rows — it recovers the same fit as the separate 3,051-design
+parametric regression, scored on the whole test set instead of the subset. The per-family
+decomposition confirms this numerically: the parametric families' weighted MSE on the full
+test set is 7.8976e-5 against the subset row's 7.898e-5. A reviewer should not read the
+0.8515 and 0.7365 rows as independent corroboration. The consequence is favourable, not
+awkward: the subset-variance question is moot because the headline row *is* that fit,
+evaluated on the same 1,154 designs the published models are.
 
 Frontal area is kept out of the headline deliberately: DrivAerNet++ normalises C_d by each
 design's own effective frontal area, so it sits partly inside the label and needs the
@@ -245,9 +259,16 @@ diagnostics.
 
 ### What I could not break, and what remains open
 
-* **Label version.** `DrivAerNetPlusPlus_Cd_8k_Updated.csv` may post-date the labels Table 4
-  was scored against. There is no earlier version to compare, so this is unresolvable; the
-  direction of any correction is unknown. Stated, not spun.
+* **Label version — raised, then closed.** `DrivAerNetPlusPlus_Cd_8k_Updated.csv` is named
+  "Updated" and could in principle post-date the labels Table 4 was scored against. No
+  earlier version is distributed, but the concern is resolvable indirectly: TripNet's
+  Appendix E Table 6 publishes per-configuration sample counts, C_d ranges and mean C_d for
+  DrivAerNet++, and TripNet both reports on this test set and reproduces the dataset paper's
+  Table 4 rows verbatim as its own baselines. Every published figure matches the file used
+  here exactly — E_S_WW n=698, [0.2223, 0.3198], mean 0.2725; E_S_WWC n=688, [0.2192,
+  0.3164], 0.2706; N_S_WW n=676, [0.2012, 0.2978], 0.2457; N_S_WWC n=386, [0.1998, 0.2969],
+  0.2473; F_S_WWC n=692, [0.2009, 0.2971], 0.2463 — counts, ranges and means agreeing to
+  four decimals. The labels are the same labels. **Caveat withdrawn.**
 * **Conservatism, not a hole.** The null is fit on the 5,819 train ids only, while the deep
   models additionally had a 1,148-design validation set for early stopping. Fitting on
   train+val could only help the null.
@@ -263,7 +284,7 @@ diagnostics.
 more useful result.**
 
 * AirfRANS is **not** unusually parametric. The same phenomenon appears at full strength on
-  DrivAerML (null indistinguishable from DoMINO and FIGConvNet on their own split) and at
+  DrivAerML (the null's interval covers both DoMINO and FIGConvNet on their own split) and at
   reduced strength on DrivAerNet++ (null above all three of the benchmark's own reference
   baselines, below current SOTA).
 * It is bounded, not universal. WindsorML is a clear counterexample: seven parameters
@@ -284,8 +305,8 @@ between R² 0.10 and R² 0.97.*
 
 > The same control generalises beyond AirfRANS. On DrivAerML, under the published 436/48
 > benchmark split and the published metric, ordinary least squares on the 16 design
-> parameters reaches R² 0.973 [0.958, 0.983] for drag — statistically indistinguishable
-> from DoMINO (0.98) and FIGConvNet (0.97), and above X-MeshGraphNet (0.92). On
+> parameters reaches R² 0.973 [0.958, 0.983] for drag — an interval that contains both
+> DoMINO (0.98) and FIGConvNet (0.97), and lies above X-MeshGraphNet (0.92). On
 > DrivAerNet++, a regression on published metadata alone reaches R² 0.737 [0.705, 0.764]
 > on the full official test split, above all three baselines the dataset paper reports
 > (0.596–0.643) though below current state of the art (TripNet, 0.957). The control is not
