@@ -420,6 +420,26 @@ HEADLINE: list[dict] = [
                "on GROUND-TRUTH fields (rho 0.985 vs 0.839) and LOSES on PREDICTED fields "
                "(0.37-0.49 vs 0.83-0.85), which withdraws an integrator recommendation an earlier "
                "draft of the report made"},
+    # --- does the AirfRANS covariate null travel? (docs/paper/review/null_travels.md) ---
+    {"path": "results/review/covariate_null_crossbench.json",
+     "script": "scripts/covariate_null_crossbench.py --download", "tier": "cpu",
+     "claims": "the parameter-only null on four further CFD-ML benchmarks, each under its own "
+               "split and its own published metric, from per-case metadata only (2.4 MB; no "
+               "field data). DrivAerML, on NVIDIA PhysicsNeMo-CFD's own 436/48 benchmark split "
+               "and its own drag-force target (verified proportional to the constant-reference-"
+               "area Cd at corr 1.000000): 16-parameter OLS reaches R2 0.9731 [0.9581, 0.9826], "
+               "straddling DoMINO (0.98) and FIGConvNet (0.97) and putting X-MeshGraphNet (0.92) "
+               "BELOW THE NULL. DrivAerNet++, official split, scored on the whole 1154-design "
+               "test set using published metadata only: R2 0.7365 [0.7050, 0.7643], MSE 1.093e-4, "
+               "above all three dataset-paper baselines (0.596-0.643; MSE 1.42-1.71e-4) on BOTH "
+               "metrics but BELOW TripNet (0.957) and PointNet2D+BiLSTM (0.9528), which clear it. "
+               "WindsorML is the counterexample: R2 0.104 [-0.143, 0.267] const-area and 0.073 "
+               "var-area, against a published MeshGraphNet implying R2 >= 0.79. AhmedML: R2 0.684 "
+               "const-area with no published baseline to compare against. Break tests in the same "
+               "file: label permutation -0.0198, ridge path flat, split-independence K-fold 0.7492 "
+               "vs 0.7365 official, near-duplicate ratios 0.944/0.955, per-family decomposition, "
+               "both reference-area normalisations everywhere. Decision rule committed at 8928087 "
+               "BEFORE any of these numbers existed"},
 ]
 
 
