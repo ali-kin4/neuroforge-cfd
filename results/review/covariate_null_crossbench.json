@@ -1,0 +1,2100 @@
+{
+  "artifact": "covariate_null_crossbench",
+  "question": "Does the AirfRANS covariate null -- OLS on the published case parameters alone, no flow field opened -- also match or beat published surrogates on other CFD-ML benchmarks?",
+  "prereg": "Higher-is-better: BELOW THE NULL iff published mean < null point estimate AND the null's 95% CI excludes it (verdict() imported from covariate_null.py, unchanged). Lower-is-better: the mirrored rule. A published BOUND is adjudicable only against the null being worse.",
+  "metric_adaptation": "DrivAerNet++ publishes R-squared, not Spearman, so its verdict runs on R-squared (sklearn convention). Spearman, MSE, MAE and Max AE are reported alongside.",
+  "data_sources": {
+    "drivaernet_params.csv": "https://raw.githubusercontent.com/Mohamedelrefaie/DrivAerNet/main/ParametricModels/DrivAerNet_ParametricData.csv",
+    "drivaernet_train_ids.txt": "https://raw.githubusercontent.com/Mohamedelrefaie/DrivAerNet/main/train_val_test_splits/train_design_ids.txt",
+    "drivaernet_val_ids.txt": "https://raw.githubusercontent.com/Mohamedelrefaie/DrivAerNet/main/train_val_test_splits/val_design_ids.txt",
+    "drivaernet_test_ids.txt": "https://raw.githubusercontent.com/Mohamedelrefaie/DrivAerNet/main/train_val_test_splits/test_design_ids.txt",
+    "drivaernet_cd.csv": "https://www.dropbox.com/scl/fi/2rtchqnpmzy90uwa9wwny/DrivAerNetPlusPlus_Cd_8k_Updated.csv?rlkey=vjnjurtxfuqr40zqgupnks8sn&dl=1",
+    "drivaernet_areas.csv": "https://www.dropbox.com/scl/fi/b7fenj0wmhzqx64bj82t1/DrivAerNetPlusPlus_CarDesign_Areas.csv?rlkey=usbunuupxwmx6g49r9r7dh8zk&dl=1",
+    "ahmedml_geo.csv": "https://huggingface.co/datasets/neashton/ahmedml/resolve/main/geo_parameters_all.csv",
+    "ahmedml_force.csv": "https://huggingface.co/datasets/neashton/ahmedml/resolve/main/force_mom_all.csv",
+    "windsorml_geo.csv": "https://huggingface.co/datasets/neashton/windsorml/resolve/main/geo_parameters_all.csv",
+    "windsorml_force.csv": "https://huggingface.co/datasets/neashton/windsorml/resolve/main/force_mom_all.csv",
+    "drivaerml_geo.csv": "https://huggingface.co/datasets/neashton/drivaerml/resolve/main/geo_parameters_all.csv",
+    "drivaerml_force.csv": "https://huggingface.co/datasets/neashton/drivaerml/resolve/main/force_mom_all.csv",
+    "drivaerml_force_constref.csv": "https://huggingface.co/datasets/neashton/drivaerml/resolve/main/force_mom_constref_all.csv"
+  },
+  "download_policy": "per-case parameters and force labels only; no field data",
+  "benchmarks": {
+    "DrivAerNet++": {
+      "benchmark": "DrivAerNet++",
+      "targets": {
+        "cd": {
+          "intercept_only": {
+            "protocol": "official_split_trainfit_testscore",
+            "n_fit": 5819,
+            "n_score": 1154,
+            "out_of_sample": {
+              "r2": -0.004720048282471412,
+              "spearman": NaN,
+              "mse": 0.0004168477440732981,
+              "mae": 0.016390713301440252,
+              "maxae": 0.06300110818510693
+            },
+            "in_sample_on_fit_set": {
+              "r2": 0.0,
+              "spearman": NaN,
+              "mse": 0.00040511714044716673,
+              "mae": 0.01619241794882692,
+              "maxae": 0.06192537049407704
+            },
+            "in_sample_inflation_r2": 0.004720048282471412,
+            "ci95": {
+              "r2": [
+                -0.016270613945240535,
+                -0.00015855590780180508,
+                10000
+              ],
+              "spearman": [
+                NaN,
+                NaN,
+                0
+              ],
+              "mse": [
+                0.0003845437787979166,
+                0.00045015949654817806,
+                10000
+              ],
+              "mae": [
+                0.015689074165867564,
+                0.017102602726678896,
+                10000
+              ],
+              "maxae": [
+                0.05400670911652394,
+                0.06300110818510693,
+                10000
+              ]
+            },
+            "scored_on": "full official test split (all 8k design families)",
+            "comparable_to_published": true
+          },
+          "category_tokens_only": {
+            "protocol": "official_split_trainfit_testscore",
+            "n_fit": 5819,
+            "n_score": 1154,
+            "out_of_sample": {
+              "r2": 0.4479676510361874,
+              "spearman": 0.5578237744963811,
+              "mse": 0.00022903239535671517,
+              "mae": 0.011626696818365818,
+              "maxae": 0.0534342054259459
+            },
+            "in_sample_on_fit_set": {
+              "r2": 0.4387596097584141,
+              "spearman": 0.6009092332753365,
+              "mse": 0.00022736810199812323,
+              "mae": 0.011785168903384696,
+              "maxae": 0.05206359112042727
+            },
+            "in_sample_inflation_r2": -0.009208041277773305,
+            "ci95": {
+              "r2": [
+                0.40388452843927186,
+                0.4864801734516194,
+                10000
+              ],
+              "spearman": [
+                0.5102079161833256,
+                0.6011126662687631,
+                10000
+              ],
+              "mse": [
+                0.00020905571336573116,
+                0.00025013258142454173,
+                10000
+              ],
+              "mae": [
+                0.011076336752305231,
+                0.012196848106054568,
+                10000
+              ],
+              "maxae": [
+                0.04812161236347137,
+                0.0534342054259459,
+                10000
+              ]
+            },
+            "scored_on": "full official test split (all 8k design families)",
+            "comparable_to_published": true
+          },
+          "category_params_where_published": {
+            "protocol": "official_split_trainfit_testscore",
+            "n_fit": 5819,
+            "n_score": 1154,
+            "out_of_sample": {
+              "r2": 0.7364711158772645,
+              "spearman": 0.7715546520064674,
+              "mse": 0.00010933535270098617,
+              "mae": 0.007996196767188974,
+              "maxae": 0.043469528202302155
+            },
+            "in_sample_on_fit_set": {
+              "r2": 0.7539071693285867,
+              "spearman": 0.7970266117257483,
+              "mse": 9.969642384615177e-05,
+              "mae": 0.007796815770859241,
+              "maxae": 0.04605716480794997
+            },
+            "in_sample_inflation_r2": 0.017436053451322153,
+            "ci95": {
+              "r2": [
+                0.7049980903603935,
+                0.764277085568821,
+                10000
+              ],
+              "spearman": [
+                0.7406318972193933,
+                0.7987734046231338,
+                10000
+              ],
+              "mse": [
+                9.830923791914002e-05,
+                0.00012149876553668086,
+                10000
+              ],
+              "mae": [
+                0.007623417080706882,
+                0.00839521940008123,
+                10000
+              ],
+              "maxae": [
+                0.038592727815399686,
+                0.043469528202302155,
+                10000
+              ]
+            },
+            "scored_on": "full official test split (all 8k design families)",
+            "comparable_to_published": true
+          },
+          "category_params_where_published_squares": {
+            "protocol": "official_split_trainfit_testscore",
+            "n_fit": 5819,
+            "n_score": 1154,
+            "out_of_sample": {
+              "r2": 0.7384672636279677,
+              "spearman": 0.771571186082869,
+              "mse": 0.00010850717206684833,
+              "mae": 0.007954911038259202,
+              "maxae": 0.04346952820229555
+            },
+            "in_sample_on_fit_set": {
+              "r2": 0.7591506697555108,
+              "spearman": 0.799406150782372,
+              "mse": 9.757219194726275e-05,
+              "mae": 0.0077036781720574345,
+              "maxae": 0.04605716480794336
+            },
+            "in_sample_inflation_r2": 0.020683406127543158,
+            "ci95": {
+              "r2": [
+                0.7066037010095487,
+                0.7663706945622539,
+                10000
+              ],
+              "spearman": [
+                0.7409272917625308,
+                0.7989955541793646,
+                10000
+              ],
+              "mse": [
+                9.755253226828563e-05,
+                0.00012071161501869205,
+                10000
+              ],
+              "mae": [
+                0.007578061855661352,
+                0.008355007761547108,
+                10000
+              ],
+              "maxae": [
+                0.03859272781539308,
+                0.04346952820229555,
+                10000
+              ]
+            },
+            "scored_on": "full official test split (all 8k design families)",
+            "comparable_to_published": true
+          },
+          "sub__intercept_only": {
+            "protocol": "official_split_trainfit_testscore",
+            "n_fit": 3051,
+            "n_score": 559,
+            "out_of_sample": {
+              "r2": -0.0035965438914735692,
+              "spearman": NaN,
+              "mse": 0.000533843775028429,
+              "mae": 0.01914960417583593,
+              "maxae": 0.059286789676827434
+            },
+            "in_sample_on_fit_set": {
+              "r2": 0.0,
+              "spearman": NaN,
+              "mse": 0.00047207213874573693,
+              "mae": 0.017780168609218924,
+              "maxae": 0.06651708812533236
+            },
+            "in_sample_inflation_r2": 0.0035965438914735692,
+            "ci95": {
+              "r2": [
+                -0.020471830406046932,
+                -1.4033783727068799e-05,
+                10000
+              ],
+              "spearman": [
+                NaN,
+                NaN,
+                0
+              ],
+              "mse": [
+                0.00048346876986474864,
+                0.0005871226610793165,
+                10000
+              ],
+              "mae": [
+                0.01811877352575159,
+                0.020222091157564973,
+                10000
+              ],
+              "maxae": [
+                0.05414374788945192,
+                0.059286789676827434,
+                10000
+              ]
+            },
+            "scored_on": "parametric subset of the official test split (smooth-underbody designs only)",
+            "comparable_to_published": false,
+            "caveat": "Published Table 4 is scored on the full ~1200-design test set. This row is scored on the 559 of those designs that have published parameters. See the label-spread diagnostic before reading it as a head-to-head."
+          },
+          "sub__category_tokens": {
+            "protocol": "official_split_trainfit_testscore",
+            "n_fit": 3051,
+            "n_score": 559,
+            "out_of_sample": {
+              "r2": 0.38699075935113425,
+              "spearman": 0.5824686423693197,
+              "mse": 0.00032607841183507433,
+              "mae": 0.014625236508095376,
+              "maxae": 0.05343420542594857
+            },
+            "in_sample_on_fit_set": {
+              "r2": 0.31115563452926465,
+              "spearman": 0.48608320936736005,
+              "mse": 0.0003251842328707201,
+              "mae": 0.014785087845472536,
+              "maxae": 0.052063591120428826
+            },
+            "in_sample_inflation_r2": -0.0758351248218696,
+            "ci95": {
+              "r2": [
+                0.332568891760917,
+                0.43547713857876386,
+                10000
+              ],
+              "spearman": [
+                0.5245526455690911,
+                0.634585788988951,
+                10000
+              ],
+              "mse": [
+                0.00029208047497777343,
+                0.0003611754536633335,
+                10000
+              ],
+              "mae": [
+                0.013741767313500158,
+                0.015504639242207945,
+                10000
+              ],
+              "maxae": [
+                0.04812161236346971,
+                0.05343420542594857,
+                10000
+              ]
+            },
+            "scored_on": "parametric subset of the official test split (smooth-underbody designs only)",
+            "comparable_to_published": false,
+            "caveat": "Published Table 4 is scored on the full ~1200-design test set. This row is scored on the 559 of those designs that have published parameters. See the label-spread diagnostic before reading it as a head-to-head."
+          },
+          "sub__params23": {
+            "protocol": "official_split_trainfit_testscore",
+            "n_fit": 3051,
+            "n_score": 559,
+            "out_of_sample": {
+              "r2": 0.5159627449575752,
+              "spearman": 0.7139144847578944,
+              "mse": 0.0002574742580163661,
+              "mae": 0.013383413985275743,
+              "maxae": 0.05225902182985109
+            },
+            "in_sample_on_fit_set": {
+              "r2": 0.497669750865927,
+              "spearman": 0.700624666911369,
+              "mse": 0.00023713611506540072,
+              "mae": 0.012557936734975867,
+              "maxae": 0.056251012349910506
+            },
+            "in_sample_inflation_r2": -0.018292994091648196,
+            "ci95": {
+              "r2": [
+                0.46076285301007863,
+                0.5636286359070762,
+                10000
+              ],
+              "spearman": [
+                0.6679343287621287,
+                0.7537175113844661,
+                10000
+              ],
+              "mse": [
+                0.00023218050515721387,
+                0.0002838555163675968,
+                10000
+              ],
+              "mae": [
+                0.012660592183464048,
+                0.014108790528545807,
+                10000
+              ],
+              "maxae": [
+                0.04051804670302531,
+                0.05225902182985109,
+                10000
+              ]
+            },
+            "scored_on": "parametric subset of the official test split (smooth-underbody designs only)",
+            "comparable_to_published": false,
+            "caveat": "Published Table 4 is scored on the full ~1200-design test set. This row is scored on the 559 of those designs that have published parameters. See the label-spread diagnostic before reading it as a head-to-head."
+          },
+          "sub__category_params23": {
+            "protocol": "official_split_trainfit_testscore",
+            "n_fit": 3051,
+            "n_score": 559,
+            "out_of_sample": {
+              "r2": 0.8515299891292344,
+              "spearman": 0.9232732633707876,
+              "mse": 7.897575132575622e-05,
+              "mae": 0.007130429604592825,
+              "maxae": 0.033200932260105565
+            },
+            "in_sample_on_fit_set": {
+              "r2": 0.8269687099351577,
+              "spearman": 0.9110329165377167,
+              "mse": 8.168325117084409e-05,
+              "mae": 0.007178327151219705,
+              "maxae": 0.03780860178255796
+            },
+            "in_sample_inflation_r2": -0.02456127919407669,
+            "ci95": {
+              "r2": [
+                0.8285216919454356,
+                0.8713332641340816,
+                10000
+              ],
+              "spearman": [
+                0.9084925823479216,
+                0.9347517517688516,
+                10000
+              ],
+              "mse": [
+                6.958018921379678e-05,
+                8.867222486818947e-05,
+                10000
+              ],
+              "mae": [
+                0.00668294016313292,
+                0.007570139590038306,
+                10000
+              ],
+              "maxae": [
+                0.02331321680393572,
+                0.033200932260105565,
+                10000
+              ]
+            },
+            "scored_on": "parametric subset of the official test split (smooth-underbody designs only)",
+            "comparable_to_published": false,
+            "caveat": "Published Table 4 is scored on the full ~1200-design test set. This row is scored on the 559 of those designs that have published parameters. See the label-spread diagnostic before reading it as a head-to-head."
+          },
+          "sub__category_params23_squares": {
+            "protocol": "official_split_trainfit_testscore",
+            "n_fit": 3051,
+            "n_score": 559,
+            "out_of_sample": {
+              "r2": 0.854744123625538,
+              "spearman": 0.9239549585198495,
+              "mse": 7.726605463200063e-05,
+              "mae": 0.007045199316239571,
+              "maxae": 0.032265798027202586
+            },
+            "in_sample_on_fit_set": {
+              "r2": 0.8355509311803191,
+              "spearman": 0.9154636127921884,
+              "mse": 7.763182363245166e-05,
+              "mae": 0.007000691068815117,
+              "maxae": 0.03828759416639932
+            },
+            "in_sample_inflation_r2": -0.019193192445218887,
+            "ci95": {
+              "r2": [
+                0.8323282285287487,
+                0.874321747482778,
+                10000
+              ],
+              "spearman": [
+                0.90913842338582,
+                0.9354454071508308,
+                10000
+              ],
+              "mse": [
+                6.809697067124529e-05,
+                8.68725320150115e-05,
+                10000
+              ],
+              "mae": [
+                0.006605236782585256,
+                0.007483943090642539,
+                10000
+              ],
+              "maxae": [
+                0.025087805540778524,
+                0.032265798027202586,
+                10000
+              ]
+            },
+            "scored_on": "parametric subset of the official test split (smooth-underbody designs only)",
+            "comparable_to_published": false,
+            "caveat": "Published Table 4 is scored on the full ~1200-design test set. This row is scored on the 559 of those designs that have published parameters. See the label-spread diagnostic before reading it as a head-to-head."
+          },
+          "sub__DIAG_category_params23_area": {
+            "protocol": "official_split_trainfit_testscore",
+            "n_fit": 2937,
+            "n_score": 559,
+            "out_of_sample": {
+              "r2": 0.8510372938182338,
+              "spearman": 0.9225680046385221,
+              "mse": 7.923783106921913e-05,
+              "mae": 0.007126937696059168,
+              "maxae": 0.0331027502956438
+            },
+            "in_sample_on_fit_set": {
+              "r2": 0.828578828756297,
+              "spearman": 0.912077574054713,
+              "mse": 8.168041683141665e-05,
+              "mae": 0.00716121276858507,
+              "maxae": 0.03730703430983895
+            },
+            "in_sample_inflation_r2": -0.022458465061936828,
+            "ci95": {
+              "r2": [
+                0.8278861760986543,
+                0.870894259511277,
+                10000
+              ],
+              "spearman": [
+                0.9076947433749756,
+                0.9342955253324694,
+                10000
+              ],
+              "mse": [
+                6.982266083870035e-05,
+                8.889188022812701e-05,
+                10000
+              ],
+              "mae": [
+                0.0066794414333539035,
+                0.007563409750133171,
+                10000
+              ],
+              "maxae": [
+                0.02370520513348906,
+                0.0331027502956438,
+                10000
+              ]
+            },
+            "scored_on": "parametric subset of the official test split, further restricted to designs with a published frontal area",
+            "comparable_to_published": false,
+            "caveat": "DIAGNOSTIC ONLY. Cd is normalised by each design's own effective frontal area, so this block is partly inside the label and needs the geometry to compute. Never the headline null."
+          }
+        }
+      },
+      "subset_vs_full_label_spread": {
+        "full_test_n": 1154,
+        "full_test_cd_sd": 0.020377666220370887,
+        "full_test_cd_var": 0.00041524928058884477,
+        "full_test_cd_range": [
+          0.1998517627541528,
+          0.3168595800557837
+        ],
+        "param_subset_test_n": 559,
+        "param_subset_test_cd_sd": 0.023084279148582923,
+        "param_subset_test_cd_var": 0.0005328839438097004,
+        "param_subset_test_cd_range": [
+          0.1998517627541528,
+          0.3125798714418605
+        ],
+        "reading": "R-squared divides by the test set's own variance. If the parametric subset's Cd variance is at or below the full test set's, the subset R-squared is not inflated by an easier target; if it is larger, the cross-subset comparison is suggestive only."
+      },
+      "near_duplicate_check_params23": {
+        "test_to_train_nn_median": 0.23003868567435112,
+        "test_to_train_nn_min": 0.0,
+        "test_to_train_nn_p05": 0.0,
+        "train_to_train_nn_median": 0.24357770300634124,
+        "train_to_train_nn_min": 0.0,
+        "ratio_median_test_over_train": 0.9444160234500707,
+        "reading": "A ratio near 1 means test designs are no closer to the train set than train designs are to each other, i.e. the split does not leak by near-duplication. A ratio well below 1 would indicate leakage."
+      },
+      "coverage": {
+        "designs_with_published_drag": 8121,
+        "designs_with_published_parameters": 4165,
+        "official_split_sizes": {
+          "train": 5819,
+          "val": 1148,
+          "test": 1154
+        },
+        "train_in_params": 3051,
+        "test_in_params": 559,
+        "note": "The 3956 F_D_* designs are the DrivAerNet-v1 fastbacks, generated from a different 50-parameter scheme. That parameter table is not published in the repository or on the Dataverse record, so those designs enter the null only through their categorical tokens."
+      },
+      "break_tests": {
+        "label_permutation_full_test": {
+          "r2": -0.019835909025571086,
+          "expected": "approximately 0 or negative; anything else would indicate a leak"
+        },
+        "ridge_path_full_test_r2": {
+          "lambda_1e-08": 0.736471115881464,
+          "lambda_0.0001": 0.7364711578747802,
+          "lambda_0.01": 0.7364752953625446,
+          "lambda_1": 0.7366935968022729,
+          "lambda_100": 0.4420600440041964
+        },
+        "protocol_swap_parametric_pool": {
+          "kfold_oos_r2": 0.8287702707355655,
+          "kfold_oos_mse": 8.246277513633589e-05,
+          "n": 3610
+        },
+        "protocol_swap_random_80_20": {
+          "note": "the split protocol the benchmark's own AutoML_parametric.py uses",
+          "r2": 0.8307510509573733,
+          "mse": 8.124866187354686e-05,
+          "n_test": 722
+        },
+        "per_family_decomposition_full_test": {
+          "E_S": {
+            "n": 210,
+            "mse": 8.584568705250253e-05,
+            "cd_sd": 0.017852181447907314,
+            "has_published_parameters": true
+          },
+          "F_D": {
+            "n": 595,
+            "mse": 0.0001378580706316667,
+            "cd_sd": 0.011750327567423783,
+            "has_published_parameters": false
+          },
+          "F_S": {
+            "n": 183,
+            "mse": 7.125167474498168e-05,
+            "cd_sd": 0.017575819160773224,
+            "has_published_parameters": true
+          },
+          "N_S": {
+            "n": 166,
+            "mse": 7.87999652514408e-05,
+            "cd_sd": 0.01895371742245906,
+            "has_published_parameters": true
+          }
+        },
+        "split_independence_all_designs": {
+          "kfold_oos_r2": 0.7491619261774125,
+          "kfold_oos_mse": 0.00010209231687610225,
+          "n": 6973,
+          "reading": "If this matches the official-split number, the null is a property of the data rather than of the particular id lists."
+        },
+        "full_test_params_without_category_block_r2": 0.3779733759761409
+      },
+      "published_vs_null": [
+        {
+          "model": "PointNet",
+          "published": {
+            "r2": 0.643,
+            "mse": 0.000149,
+            "mae": 0.0096,
+            "maxae": 0.01245
+          },
+          "published_std": null,
+          "published_source": "DrivAerNet++ NeurIPS 2024 D&B Table 4, test set of 1200 designs; no seed spread reported",
+          "vs_full_test_null": {
+            "null_r2": 0.7364711158772645,
+            "null_r2_ci95": [
+              0.7049980903603935,
+              0.764277085568821
+            ],
+            "verdict_r2": "BELOW THE NULL",
+            "null_mse": 0.00010933535270098617,
+            "null_mse_ci95": [
+              9.830923791914002e-05,
+              0.00012149876553668086
+            ],
+            "verdict_mse": "BELOW THE NULL",
+            "comparable_test_set": true
+          },
+          "vs_category_only_null_full_test": {
+            "null_r2": 0.4479676510361874,
+            "null_r2_ci95": [
+              0.40388452843927186,
+              0.4864801734516194
+            ],
+            "verdict_r2": "clears",
+            "null_mse": 0.00022903239535671517,
+            "null_mse_ci95": [
+              0.00020905571336573116,
+              0.00025013258142454173
+            ],
+            "verdict_mse": "clears",
+            "comparable_test_set": true
+          },
+          "vs_param_null_subset": {
+            "null_r2": 0.8515299891292344,
+            "null_r2_ci95": [
+              0.8285216919454356,
+              0.8713332641340816
+            ],
+            "verdict_r2": "BELOW THE NULL",
+            "null_mse": 7.897575132575622e-05,
+            "null_mse_ci95": [
+              6.958018921379678e-05,
+              8.867222486818947e-05
+            ],
+            "verdict_mse": "BELOW THE NULL",
+            "comparable_test_set": false
+          }
+        },
+        {
+          "model": "GCNN",
+          "published": {
+            "r2": 0.596,
+            "mse": 0.000171,
+            "mae": 0.01043,
+            "maxae": 0.01503
+          },
+          "published_std": null,
+          "published_source": "DrivAerNet++ NeurIPS 2024 D&B Table 4, test set of 1200 designs; no seed spread reported",
+          "vs_full_test_null": {
+            "null_r2": 0.7364711158772645,
+            "null_r2_ci95": [
+              0.7049980903603935,
+              0.764277085568821
+            ],
+            "verdict_r2": "BELOW THE NULL",
+            "null_mse": 0.00010933535270098617,
+            "null_mse_ci95": [
+              9.830923791914002e-05,
+              0.00012149876553668086
+            ],
+            "verdict_mse": "BELOW THE NULL",
+            "comparable_test_set": true
+          },
+          "vs_category_only_null_full_test": {
+            "null_r2": 0.4479676510361874,
+            "null_r2_ci95": [
+              0.40388452843927186,
+              0.4864801734516194
+            ],
+            "verdict_r2": "clears",
+            "null_mse": 0.00022903239535671517,
+            "null_mse_ci95": [
+              0.00020905571336573116,
+              0.00025013258142454173
+            ],
+            "verdict_mse": "clears",
+            "comparable_test_set": true
+          },
+          "vs_param_null_subset": {
+            "null_r2": 0.8515299891292344,
+            "null_r2_ci95": [
+              0.8285216919454356,
+              0.8713332641340816
+            ],
+            "verdict_r2": "BELOW THE NULL",
+            "null_mse": 7.897575132575622e-05,
+            "null_mse_ci95": [
+              6.958018921379678e-05,
+              8.867222486818947e-05
+            ],
+            "verdict_mse": "BELOW THE NULL",
+            "comparable_test_set": false
+          }
+        },
+        {
+          "model": "RegDGCNN",
+          "published": {
+            "r2": 0.641,
+            "mse": 0.000142,
+            "mae": 0.00931,
+            "maxae": 0.01279
+          },
+          "published_std": null,
+          "published_source": "DrivAerNet++ NeurIPS 2024 D&B Table 4, test set of 1200 designs; no seed spread reported",
+          "vs_full_test_null": {
+            "null_r2": 0.7364711158772645,
+            "null_r2_ci95": [
+              0.7049980903603935,
+              0.764277085568821
+            ],
+            "verdict_r2": "BELOW THE NULL",
+            "null_mse": 0.00010933535270098617,
+            "null_mse_ci95": [
+              9.830923791914002e-05,
+              0.00012149876553668086
+            ],
+            "verdict_mse": "BELOW THE NULL",
+            "comparable_test_set": true
+          },
+          "vs_category_only_null_full_test": {
+            "null_r2": 0.4479676510361874,
+            "null_r2_ci95": [
+              0.40388452843927186,
+              0.4864801734516194
+            ],
+            "verdict_r2": "clears",
+            "null_mse": 0.00022903239535671517,
+            "null_mse_ci95": [
+              0.00020905571336573116,
+              0.00025013258142454173
+            ],
+            "verdict_mse": "clears",
+            "comparable_test_set": true
+          },
+          "vs_param_null_subset": {
+            "null_r2": 0.8515299891292344,
+            "null_r2_ci95": [
+              0.8285216919454356,
+              0.8713332641340816
+            ],
+            "verdict_r2": "BELOW THE NULL",
+            "null_mse": 7.897575132575622e-05,
+            "null_mse_ci95": [
+              6.958018921379678e-05,
+              8.867222486818947e-05
+            ],
+            "verdict_mse": "BELOW THE NULL",
+            "comparable_test_set": false
+          }
+        }
+      ]
+    },
+    "AhmedML": {
+      "benchmark": "AhmedML",
+      "n_cases": 499,
+      "n_params": 8,
+      "param_names": [
+        "body-length",
+        "body-height",
+        "body-width",
+        "front-arc-diameter",
+        "slant-angle-length",
+        "slant-angle-height",
+        "slant-surface-length",
+        "slant-angle-degrees"
+      ],
+      "force_note": "force_mom_all.csv: time-averaged coefficients on a CONSTANT reference area of 0.112 m^2, so no area term enters the label.",
+      "split_note": "no split published by the benchmark",
+      "force_file": "ahmedml_force.csv",
+      "targets": {
+        "cd": {
+          "intercept_only": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 499,
+            "n_score": 499,
+            "out_of_sample": {
+              "r2": -0.004578227085291875,
+              "spearman": -0.11898444184229745,
+              "mse": 0.003641612157888128,
+              "mae": 0.0486714280506032,
+              "maxae": 0.23608485617839636
+            },
+            "in_sample": {
+              "r2": 0.0,
+              "spearman": NaN,
+              "mse": 0.0036250160114001196,
+              "mae": 0.048578730548036915,
+              "maxae": 0.2369105902099798
+            },
+            "in_sample_inflation_r2": 0.004578227085291875,
+            "ci95": {
+              "r2": [
+                -0.014910157770392719,
+                -0.002723679118415513,
+                10000
+              ],
+              "spearman": [
+                -0.2037945964086827,
+                -0.03129670875613336,
+                10000
+              ],
+              "mse": [
+                0.003167398791142414,
+                0.00415294651271725,
+                10000
+              ],
+              "mae": [
+                0.04558106178998044,
+                0.051867625353363665,
+                10000
+              ],
+              "maxae": [
+                0.1935350836403118,
+                0.23608485617839636,
+                10000
+              ]
+            }
+          },
+          "params_linear": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 499,
+            "n_score": 499,
+            "out_of_sample": {
+              "r2": 0.6842016571598261,
+              "spearman": 0.8603160055049859,
+              "mse": 0.001144774049169255,
+              "mae": 0.02443962366963867,
+              "maxae": 0.1590565633525955
+            },
+            "in_sample": {
+              "r2": 0.6995995841192351,
+              "spearman": 0.8677980539392036,
+              "mse": 0.0010889563173990275,
+              "mae": 0.02381091963610173,
+              "maxae": 0.15285888508248308
+            },
+            "in_sample_inflation_r2": 0.015397926959409003,
+            "ci95": {
+              "r2": [
+                0.6376971739918247,
+                0.727253250122702,
+                10000
+              ],
+              "spearman": [
+                0.8315500908979576,
+                0.88447893166697,
+                10000
+              ],
+              "mse": [
+                0.000928985707029833,
+                0.0013868079999486609,
+                10000
+              ],
+              "mae": [
+                0.02241820863475272,
+                0.026544742711660144,
+                10000
+              ],
+              "maxae": [
+                0.12420862309118574,
+                0.1590565633525955,
+                10000
+              ]
+            }
+          },
+          "params_linear_squares": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 499,
+            "n_score": 499,
+            "out_of_sample": {
+              "r2": 0.7133376386958354,
+              "spearman": 0.8738876306830528,
+              "mse": 0.0010391556495933625,
+              "mae": 0.02303940773925583,
+              "maxae": 0.1560365463785633
+            },
+            "in_sample": {
+              "r2": 0.7332216955711405,
+              "spearman": 0.8826740710336335,
+              "mse": 0.0009670756250487911,
+              "mae": 0.022258391519854162,
+              "maxae": 0.14746145183815335
+            },
+            "in_sample_inflation_r2": 0.019884056875305034,
+            "ci95": {
+              "r2": [
+                0.6686454850260262,
+                0.7545339766271699,
+                10000
+              ],
+              "spearman": [
+                0.8472158673772077,
+                0.8959624929223905,
+                10000
+              ],
+              "mse": [
+                0.0008445557165123268,
+                0.0012573609065984473,
+                10000
+              ],
+              "mae": [
+                0.02109356866450475,
+                0.025065443170832882,
+                10000
+              ],
+              "maxae": [
+                0.1138833723169817,
+                0.1560365463785633,
+                10000
+              ]
+            }
+          }
+        },
+        "cl": {
+          "intercept_only": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 499,
+            "n_score": 499,
+            "out_of_sample": {
+              "r2": -0.007917255278776292,
+              "spearman": -0.1552212229535321,
+              "mse": 0.04606261837598047,
+              "mae": 0.17843657855900621,
+              "maxae": 0.6180150056089775
+            },
+            "in_sample": {
+              "r2": 0.0,
+              "spearman": NaN,
+              "mse": 0.04570079352718311,
+              "mae": 0.17764468499347397,
+              "maxae": 0.6178399485306617
+            },
+            "in_sample_inflation_r2": 0.007917255278776292,
+            "ci95": {
+              "r2": [
+                -0.01863201963354592,
+                -0.005111529792723342,
+                10000
+              ],
+              "spearman": [
+                -0.2442709958949648,
+                -0.06387477567784064,
+                10000
+              ],
+              "mse": [
+                0.04076492677982893,
+                0.05166021987055768,
+                10000
+              ],
+              "mae": [
+                0.16805726727357,
+                0.1889497826894903,
+                10000
+              ],
+              "maxae": [
+                0.584473616707815,
+                0.6180150056089775,
+                10000
+              ]
+            }
+          },
+          "params_linear": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 499,
+            "n_score": 499,
+            "out_of_sample": {
+              "r2": 0.4515489994954991,
+              "spearman": 0.803727551488519,
+              "mse": 0.025064645933833198,
+              "mae": 0.1303074264724768,
+              "maxae": 0.46791409998343164
+            },
+            "in_sample": {
+              "r2": 0.48342321875764016,
+              "spearman": 0.824315522611488,
+              "mse": 0.023607968820493926,
+              "mae": 0.1266641063753772,
+              "maxae": 0.4535499893947956
+            },
+            "in_sample_inflation_r2": 0.03187421926214107,
+            "ci95": {
+              "r2": [
+                0.4039491854457114,
+                0.4933637941434809,
+                10000
+              ],
+              "spearman": [
+                0.7675521291349271,
+                0.8346163119138791,
+                10000
+              ],
+              "mse": [
+                0.02215643301919102,
+                0.028148518000228932,
+                10000
+              ],
+              "mae": [
+                0.12238038386163948,
+                0.13840711033457206,
+                10000
+              ],
+              "maxae": [
+                0.4313874746838209,
+                0.46791409998343164,
+                10000
+              ]
+            }
+          },
+          "params_linear_squares": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 499,
+            "n_score": 499,
+            "out_of_sample": {
+              "r2": 0.6300021431785282,
+              "spearman": 0.8438576429968369,
+              "mse": 0.016909195660098342,
+              "mae": 0.10129189816919804,
+              "maxae": 0.43587097995674307
+            },
+            "in_sample": {
+              "r2": 0.6615039664907407,
+              "spearman": 0.8592684163507738,
+              "mse": 0.015469537337177116,
+              "mae": 0.09674944868543607,
+              "maxae": 0.4155674667489677
+            },
+            "in_sample_inflation_r2": 0.03150182331221252,
+            "ci95": {
+              "r2": [
+                0.5817063803954534,
+                0.6717243970603719,
+                10000
+              ],
+              "spearman": [
+                0.8167797423972206,
+                0.8659161031963548,
+                10000
+              ],
+              "mse": [
+                0.01479771904054747,
+                0.019207150734804158,
+                10000
+              ],
+              "mae": [
+                0.09411944383989751,
+                0.10862749012402938,
+                10000
+              ],
+              "maxae": [
+                0.36932347239401875,
+                0.43587097995674307,
+                10000
+              ]
+            }
+          }
+        }
+      },
+      "near_duplicate_check": {
+        "test_to_train_nn_median": 0.0,
+        "test_to_train_nn_min": 0.0,
+        "test_to_train_nn_p05": 0.0,
+        "train_to_train_nn_median": 1.1151853151525288,
+        "train_to_train_nn_min": 0.3730661400939951,
+        "ratio_median_test_over_train": 0.0,
+        "reading": "A ratio near 1 means test designs are no closer to the train set than train designs are to each other, i.e. the split does not leak by near-duplication. A ratio well below 1 would indicate leakage.",
+        "note": "Computed within the single pool, since there is no published split; the test-to-train column is therefore leave-one-out and equals the train column by construction."
+      },
+      "published_vs_null": [
+        {
+          "model": null,
+          "verdict": "no published ML baseline",
+          "published_source": "AhmedML arXiv 2407.20801 reports no ML benchmark results; the datasheet states only that 'limited testing with various ML approaches has been undertaken by the author team'."
+        }
+      ]
+    },
+    "WindsorML": {
+      "benchmark": "WindsorML",
+      "n_cases": 355,
+      "n_params": 7,
+      "param_names": [
+        "ratio_length_back_fast",
+        "ratio_height_nose_windshield",
+        "ratio_height_fast_back",
+        "side_taper",
+        "clearance",
+        "bottom_taper_angle",
+        "frontal_area"
+      ],
+      "force_note": "force_mom_all.csv: CONSTANT reference area, so the published frontal_area design parameter is an ordinary covariate here.",
+      "split_note": "60/20/20 recommended, but no id lists are published, so K-fold is used",
+      "force_file": "windsorml_force.csv",
+      "targets": {
+        "cd": {
+          "intercept_only": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 355,
+            "n_score": 355,
+            "out_of_sample": {
+              "r2": -0.0034376017887889354,
+              "spearman": -0.10171956839794304,
+              "mse": 0.0013482013023389556,
+              "mae": 0.02579387941827076,
+              "maxae": 0.19543197344141938
+            },
+            "in_sample": {
+              "r2": 1.1102230246251565e-16,
+              "spearman": NaN,
+              "mse": 0.0013435826003884742,
+              "mae": 0.025731768559457892,
+              "maxae": 0.19458094654007124
+            },
+            "in_sample_inflation_r2": 0.0034376017887890464,
+            "ci95": {
+              "r2": [
+                -0.01846510273877195,
+                -0.0012729439677537596,
+                10000
+              ],
+              "spearman": [
+                -0.20254891424821644,
+                0.0006914587908066665,
+                10000
+              ],
+              "mse": [
+                0.0010218720050794554,
+                0.0017236406248747383,
+                10000
+              ],
+              "mae": [
+                0.023203701408151783,
+                0.028546339475799452,
+                10000
+              ],
+              "maxae": [
+                0.1507430868472382,
+                0.19543197344141938,
+                10000
+              ]
+            }
+          },
+          "params_linear": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 355,
+            "n_score": 355,
+            "out_of_sample": {
+              "r2": 0.10449352113588983,
+              "spearman": 0.5628399588113423,
+              "mse": 0.0012031869235369676,
+              "mae": 0.022554545882476348,
+              "maxae": 0.20187330790801436
+            },
+            "in_sample": {
+              "r2": 0.25606542536657684,
+              "spearman": 0.5976199295694207,
+              "mse": 0.0009995375503048683,
+              "mae": 0.021447674422566138,
+              "maxae": 0.1746283527197775
+            },
+            "in_sample_inflation_r2": 0.151571904230687,
+            "ci95": {
+              "r2": [
+                -0.14274841268390373,
+                0.26676857071045296,
+                10000
+              ],
+              "spearman": [
+                0.47877037396135574,
+                0.6385966636475843,
+                10000
+              ],
+              "mse": [
+                0.0008543230454608488,
+                0.0016177229799619322,
+                10000
+              ],
+              "mae": [
+                0.019935517200749087,
+                0.025390672091328052,
+                10000
+              ],
+              "maxae": [
+                0.1422256557732811,
+                0.20187330790801436,
+                10000
+              ]
+            }
+          },
+          "params_linear_squares": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 355,
+            "n_score": 355,
+            "out_of_sample": {
+              "r2": -0.26334784875468276,
+              "spearman": 0.5811223297835713,
+              "mse": 0.001697412187825002,
+              "mae": 0.023825594281168747,
+              "maxae": 0.3564697620739373
+            },
+            "in_sample": {
+              "r2": 0.298867728626766,
+              "spearman": 0.6185028789963447,
+              "mse": 0.0009420291203879273,
+              "mae": 0.020893832253420758,
+              "maxae": 0.17641371966968478
+            },
+            "in_sample_inflation_r2": 0.5622155773814488,
+            "ci95": {
+              "r2": [
+                -1.0242001155120557,
+                0.2182811994959508,
+                10000
+              ],
+              "spearman": [
+                0.49883871714563904,
+                0.6547972768824009,
+                10000
+              ],
+              "mse": [
+                0.0009789883195396747,
+                0.002690287571790804,
+                10000
+              ],
+              "mae": [
+                0.02057974468453964,
+                0.02752165187063288,
+                10000
+              ],
+              "maxae": [
+                0.18544973052422875,
+                0.3564697620739373,
+                10000
+              ]
+            }
+          }
+        },
+        "cl": {
+          "intercept_only": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 355,
+            "n_score": 355,
+            "out_of_sample": {
+              "r2": -0.004222404727357576,
+              "spearman": -0.11790641309802734,
+              "mse": 0.09132080810850325,
+              "mae": 0.2395935261041989,
+              "maxae": 0.8682693372032758
+            },
+            "in_sample": {
+              "r2": 0.0,
+              "spearman": NaN,
+              "mse": 0.09093683598236041,
+              "mae": 0.23898934642514508,
+              "maxae": 0.8669789324628794
+            },
+            "in_sample_inflation_r2": 0.004222404727357576,
+            "ci95": {
+              "r2": [
+                -0.019511900157308595,
+                -0.0018569012069803272,
+                10000
+              ],
+              "spearman": [
+                -0.22105363253084978,
+                -0.013810832594123182,
+                10000
+              ],
+              "mse": [
+                0.07805170725280629,
+                0.10517798994520992,
+                10000
+              ],
+              "mae": [
+                0.2206474145912619,
+                0.2584887752888051,
+                10000
+              ],
+              "maxae": [
+                0.7732073136494557,
+                0.8682693372032758,
+                10000
+              ]
+            }
+          },
+          "params_linear": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 355,
+            "n_score": 355,
+            "out_of_sample": {
+              "r2": 0.23535000018435104,
+              "spearman": 0.43924522471783617,
+              "mse": 0.06953485161714759,
+              "mae": 0.216765687970754,
+              "maxae": 0.6896331692306771
+            },
+            "in_sample": {
+              "r2": 0.2609933119219976,
+              "spearman": 0.4588170888488445,
+              "mse": 0.06720292998361668,
+              "mae": 0.21281132472376,
+              "maxae": 0.6647640828516199
+            },
+            "in_sample_inflation_r2": 0.025643311737646557,
+            "ci95": {
+              "r2": [
+                0.1474440318100025,
+                0.3041144392958436,
+                10000
+              ],
+              "spearman": [
+                0.34692182678795824,
+                0.5209203960113609,
+                10000
+              ],
+              "mse": [
+                0.06079074135947691,
+                0.07865670623264655,
+                10000
+              ],
+              "mae": [
+                0.20093203870654405,
+                0.2325537636769532,
+                10000
+              ],
+              "maxae": [
+                0.6384156832525988,
+                0.6896331692306771,
+                10000
+              ]
+            }
+          },
+          "params_linear_squares": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 355,
+            "n_score": 355,
+            "out_of_sample": {
+              "r2": 0.27384274913081874,
+              "spearman": 0.585551936600142,
+              "mse": 0.06603444281969248,
+              "mae": 0.2022136371260224,
+              "maxae": 1.3650478242677249
+            },
+            "in_sample": {
+              "r2": 0.3806165380968891,
+              "spearman": 0.6204283343557412,
+              "mse": 0.05632477228526977,
+              "mae": 0.19096595269625868,
+              "maxae": 0.7316958206169881
+            },
+            "in_sample_inflation_r2": 0.10677378896607037,
+            "ci95": {
+              "r2": [
+                0.10844566594574685,
+                0.38340587247985286,
+                10000
+              ],
+              "spearman": [
+                0.5101149888523988,
+                0.6507842902172042,
+                10000
+              ],
+              "mse": [
+                0.054222407328109436,
+                0.08107370235101044,
+                10000
+              ],
+              "mae": [
+                0.18614272466713172,
+                0.21945716586113104,
+                10000
+              ],
+              "maxae": [
+                0.6881720277204008,
+                1.3650478242677249,
+                10000
+              ]
+            }
+          }
+        }
+      },
+      "near_duplicate_check": {
+        "test_to_train_nn_median": 0.0,
+        "test_to_train_nn_min": 0.0,
+        "test_to_train_nn_p05": 0.0,
+        "train_to_train_nn_median": 1.1839184588164582,
+        "train_to_train_nn_min": 0.632670387521932,
+        "ratio_median_test_over_train": 0.0,
+        "reading": "A ratio near 1 means test designs are no closer to the train set than train designs are to each other, i.e. the split does not leak by near-duplication. A ratio well below 1 would indicate leakage.",
+        "note": "Computed within the single pool, since there is no published split; the test-to-train column is therefore leave-one-out and equals the train column by construction."
+      },
+      "published_vs_null": [
+        {
+          "model": "MeshGraphNet (direct KPI head)",
+          "published_cd_mse_bound": 0.00028,
+          "published_source": "WindsorML arXiv 2407.19320 SI D.2: 'MSE of less than 0.00028 for the drag coefficient' on the recommended 60/20/20 split",
+          "null_cd_mse": 0.0012031869235369676,
+          "null_cd_mse_ci95": [
+            0.0008543230454608488,
+            0.0016177229799619322
+          ],
+          "verdict": "clears (published bound beats the null outright)",
+          "protocol_mismatch": "published: 60/20/20 single split; null: 10-fold OOS over all cases. Both are out of sample; neither is the other."
+        }
+      ]
+    },
+    "DrivAerML": {
+      "benchmark": "DrivAerML",
+      "n_cases": 484,
+      "n_params": 16,
+      "param_names": [
+        "Vehicle_Length",
+        "Vehicle_Width",
+        "Vehicle_Height",
+        "Front_Overhang",
+        "Front_Planview",
+        "Hood_Angle",
+        "Approach_Angle",
+        "Windscreen_Angle",
+        "Greenhouse_Tapering",
+        "Backlight_Angle",
+        "Decklid_Height",
+        "Rearend_tapering",
+        "Rear_Overhang",
+        "Rear_Diffusor_Angle",
+        "Vehicle_Ride_Height",
+        "Vehicle_Pitch"
+      ],
+      "force_note": "force_mom_all.csv: per-geometry reference values. force_mom_constref_all.csv is run as a robustness check.",
+      "split_note": "no split published by the benchmark",
+      "force_file": "drivaerml_force.csv",
+      "targets": {
+        "cd": {
+          "intercept_only": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 484,
+            "n_score": 484,
+            "out_of_sample": {
+              "r2": -0.004685644501270847,
+              "spearman": -0.12611959225732167,
+              "mse": 0.00030908195586596733,
+              "mae": 0.014000445872370131,
+              "maxae": 0.06311964758620703
+            },
+            "in_sample": {
+              "r2": 0.0,
+              "spearman": NaN,
+              "mse": 0.0003076404620267035,
+              "mae": 0.0139798804239806,
+              "maxae": 0.06276097747933884
+            },
+            "in_sample_inflation_r2": 0.004685644501270847,
+            "ci95": {
+              "r2": [
+                -0.015247427001538293,
+                -0.002559803760847192,
+                10000
+              ],
+              "spearman": [
+                -0.21291880882806688,
+                -0.03611541262487333,
+                10000
+              ],
+              "mse": [
+                0.0002719523426696706,
+                0.00034859984591037034,
+                10000
+              ],
+              "mae": [
+                0.013057239111480698,
+                0.014957400858774434,
+                10000
+              ],
+              "maxae": [
+                0.047796579816513696,
+                0.06311964758620703,
+                10000
+              ]
+            }
+          },
+          "params_linear": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 484,
+            "n_score": 484,
+            "out_of_sample": {
+              "r2": 0.890487186062956,
+              "spearman": 0.9441862729585316,
+              "mse": 3.369057267743664e-05,
+              "mae": 0.004603244837286003,
+              "maxae": 0.02148588743186941
+            },
+            "in_sample": {
+              "r2": 0.8982678470048888,
+              "spearman": 0.9478976343325798,
+              "mse": 3.1296926550387304e-05,
+              "mae": 0.004435785802126681,
+              "maxae": 0.020450010317096368
+            },
+            "in_sample_inflation_r2": 0.00778066094193286,
+            "ci95": {
+              "r2": [
+                0.8691643683007886,
+                0.9071751986800363,
+                10000
+              ],
+              "spearman": [
+                0.9306969396408091,
+                0.9539686804823049,
+                10000
+              ],
+              "mse": [
+                2.9100889589489023e-05,
+                3.873334246168033e-05,
+                10000
+              ],
+              "mae": [
+                0.004295123882458604,
+                0.004926098983379738,
+                10000
+              ],
+              "maxae": [
+                0.01853493816403834,
+                0.02148588743186941,
+                10000
+              ]
+            }
+          },
+          "params_linear_squares": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 484,
+            "n_score": 484,
+            "out_of_sample": {
+              "r2": 0.9226267309875131,
+              "spearman": 0.9570760196162583,
+              "mse": 2.380314822751788e-05,
+              "mae": 0.003826572456737484,
+              "maxae": 0.016124879063732556
+            },
+            "in_sample": {
+              "r2": 0.933558424048463,
+              "spearman": 0.9632065501834459,
+              "mse": 2.044011712351315e-05,
+              "mae": 0.0035544582792911288,
+              "maxae": 0.014684903008454653
+            },
+            "in_sample_inflation_r2": 0.010931693060949876,
+            "ci95": {
+              "r2": [
+                0.9069532939492929,
+                0.9350109368705894,
+                10000
+              ],
+              "spearman": [
+                0.9455863177701594,
+                0.965126866263237,
+                10000
+              ],
+              "mse": [
+                2.0751167300143792e-05,
+                2.7155908448820896e-05,
+                10000
+              ],
+              "mae": [
+                0.0035589554338960063,
+                0.004101596833032825,
+                10000
+              ],
+              "maxae": [
+                0.013325342078355618,
+                0.016124879063732556,
+                10000
+              ]
+            }
+          }
+        },
+        "cl": {
+          "intercept_only": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 484,
+            "n_score": 484,
+            "out_of_sample": {
+              "r2": -0.0053504667000123796,
+              "spearman": -0.15665311287052094,
+              "mse": 0.004516705819007549,
+              "mae": 0.05470943133803253,
+              "maxae": 0.18442060404334862
+            },
+            "in_sample": {
+              "r2": -2.220446049250313e-16,
+              "spearman": NaN,
+              "mse": 0.004492667948753531,
+              "mae": 0.05452634276124155,
+              "maxae": 0.18677433220640496
+            },
+            "in_sample_inflation_r2": 0.0053504667000121575,
+            "ci95": {
+              "r2": [
+                -0.01652940459392203,
+                -0.0030921516725135045,
+                10000
+              ],
+              "spearman": [
+                -0.24502772201361547,
+                -0.06869510102102298,
+                10000
+              ],
+              "mse": [
+                0.004032134010652083,
+                0.005031878382986063,
+                10000
+              ],
+              "mae": [
+                0.051291755575923,
+                0.05814728186483951,
+                10000
+              ],
+              "maxae": [
+                0.17247439595665137,
+                0.18442060404334862,
+                10000
+              ]
+            }
+          },
+          "params_linear": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 484,
+            "n_score": 484,
+            "out_of_sample": {
+              "r2": 0.9651337376019715,
+              "spearman": 0.9853174412075839,
+              "mse": 0.00015664253956845287,
+              "mae": 0.009797022337026071,
+              "maxae": 0.05210909297539232
+            },
+            "in_sample": {
+              "r2": 0.9678642015237789,
+              "spearman": 0.9864400788079528,
+              "mse": 0.00014437547182172077,
+              "mae": 0.00936546292462044,
+              "maxae": 0.05145110891483329
+            },
+            "in_sample_inflation_r2": 0.0027304639218074245,
+            "ci95": {
+              "r2": [
+                0.9592502688090054,
+                0.9703289977765845,
+                10000
+              ],
+              "spearman": [
+                0.9816000563571066,
+                0.9874634362417544,
+                10000
+              ],
+              "mse": [
+                0.00013431621363117058,
+                0.000180338584349904,
+                10000
+              ],
+              "mae": [
+                0.009109038175643507,
+                0.010491315115542499,
+                10000
+              ],
+              "maxae": [
+                0.034338164359640634,
+                0.05210909297539232,
+                10000
+              ]
+            }
+          },
+          "params_linear_squares": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 484,
+            "n_score": 484,
+            "out_of_sample": {
+              "r2": 0.9719220800478654,
+              "spearman": 0.9882079128646097,
+              "mse": 0.00012614477103662261,
+              "mae": 0.008664327010155631,
+              "maxae": 0.04114848012608509
+            },
+            "in_sample": {
+              "r2": 0.9756073397038451,
+              "spearman": 0.9896716705730191,
+              "mse": 0.00010958812309736801,
+              "mae": 0.008050735453989427,
+              "maxae": 0.040610359875609875
+            },
+            "in_sample_inflation_r2": 0.0036852596559796558,
+            "ci95": {
+              "r2": [
+                0.9670213625251195,
+                0.9762071911908206,
+                10000
+              ],
+              "spearman": [
+                0.9852084696816258,
+                0.9898534799702026,
+                10000
+              ],
+              "mse": [
+                0.0001081591916209012,
+                0.00014531104520041857,
+                10000
+              ],
+              "mae": [
+                0.00802918563984112,
+                0.00929263005649938,
+                10000
+              ],
+              "maxae": [
+                0.03247159270515352,
+                0.04114848012608509,
+                10000
+              ]
+            }
+          }
+        }
+      },
+      "near_duplicate_check": {
+        "test_to_train_nn_median": 0.0,
+        "test_to_train_nn_min": 0.0,
+        "test_to_train_nn_p05": 0.0,
+        "train_to_train_nn_median": 3.1439950798229104,
+        "train_to_train_nn_min": 2.589018780622489,
+        "ratio_median_test_over_train": 0.0,
+        "reading": "A ratio near 1 means test designs are no closer to the train set than train designs are to each other, i.e. the split does not leak by near-duplication. A ratio well below 1 would indicate leakage.",
+        "note": "Computed within the single pool, since there is no published split; the test-to-train column is therefore leave-one-out and equals the train column by construction."
+      },
+      "published_vs_null": [
+        {
+          "model": null,
+          "verdict": "no published ML baseline in the dataset paper",
+          "published_source": "DrivAerML arXiv 2408.11969 reports no ML benchmark table; it positions the dataset as a future challenge case."
+        }
+      ]
+    },
+    "DrivAerML_constref": {
+      "benchmark": "DrivAerML",
+      "n_cases": 484,
+      "n_params": 16,
+      "param_names": [
+        "Vehicle_Length",
+        "Vehicle_Width",
+        "Vehicle_Height",
+        "Front_Overhang",
+        "Front_Planview",
+        "Hood_Angle",
+        "Approach_Angle",
+        "Windscreen_Angle",
+        "Greenhouse_Tapering",
+        "Backlight_Angle",
+        "Decklid_Height",
+        "Rearend_tapering",
+        "Rear_Overhang",
+        "Rear_Diffusor_Angle",
+        "Vehicle_Ride_Height",
+        "Vehicle_Pitch"
+      ],
+      "force_note": "force_mom_all.csv: per-geometry reference values. force_mom_constref_all.csv is run as a robustness check.",
+      "split_note": "no split published by the benchmark",
+      "force_file": "drivaerml_force_constref.csv",
+      "targets": {
+        "cd": {
+          "intercept_only": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 484,
+            "n_score": 484,
+            "out_of_sample": {
+              "r2": -0.0030112765462728674,
+              "spearman": -0.11237675027559212,
+              "mse": 0.0009154389670270636,
+              "mae": 0.024791011204896452,
+              "maxae": 0.08096069517241378
+            },
+            "in_sample": {
+              "r2": 0.0,
+              "spearman": NaN,
+              "mse": 0.0009126906032195849,
+              "mae": 0.02473698019431733,
+              "maxae": 0.08129449524793386
+            },
+            "in_sample_inflation_r2": 0.0030112765462728674,
+            "ci95": {
+              "r2": [
+                -0.013482461082785684,
+                -0.0013279126788529273,
+                10000
+              ],
+              "spearman": [
+                -0.20245747783677956,
+                -0.021722744168859224,
+                10000
+              ],
+              "mse": [
+                0.0008145391633289724,
+                0.0010194884857114507,
+                10000
+              ],
+              "mae": [
+                0.023238119950489366,
+                0.02633041530903485,
+                10000
+              ],
+              "maxae": [
+                0.0782259513761468,
+                0.08096069517241378,
+                10000
+              ]
+            }
+          },
+          "params_linear": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 484,
+            "n_score": 484,
+            "out_of_sample": {
+              "r2": 0.9597878540295852,
+              "spearman": 0.9810944525911315,
+              "mse": 3.670124776249188e-05,
+              "mae": 0.004764603782100615,
+              "maxae": 0.024760845583456426
+            },
+            "in_sample": {
+              "r2": 0.9623703075988163,
+              "spearman": 0.9823360535800941,
+              "mse": 3.434426665660385e-05,
+              "mae": 0.004603977053582562,
+              "maxae": 0.023761258438956656
+            },
+            "in_sample_inflation_r2": 0.0025824535692310358,
+            "ci95": {
+              "r2": [
+                0.9522723421595181,
+                0.9659162107739123,
+                10000
+              ],
+              "spearman": [
+                0.9760054069188863,
+                0.9842136642041662,
+                10000
+              ],
+              "mse": [
+                3.1613676692573473e-05,
+                4.2531186512421186e-05,
+                10000
+              ],
+              "mae": [
+                0.004443847842253813,
+                0.0051050403449298355,
+                10000
+              ],
+              "maxae": [
+                0.01917911924653931,
+                0.024760845583456426,
+                10000
+              ]
+            }
+          },
+          "params_linear_squares": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 484,
+            "n_score": 484,
+            "out_of_sample": {
+              "r2": 0.9707816529038411,
+              "spearman": 0.9860987470212846,
+              "mse": 2.666731083627248e-05,
+              "mae": 0.004106175268988462,
+              "maxae": 0.019461689938884585
+            },
+            "in_sample": {
+              "r2": 0.9750123881436782,
+              "spearman": 0.9881010151577773,
+              "mse": 2.280595853816318e-05,
+              "mae": 0.0038161377701139932,
+              "maxae": 0.017779946302357463
+            },
+            "in_sample_inflation_r2": 0.00423073523983708,
+            "ci95": {
+              "r2": [
+                0.9655209146987891,
+                0.9751837401504104,
+                10000
+              ],
+              "spearman": [
+                0.9823253847107768,
+                0.9883264821445953,
+                10000
+              ],
+              "mse": [
+                2.3222963060748515e-05,
+                3.049870971142598e-05,
+                10000
+              ],
+              "mae": [
+                0.0038341533109988637,
+                0.004387600053049158,
+                10000
+              ],
+              "maxae": [
+                0.014749588870109742,
+                0.019461689938884585,
+                10000
+              ]
+            }
+          }
+        },
+        "cl": {
+          "intercept_only": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 484,
+            "n_score": 484,
+            "out_of_sample": {
+              "r2": -0.005613812099319659,
+              "spearman": -0.15694648809013473,
+              "mse": 0.004587770555969956,
+              "mae": 0.05517913425261141,
+              "maxae": 0.19321615522087154
+            },
+            "in_sample": {
+              "r2": 0.0,
+              "spearman": NaN,
+              "mse": 0.004562159450050239,
+              "mae": 0.05498280481531742,
+              "maxae": 0.19556710455227272
+            },
+            "in_sample_inflation_r2": 0.005613812099319659,
+            "ci95": {
+              "r2": [
+                -0.016749601511505795,
+                -0.003304131470616801,
+                10000
+              ],
+              "spearman": [
+                -0.24496198668979458,
+                -0.06838371881520032,
+                10000
+              ],
+              "mse": [
+                0.004101351903236615,
+                0.00511052636448916,
+                10000
+              ],
+              "mae": [
+                0.051784082795740316,
+                0.05863098535798004,
+                10000
+              ],
+              "maxae": [
+                0.1685778313364679,
+                0.19321615522087154,
+                10000
+              ]
+            }
+          },
+          "params_linear": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 484,
+            "n_score": 484,
+            "out_of_sample": {
+              "r2": 0.966910110104514,
+              "spearman": 0.9851506384491999,
+              "mse": 0.00015096135388781317,
+              "mae": 0.009643271010168732,
+              "maxae": 0.037693543315280485
+            },
+            "in_sample": {
+              "r2": 0.969581862864638,
+              "spearman": 0.9864165824803125,
+              "mse": 0.00013877239178501606,
+              "mae": 0.009199005013435029,
+              "maxae": 0.03631372137848068
+            },
+            "in_sample_inflation_r2": 0.002671752760123991,
+            "ci95": {
+              "r2": [
+                0.9611864678930033,
+                0.9716588636233603,
+                10000
+              ],
+              "spearman": [
+                0.9813762168449316,
+                0.9873884682123936,
+                10000
+              ],
+              "mse": [
+                0.0001307387158245714,
+                0.0001722507954250815,
+                10000
+              ],
+              "mae": [
+                0.008965048301887464,
+                0.010332517983045438,
+                10000
+              ],
+              "maxae": [
+                0.035313832883962865,
+                0.037693543315280485,
+                10000
+              ]
+            }
+          },
+          "params_linear_squares": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 484,
+            "n_score": 484,
+            "out_of_sample": {
+              "r2": 0.9740877191075618,
+              "spearman": 0.9886609051272266,
+              "mse": 0.00011821595714579352,
+              "mae": 0.00842252942021527,
+              "maxae": 0.03725504466255283
+            },
+            "in_sample": {
+              "r2": 0.9776668210973775,
+              "spearman": 0.9902040423209078,
+              "mse": 0.00010188752318026228,
+              "mae": 0.007799784664115673,
+              "maxae": 0.03275730529834024
+            },
+            "in_sample_inflation_r2": 0.003579101989815703,
+            "ci95": {
+              "r2": [
+                0.9694344277151822,
+                0.9779628863053282,
+                10000
+              ],
+              "spearman": [
+                0.9857345793016947,
+                0.9903071003928947,
+                10000
+              ],
+              "mse": [
+                0.00010221191097695479,
+                0.00013553831493876573,
+                10000
+              ],
+              "mae": [
+                0.007817409170300752,
+                0.009031861300970594,
+                10000
+              ],
+              "maxae": [
+                0.03341471329989875,
+                0.03725504466255283,
+                10000
+              ]
+            }
+          }
+        }
+      },
+      "near_duplicate_check": {
+        "test_to_train_nn_median": 0.0,
+        "test_to_train_nn_min": 0.0,
+        "test_to_train_nn_p05": 0.0,
+        "train_to_train_nn_median": 3.1439950798229104,
+        "train_to_train_nn_min": 2.589018780622489,
+        "ratio_median_test_over_train": 0.0,
+        "reading": "A ratio near 1 means test designs are no closer to the train set than train designs are to each other, i.e. the split does not leak by near-duplication. A ratio well below 1 would indicate leakage.",
+        "note": "Computed within the single pool, since there is no published split; the test-to-train column is therefore leave-one-out and equals the train column by construction."
+      }
+    }
+  },
+  "wall_clock_seconds": 106.3
+}

@@ -195,6 +195,11 @@ def boot_ci_metrics(y_true, y_pred, n_boot=10000, seed=0, alpha=0.05):
     out = {}
     for k in keys:
         v = acc[k][np.isfinite(acc[k])]
+        if len(v) == 0:
+            # the intercept-only row has a constant prediction, so Spearman is undefined;
+            # carried as nan rather than silently dropped
+            out[k] = [float("nan"), float("nan"), 0]
+            continue
         out[k] = [float(np.percentile(v, 100 * alpha / 2)),
                   float(np.percentile(v, 100 * (1 - alpha / 2))),
                   int(len(v))]
@@ -345,6 +350,111 @@ def onehot(labels):
 
 
 # --------------------------------------------------------------------------------------
+# adversarial checks on the DrivAerNet++ result
+# --------------------------------------------------------------------------------------
+def drivaernet_break_tests(tr_all, te_all, tr_sub, te_sub, cd, pvec, pcols,
+                           cat_mat, one, P, Pfill, n_boot, seed, k):
+    """Five attempts to destroy the DrivAerNet++ null, run after it was produced.
+
+    1. label permutation -- the pipeline must return R-squared near zero when the fit
+       labels are shuffled, or the machinery itself is manufacturing signal;
+    2. ridge instead of OLS -- if the OLS fit were rescued by a lucky conditioning the
+       ridge path would move the number;
+    3. protocol swap -- K-fold over the pooled parametric designs, and the benchmark's own
+       parametric protocol (random 80/20), to show the official-split number is not a
+       property of that particular split;
+    4. per-family error decomposition on the full official test set, so the reader can see
+       where the null's accuracy comes from rather than taking the aggregate on trust;
+    5. drop the category block from the full-test null, to check that the result is not
+       carried entirely by the categorical dummies.
+    """
+    out = {}
+    y_tr_all = np.array([cd[i] for i in tr_all])
+    y_te_all = np.array([cd[i] for i in te_all])
+    y_tr_sub = np.array([cd[i] for i in tr_sub])
+    y_te_sub = np.array([cd[i] for i in te_sub])
+
+    Xtr_full = np.hstack([one(tr_all), cat_mat(tr_all), Pfill(tr_all)])
+    Xte_full = np.hstack([one(te_all), cat_mat(te_all), Pfill(te_all)])
+    Xtr_sub = np.hstack([one(tr_sub), cat_mat(tr_sub), P(tr_sub)])
+    Xte_sub = np.hstack([one(te_sub), cat_mat(te_sub), P(te_sub)])
+
+    # 1. label permutation
+    rng = np.random.default_rng(seed + 1)
+    perm = rng.permutation(len(y_tr_all))
+    out["label_permutation_full_test"] = {
+        "r2": r2_score(y_te_all, fit_predict(Xtr_full, y_tr_all[perm], Xte_full)),
+        "expected": "approximately 0 or negative; anything else would indicate a leak",
+    }
+
+    # 2. ridge path
+    ridge = {}
+    XtX = Xtr_full.T @ Xtr_full
+    Xty = Xtr_full.T @ y_tr_all
+    for lam in (1e-8, 1e-4, 1e-2, 1.0, 100.0):
+        b = np.linalg.solve(XtX + lam * np.eye(XtX.shape[0]), Xty)
+        ridge["lambda_%g" % lam] = r2_score(y_te_all, Xte_full @ b)
+    out["ridge_path_full_test_r2"] = ridge
+
+    # 3. protocol swap on the parametric designs
+    X_pool = np.vstack([Xtr_sub, Xte_sub])
+    y_pool = np.concatenate([y_tr_sub, y_te_sub])
+    oos = kfold_oos(X_pool, y_pool, k=k, seed=seed)
+    out["protocol_swap_parametric_pool"] = {
+        "kfold_oos_r2": r2_score(y_pool, oos),
+        "kfold_oos_mse": float(np.mean((y_pool - oos) ** 2)),
+        "n": int(len(y_pool)),
+    }
+    rng2 = np.random.default_rng(seed + 2)
+    idx = rng2.permutation(len(y_pool))
+    cut = int(0.8 * len(idx))
+    a, b_ = idx[:cut], idx[cut:]
+    pred = fit_predict(X_pool[a], y_pool[a], X_pool[b_])
+    out["protocol_swap_random_80_20"] = {
+        "note": "the split protocol the benchmark's own AutoML_parametric.py uses",
+        "r2": r2_score(y_pool[b_], pred),
+        "mse": float(np.mean((y_pool[b_] - pred) ** 2)),
+        "n_test": int(len(b_)),
+    }
+
+    # 4. per-family decomposition on the full official test set
+    pred_full = fit_predict(Xtr_full, y_tr_all, Xte_full)
+    fam = {}
+    for i, nm in enumerate(te_all):
+        fam.setdefault("_".join(nm.split("_")[:2]), []).append(i)
+    dec = {}
+    for f, ii in sorted(fam.items()):
+        ii = np.array(ii)
+        dec[f] = {"n": int(len(ii)),
+                  "mse": float(np.mean((y_te_all[ii] - pred_full[ii]) ** 2)),
+                  "cd_sd": float(np.std(y_te_all[ii], ddof=1)),
+                  "has_published_parameters": bool(te_all[ii[0]] in pvec)}
+    out["per_family_decomposition_full_test"] = dec
+
+    # 6. split-independence over ALL 8121 designs. The paper describes its split as
+    #    5600/1200/1200 while the published id lists are 5819/1148/1154, so a reviewer may
+    #    ask whether the null's number depends on our using the repository's lists. K-fold
+    #    over the pooled train+test designs uses no official split at all.
+    X_pool_all = np.vstack([Xtr_full, Xte_full])
+    y_pool_all = np.concatenate([y_tr_all, y_te_all])
+    oos_all = kfold_oos(X_pool_all, y_pool_all, k=k, seed=seed)
+    out["split_independence_all_designs"] = {
+        "kfold_oos_r2": r2_score(y_pool_all, oos_all),
+        "kfold_oos_mse": float(np.mean((y_pool_all - oos_all) ** 2)),
+        "n": int(len(y_pool_all)),
+        "reading": ("If this matches the official-split number, the null is a property of "
+                    "the data rather than of the particular id lists."),
+    }
+
+    # 5. parameters without the category block
+    Xtr_np = np.hstack([one(tr_all), Pfill(tr_all)])
+    Xte_np = np.hstack([one(te_all), Pfill(te_all)])
+    out["full_test_params_without_category_block_r2"] = r2_score(
+        y_te_all, fit_predict(Xtr_np, y_tr_all, Xte_np))
+    return out
+
+
+# --------------------------------------------------------------------------------------
 # benchmark 1: DrivAerNet++
 # --------------------------------------------------------------------------------------
 def run_drivaernet(n_boot, seed, k):
@@ -398,11 +508,32 @@ def run_drivaernet(n_boot, seed, k):
 
     res = {"benchmark": "DrivAerNet++", "targets": {"cd": {}}}
 
-    # (a) FULL official test set, category metadata only -- directly comparable to Table 4
+    # (a) FULL official test set -- directly comparable to Table 4.
+    #
+    # ``category_params_where_published`` is the decisive row: it is scored on the WHOLE
+    # official test split, exactly as the published models are, and uses only published
+    # metadata. Designs whose 23 parameters are published contribute those parameters;
+    # the 3956 DrivAerNet-v1 fastbacks, whose 50-parameter table is not published, get a
+    # zero parameter row and are therefore predicted by their category dummy alone. That
+    # is a strictly weaker model than one with every design's parameters, so the number it
+    # produces is a LOWER bound on what published metadata supports.
+    def Pfill(ids):
+        M = np.zeros((len(ids), len(pcols)))
+        for r, i in enumerate(ids):
+            if i in pvec:
+                M[r] = pvec[i]
+        return M
+
     sets_full = {
         "intercept_only": (one(tr_all), one(te_all)),
         "category_tokens_only": (np.hstack([one(tr_all), cat_mat(tr_all)]),
                                  np.hstack([one(te_all), cat_mat(te_all)])),
+        "category_params_where_published": (
+            np.hstack([one(tr_all), cat_mat(tr_all), Pfill(tr_all)]),
+            np.hstack([one(te_all), cat_mat(te_all), Pfill(te_all)])),
+        "category_params_where_published_squares": (
+            np.hstack([one(tr_all), cat_mat(tr_all), Pfill(tr_all), Pfill(tr_all) ** 2]),
+            np.hstack([one(te_all), cat_mat(te_all), Pfill(te_all), Pfill(te_all) ** 2])),
     }
     for nm, (Xtr, Xte) in sets_full.items():
         r = score_official(Xtr, y_tr_all, Xte, y_te_all, n_boot, seed)
@@ -422,10 +553,6 @@ def run_drivaernet(n_boot, seed, k):
         "sub__category_params23_squares": (
             np.hstack([one(tr_sub), cat_mat(tr_sub), Ptr, Ptr ** 2]),
             np.hstack([one(te_sub), cat_mat(te_sub), Pte, Pte ** 2])),
-        # DIAGNOSTIC ONLY: frontal area sits in the denominator of Cd.
-        "sub__DIAG_category_params23_area": (
-            np.hstack([one(tr_sub), cat_mat(tr_sub), Ptr, A(tr_sub)]),
-            np.hstack([one(te_sub), cat_mat(te_sub), Pte, A(te_sub)])),
     }
     for nm, (Xtr, Xte) in sets_sub.items():
         r = score_official(Xtr, y_tr_sub, Xte, y_te_sub, n_boot, seed)
@@ -437,6 +564,23 @@ def run_drivaernet(n_boot, seed, k):
                        "parameters. See the label-spread diagnostic before reading it as a "
                        "head-to-head." % len(te_sub))
         res["targets"]["cd"][nm] = r
+
+    # DIAGNOSTIC ONLY: frontal area sits in the denominator of Cd, and the published area
+    # CSV covers 8007 of the 8121 designs, so this row is scored on a further-reduced set.
+    tr_a = [i for i in tr_sub if i in area]
+    te_a = [i for i in te_sub if i in area]
+    r = score_official(
+        np.hstack([one(tr_a), cat_mat(tr_a), P(tr_a), A(tr_a)]),
+        np.array([cd[i] for i in tr_a]),
+        np.hstack([one(te_a), cat_mat(te_a), P(te_a), A(te_a)]),
+        np.array([cd[i] for i in te_a]), n_boot, seed)
+    r["scored_on"] = ("parametric subset of the official test split, further restricted to "
+                      "designs with a published frontal area")
+    r["comparable_to_published"] = False
+    r["caveat"] = ("DIAGNOSTIC ONLY. Cd is normalised by each design's own effective "
+                   "frontal area, so this block is partly inside the label and needs the "
+                   "geometry to compute. Never the headline null.")
+    res["targets"]["cd"]["sub__DIAG_category_params23_area"] = r
 
     # --- diagnostics ----------------------------------------------------------------
     res["subset_vs_full_label_spread"] = {
@@ -465,15 +609,22 @@ def run_drivaernet(n_boot, seed, k):
                  "null only through their categorical tokens."),
     }
 
+    # --- how I tried to break it ----------------------------------------------------
+    res["break_tests"] = drivaernet_break_tests(
+        tr_all, te_all, tr_sub, te_sub, cd, pvec, pcols, cat_mat, one, P, Pfill,
+        n_boot, seed, k)
+
     # --- published comparison -------------------------------------------------------
-    null_full = res["targets"]["cd"]["category_tokens_only"]
+    null_full = res["targets"]["cd"]["category_params_where_published"]
+    null_cat = res["targets"]["cd"]["category_tokens_only"]
     null_sub = res["targets"]["cd"]["sub__category_params23"]
     table = []
     for model, vals in DRIVAERNET_PUBLISHED:
         row = {"model": model, "published": vals, "published_std": None,
                "published_source": ("DrivAerNet++ NeurIPS 2024 D&B Table 4, test set of "
                                     "1200 designs; no seed spread reported")}
-        for tag, null in (("vs_category_null_full_test", null_full),
+        for tag, null in (("vs_full_test_null", null_full),
+                          ("vs_category_only_null_full_test", null_cat),
                           ("vs_param_null_subset", null_sub)):
             row[tag] = {
                 "null_r2": null["out_of_sample"]["r2"],
@@ -651,11 +802,15 @@ def main():
             r["ci95"]["r2"][1], r["out_of_sample"]["mse"], r["out_of_sample"]["spearman"]))
     print("\n  published (Table 4, n=1200 test):")
     for row in d["published_vs_null"]:
-        print("    %-10s R2=%.3f  MSE=%.3e | vs category null (comparable): %-14s | "
-              "vs param null (subset): %s" % (
+        print("    %-10s R2=%.3f MSE=%.3e | full-test null: R2 %-14s MSE %-14s | "
+              "subset null: R2 %s" % (
                   row["model"], row["published"]["r2"], row["published"]["mse"],
-                  row["vs_category_null_full_test"]["verdict_r2"],
+                  row["vs_full_test_null"]["verdict_r2"],
+                  row["vs_full_test_null"]["verdict_mse"],
                   row["vs_param_null_subset"]["verdict_r2"]))
+    print("\n  break tests: %s" % json.dumps(
+        {k: v for k, v in d["break_tests"].items()
+         if k != "per_family_decomposition_full_test"}, default=str)[:900])
     s = d["subset_vs_full_label_spread"]
     print("\n  label spread: full test sd=%.5f (n=%d) vs param subset sd=%.5f (n=%d)" % (
         s["full_test_cd_sd"], s["full_test_n"], s["param_subset_test_cd_sd"],
