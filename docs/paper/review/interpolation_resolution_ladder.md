@@ -36,15 +36,16 @@ So the one-line answer a reviewer should get is:
 > by 45% while the far field stays put. The share statistic dilutes; the structure
 > does not dissolve.
 
-Two things that are *not* about the field decomposition do move, and both are
-metric-conditioning stories rather than physics. **Surface pressure** appeared to
-degrade $1.9\times$ under refinement; running the ladder again under the
-`--fill nearest_all` control **reverses the sign** ($4.2\times$ better), so no
-resolution claim about that channel is supportable and the apparent degradation
-is a solid-fill/sampler interaction (§3b). **$C_d$ relative error** appears to go
-to $1.84$ at $512^2$, but that is *one* near-zero-drag case; the median and
-trimmed mean rise a modest $2.4\times$ while the absolute drag error *falls*
-(§3c).
+Two things that are *not* about the field decomposition do move, and both turn out
+to be metric-conditioning stories rather than physics — each killed by a control,
+not by argument. **Surface pressure** appeared to degrade $1.9\times$ under
+refinement; the ladder re-run under `--fill nearest_all` **reverses the sign**
+($4.2\times$ better), and the disagreement between the two fills decays
+$13.7\times\to5.8\times\to1.7\times$, so the $512^2$ surface number is fill-robust
+and the *deployed* $128^2$ one is not (§3b). **$C_d$ relative error** appears to
+reach $1.84$ at $512^2$, but that is one named case whose rasterised *reference*
+drag crosses zero under refinement; robust statistics rise $2.4\times$ while the
+absolute drag error *falls* (§3c).
 
 The three things the paper actually claims, at all three rungs:
 
@@ -195,13 +196,28 @@ published `nearest_all` number exactly ($153\,174$ absolute, in
 paragraph), so this is the control the paper already runs, extended along the
 ladder.
 
-The conclusion is the opposite of what I first wrote: **no claim about surface
-pressure and resolution is supportable from this ladder.** What the ladder shows is
-that the surface-pressure number is governed by the solid-fill/sampler interaction
-— which the paper already documents at $128^2$ as a $14\times$ swing — and that
-refinement modulates *that* sensitivity, not the boundary layer. The paper should
-say so, and should **not** claim refinement favours the surrogate on surface
-pressure.
+And the *disagreement between the two fills* decays monotonically:
+
+| | $128^2$ | $256^2$ | $512^2$ |
+|---|---:|---:|---:|
+| ratio `nearest_all` / `nearest` | **13.69** | 5.76 | **1.74** |
+
+That $13.69$ at $128^2$ **is** the paper's already-published "$14\times$ worse
+($10989\to153174$)" — same control, same number. So this is not a shrug. It is a
+positive, checkable statement about the resolution the paper actually deploys:
+
+> At $h = 0.0234c$ the bilinear surface stencil straddles the body, so the
+> solid-fill treatment dominates the surface-pressure metric and the two defensible
+> treatments disagree by $13.7\times$. At $h = 0.0059c$ the stencil sits in real
+> fluid and they disagree by $1.7\times$. **The $512^2$ surface-pressure number is
+> fill-robust; the $128^2$ one is not.**
+
+That also explains the apparent $1.9\times$ "degradation" under the default fill:
+the coarse-grid value was the fill-flattered one, and refinement removes the
+flattery rather than damaging the prediction. The paper should **not** claim that
+refinement favours the surrogate on surface pressure, and should say instead that
+its $128^2$ surface number carries a treatment sensitivity that a finer grid
+removes.
 
 ### 3c. Force coefficients — a mean that one case owns
 
@@ -222,11 +238,27 @@ discoverable.
 | cases with $\lvert C_d^{\mathrm{GT}}\rvert<10^{-3}$ | 1 | 0 | 1 |
 
 `coefficient_metrics` computes $\lvert p-r\rvert/(\lvert r\rvert+10^{-12})$, which
-is unbounded as the reference approaches zero. The $1.842$ is **one case** whose
-rasterised ground-truth drag is $1.7\times10^{-4}$. On statistics a single case
-cannot own, $C_d$ relative error rises a modest $2.4\times$ (median) to $2.6\times$
-(trimmed mean) from $128^2$ to $512^2$ — while the **absolute** drag error *falls*
-($0.00845\to0.00597$). $\rho_{C_l}$ is unmoved; $\rho_{C_d}$ slips $0.9991\to0.9811$.
+is unbounded as the reference approaches zero. The $1.842$ is **one case**, and it
+is the same named simulation at every rung —
+`airFoil2D_SST_75.101_-3.321_6.728_6.938_17.749` — whose *rasterised ground-truth*
+drag collapses and changes sign under refinement:
+
+| | $128^2$ | $256^2$ | $512^2$ |
+|---|---:|---:|---:|
+| $C_d^{\mathrm{GT}}$ for that case | $+0.1456$ | $+0.0835$ | $-1.713\times10^{-4}$ |
+| its relative error | 0.3 | 0.5 | **357.6** |
+
+$357.6/200 = 1.79$ of the $1.842$ mean. The reference crosses zero; the prediction
+did not fail. (The one case below $10^{-3}$ at $128^2$ is a *different* simulation,
+`airFoil2D_SST_78.164_-1.095_4.121_3.479_6.946` at $-6.13\times10^{-4}$, which is
+why $\min\lvert C_d^{\mathrm{GT}}\rvert$ is non-monotone — it is not one case
+tracked across rungs.)
+
+On statistics a single case cannot own, $C_d$ relative error rises a modest
+$2.4\times$ (median) to $2.6\times$ (trimmed mean) from $128^2$ to $512^2$ — while
+the **absolute** drag error *falls* ($0.00845\to0.00597$). $\rho_{C_l}$ is unmoved;
+$\rho_{C_d}$ slips $0.9991\to0.9811$, and dropping that one case would recover most
+of it.
 
 Two scope notes that must travel with this. The ground-truth force integral is
 itself resolution-sensitive — $\min\lvert C_d^{\mathrm{GT}}\rvert$ is non-monotone
@@ -545,14 +577,17 @@ interpolator on surface pressure. **That is withdrawn**; the `--fill nearest_all
 control reverses the sign of the trend. Add instead, near the existing
 "self-serving solid fill" sentence in "how we tried to break it":
 
-> The same control, run along a $128^2$/$256^2$/$512^2$ ladder, shows that this
-> channel's resolution behaviour is governed by the fill choice rather than by the
-> boundary layer: standardised by the variance of its own sampled truth, the
-> surface-pressure error changes by $1.9\times$ in one direction under
-> \texttt{nearest} and $4.2\times$ in the other under \texttt{nearest\_all}. We
-> therefore make no claim about surface pressure and grid resolution, and read the
-> $128^2$ surface number as what it is---a number about the sampler and the solid
-> fill as much as about the flow.
+> The same control, run along a $128^2$/$256^2$/$512^2$ ladder, localises that
+> sensitivity to the coarse grid. The two defensible fills disagree by $13.7\times$
+> at $128^2$, $5.8\times$ at $256^2$ and $1.7\times$ at $512^2$: at $h=0.0234c$ the
+> bilinear surface stencil straddles the body, so the solid-fill treatment dominates
+> the metric, while at $h=0.0059c$ it sits in real fluid and the treatment barely
+> matters. The $512^2$ surface-pressure number is fill-robust; the $r128$ one is
+> not. We therefore make no claim about surface pressure and grid resolution---the
+> apparent $1.9\times$ change under \texttt{nearest} reverses to $4.2\times$ the
+> other way under \texttt{nearest\_all}---and we read the $r128$ surface number as
+> what it is, a number about the sampler and the solid fill as much as about the
+> flow.
 
 ### 8.5 Where the force relative errors are quoted
 
@@ -563,9 +598,11 @@ Label them once as $128^2$ figures and add, in \autoref{sec:interp} only:
 > These are $r128$ figures. On the resolution ladder the interpolator's $C_d$
 > relative error rises about $2.4\times$ by $512^2$ on the median and $2.6\times$
 > on a $90\%$-trimmed mean, while its absolute drag error \emph{falls}
-> ($0.0085\to0.0060$); the untrimmed mean reaches $1.84$, but that is a single case
-> whose rasterised reference drag is $1.7\times10^{-4}$ and
-> \texttt{coefficient\_metrics} divides by the reference. $\rho_{C_l}$ is unchanged
+> ($0.0085\to0.0060$); the untrimmed mean reaches $1.84$, but that is a single
+> case---\texttt{airFoil2D\_SST\_75.101\_-3.321\_6.728\_6.938\_17.749}, whose
+> rasterised \emph{reference} drag falls from $+0.146$ to $-1.7\times10^{-4}$ and
+> changes sign under refinement---and \texttt{coefficient\_metrics} divides by the
+> reference. $\rho_{C_l}$ is unchanged
 > at $0.9998$; $\rho_{C_d}$ slips from $0.9991$ to $0.9811$. We have no surrogate
 > row at those resolutions, and the rasterised reference force integral is itself
 > resolution-sensitive, so the head-to-head ratio cannot be re-evaluated---only the
@@ -611,10 +648,18 @@ Label them once as $128^2$ figures and add, in \autoref{sec:interp} only:
 | rasterise `train r256 n800` | ~1 320 s (22 min; process killed before it logged its own figure) |
 | rasterise `train r512 n800` | 41 min for the final 671 cases in 8 independent shard processes (3.3 s/case), on top of ~90 min lost to two OOMs and one self-inflicted bug (see below) |
 | assemble the `train r512` cache | 35 s |
-| **the ladder itself, all three rungs** | **290 s** (128: 24 s, 256: 42 s, 512: 127 s) |
-| 128-only dry run + 128/256 stage | 98 s + ~90 s |
+| **the ladder itself, all three rungs (committed run)** | **220 s** (128: 18 s, 256: 33 s, 512: 121 s) |
+| the `--fill nearest_all` control ladder (committed run) | 186 s |
+| 128-only dry run, 128/256 stage, and the first pass of each ladder before the force block was added | 98 s + 90 s + 290 s + 186 s |
 
-Total session ≈ 5 h, of which the scientific computation is **under 10 minutes**.
+The two ladder invocations that produced the committed default-fill JSON (before
+and after the force block was added) agree on **every scientific number** —
+per-channel MSE, both band grids, all four $\tau$, outer-region MSE, the decision —
+and differ only in their timings. That is a free determinism check, and it is why
+the tables in §3–§6 could be machine-rendered once and re-verified against the
+final committed artifact.
+
+Total session ≈ 5 h, of which the scientific computation is **under 20 minutes**.
 Everything else is cache construction. Disk: $+7.9$ GB of rasterised caches
 (`train r512` alone is 5.04 GB; `test r512` 1.26, `train r256` 1.27,
 `test r256` 0.32).
