@@ -182,7 +182,8 @@ CHANNELS = ("u", "v", "p", "nut")
 # tab:transolver / tab:v2). Volume MSE in physical units on the r128 crop.
 REFERENCE_ROWS = {
     "transolver_tab_transolver": {"mse_u": 0.120, "mse_v": 0.088, "mse_p": 628.5,
-                                  "surface_mse_p": 9110.0},
+                                  "surface_mse_p": 9110.0,
+                                  "mse_nut": 5.732712792998776e-09},
     "transolver_tab_v2_backbone": {"mse_u": 0.133, "mse_v": 0.096, "mse_p": 644.0,
                                    "surface_mse_p": 9843.0},
     "grid_backbone_tab_indist": {"mse_u": 3.479, "mse_v": 0.385, "mse_p": 2444.8,
@@ -690,12 +691,40 @@ def train_channel_variance(pairs) -> dict[str, float]:
 
 
 def standardised_block(metrics: dict, var: dict[str, float]) -> dict:
-    """MSE / Var_train for the interpolator and for every reference row."""
+    """MSE / Var_train for the interpolator and for every reference row.
+
+    TWO means are reported and BOTH must be quoted together:
+
+    * ``mean_std_mse_uvp``     -- over the three channels the paper's tables
+      report (u, v, p);
+    * ``mean_std_mse_uvpnut``  -- over ALL FOUR channels, which is what
+      ``run_baselines.py`` actually minimises (``F_OUT = 4``;
+      ``mean((pred - transform_out(y))**2)`` runs over nu_t too).
+
+    Quoting only the three-channel mean as "Transolver's own objective" would be
+    dropping the loss channel where the interpolator is 15x worse, and flips the
+    sign of the comparison. Caveat: ``PointNormalizer`` standardises in POINT
+    space, not on the r128 raster, so ``var_train`` here is a faithful-in-spirit
+    but not byte-identical stand-in for the training normaliser.
+    """
     out = {"var_train": var, "interpolation": {}}
-    for c in ("u", "v", "p"):
-        out["interpolation"][f"std_mse_{c}"] = metrics[f"mse_{c}"] / var[c]
+
+    def _row(vals):
+        r = {}
+        for c in ("u", "v", "p", "nut"):
+            k = f"mse_{c}"
+            if k in vals and var.get(c, 0.0) > 0:
+                r[f"std_mse_{c}"] = vals[k] / var[c]
+        uvp = [r[f"std_mse_{c}"] for c in ("u", "v", "p") if f"std_mse_{c}" in r]
+        if len(uvp) == 3:
+            r["mean_std_mse_uvp"] = float(np.mean(uvp))
+        if "std_mse_nut" in r and len(uvp) == 3:
+            r["mean_std_mse_uvpnut"] = float(np.mean(uvp + [r["std_mse_nut"]]))
+        return r
+
+    out["interpolation"] = _row(metrics)
     for row, vals in REFERENCE_ROWS.items():
-        out[row] = {f"std_mse_{c}": vals[f"mse_{c}"] / var[c] for c in ("u", "v", "p")}
+        out[row] = _row(vals)
     return out
 
 

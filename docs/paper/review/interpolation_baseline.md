@@ -13,9 +13,11 @@ the *field* is?
 interpolation in a 7-dimensional parameter space — no neural network, no
 geometry encoder, no flow-field learning — **beats a matched-budget Transolver
 on `mse_v` (2.6x), `mse_p` (8.4x), `rho_Cd`, and both force relative errors**,
-and **loses on `mse_u` (6.5x)** and marginally on surface pressure. On
-Transolver's own training objective (mean per-channel *standardised* MSE over
-u, v, p) the interpolator is **1.9x better**.
+and **loses on `mse_u` (6.5x), on `nu_t` (15x)** and marginally on surface
+pressure. In standardised units the interpolator is **1.9x better averaged over
+the three channels the tables report (u, v, p)** and **6.4x worse when the
+fourth loss channel `nu_t` is included** — both numbers are given in §2 and
+neither should be quoted alone.
 
 **Pre-registered verdict: `MIXED`.** (The rule, committed in
 `0dcde75` before any number was produced, requires within-2x on *all three*
@@ -121,21 +123,34 @@ Force accuracy, same protocol:
 | Transolver + DEQ loop (`tab:v2`) | 5.5 % | 6.8 % |
 | **parameter interpolation** | **1.18 %** | **2.39 %** |
 
-**Standardised MSE (Transolver's own objective).** `run_baselines.py` trains on
-`mean((pred - transform_out(y))**2)` — per-channel *standardised* MSE — so a
-physical-unit `mse_p` comparison alone invites "it was never trained for that".
-Dividing every row by the same train-set per-channel variance
-(`Var_train`: u 341.88, v 52.45, p 135590) removes the objection:
+**Standardised MSE — and the channel that flips the sign.** `run_baselines.py`
+trains on `mean((pred - transform_out(y))**2)` — per-channel *standardised* MSE —
+so a physical-unit `mse_p` comparison alone invites "it was never trained for
+that". Dividing every row by the same train-set per-channel variance
+(`Var_train`: u 341.88, v 52.45, p 135590, nut 1.3199e-6) removes that
+objection. Note that `F_OUT = 4`: the loss runs over `nu_t` as well.
 
-| model | std. `mse_u` | std. `mse_v` | std. `mse_p` | **mean over u,v,p** |
-|---|---|---|---|---|
-| Transolver | 3.51e-4 | 1.68e-3 | 4.64e-3 | 2.221e-3 |
-| **parameter interpolation** | 2.29e-3 | 6.41e-4 | 5.53e-4 | **1.160e-3** |
-| our grid backbone | 1.02e-2 | 7.34e-3 | 1.80e-2 | 1.185e-2 |
+| model | std. `mse_u` | std. `mse_v` | std. `mse_p` | std. `mse_nut` | mean over **u,v,p** | mean over **u,v,p,nut** |
+|---|---|---|---|---|---|---|
+| Transolver | 3.515e-4 | 1.677e-3 | 4.635e-3 | 4.343e-3 | 2.221e-3 | **2.752e-3** |
+| **parameter interpolation** | 2.286e-3 | 6.409e-4 | 5.534e-4 | 6.700e-2 | **1.160e-3** | 1.762e-2 |
+| our grid backbone | 1.018e-2 | 7.34e-3 | 1.803e-2 | — | 1.185e-2 | — |
 
-On the scalar Transolver is trained to minimise, **parameter interpolation is
-1.9x better**. Transolver's accuracy is concentrated (13x better on u than on p
-in standardised terms); the interpolator's is spread evenly.
+**Both means must be quoted together.** Over the three channels the paper's
+tables actually report, the interpolator is **1.9x better**. Over all four
+channels of Transolver's loss, **Transolver is 6.4x better** — `nu_t` dominates
+both models' standardised error and the interpolator is 15x worse on it.
+Claiming the first number as "beats Transolver on its own objective" while
+dropping a loss channel would be an overclaim, and it is not made here.
+
+What the table does show is the *shape* of each model's error: Transolver's
+accuracy is concentrated (13x better on u than on p in standardised terms) and
+it is the only method that gets `nu_t` right; the interpolator is uniform across
+u, v, p and cannot represent the turbulence variable at all.
+
+*Caveat:* `PointNormalizer` standardises in point space, not on the r128 raster,
+so `Var_train` here is a faithful-in-spirit but not byte-identical stand-in for
+the training normaliser. The ratios between rows are unaffected (same divisor).
 
 ---
 
@@ -145,13 +160,25 @@ in standardised terms); the interpolator's is spread evenly.
 bands in chord units of signed distance; cell size is 0.0234 c so the first band
 is sub-cell and holds only 0.5 % of cells):
 
-| band | cell frac | R² u | R² v | R² p | share of total SE (u / v / p) |
-|---|---|---|---|---|---|
-| 0-0.02c | 0.005 | 0.8395 | 0.9733 | 0.9968 | **0.924** / **0.898** / 0.535 |
-| 0.02-0.05c | 0.007 | 0.9969 | 0.9991 | 0.9987 | 0.018 / 0.040 / 0.238 |
-| 0.05-0.15c | 0.029 | 0.9997 | 0.9997 | 0.9996 | 0.005 / 0.030 / 0.154 |
-| 0.15-0.5c | 0.158 | 0.9998 | 0.9999 | 0.9999 | 0.017 / 0.018 / 0.052 |
-| >0.5c | 0.800 | 0.9999 | 1.0000 | 1.0000 | 0.036 / 0.014 / 0.022 |
+Two R² are given. `R²` pools across cases about the grand band mean; because U
+spans 31-93 m/s, the far-field pooled variance is largely variance *in U*, which
+the nondimensional predictor reproduces by construction — so a high pooled
+far-field R² partly means "it knows the freestream". `R²pc` is the strict
+statistic: each case's own band mean is subtracted first, so it asks whether the
+*spatial structure within the band* was captured beyond the case-level scale.
+`SE share` is unaffected by the centring choice and is the load-bearing number.
+
+| band | cell frac | R² u / v / p | **R²pc** u / v / p | share of total SE (u / v / p) |
+|---|---|---|---|---|
+| 0-0.02c | 0.005 | 0.8395 / 0.9733 / 0.9968 | **0.7539** / 0.9722 / 0.9966 | **0.924** / **0.898** / 0.535 |
+| 0.02-0.05c | 0.007 | 0.9969 / 0.9991 / 0.9987 | 0.9929 / 0.9990 / 0.9986 | 0.018 / 0.040 / 0.238 |
+| 0.05-0.15c | 0.029 | 0.9997 / 0.9997 / 0.9996 | 0.9991 / 0.9997 / 0.9996 | 0.005 / 0.030 / 0.154 |
+| 0.15-0.5c | 0.158 | 0.9998 / 0.9999 / 0.9999 | 0.9983 / 0.9999 / 0.9999 | 0.017 / 0.018 / 0.052 |
+| >0.5c | 0.800 | 0.9999 / 1.0000 / 1.0000 | 0.9965 / 0.9999 / 1.0000 | 0.036 / 0.014 / 0.022 |
+
+The strict statistic does not change the story: per-case-centred R² is
+**>= 0.9965 on every channel beyond 0.05c**, and the only band where it drops
+materially is the sub-cell wall band (u: 0.840 pooled → 0.754 centred).
 
 Read this carefully, because it cuts both ways and both cuts matter:
 
@@ -161,31 +188,36 @@ Read this carefully, because it cuts both ways and both cuts matter:
    not spread over trivial cells.
 2. **The entire remaining gap is the first cell off the wall.** 92 % of the `u`
    squared error and 90 % of the `v` squared error live in `0-0.02c`, where
-   R²_u drops to 0.84. Beyond `0.05c` the interpolator reproduces the field at
-   **R² >= 0.9996 on every channel**. Whatever a learned surrogate buys over
-   parameter interpolation on AirfRANS, it buys it inside the first grid cell.
+   R²_u drops to 0.84 (0.75 per-case-centred). Beyond `0.05c` the interpolator
+   reproduces the field at **R² >= 0.9996 (>= 0.9965 per-case-centred) on every
+   channel**. Whatever a learned surrogate buys over parameter interpolation on
+   AirfRANS, it buys it inside the first grid cell.
 3. That is consistent with the two channels the surrogate wins — surface
    pressure (sampled at 1.5 cells off the wall) and `nu_t` (a boundary-layer
    quantity) — and with `mse_u` being the streamwise channel that carries the
    wake/boundary-layer deficit.
 
-**Data efficiency** (section B; same CV-selected config, random train subsets):
+**Data efficiency** (section B; same CV-selected config, **5 random train
+subsets per size**, mean ± population std, with the worst-of-5 shown for `mse_p`
+because that is the number the claim has to survive):
 
-| n_train | `mse_u` | `mse_v` | `mse_p` | surf. `mse_p` |
+| n_train | `mse_u` | `mse_v` | `mse_p` | worst-of-5 `mse_p` |
 |---|---|---|---|---|
-| 25 | 3.622 | 0.2583 | 1645.3 | 132040 |
-| **50** | 2.465 | 0.0999 | **445.4** | 54109 |
-| 100 | 2.127 | 0.0958 | 344.4 | 48467 |
-| 200 | 1.495 | 0.0615 | 167.0 | 23087 |
-| 400 | 0.895 | 0.0367 | 89.7 | 12801 |
-| 800 | 0.782 | 0.0336 | 75.0 | 10989 |
-| *Transolver, n_train = 800* | *0.120* | *0.088* | *628.5* | *9110* |
+| 25 | 3.487 ± 0.51 | 0.399 ± 0.22 | 3054 ± 2100 | 5626 |
+| 50 | 2.346 ± 0.21 | 0.1064 ± 0.012 | 519 ± 113 | 735 |
+| **100** | 1.807 ± 0.25 | **0.0720 ± 0.013** | **238 ± 65** | **344** |
+| 200 | 1.383 ± 0.17 | 0.0556 ± 0.007 | 158 ± 28 | 203 |
+| 400 | 0.987 ± 0.077 | 0.0398 ± 0.002 | 96.6 ± 15 | 114 |
+| 800 (all) | 0.782 | 0.0336 | 75.0 | — |
+| *Transolver, n_train = 800* | *0.120* | *0.088* | *628.5* | — |
 
-**50 training cases** of parameter interpolation already beat a 7.35 M-parameter
-Transolver trained on **800** cases on `mse_p`, and match it on `mse_v`
-(0.0999 vs 0.088). Convergence in `mse_p` is close to `n^{-1}` over 25-400
-(log-log slope **-0.98**), flattening to -0.86 across the full range; it has not
-saturated at 800.
+**100 training cases** of parameter interpolation beat a 7.35 M-parameter
+Transolver trained on **800** cases on both `mse_p` (238 ± 65, worst of five
+subsets 344, vs 628.5) and `mse_v` (0.0720 ± 0.013 vs 0.088). At **50** cases the
+mean already beats it on `mse_p` (519) but one of five subsets does not (735), so
+the defensible claim is 100, not 50. Convergence in `mse_p` is close to `n^{-1}`
+over 25-400 (log-log slope -0.98 on the single-seed curve), flattening to -0.86
+across the full range; it has not saturated at 800.
 
 ---
 
@@ -301,11 +333,12 @@ make rho non-comparable invisibly. The script **asserts** `n_cases == len(test_p
 on every scored variant. All runs: 200 / 200, 200 / 200, 196 / 196.
 
 **(e) Is the metric degenerate? Permuted-parameter negative control. [KILL
-CHECK]** Predicting every test case from *another* case's parameters, everything
-else identical, collapses the result to the freestream floor: `mse_u` 0.782 →
-**20.45**, `mse_v` 0.034 → **12.69**, `mse_p` 75.0 → **1.098e5** (freestream
-floor: 26.01 / 17.65 / 1.514e5). The signal is carried by the parameters, not by
-the rasterisation, the masking or the metric.
+CHECK]** Predicting every test case from *another* case's parameters (a fixed
+derangement), everything else identical, collapses the result to the freestream
+floor: `mse_u` 0.782 → **22.82**, `mse_v` 0.034 → **14.36**, `mse_p` 75.0 →
+**1.296e5** (freestream floor: 26.01 / 17.65 / 1.514e5), with `rho_Cl` 0.9999 →
+0.345 and `C_l` relative error 1.18 % → 365 %. The signal is carried by the
+parameters, not by the rasterisation, the masking or the metric.
 
 **(f) Did the selection peek at test?** No. Hyperparameters come from 5-fold CV
 *inside* the train split on a pre-registered scalar, applied to test once, and
@@ -316,9 +349,14 @@ CV and test agree on the ranking: the CV top-10 is KRR and local-linear only
 Standardisation statistics (`_standardise`) are fitted on the active train rows
 only, inside the CV fold.
 
-**(g) Is it the metric convention?** No — §2 reports the standardised-MSE table,
-which is scale-free and is Transolver's own training objective. The conclusion
-strengthens there (1.9x).
+**(g) Is it the metric convention? [PARTIAL CONCESSION]** No for u, v, p — §2
+reports the scale-free standardised-MSE table and the conclusion strengthens
+there (1.9x on the three reported channels). But this check found a real
+overclaim in an earlier draft of this report: Transolver's loss has `F_OUT = 4`
+channels, and including `nu_t` — where the interpolator is 15x worse and which
+dominates both models' standardised error — makes **Transolver 6.4x better** on
+the four-channel mean. The three-channel number alone must not be described as
+"beating Transolver on its own objective". Corrected in §2 and §7.
 
 **(h) Does it need the shape, or is it just `(U, alpha)`?** It needs the shape.
 `[U, alpha]` only: `mse_u` 3.44 / `mse_v` 1.148 / `mse_p` 9491. Adding thickness:
@@ -376,13 +414,16 @@ parameter-space kernel interpolator with no flow-field learning:
 
 * **beats** the matched-budget Transolver on `mse_v` (2.6x), `mse_p` (8.4x),
   `rho_Cd`, `C_l` relative error (1.18 % vs 5.81 %), `C_d` relative error
-  (2.39 % vs 8.99 %), and on Transolver's own standardised-MSE objective (1.9x);
-* **loses** on `mse_u` (6.5x), `mse_nut` (15x), and marginally on surface
-  pressure (10989 vs 9110 — within one std of the `tab:v2` Transolver run,
-  10794 ± 910);
+  (2.39 % vs 8.99 %), and on the standardised-MSE mean over the three channels
+  the tables report (1.9x);
+* **loses** on `mse_u` (6.5x), on `mse_nut` (15x) — and therefore on the
+  four-channel standardised mean that is Transolver's actual training loss
+  (6.4x in Transolver's favour) — and marginally on surface pressure (10989 vs
+  9110, within one std of the `tab:v2` Transolver run, 10794 ± 910);
 * **beats our published grid backbone on every volume channel** (4.4x / 11.5x /
   32.6x) and by 50x on surface pressure;
-* reaches Transolver's `mse_p` with **50 training cases**;
+* reaches Transolver's `mse_p` with **100 training cases** (238 +/- 65 over 5
+  random subsets, worst-of-5 344, vs 628.5);
 * confines **92 % of its remaining `u` error to the first 0.02 c off the wall**,
   reproducing the field at **R² >= 0.9996 beyond 0.05 c**;
 * **does not degrade at all** on the `reynolds` OOD split, where 0/200 test cases
@@ -392,9 +433,10 @@ parameter-space kernel interpolator with no flow-field learning:
 
 So: surrogates on AirfRANS `full` do learn something beyond parameter
 interpolation, and it is a *specific* something — the first cell off the wall,
-the streamwise channel, and the turbulence variable. Everything else about the
-field, including the pressure field and the force coefficients that early-design
-work actually needs, is recoverable from seven scalars printed in the file name.
+the streamwise channel, and the turbulence variable (where they are the only
+method that works at all). Everything else about the field, including the
+pressure field and the force coefficients that early-design work actually needs,
+is recoverable from seven scalars printed in the file name.
 
 This is not a claim that published AirfRANS results are wrong. It is a claim
 that the benchmark has been reporting learned-model numbers against a baseline
@@ -453,6 +495,25 @@ a parameter interpolator scores $\rho_D=0.8389$ against the official labels,
 ($0.8394$), and both are still beaten by the three-parameter name regression
 ($0.874$).
 
+**Say it before a reviewer does: what this does *not* do to the paper's headline.**
+The Transolver row this baseline beats on `mse_v`/`mse_p` is the same backbone
+whose `−8/−21/−25 %` DEQ-corrector improvement is the paper's headline result. A
+reviewer will connect them, so the paper should connect them first. Add:
+
+> \paragraph{Relation to the corrector result.} The corrector deltas in
+> \autoref{tab:v2} are measured \emph{on} a Transolver backbone and are a
+> statement about what the residual-conditioned DEQ loop adds to that backbone;
+> they are unaffected by the existence of a cheaper non-learned predictor that is
+> better on two of the four channels. What the interpolation baseline does change
+> is the \emph{reading} of the absolute MSE values: $\texttt{mse\_p}=485$ after
+> correction is still $6.5\times$ the $75.0$ a parameter interpolator reaches
+> with no learning, so the corrector's $-25\%$ should be read as a relative
+> improvement to a learned backbone, not as a state-of-the-art field accuracy
+> claim. The corrector's value on this benchmark lies in the channels where
+> interpolation fails --- $u$, $\nu_t$ and the first cell off the wall --- and in
+> the fact that it is reference-free at deployment, which an interpolator that
+> carries the whole training set is not.
+
 **Rebuttal line.** *Reviewer said:* "you have not shown that your surrogate
 learns anything a trivial baseline could not." *We did:* built the parameter-space
 interpolation baseline the benchmark has never reported, with a pre-registered
@@ -472,11 +533,11 @@ package's default cap; no GPU, no training, no dataset download. Machine:
 | step | wall clock |
 |---|---|
 | `--selftest` (camber cross-check on 1000 cases) | 3 s |
-| `--task full` (2 representations, 35-config CV each, 12 scored test variants) | **183 s** |
+| `--task full` (2 representations, 35-config CV each, 12 scored test variants) | **187 s** |
 | `--task reynolds` | 177 s |
 | `--task aoa` | 195 s |
 | `--task full --fill nearest_all` (p-fill control, 1 rep) | 178 s |
-| `interpolation_band_control.py --task full` (bands + 6-point ladder + 2 controls + 4 ablations) | **195 s** |
+| `interpolation_band_control.py --task full` (bands + 26-run 5-seed ladder + 2 controls + 4 ablations) | **191 s** |
 | **total compute for the entire study** | **~15 min** |
 
 Breakdown within the `full` run: cache load 8 s, stack build 1.6 s per

@@ -78,13 +78,30 @@ BAND_NAMES = ["0-0.02c", "0.02-0.05c", "0.05-0.15c", "0.15-0.5c", ">0.5c"]
 
 
 def band_decomposition(pred_phys, test_pairs, hw):
-    """MSE / R^2 / squared-error share per wall-distance band, pooled over cases."""
+    """MSE / R^2 / squared-error share per wall-distance band.
+
+    TWO R^2 are reported and the second is the strict one:
+
+    * ``r2_*``    -- pooled across cases about the grand band mean. Because U
+      spans 31-93 m/s across the split, the far-field pooled variance is mostly
+      variance IN U, which the nondimensional predictor reproduces by
+      construction -- so a high pooled far-field R^2 partly means "it knows the
+      freestream".
+    * ``r2_pc_*`` -- per-case-centred: each case's own band mean is subtracted
+      from the ground truth before accumulating the denominator. This asks the
+      strict question, "did it capture the SPATIAL STRUCTURE within the band,
+      beyond the case-level scale?"
+
+    ``se_share_*`` (where the squared error actually lives) is unaffected by the
+    centring choice and is the load-bearing statistic.
+    """
     H, W = test_pairs[0][1].u.shape
     chans = ("u", "v", "p")
     se = {b: {c: 0.0 for c in chans} for b in BAND_NAMES}
     n = {b: 0 for b in BAND_NAMES}
     s1 = {b: {c: 0.0 for c in chans} for b in BAND_NAMES}
     s2 = {b: {c: 0.0 for c in chans} for b in BAND_NAMES}
+    ss_within = {b: {c: 0.0 for c in chans} for b in BAND_NAMES}
     for i, (case, ref) in enumerate(test_pairs):
         fluid = np.asarray(ref.mask).ravel() > 0.5
         d = np.asarray(ref.sdf, np.float64).ravel()
@@ -104,6 +121,7 @@ def band_decomposition(pred_phys, test_pairs, hw):
                 se[bname][c] += float((e**2).sum())
                 s1[bname][c] += float(g.sum())
                 s2[bname][c] += float((g**2).sum())
+                ss_within[bname][c] += float(((g - g.mean()) ** 2).sum())
     out = {}
     tot_se = {c: sum(se[b][c] for b in BAND_NAMES) for c in chans}
     for b in BAND_NAMES:
@@ -113,9 +131,12 @@ def band_decomposition(pred_phys, test_pairs, hw):
         for c in chans:
             mse = se[b][c] / n[b]
             var = s2[b][c] / n[b] - (s1[b][c] / n[b]) ** 2
+            var_pc = ss_within[b][c] / n[b]
             row[f"mse_{c}"] = mse
             row[f"var_{c}"] = var
+            row[f"var_pc_{c}"] = var_pc
             row[f"r2_{c}"] = 1.0 - mse / var if var > 0 else float("nan")
+            row[f"r2_pc_{c}"] = 1.0 - mse / var_pc if var_pc > 0 else float("nan")
             row[f"se_share_{c}"] = se[b][c] / tot_se[c] if tot_se[c] > 0 else float("nan")
         out[b] = row
     return out
@@ -178,28 +199,42 @@ def main(argv=None) -> int:
     for b, r in out["A_band_decomposition"].items():
         print(f"  {b:12s} cells {r['cell_frac']:6.3f}  R2 u/v/p "
               f"{r['r2_u']:.4f}/{r['r2_v']:.4f}/{r['r2_p']:.4f}  "
-              f"SEshare u/v/p {r['se_share_u']:.3f}/{r['se_share_v']:.3f}/"
+              f"R2pc {r['r2_pc_u']:.4f}/{r['r2_pc_v']:.4f}/{r['r2_pc_p']:.4f}  "
+              f"SEshare {r['se_share_u']:.3f}/{r['se_share_v']:.3f}/"
               f"{r['se_share_p']:.3f}", flush=True)
 
-    # ---- B. training-set-size ladder --------------------------------------
-    rng = np.random.default_rng(a.seed)
-    perm = rng.permutation(len(names_tr))
+    # ---- B. training-set-size ladder (MULTI-SEED: one random subset is not a
+    #        convergence curve, and the n=50 claim is load-bearing) -----------
     ladder = {}
     for nt in (25, 50, 100, 200, 400, len(names_tr)):
         if nt > len(names_tr):
             continue
-        active = np.zeros(len(names_tr), bool)
-        active[perm[:nt]] = True
-        ladder[str(nt)] = score(run(Xte, active=active))
-        print(f"  [n_train={nt:4d}] u={ladder[str(nt)]['mse_u']:.4g} "
-              f"v={ladder[str(nt)]['mse_v']:.4g} p={ladder[str(nt)]['mse_p']:.5g} "
-              f"surf_p={ladder[str(nt)]['surface_mse_p']:.5g}", flush=True)
+        seeds = [a.seed] if nt >= len(names_tr) else list(range(a.seed, a.seed + 5))
+        runs = []
+        for s in seeds:
+            active = np.zeros(len(names_tr), bool)
+            active[np.random.default_rng(s).permutation(len(names_tr))[:nt]] = True
+            runs.append(score(run(Xte, active=active)))
+        agg = {}
+        for k in runs[0]:
+            vals = [r[k] for r in runs]
+            agg[k] = float(np.mean(vals))
+            agg[k + "_std"] = float(np.std(vals))
+            agg[k + "_min"] = float(np.min(vals))
+            agg[k + "_max"] = float(np.max(vals))
+        agg["n_seeds"] = len(seeds)
+        ladder[str(nt)] = agg
+        print(f"  [n_train={nt:4d} x{len(seeds)}] u={agg['mse_u']:.4g}+-{agg['mse_u_std']:.2g} "
+              f"v={agg['mse_v']:.4g}+-{agg['mse_v_std']:.2g} "
+              f"p={agg['mse_p']:.5g}+-{agg['mse_p_std']:.3g} "
+              f"(p range {agg['mse_p_min']:.5g}-{agg['mse_p_max']:.5g})", flush=True)
     out["B_train_size_ladder"] = ladder
 
     # ---- C. permuted-parameter negative control ---------------------------
-    pidx = np.random.default_rng(1234).permutation(len(names_te))
+    drng = np.random.default_rng(1234)
+    pidx = drng.permutation(len(names_te))
     while np.any(pidx == np.arange(len(names_te))):       # derangement
-        pidx = np.random.default_rng(int(rng.integers(1 << 30))).permutation(len(names_te))
+        pidx = drng.permutation(len(names_te))
     out["C_permuted_parameters"] = score(run(Xte[pidx]))
     print(f"  [permuted] u={out['C_permuted_parameters']['mse_u']:.4g} "
           f"v={out['C_permuted_parameters']['mse_v']:.4g} "
