@@ -1,20 +1,27 @@
 """Build the corrected leaderboard for a benchmark: every verified published
-entry, beside the covariate null, beside the verdict.
+entry, beside the metadata null, beside the verdict -- PLUS the separate
+harmonised cross-benchmark view (see ``harmonised.py`` for why the two must
+never be merged into one table).
 
-Each :func:`build_leaderboard` call re-runs the harness from the shipped CSV
--- it never reads a cached number -- so the leaderboard and the code that
-produced it cannot diverge. :func:`render_markdown` turns the JSON-able
-record into the table format other authors can paste directly.
+Each :func:`build_leaderboard` / :func:`build_harmonised_table` call re-runs
+the harness from the shipped CSV -- it never reads a cached number -- so the
+leaderboard and the code that produced it cannot diverge. :func:`render_markdown`
+turns the JSON-able record into the table format other authors can paste
+directly.
 """
 
 from __future__ import annotations
 
 from .benchmarks import REGISTRY, WINDSORML, windsor_implied_r2_floor
-from .harness import run_null
+from .harmonised import run_all_harmonised
+from .stats import FLOOR
 
 
 def build_leaderboard(name: str, n_boot: int = 10000, seed: int | None = None) -> dict:
-    """Run every target of benchmark ``name`` and assemble one leaderboard record."""
+    """Run every target of benchmark ``name`` (under its OWN protocol) and
+    assemble one leaderboard record."""
+    from .harness import run_null
+
     cfg = REGISTRY[name]
     record = {
         "benchmark": cfg.name,
@@ -40,13 +47,12 @@ def build_leaderboard(name: str, n_boot: int = 10000, seed: int | None = None) -
 
 def _headline(record: dict) -> dict:
     """The single number a benchmark maintainer would quote: the drag/primary
-    target's covariate-null fraction against the BEST verified published
-    point estimate (bounds excluded -- see ``benchmarks.py``). Per-row
-    fractions in ``targets.*.comparisons`` are the finer-grained reading;
-    this is the one-line summary.
+    target's ``metadata_null_{metric}`` (the headline statistic; see
+    stats.py) alongside the published-relative ratio against the BEST
+    verified published point estimate (bounds excluded -- see
+    ``benchmarks.py``). Per-row ratios in ``targets.*.comparisons`` are the
+    finer-grained reading; this is the one-line summary.
     """
-    from .stats import FLOOR
-
     primary = "cd" if "cd" in record["targets"] else next(iter(record["targets"]))
     tgt = record["targets"][primary]
     floor = FLOOR[tgt["metric"]]
@@ -58,7 +64,7 @@ def _headline(record: dict) -> dict:
     if not candidates or not above_floor:
         if candidates and not above_floor:
             note = (f"every verified published entry for this target is at or below the "
-                    f"metric's own floor ({floor}) -- no fraction is defined for any of "
+                    f"metric's own floor ({floor}) -- no ratio is defined for any of "
                     f"them; see stats.py's floor convention. The published entries "
                     f"themselves not clearing the floor is the more important fact here.")
         else:
@@ -66,16 +72,18 @@ def _headline(record: dict) -> dict:
         if bounds:
             note += (f" (a published BOUND exists -- {bounds[0]['model']}: "
                      f"{bounds[0]['verdict']} -- see the target's own comparisons; "
-                     "a bound never yields a covariate-null fraction)")
+                     "a bound never yields a published-relative ratio)")
         return {
             "target": primary,
             "metric": tgt["metric"],
             "protocol": tgt["protocol"],
+            "metadata_null_r2" if tgt["metric"] == "r2" else "metadata_null_spearman":
+                tgt["out_of_sample"],
             "null_point": tgt["out_of_sample"],
             "null_ci95": tgt["ci95"],
             "best_published_model": None,
             "best_published_value": None,
-            "covariate_null_fraction": None,
+            "published_relative_ratio": None,
             "note": note,
         }
     best = max(above_floor, key=lambda c: c["published"])
@@ -83,11 +91,13 @@ def _headline(record: dict) -> dict:
         "target": primary,
         "metric": tgt["metric"],
         "protocol": tgt["protocol"],
+        "metadata_null_r2" if tgt["metric"] == "r2" else "metadata_null_spearman":
+            tgt["out_of_sample"],
         "null_point": tgt["out_of_sample"],
         "null_ci95": tgt["ci95"],
         "best_published_model": best["model"],
         "best_published_value": best["published"],
-        "covariate_null_fraction": best["covariate_null_fraction"],
+        "published_relative_ratio": best["published_relative_ratio"],
         "verdict": best["verdict"],
         "note": "",
     }
@@ -95,6 +105,28 @@ def _headline(record: dict) -> dict:
 
 def build_all_leaderboards(n_boot: int = 10000, seed: int | None = None) -> dict:
     return {name: build_leaderboard(name, n_boot=n_boot, seed=seed) for name in REGISTRY}
+
+
+def build_harmonised_table(n_boot: int = 10000) -> dict:
+    """The cross-benchmark-comparable view: one protocol, all five benchmarks,
+    the linear metadata null alongside the sourced flexible ceiling. See
+    ``harmonised.py``'s module docstring for the full rationale."""
+    from .harmonised import PROTOCOL, PROTOCOL_SOURCE
+
+    results = run_all_harmonised(n_boot=n_boot)
+    return {
+        "protocol": PROTOCOL,
+        "protocol_source": PROTOCOL_SOURCE,
+        "note": ("Cross-benchmark-comparable by construction: identical protocol, "
+                "identical metric, applied to all five. NOT the per-benchmark worked "
+                "examples in the sibling leaderboard files, which use each "
+                "benchmark's own split/metric and are not comparable to each other "
+                "or to this table -- see benchmarks.py and harmonised.py."),
+        "benchmarks": {name: r.to_dict() for name, r in results.items()},
+        "ranking_by_metadata_null_r2": sorted(
+            ((r.benchmark, r.metadata_null_r2) for r in results.values()),
+            key=lambda t: t[1], reverse=True),
+    }
 
 
 # --------------------------------------------------------------------------------------
@@ -125,47 +157,78 @@ def render_markdown(record: dict) -> str:
         if tgt.get("target_note"):
             lines.append(f"> {tgt['target_note']}")
             lines.append("")
-        lines.append(f"Null out-of-sample: **{_fmt(tgt['out_of_sample'])}** "
+        metadata_key = f"metadata_null_{tgt['metric']}"
+        lines.append(f"{metadata_key}: **{_fmt(tgt[metadata_key])}** "
                      f"[{_fmt(tgt['ci95'][0])}, {_fmt(tgt['ci95'][1])}] "
-                     f"(95% case-level bootstrap, n_boot={tgt['n_boot_finite']})")
+                     f"(95% case-level bootstrap, n_boot={tgt['n_boot_finite']}); "
+                     f"metadata_null_mse: {_fmt(tgt['metadata_null_mse'], 3)}")
         lines.append("")
         if not tgt["comparisons"]:
             lines.append("_No published entries verified for this target._")
             lines.append("")
             continue
-        lines.append("| model | published | published std | null | null CI95 | "
-                     "covariate-null fraction | flags | verdict | source |")
+        lines.append("| model | published | published std | metadata null | null CI95 | "
+                     "published-relative ratio | flags | verdict | source |")
         lines.append("|---|---|---|---|---|---|---|---|---|")
         for c in tgt["comparisons"]:
-            cnf = c["covariate_null_fraction"]
-            cnf_str = "--" if cnf is None else _fmt(cnf["covariate_null_fraction"])
-            flags = ", ".join(cnf["flags"]) if cnf and cnf["flags"] else (
+            ratio = c["published_relative_ratio"]
+            ratio_str = "--" if ratio is None else _fmt(ratio["published_relative_ratio"])
+            flags = ", ".join(ratio["flags"]) if ratio and ratio["flags"] else (
                 "bound" if c["is_bound"] else "")
             lines.append(
                 f"| {c['model']} | {_fmt(c['published'])}"
                 f"{'*' if c['is_bound'] else ''} | {_fmt(c['published_std'])} | "
-                f"{_fmt(tgt['out_of_sample'])} | [{_fmt(tgt['ci95'][0])}, "
-                f"{_fmt(tgt['ci95'][1])}] | {cnf_str} | {flags} | {c['verdict']} | "
+                f"{_fmt(tgt[metadata_key])} | [{_fmt(tgt['ci95'][0])}, "
+                f"{_fmt(tgt['ci95'][1])}] | {ratio_str} | {flags} | {c['verdict']} | "
                 f"{c['published_source']} |")
         lines.append("")
 
     h = record["headline"]
+    ratio = h.get("published_relative_ratio")
+    ratio_str = _fmt(ratio["published_relative_ratio"]) if ratio else "--"
     lines.append(f"**Headline** (target `{h['target']}`, metric {h['metric']}): "
-                 f"null {_fmt(h['null_point'])} [{_fmt(h['null_ci95'][0])}, "
+                 f"metadata null {_fmt(h['null_point'])} [{_fmt(h['null_ci95'][0])}, "
                  f"{_fmt(h['null_ci95'][1])}] vs best verified published "
                  f"`{h['best_published_model']}` = {_fmt(h.get('best_published_value'))} "
-                 f"-> covariate-null fraction "
-                 f"{_fmt((h.get('covariate_null_fraction') or {}).get('covariate_null_fraction')) if h.get('covariate_null_fraction') else '--'}"
-                 f". {h.get('note', '')}")
+                 f"-> published-relative ratio {ratio_str}. {h.get('note', '')}")
     lines.append("")
     return "\n".join(lines)
 
 
 def render_markdown_all(records: dict) -> str:
-    parts = ["# NullBench — corrected leaderboards", "",
+    parts = ["# NullBench — corrected leaderboards (per-benchmark, own protocol)", "",
             "Machine-readable form: the sibling `.json` files in this directory. "
-            "Regenerate both with `neuroforge nullbench leaderboard --all`. See "
-            "`docs/NULLBENCH.md` for the statistic's definition.", ""]
+            "Regenerate with `neuroforge nullbench leaderboard --all`. See "
+            "`docs/NULLBENCH.md` for the statistic's definition, and "
+            "`harmonised.md` in this directory for the SEPARATE cross-benchmark "
+            "view -- these per-benchmark tables are not comparable to each other; "
+            "see benchmarks.py's module docstring.", ""]
     for name in records:
         parts.append(render_markdown(records[name]))
     return "\n".join(parts)
+
+
+def render_harmonised_markdown(table: dict) -> str:
+    lines = ["# NullBench — harmonised cross-benchmark view", "",
+            f"Protocol: **{table['protocol']}** (`{table['protocol_source']}`)", "",
+            table["note"], "",
+            "| benchmark | n | metadata_null_r2 | 95% CI | flexible ceiling (sourced) | "
+            "linearity share (sourced) |",
+            "|---|---|---|---|---|---|"]
+    for b in table["benchmarks"].values():
+        lines.append(
+            f"| {b['benchmark']} | {b['n_cases']} | {_fmt(b['metadata_null_r2'])} | "
+            f"[{_fmt(b['metadata_null_r2_ci95'][0])}, {_fmt(b['metadata_null_r2_ci95'][1])}] | "
+            f"{_fmt(b['flexible_ceiling_r2_sourced'])} | "
+            f"{_fmt(b['linearity_share_sourced'])} |")
+    lines.append("")
+    lines.append("Ranking by metadata_null_r2 (highest to lowest): " +
+                 ", ".join(f"{n} ({_fmt(v)})" for n, v in table["ranking_by_metadata_null_r2"]))
+    lines.append("")
+    lines.append(f"> {table['benchmarks'][next(iter(table['benchmarks']))]['published_comparison_note']}")
+    lines.append("")
+    lines.append("Flexible-ceiling values are READ from "
+                 f"`{next(iter(table['benchmarks'].values()))['flexible_ceiling_source']}`, "
+                 "not recomputed by this harness -- see `harmonised.py`'s module docstring.")
+    lines.append("")
+    return "\n".join(lines)

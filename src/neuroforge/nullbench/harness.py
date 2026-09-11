@@ -1,8 +1,17 @@
-"""Orchestrates one covariate-null run: table in, null score + CI + CNF out.
+"""Orchestrates one metadata-null run: table in, R2_meta (+ MSE) + CI + ratio out.
 
 This is the function a CLI, a benchmark config, or a notebook all funnel
 through, so the split-selection logic (official split vs K-fold) and the
 in-sample/out-of-sample bookkeeping exist in exactly one place.
+
+Naming (``docs/paper/review/naming_and_positioning.md``): the protocol run
+here is **the metadata null**; its headline output is **metadata-only R2**
+(``R2_meta``), emitted below as ``metadata_null_r2`` (or
+``metadata_null_spearman`` when ``metric="spearman"``) with a bootstrap CI,
+alongside ``metadata_null_mse``. The demoted comparison aid formerly called
+the "covariate-null fraction" is now :func:`~neuroforge.nullbench.stats.published_relative_ratio`,
+emitted per published entry as ``published_relative_ratio`` -- see
+``stats.py``'s module docstring for why it is not the headline.
 """
 
 from __future__ import annotations
@@ -28,7 +37,11 @@ class PublishedEntry:
     higher-is-better quantity already expressed in the run's own metric
     (e.g. an MSE bound pre-converted to an implied R2 floor: clears only if
     the null is decisively below the floor). A bound entry never receives a
-    covariate-null fraction -- there is no point estimate to divide by.
+    published-relative ratio -- there is no point estimate to divide by.
+
+    ``precision``, if given (decimal digits the published ``value`` was
+    reported to), drives the rounding-sensitivity check on the ratio -- see
+    ``stats.published_relative_ratio``.
     """
 
     name: str
@@ -38,6 +51,7 @@ class PublishedEntry:
     note: str = ""
     is_bound: bool = False
     bound_kind: str = "upper"  # "upper" | "lower", only meaningful if is_bound
+    precision: int | None = None  # decimal digits `value` was reported to
 
 
 @dataclass
@@ -51,21 +65,33 @@ class NullResult:
     in_sample_inflation: float
     ci95: tuple[float, float]
     n_boot_finite: int
+    mse_out_of_sample: float
+    mse_ci95: tuple[float, float]
     feature_names: list[str]
     source: str
     comparisons: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
+        metadata_null_key = f"metadata_null_{self.metric}"
         return {
             "metric": self.metric,
             "protocol": self.protocol,
             "n_fit": self.n_fit,
             "n_score": self.n_score,
+            # generic (metric-tagged via the "metric" field above) -- used internally
+            # and by every existing consumer of this record
             "out_of_sample": self.out_of_sample,
             "in_sample": self.in_sample,
             "in_sample_inflation": self.in_sample_inflation,
             "ci95": list(self.ci95),
             "n_boot_finite": self.n_boot_finite,
+            # the settled headline names (naming_and_positioning.md): same numbers,
+            # spelled out so a reader of the JSON does not have to cross-reference
+            # the "metric" field to know what "out_of_sample" means
+            metadata_null_key: self.out_of_sample,
+            f"{metadata_null_key}_ci95": list(self.ci95),
+            "metadata_null_mse": self.mse_out_of_sample,
+            "metadata_null_mse_ci95": list(self.mse_ci95),
             "feature_names": list(self.feature_names),
             "source": self.source,
             "comparisons": self.comparisons,
@@ -82,7 +108,7 @@ def run_null(
     seed: int = 0,
     published: list[PublishedEntry] | None = None,
 ) -> NullResult:
-    """Run the covariate null on ``table`` and score every entry in ``published``.
+    """Run the metadata null on ``table`` and score every entry in ``published``.
 
     Protocol selection is automatic and always reported: if ``table`` carries
     a split column, cases tagged with any of ``train_values`` are fit on and
@@ -110,6 +136,10 @@ def run_null(
     lo, hi, n_finite = stats.bootstrap_ci(sr.y_true, sr.y_pred_oos, metric,
                                           n_boot=n_boot, seed=seed)
 
+    mse_point = stats.mse_score(sr.y_true, sr.y_pred_oos)
+    mse_lo, mse_hi, _ = stats.bootstrap_ci_raw(sr.y_true, sr.y_pred_oos, stats.mse_score,
+                                               n_boot=n_boot, seed=seed)
+
     result = NullResult(
         metric=metric,
         protocol=sr.protocol,
@@ -120,6 +150,8 @@ def run_null(
         in_sample_inflation=in_point - oos_point,
         ci95=(lo, hi),
         n_boot_finite=n_finite,
+        mse_out_of_sample=mse_point,
+        mse_ci95=(mse_lo, mse_hi),
         feature_names=table.feature_names,
         source=table.source,
     )
@@ -130,18 +162,21 @@ def run_null(
 
 
 def compare(result: NullResult, entry: PublishedEntry) -> dict:
-    """One published-vs-null row: verdict + covariate-null fraction."""
+    """One published-vs-null row: verdict + the published-relative ratio (a
+    demoted comparison aid -- see stats.py's module docstring; the headline
+    is ``result``'s own ``metadata_null_{metric}``, not this ratio)."""
     lo, hi = result.ci95
     if entry.is_bound:
         bound_fn = (stats.verdict_bound_lower if entry.bound_kind == "upper"
                     else stats.verdict_bound_higher)
         verdict = bound_fn(entry.value, result.out_of_sample, lo, hi)
-        cnf = None
+        ratio = None
     else:
         verdict_fn = stats.VERDICT_FNS[result.metric]
         verdict = verdict_fn(entry.value, result.out_of_sample, lo, hi)
-        cnf = stats.covariate_null_fraction(result.metric, result.out_of_sample,
-                                            (lo, hi), entry.value, entry.std)
+        ratio = stats.published_relative_ratio(result.metric, result.out_of_sample,
+                                               (lo, hi), entry.value, entry.std,
+                                               entry.precision)
     return {
         "model": entry.name,
         "published": entry.value,
@@ -150,7 +185,7 @@ def compare(result: NullResult, entry: PublishedEntry) -> dict:
         "published_note": entry.note,
         "is_bound": entry.is_bound,
         "verdict": verdict,
-        "covariate_null_fraction": cnf.to_dict() if cnf is not None else None,
+        "published_relative_ratio": ratio.to_dict() if ratio is not None else None,
     }
 
 
@@ -165,7 +200,12 @@ def permutation_check(
     """Refit with the TRAINING labels shuffled and return the out-of-sample
     score. Should land at or below the metric floor; anything else means the
     fitting machinery is manufacturing signal rather than reading it off the
-    metadata. Test-set labels are never touched."""
+    metadata. Test-set labels are never touched.
+
+    Named ``permutation_check`` (a diagnostic run against the label-permutation
+    null), distinct from the metadata null this module otherwise computes --
+    see stats.py's module docstring on why the two must stay terminologically
+    separate."""
     Xd = design_matrix(table.X)
     rng = np.random.default_rng(seed)
 

@@ -1,0 +1,102 @@
+{
+  "benchmarks": {
+    "AhmedML": {
+      "cd": {
+        "flexible_ceiling_best_model": "quadratic_ols",
+        "flexible_ceiling_r2_sourced": 0.7747560497267596,
+        "linearity_share_sourced": 0.8831188312774444,
+        "null_r2_linear_sourced": 0.6842016571598255
+      },
+      "cl": {
+        "flexible_ceiling_best_model": "locallin_k20",
+        "flexible_ceiling_r2_sourced": 0.7704802221758402,
+        "linearity_share_sourced": 0.5860617657651517,
+        "null_r2_linear_sourced": 0.4515489994954993
+      }
+    },
+    "AirfRANS": {
+      "cd": {
+        "flexible_ceiling_best_model": "quadratic_ridge_lam0.1",
+        "flexible_ceiling_r2_sourced": 0.9462826909859643,
+        "linearity_share_sourced": 0.7220722082570594,
+        "null_r2_linear_sourced": 0.6832844323156678
+      },
+      "cl": {
+        "flexible_ceiling_best_model": "quadratic_ridge_lam0.1",
+        "flexible_ceiling_r2_sourced": 0.9899891865373432,
+        "linearity_share_sourced": 0.9713547973491481,
+        "null_r2_linear_sourced": 0.961630745666829
+      }
+    },
+    "DrivAerML": {
+      "cd": {
+        "flexible_ceiling_best_model": "quadratic_ridge_lam1",
+        "flexible_ceiling_r2_sourced": 0.9883385718776794,
+        "linearity_share_sourced": 0.9711124116163422,
+        "null_r2_linear_sourced": 0.9597878540295848
+      },
+      "cl": {
+        "flexible_ceiling_best_model": "quadratic_ridge_lam1",
+        "flexible_ceiling_r2_sourced": 0.9841664915102764,
+        "linearity_share_sourced": 0.9824659937575382,
+        "null_r2_linear_sourced": 0.9669101101045134
+      },
+      "clf": {
+        "flexible_ceiling_best_model": "quadratic_ridge_lam1",
+        "flexible_ceiling_r2_sourced": 0.9925193933072839,
+        "linearity_share_sourced": 0.9783014031333094,
+        "null_r2_linear_sourced": 0.9709831151095368
+      },
+      "clr": {
+        "flexible_ceiling_best_model": "quadratic_ridge_lam0.1",
+        "flexible_ceiling_r2_sourced": 0.9841050774378721,
+        "linearity_share_sourced": 0.9805209886250686,
+        "null_r2_linear_sourced": 0.9649356834403321
+      },
+      "cs": {
+        "flexible_ceiling_best_model": "quadratic_ridge_lam100",
+        "flexible_ceiling_r2_sourced": 0.597946497697371,
+        "linearity_share_sourced": 1.006488728090562,
+        "null_r2_linear_sourced": 0.601826409933633
+      }
+    },
+    "DrivAerNet++": {
+      "cd": {
+        "flexible_ceiling_best_model": "quadratic_ridge_lam10",
+        "flexible_ceiling_r2_sourced": 0.8811330937842178,
+        "linearity_share_sourced": 0.9360933628562712,
+        "null_r2_linear_sourced": 0.8248228408844186
+      }
+    },
+    "WindsorML": {
+      "cd": {
+        "flexible_ceiling_best_model": "knn_k10",
+        "flexible_ceiling_r2_sourced": 0.25158561674795477,
+        "linearity_share_sourced": 0.4153398055365234,
+        "null_r2_linear_sourced": 0.10449352113588184
+      },
+      "cl": {
+        "flexible_ceiling_best_model": "quadratic_ridge_lam1",
+        "flexible_ceiling_r2_sourced": 0.44133189829120767,
+        "linearity_share_sourced": 0.53327212715781,
+        "null_r2_linear_sourced": 0.2353500001843466
+      },
+      "cmy": {
+        "flexible_ceiling_best_model": "quadratic_ridge_lam10",
+        "flexible_ceiling_r2_sourced": 0.18596436041184372,
+        "linearity_share_sourced": 0.7878831160049428,
+        "null_r2_linear_sourced": 0.14651817974714965
+      },
+      "cs": {
+        "flexible_ceiling_best_model": "quadratic_ridge_lam100",
+        "flexible_ceiling_r2_sourced": 0.17252258492839667,
+        "linearity_share_sourced": 0.8075726777164278,
+        "null_r2_linear_sourced": 0.13932452587718513
+      }
+    }
+  },
+  "note": "Sourced, not recomputed by this package. C1_flex_r2_lower_bound is a LOWER bound on determinacy from a small flexible family (quadratic + ridge path + kNN / local-linear), 10-fold OOS, same folds as null_r2_linear. null_r2_linear is reproduced independently by neuroforge.nullbench.harmonised (see tests/test_nullbench.py); it is repeated here only so a consumer of this file alone has both numbers without cross-referencing null_mechanism.json.",
+  "source": "results/review/null_mechanism.json",
+  "source_commit_prereg": "ffbec98",
+  "source_script": "scripts/null_mechanism.py"
+}

@@ -1,29 +1,64 @@
-"""Metrics, bootstrap intervals, and the covariate-null fraction.
+"""Metrics, bootstrap intervals, and the published-relative ratio.
 
-The **covariate-null fraction** (CNF) is the share of a reported metric's value
-that a regression on the benchmark's own published per-case metadata already
-achieves, with no simulation output opened. It is defined per metric family:
+**Naming, settled after review** (``docs/paper/review/naming_and_positioning.md``):
+the protocol is **the metadata null** — a regression on a benchmark's own
+published per-case parameters, no simulation output opened. Its primary,
+headline statistic is **metadata-only R2**, written :math:`R^2_{meta}` and
+emitted as ``metadata_null_r2`` (with a bootstrap CI), alongside
+``metadata_null_mse``. This module previously called that primary quantity
+a "covariate-null fraction" — retired for three reasons the positioning
+review gives and this module accepts: R2 can be negative (this project's own
+WindsorML interval reaches -0.143), so "fraction" is the wrong word for it;
+"null" was already doing two jobs (the metadata null itself, and the
+label-permutation null in ``harness.permutation_check``); and "floor" is
+already load-bearing elsewhere in this repository (the residual floor),
+so a name built from "covariate" + "floor" collides with it. The
+*ratio* this module used to call the covariate-null fraction still exists,
+demoted: :func:`published_relative_ratio` (``null / published``, on the
+metric's own floor-0/ceiling-1 scale) is a **comparison aid, not the
+headline**, precisely because it needs a competitor's published number and
+inherits that number's precision — see the rounding-sensitivity discussion
+below and ``docs/paper/review/nullbench_release.md`` Sec 1.5.
+
+Floor / ceiling convention (unchanged):
 
 * **R2-style** (``metric="r2"``): floor 0 (an intercept-only / constant
   predictor scores exactly 0 by the definition of R2), ceiling 1.
-  ``CNF = null_R2 / published_R2``.
 * **Rank-style** (``metric="spearman"``): floor 0 (a random ranking has
   expected Spearman correlation 0), ceiling 1.
-  ``CNF = null_rho / published_rho``.
 
-Both branches share one convention: **the denominator must be above the
-floor for the fraction to be defined.** If a published metric is at or below
+:func:`published_relative_ratio` shares one convention with its retired
+predecessor: **the denominator (the published value) must be above the
+floor for the ratio to be defined.** If a published metric is at or below
 its own floor (e.g. AirfRANS drag rank correlation, which is *negative* for
-every published model in Bonnet et al. 2022 Table 3), no fraction of it can
-be attributed to anything — the null is reported to have won outright, and
-``value`` is ``None`` with the flag ``published_at_or_below_floor``. The
-numerator is not floored: a null that is itself at or below its own floor
-(metadata carries no signal) reports a fraction at or below zero, flagged
+every published model in Bonnet et al. 2022 Table 3), no ratio against it
+means anything — the null is reported to have won outright, and ``value``
+is ``None`` with the flag ``published_at_or_below_floor``. The numerator is
+not floored: a null that is itself at or below its own floor (metadata
+carries no signal) reports a ratio at or below zero, flagged
 ``null_at_or_below_floor`` rather than silently clipped, and a null that
-*exceeds* the published value reports a fraction above 1, flagged
+*exceeds* the published value reports a ratio above 1, flagged
 ``null_exceeds_published`` -- both are informative and neither is hidden.
 
-Every CNF ships with a bootstrap interval derived from the null's own
+**Rounding sensitivity.** The positioning review demonstrates that a
+*differently defined* ratio it also considered and rejected as a headline —
+null-normalised gain, ``G = (R2_model - R2_meta) / (1 - R2_meta)`` — swings
+6-fold on DrivAerML (0.07 to 0.44) once DoMINO's published 0.98 is
+propagated through its own 2-decimal rounding interval [0.975, 0.985],
+because ``G``'s denominator (``1 - R2_meta = 0.0269``) sits close to zero.
+:func:`published_relative_ratio`'s denominator is the published value
+itself, not ``1 - R2_meta``, so the dangerous regime is different: a
+published value reported to few decimals *and* close to the metric's own
+floor. On the same DrivAerML DoMINO row this ratio swings only
+0.988-0.998 (checked, not just argued -- see
+``tests/test_nullbench.py::test_published_relative_ratio_rounding_sensitivity``
+and ``nullbench_release.md`` Sec 1.6 for the worked table across all five
+benchmarks). Pass ``published_precision`` (decimal digits) to
+:func:`published_relative_ratio` to get that interval computed rather than
+assumed; entries close to the floor at low precision are flagged
+``rounding_sensitive`` rather than silently under-reported.
+
+Every ratio ships with a bootstrap interval derived from the null's own
 case-level percentile bootstrap (never a bare point estimate). Where the
 published entry itself carries a reported standard deviation, it is carried
 alongside for the reader rather than combined into the interval -- combining
@@ -54,6 +89,15 @@ Metric = Literal["r2", "spearman"]
 FLOOR: dict[str, float] = {"r2": 0.0, "spearman": 0.0}
 CEILING: dict[str, float] = {"r2": 1.0, "spearman": 1.0}
 
+# Above this fractional swing (hi - lo, relative to the point ratio), a rounding
+# interval is flagged rather than left for the reader to notice. Chosen, not
+# derived: it is well below the 6x (proportional swing >> 1) case the positioning
+# review demonstrates for null-normalised gain, and well above the ~1% swing this
+# ratio shows on the DrivAerML DoMINO row it was checked against -- see the module
+# docstring. A benchmark maintainer with a different tolerance can recompute the
+# interval directly from `published_relative_ratio`'s returned fields.
+ROUNDING_SENSITIVITY_THRESHOLD = 0.15
+
 
 # --------------------------------------------------------------------------- #
 # point metrics
@@ -69,6 +113,15 @@ def r2_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return 1.0 - sse / sst if sst > 0 else float("nan")
 
 
+def mse_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Mean squared error -- scale-absolute, reported alongside R2 (never run
+    through :func:`published_relative_ratio`'s floor/ceiling machinery, which
+    is defined only for the two floor-0/ceiling-1 metric families above)."""
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    return float(np.mean((y_true - y_pred) ** 2))
+
+
 def spearman_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """Spearman rank correlation between predictions and labels. A constant
     prediction (e.g. the intercept-only model) yields undefined ranks and
@@ -79,6 +132,11 @@ def spearman_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(spearmanr(y_pred, y_true).statistic)
 
 
+# Deliberately excludes mse_score: METRIC_FNS backs published_relative_ratio's
+# floor/ceiling machinery and the bootstrap CI loop, both defined only for the
+# two floor-0/ceiling-1 families. MSE is reported by NullResult directly (see
+# harness.py) rather than routed through this table, so `metric="mse"` cannot be
+# passed into run_null and silently get a nonsense verdict direction.
 METRIC_FNS = {"r2": r2_score, "spearman": spearman_score}
 
 
@@ -93,15 +151,18 @@ def score(metric: Metric, y_true: np.ndarray, y_pred: np.ndarray) -> float:
 # --------------------------------------------------------------------------- #
 # bootstrap
 # --------------------------------------------------------------------------- #
-def bootstrap_ci(
+def bootstrap_ci_raw(
     y_true: np.ndarray,
     y_pred: np.ndarray,
-    metric: Metric,
+    fn,
     n_boot: int = 10000,
     seed: int = 0,
     alpha: float = 0.05,
 ) -> tuple[float, float, int]:
-    """Case-level percentile bootstrap CI for ``metric(y_true, y_pred)``.
+    """Case-level percentile bootstrap CI for an arbitrary ``fn(y_true, y_pred)``
+    scorer. Shared implementation behind :func:`bootstrap_ci` (r2/spearman, via
+    :data:`METRIC_FNS`) and behind the MSE bootstrap in ``harness.py`` (MSE is
+    kept out of :data:`METRIC_FNS` deliberately -- see that table's comment).
 
     Every resample draws cases with replacement (never cells or predictions
     independently), matching ``scripts/covariate_null.py``'s ``boot_ci``.
@@ -114,7 +175,6 @@ def bootstrap_ci(
     """
     y_true = np.asarray(y_true, dtype=float)
     y_pred = np.asarray(y_pred, dtype=float)
-    fn = METRIC_FNS[metric]
     rng = np.random.default_rng(seed)
     n = len(y_true)
     vals = np.empty(n_boot)
@@ -127,6 +187,20 @@ def bootstrap_ci(
     lo = float(np.percentile(vals, 100 * alpha / 2))
     hi = float(np.percentile(vals, 100 * (1 - alpha / 2)))
     return lo, hi, int(len(vals))
+
+
+def bootstrap_ci(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    metric: Metric,
+    n_boot: int = 10000,
+    seed: int = 0,
+    alpha: float = 0.05,
+) -> tuple[float, float, int]:
+    """Case-level percentile bootstrap CI for ``metric(y_true, y_pred)``,
+    ``metric in {"r2", "spearman"}``. See :func:`bootstrap_ci_raw`."""
+    return bootstrap_ci_raw(y_true, y_pred, METRIC_FNS[metric],
+                            n_boot=n_boot, seed=seed, alpha=alpha)
 
 
 # --------------------------------------------------------------------------- #
@@ -190,15 +264,20 @@ VERDICT_FNS = {"r2": verdict_higher, "spearman": verdict_higher}
 
 
 # --------------------------------------------------------------------------- #
-# covariate-null fraction
+# published-relative ratio (demoted comparison aid; NOT the headline -- see
+# module docstring. R2_meta / metadata_null_r2, computed in harness.py, is.)
 # --------------------------------------------------------------------------- #
 @dataclass
-class CovariateNullFraction:
-    """One CNF computation: the null's share of one published number.
+class PublishedRelativeRatio:
+    """One ratio computation: the metadata null's share of one published number.
 
     ``value`` is ``None`` exactly when the published score does not exceed
     its own floor -- see the module docstring. ``flags`` never suppresses a
-    number; it annotates one that is still reported.
+    number; it annotates one that is still reported. When
+    ``published_precision`` is supplied, ``rounding_interval`` and the
+    ``rounding_sensitive`` flag report how much ``value`` would move if the
+    published figure were anywhere inside its own last-reported-digit
+    rounding band -- see the module docstring's worked DrivAerML example.
     """
 
     metric: Metric
@@ -208,8 +287,10 @@ class CovariateNullFraction:
     null_ci95: tuple[float, float]
     published: float | None
     published_std: float | None
+    published_precision: int | None
     value: float | None
     value_ci95: tuple[float, float] | None
+    rounding_interval: tuple[float, float] | None
     flags: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -221,21 +302,24 @@ class CovariateNullFraction:
             "null_ci95": list(self.null_ci95),
             "published": self.published,
             "published_std": self.published_std,
-            "covariate_null_fraction": self.value,
-            "covariate_null_fraction_ci95": list(self.value_ci95) if self.value_ci95 else None,
+            "published_precision_decimals": self.published_precision,
+            "published_relative_ratio": self.value,
+            "published_relative_ratio_ci95": list(self.value_ci95) if self.value_ci95 else None,
+            "rounding_interval": list(self.rounding_interval) if self.rounding_interval else None,
             "flags": list(self.flags),
         }
 
 
-def covariate_null_fraction(
+def published_relative_ratio(
     metric: Metric,
     null_point: float,
     null_ci95: tuple[float, float],
     published: float | None,
     published_std: float | None = None,
-) -> CovariateNullFraction:
-    """Compute one CNF row. See the module docstring for the floor/ceiling
-    convention and the undefined-fraction rule.
+    published_precision: int | None = None,
+) -> PublishedRelativeRatio:
+    """Compute one ratio row. See the module docstring for the floor/ceiling
+    convention, the undefined-ratio rule, and the rounding-sensitivity check.
 
     The returned interval propagates only the null's own resampling
     uncertainty (``null_ci95 / published``); the published point is treated
@@ -243,19 +327,29 @@ def covariate_null_fraction(
     predictions a published model's own bootstrap would need. Where a
     published standard deviation exists it is carried in ``published_std``
     for the reader, not folded into ``value_ci95``.
+
+    ``published_precision``, if given (decimal digits the published value was
+    reported to), additionally computes ``rounding_interval``: the ratio's
+    range if the published figure is anywhere inside
+    ``published +/- 0.5 * 10**-published_precision``. If that range's width
+    relative to the point ratio exceeds :data:`ROUNDING_SENSITIVITY_THRESHOLD`,
+    the flag ``rounding_sensitive`` is added -- the dangerous regime is a
+    published value reported to few decimals *and* close to the metric's own
+    floor, since that is where a small absolute rounding band is a large
+    relative one.
     """
     floor = FLOOR[metric]
     ceiling = CEILING[metric]
     flags: list[str] = []
 
     if published is None:
-        return CovariateNullFraction(metric, floor, ceiling, null_point, tuple(null_ci95),
-                                      published, published_std, None, None,
-                                      ["published_not_reported"])
+        return PublishedRelativeRatio(metric, floor, ceiling, null_point, tuple(null_ci95),
+                                      published, published_std, published_precision,
+                                      None, None, None, ["published_not_reported"])
     if published <= floor:
-        return CovariateNullFraction(metric, floor, ceiling, null_point, tuple(null_ci95),
-                                      published, published_std, None, None,
-                                      ["published_at_or_below_floor"])
+        return PublishedRelativeRatio(metric, floor, ceiling, null_point, tuple(null_ci95),
+                                      published, published_std, published_precision,
+                                      None, None, None, ["published_at_or_below_floor"])
 
     value = null_point / published
     lo, hi = null_ci95[0] / published, null_ci95[1] / published
@@ -266,5 +360,19 @@ def covariate_null_fraction(
     if value > 1.0:
         flags.append("null_exceeds_published")
 
-    return CovariateNullFraction(metric, floor, ceiling, null_point, tuple(null_ci95),
-                                  published, published_std, value, value_ci, flags)
+    rounding_interval = None
+    if published_precision is not None:
+        half_ulp = 0.5 * 10 ** (-published_precision)
+        p_lo, p_hi = published - half_ulp, published + half_ulp
+        if p_lo > floor:
+            r_a, r_b = null_point / p_lo, null_point / p_hi
+            rounding_interval = (min(r_a, r_b), max(r_a, r_b))
+            width = rounding_interval[1] - rounding_interval[0]
+            if abs(value) > 0 and width / abs(value) > ROUNDING_SENSITIVITY_THRESHOLD:
+                flags.append("rounding_sensitive")
+        else:
+            flags.append("rounding_interval_crosses_floor")
+
+    return PublishedRelativeRatio(metric, floor, ceiling, null_point, tuple(null_ci95),
+                                  published, published_std, published_precision,
+                                  value, value_ci, rounding_interval, flags)

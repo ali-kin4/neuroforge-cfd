@@ -1,4 +1,19 @@
-"""The five worked-example benchmark configurations.
+"""The five worked-example benchmark configurations, under each benchmark's OWN
+published metric and split -- see ``harmonised.py`` for the separate,
+cross-comparable view.
+
+**Two views, kept apart on purpose** (``docs/paper/review/null_mechanism.md``,
+``naming_and_positioning.md``): the configs below score each benchmark under
+its *own* protocol, because that is what makes a verdict against that
+benchmark's own published leaderboard admissible (DrivAerML on the
+PhysicsNeMo 436/48 split; AirfRANS in Spearman; DrivAerNet++ zero-filled and
+scored on the full test set). They are **not comparable to each other** --
+AirfRANS's Spearman here is not the same currency as DrivAerML's R2, and
+DrivAerNet++'s number here includes 595 test designs with no parameters at
+all. A single cross-benchmark table built from this module would repeat
+exactly the error `null_mechanism.md` diagnoses; ``harmonised.py`` is the
+module that answers "which benchmark's null is strongest" under one
+protocol applied identically to all five.
 
 Every published entry below is copied from a source already read at the
 primary document (proceedings PDF or the paper's own full text) and recorded
@@ -97,21 +112,21 @@ AIRFRANS = BenchmarkConfig(
     verified_in="docs/paper/review/published_baselines_verified.md",
     targets={
         "cl": Target("cl", "spearman", [
-            PublishedEntry("MLP", 0.913, 0.018, "NeurIPS 2022 D&B Table 3"),
-            PublishedEntry("GraphSAGE", 0.965, 0.011, "NeurIPS 2022 D&B Table 3"),
-            PublishedEntry("PointNet", 0.938, 0.023, "NeurIPS 2022 D&B Table 3"),
-            PublishedEntry("Graph U-Net", 0.967, 0.019, "NeurIPS 2022 D&B Table 3"),
+            PublishedEntry("MLP", 0.913, 0.018, "NeurIPS 2022 D&B Table 3", precision=3),
+            PublishedEntry("GraphSAGE", 0.965, 0.011, "NeurIPS 2022 D&B Table 3", precision=3),
+            PublishedEntry("PointNet", 0.938, 0.023, "NeurIPS 2022 D&B Table 3", precision=3),
+            PublishedEntry("Graph U-Net", 0.967, 0.019, "NeurIPS 2022 D&B Table 3", precision=3),
             PublishedEntry("Transolver", 0.9978, None,
                           "Wu et al. ICML 2024, arXiv 2402.02366",
-                          note="no drag column reported; lift only"),
+                          note="no drag column reported; lift only", precision=4),
         ]),
         "cd": Target("cd", "spearman", [
-            PublishedEntry("MLP", -0.117, 0.256, "NeurIPS 2022 D&B Table 3"),
-            PublishedEntry("GraphSAGE", -0.303, 0.124, "NeurIPS 2022 D&B Table 3"),
-            PublishedEntry("PointNet", -0.022, 0.097, "NeurIPS 2022 D&B Table 3"),
-            PublishedEntry("Graph U-Net", -0.138, 0.258, "NeurIPS 2022 D&B Table 3"),
+            PublishedEntry("MLP", -0.117, 0.256, "NeurIPS 2022 D&B Table 3", precision=3),
+            PublishedEntry("GraphSAGE", -0.303, 0.124, "NeurIPS 2022 D&B Table 3", precision=3),
+            PublishedEntry("PointNet", -0.022, 0.097, "NeurIPS 2022 D&B Table 3", precision=3),
+            PublishedEntry("Graph U-Net", -0.138, 0.258, "NeurIPS 2022 D&B Table 3", precision=3),
         ], note=("Every published rho_D is negative; three of four 95% intervals span "
-                 "zero. The covariate-null fraction is undefined for all four rows -- "
+                 "zero. The published-relative ratio is undefined for all four rows -- "
                  "see stats.py's floor convention -- because the published metric never "
                  "exceeds its own floor.")),
     },
@@ -137,18 +152,25 @@ DRIVAERML = BenchmarkConfig(
     verified_in="docs/paper/review/null_travels.md#21-drivaerml--the-clean-kill",
     targets={
         "drag_force_N": Target("drag_force_N", "r2", [
-            PublishedEntry("X-MeshGraphNet", 0.92, source="arXiv 2507.10747 Table 6 (surface mesh)"),
-            PublishedEntry("FIGConvNet", 0.97, source="arXiv 2507.10747 Table 6 (surface mesh)"),
-            PublishedEntry("DoMINO", 0.98, source="arXiv 2507.10747 Table 6 (surface mesh)"),
+            PublishedEntry("X-MeshGraphNet", 0.92, source="arXiv 2507.10747 Table 6 (surface mesh)",
+                          precision=2),
+            PublishedEntry("FIGConvNet", 0.97, source="arXiv 2507.10747 Table 6 (surface mesh)",
+                          precision=2),
+            PublishedEntry("DoMINO", 0.98, source="arXiv 2507.10747 Table 6 (surface mesh)",
+                          precision=2),
         ], note=("PhysicsNeMo's validation set is built by sorting on drag and taking the "
                  "top/bottom deciles, which RAISES its variance relative to a random 10% "
                  "and inflates R2 for every model scored on it equally -- including the "
                  "null. The head-to-head is unaffected; the absolute R2 is not comparable "
-                 "to a random-split R2. Published values are given to 2 decimals.")),
+                 "to a random-split R2. Published values are given to 2 decimals -- see "
+                 "harmonised.py for the split-free anchor (10-fold OOS, R2 0.9598) that "
+                 "IS comparable across benchmarks, and stats.py's rounding-sensitivity "
+                 "discussion for why this benchmark is the one where 2-decimal precision "
+                 "was checked explicitly.")),
         "drag_force_N_rank": Target("drag_force_N", "spearman", [
-            PublishedEntry("X-MeshGraphNet", 0.96, source="arXiv 2507.10747 Table 4"),
-            PublishedEntry("FIGConvNet", 0.99, source="arXiv 2507.10747 Table 4"),
-            PublishedEntry("DoMINO", 0.99, source="arXiv 2507.10747 Table 4"),
+            PublishedEntry("X-MeshGraphNet", 0.96, source="arXiv 2507.10747 Table 4", precision=2),
+            PublishedEntry("FIGConvNet", 0.99, source="arXiv 2507.10747 Table 4", precision=2),
+            PublishedEntry("DoMINO", 0.99, source="arXiv 2507.10747 Table 4", precision=2),
         ], note="same split and label as drag_force_N, scored in Spearman (Table 4)."),
     },
 )
@@ -175,14 +197,18 @@ DRIVAERNET = BenchmarkConfig(
     verified_in="docs/paper/review/null_travels.md#22-drivaernet--the-null-beats-what-the-field-cites-not-what-the-fields-best-is",
     targets={
         "cd": Target("cd", "r2", [
-            PublishedEntry("PointNet", 0.643, source="NeurIPS 2024 D&B Table 4"),
-            PublishedEntry("GCNN", 0.596, source="NeurIPS 2024 D&B Table 4"),
-            PublishedEntry("RegDGCNN", 0.641, source="NeurIPS 2024 D&B Table 4"),
-            PublishedEntry("TripNet", 0.957, source="arXiv 2503.17400 Table 5 (current SOTA)"),
+            PublishedEntry("PointNet", 0.643, source="NeurIPS 2024 D&B Table 4", precision=3),
+            PublishedEntry("GCNN", 0.596, source="NeurIPS 2024 D&B Table 4", precision=3),
+            PublishedEntry("RegDGCNN", 0.641, source="NeurIPS 2024 D&B Table 4", precision=3),
+            PublishedEntry("TripNet", 0.957, source="arXiv 2503.17400 Table 5 (current SOTA)",
+                          precision=3),
             PublishedEntry("PointNet2D+BiLSTM", 0.9528,
-                          source="arXiv 2601.02112 Table 1 (preprint)"),
+                          source="arXiv 2601.02112 Table 1 (preprint)", precision=4),
         ], note=("The dataset paper's own NeurIPS checklist answers \"[No]\" to error "
-                 "bars, so these rows carry no seed spread.")),
+                 "bars, so these rows carry no seed spread. This target zero-fills the "
+                 "595 test designs with no published parameters at all -- see "
+                 "harmonised.py for the parametric-pool-only anchor (0.8248) that "
+                 "excludes them.")),
     },
 )
 
@@ -279,7 +305,7 @@ def windsor_implied_r2_floor(mse_bound: float = WINDSOR_PUBLISHED_CD_MSE_BOUND) 
     source (only the MSE bound is); returned as an ``is_bound`` entry with
     ``bound_kind="lower"`` so it is adjudicated by
     :func:`neuroforge.nullbench.stats.verdict_bound_higher` and never assigned
-    a covariate-null fraction.
+    a published-relative ratio.
     """
     table = WINDSORML.load("cd")
     sst_proxy = float(np.var(table.y, ddof=0))

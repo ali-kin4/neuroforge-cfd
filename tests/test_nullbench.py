@@ -1,16 +1,26 @@
-"""Tests for ``neuroforge.nullbench``: the covariate-null harness.
+"""Tests for ``neuroforge.nullbench``: the metadata-null harness.
 
-Three kinds of test:
+Naming (``docs/paper/review/naming_and_positioning.md``): the protocol is
+"the metadata null"; its headline statistic is metadata-only R2
+(``R2_meta``, emitted as ``metadata_null_r2``). The former "covariate-null
+fraction" is now :func:`~neuroforge.nullbench.stats.published_relative_ratio`,
+a demoted comparison aid, not the headline.
+
+Four kinds of test:
 
 * the statistic itself (floor/ceiling convention, undefined cases, bootstrap
-  sanity) and a no-drift check against the pre-registered verdict rule in
-  ``scripts/covariate_null.py`` / ``scripts/covariate_null_crossbench.py``;
+  sanity, rounding sensitivity) and a no-drift check against the
+  pre-registered verdict rule in ``scripts/covariate_null.py`` /
+  ``scripts/covariate_null_crossbench.py``;
 * the generic CSV harness (official split vs K-fold, protocol labelling,
   a permutation test that drives the null to its floor);
 * reproduction of the committed numbers in ``results/review/covariate_null*
-  .json`` from the shipped worked-example CSVs, at the SAME bootstrap seed
-  and count used to produce them, so the check is exact rather than
-  approximate.
+  .json`` (per-benchmark, own protocol) AND ``results/review/
+  null_mechanism.json`` (harmonised, cross-benchmark protocol) from the
+  shipped worked-example CSVs, at the SAME bootstrap seed and count used to
+  produce them, so the check is exact rather than approximate;
+* a transcription guard on the sourced (not recomputed) flexible-ceiling
+  numbers.
 """
 
 from __future__ import annotations
@@ -25,8 +35,8 @@ import pytest
 
 from neuroforge.nullbench import (
     PublishedEntry,
-    covariate_null_fraction,
     load_table,
+    published_relative_ratio,
     r2_score,
     run_null,
     spearman_score,
@@ -76,51 +86,94 @@ def test_spearman_perfect_rank_is_the_ceiling():
 
 
 # --------------------------------------------------------------------------- #
-# covariate-null fraction: the undefined / flagged cases
+# published-relative ratio: the undefined / flagged cases
 # --------------------------------------------------------------------------- #
-def test_cnf_basic_fraction():
-    cnf = covariate_null_fraction("r2", null_point=0.5, null_ci95=(0.4, 0.6), published=1.0)
-    assert cnf.value == pytest.approx(0.5)
-    assert cnf.value_ci95 == pytest.approx((0.4, 0.6))
-    assert cnf.flags == []
+def test_ratio_basic():
+    r = published_relative_ratio("r2", null_point=0.5, null_ci95=(0.4, 0.6), published=1.0)
+    assert r.value == pytest.approx(0.5)
+    assert r.value_ci95 == pytest.approx((0.4, 0.6))
+    assert r.flags == []
 
 
-def test_cnf_undefined_when_published_at_or_below_floor():
+def test_ratio_undefined_when_published_at_or_below_floor():
     """This is the AirfRANS drag case: every published rho_D is negative."""
-    cnf = covariate_null_fraction("spearman", null_point=0.87, null_ci95=(0.8, 0.9),
-                                  published=-0.117, published_std=0.256)
-    assert cnf.value is None
-    assert cnf.value_ci95 is None
-    assert "published_at_or_below_floor" in cnf.flags
-    # published_std still carried, even though no fraction is reported
-    assert cnf.published_std == 0.256
+    r = published_relative_ratio("spearman", null_point=0.87, null_ci95=(0.8, 0.9),
+                                 published=-0.117, published_std=0.256)
+    assert r.value is None
+    assert r.value_ci95 is None
+    assert "published_at_or_below_floor" in r.flags
+    # published_std still carried, even though no ratio is reported
+    assert r.published_std == 0.256
 
 
-def test_cnf_undefined_when_published_not_reported():
-    cnf = covariate_null_fraction("r2", null_point=0.68, null_ci95=(0.6, 0.7), published=None)
-    assert cnf.value is None
-    assert cnf.flags == ["published_not_reported"]
+def test_ratio_undefined_when_published_not_reported():
+    r = published_relative_ratio("r2", null_point=0.68, null_ci95=(0.6, 0.7), published=None)
+    assert r.value is None
+    assert r.flags == ["published_not_reported"]
 
 
-def test_cnf_flags_when_null_beats_published():
+def test_ratio_flags_when_null_beats_published():
     """The DrivAerML case: the null's CI covers a published model."""
-    cnf = covariate_null_fraction("r2", null_point=0.973, null_ci95=(0.958, 0.983), published=0.92)
-    assert cnf.value > 1.0
-    assert "null_exceeds_published" in cnf.flags
+    r = published_relative_ratio("r2", null_point=0.973, null_ci95=(0.958, 0.983), published=0.92)
+    assert r.value > 1.0
+    assert "null_exceeds_published" in r.flags
 
 
-def test_cnf_flags_when_null_at_or_below_its_own_floor():
-    cnf = covariate_null_fraction("r2", null_point=-0.02, null_ci95=(-0.1, 0.05), published=0.5)
-    assert cnf.value <= 0
-    assert "null_at_or_below_floor" in cnf.flags
+def test_ratio_flags_when_null_at_or_below_its_own_floor():
+    r = published_relative_ratio("r2", null_point=-0.02, null_ci95=(-0.1, 0.05), published=0.5)
+    assert r.value <= 0
+    assert "null_at_or_below_floor" in r.flags
 
 
-def test_cnf_never_clips_a_value_above_one_or_below_zero():
+def test_ratio_never_clips_a_value_above_one_or_below_zero():
     """Both directions are reported, not hidden -- see the module docstring."""
-    over = covariate_null_fraction("r2", 0.99, (0.9, 1.0), 0.5)
-    under = covariate_null_fraction("r2", -0.5, (-0.6, -0.4), 0.5)
+    over = published_relative_ratio("r2", 0.99, (0.9, 1.0), 0.5)
+    under = published_relative_ratio("r2", -0.5, (-0.6, -0.4), 0.5)
     assert over.value > 1.0
     assert under.value < 0.0
+
+
+# --------------------------------------------------------------------------- #
+# rounding sensitivity (coordinator-requested check, not just an argument):
+# is `published_relative_ratio` as sensitive to published-value rounding as
+# the null-normalised gain `G` the positioning review demonstrated a 6x swing
+# for on DrivAerML? Checked directly, both the safe case and the dangerous one.
+# --------------------------------------------------------------------------- #
+def test_rounding_sensitivity_drivaerml_domino_is_small_not_6x():
+    """DoMINO published 0.98 to 2 decimals; the positioning review shows a
+    DIFFERENT ratio (null-normalised gain, denominator 1-R2_meta=0.0269)
+    swings 6x under this same rounding. This ratio's denominator is the
+    published value itself (~0.98, far from the floor), so the swing should
+    be small. Computed, not assumed."""
+    null_point, ci = 0.9730580198150222, (0.9580772227747316, 0.9826207956902174)
+    r = published_relative_ratio("r2", null_point, ci, published=0.98, published_precision=2)
+    assert r.rounding_interval is not None
+    width = r.rounding_interval[1] - r.rounding_interval[0]
+    relative_swing = width / r.value
+    assert relative_swing < 0.05, "expected a small swing, not the 6x G shows"
+    assert "rounding_sensitive" not in r.flags
+
+
+def test_rounding_sensitivity_flags_a_published_value_near_the_floor():
+    """The dangerous regime is the OPPOSITE end from where G fails: a
+    published value reported to few decimals AND close to the metric's own
+    floor, where a small absolute rounding band is a large relative one."""
+    r = published_relative_ratio("r2", null_point=0.3, null_ci95=(0.25, 0.35),
+                                 published=0.05, published_precision=2)
+    assert r.rounding_interval is not None
+    width = r.rounding_interval[1] - r.rounding_interval[0]
+    assert width / r.value > 0.15
+    assert "rounding_sensitive" in r.flags
+
+
+def test_rounding_interval_crosses_floor_is_flagged_not_computed_wrong():
+    """If the rounding band itself straddles the floor, no rounding interval
+    is defensible (dividing by ~0 blows up); flagged instead of silently
+    producing a huge or infinite number."""
+    r = published_relative_ratio("r2", null_point=0.1, null_ci95=(0.05, 0.15),
+                                 published=0.005, published_precision=2)
+    assert r.rounding_interval is None
+    assert "rounding_interval_crosses_floor" in r.flags
 
 
 # --------------------------------------------------------------------------- #
@@ -227,7 +280,24 @@ def test_permutation_check_collapses_to_the_floor(tmp_path):
     assert permuted < 0.1  # nowhere near the real fit; machinery isn't manufacturing signal
 
 
-def test_published_comparison_verdict_and_cnf(tmp_path):
+def test_null_result_emits_the_settled_headline_field_names(tmp_path):
+    """naming_and_positioning.md: the primary output is `metadata_null_r2`
+    (metric-tagged), alongside `metadata_null_mse` -- always, regardless of
+    which metric was used to score the run."""
+    path = tmp_path / "cases.csv"
+    _synthetic_official_split_csv(path)
+    table = load_table(str(path), id_col="id", label_col="y", split_col="split")
+    result = run_null(table, metric="r2", n_boot=200, seed=0)
+    d = result.to_dict()
+    assert d["metadata_null_r2"] == pytest.approx(result.out_of_sample)
+    assert d["metadata_null_r2_ci95"] == pytest.approx(list(result.ci95))
+    assert d["metadata_null_mse"] == pytest.approx(result.mse_out_of_sample)
+    assert d["metadata_null_mse_ci95"] == pytest.approx(list(result.mse_ci95))
+    assert "covariate_null_fraction" not in d
+    assert "metadata_null_spearman" not in d  # only the metric actually run is present
+
+
+def test_published_comparison_verdict_and_ratio(tmp_path):
     path = tmp_path / "cases.csv"
     _synthetic_official_split_csv(path)
     table = load_table(str(path), id_col="id", label_col="y", split_col="split")
@@ -238,13 +308,13 @@ def test_published_comparison_verdict_and_cnf(tmp_path):
     ])
     by_name = {c["model"]: c for c in result.comparisons}
     assert by_name["weak_model"]["verdict"] == "BELOW THE NULL"
-    assert by_name["weak_model"]["covariate_null_fraction"]["covariate_null_fraction"] > 1.0
+    assert by_name["weak_model"]["published_relative_ratio"]["published_relative_ratio"] > 1.0
     assert by_name["strong_model"]["verdict"] == "clears"
     assert by_name["no_number"]["verdict"] == "not reported"
-    # a CNF record is still emitted (uniform schema), but its fraction is None and the
-    # reason is flagged -- see stats.covariate_null_fraction
-    assert by_name["no_number"]["covariate_null_fraction"]["covariate_null_fraction"] is None
-    assert "published_not_reported" in by_name["no_number"]["covariate_null_fraction"]["flags"]
+    # a ratio record is still emitted (uniform schema), but its value is None and the
+    # reason is flagged -- see stats.published_relative_ratio
+    assert by_name["no_number"]["published_relative_ratio"]["published_relative_ratio"] is None
+    assert "published_not_reported" in by_name["no_number"]["published_relative_ratio"]["flags"]
 
 
 def test_missing_column_raises_clear_error(tmp_path):
@@ -255,7 +325,8 @@ def test_missing_column_raises_clear_error(tmp_path):
 
 
 # --------------------------------------------------------------------------- #
-# reproduction: shipped worked examples vs committed results/review/*.json
+# reproduction (per-benchmark, own protocol): shipped worked examples vs
+# committed results/review/covariate_null*.json
 # --------------------------------------------------------------------------- #
 def _load_committed(name):
     with open(os.path.join(REPO, "results", "review", name), encoding="utf-8") as fh:
@@ -322,11 +393,12 @@ def test_windsorml_reproduces_committed_numbers_and_the_counterexample_verdict()
     assert v.startswith("clears")
 
 
-@pytest.mark.skipif(
-    not os.path.exists(os.path.join(
-        REPO, "src", "neuroforge", "nullbench", "data", "airfrans", "airfrans_full_800_200.csv")),
-    reason="AirfRANS worked-example CSV not yet built",
-)
+_AIRFRANS_CSV = os.path.join(
+    REPO, "src", "neuroforge", "nullbench", "data", "airfrans", "airfrans_full_800_200.csv")
+
+
+@pytest.mark.skipif(not os.path.exists(_AIRFRANS_CSV),
+                    reason="AirfRANS worked-example CSV not yet built")
 def test_airfrans_reproduces_committed_numbers():
     committed = _load_committed("covariate_null_trainfit.json")
     cl = committed["targets"]["cl"]["U_alpha_alpha2_naca"]
@@ -348,11 +420,94 @@ def test_airfrans_reproduces_committed_numbers():
     assert r_cd.ci95[0] == pytest.approx(cd["ci95"][0], rel=1e-9)
     assert r_cd.ci95[1] == pytest.approx(cd["ci95"][1], rel=1e-9)
 
-    # every published drag rho is negative -> undefined CNF for every row (see stats.py)
+    # every published drag rho is negative -> undefined ratio for every row (see stats.py)
     for c in r_cd.comparisons:
         if c["published"] is not None and c["published"] <= 0:
-            assert c["covariate_null_fraction"]["covariate_null_fraction"] is None
-            assert "published_at_or_below_floor" in c["covariate_null_fraction"]["flags"]
+            assert c["published_relative_ratio"]["published_relative_ratio"] is None
+            assert "published_at_or_below_floor" in c["published_relative_ratio"]["flags"]
+
+
+# --------------------------------------------------------------------------- #
+# reproduction (harmonised, cross-benchmark protocol): shipped harmonised
+# CSVs vs committed results/review/null_mechanism.json
+# --------------------------------------------------------------------------- #
+_HARMONISED_DIR = os.path.join(
+    REPO, "src", "neuroforge", "nullbench", "data", "harmonised")
+
+
+@pytest.mark.skipif(not os.path.isdir(_HARMONISED_DIR),
+                    reason="harmonised worked-example CSVs not yet built")
+@pytest.mark.parametrize("name,display_name", [
+    ("airfrans", "AirfRANS"), ("ahmedml", "AhmedML"), ("windsorml", "WindsorML"),
+    ("drivaerml", "DrivAerML"), ("drivaernet", "DrivAerNet++"),
+])
+def test_harmonised_reproduces_null_mechanism_json(name, display_name):
+    from neuroforge.nullbench.harmonised import REGISTRY as HARM_REGISTRY
+    from neuroforge.nullbench.harmonised import run_harmonised
+
+    committed = _load_committed("null_mechanism.json")
+    target = committed["benchmarks"][display_name]["targets"]["cd"]["null_r2_linear"]
+
+    result = run_harmonised(HARM_REGISTRY[name], n_boot=200)  # point estimate is boot-independent
+
+    assert result.benchmark == display_name
+    assert result.metadata_null_r2 == pytest.approx(target, rel=1e-9)
+
+
+def test_harmonised_n_cases_match_null_mechanism_json():
+    from neuroforge.nullbench.harmonised import REGISTRY as HARM_REGISTRY
+    from neuroforge.nullbench.harmonised import run_harmonised
+
+    committed = _load_committed("null_mechanism.json")
+    for name, cfg in HARM_REGISTRY.items():
+        result = run_harmonised(cfg, n_boot=50)
+        expected = committed["benchmarks"][cfg.display_name]["n_cases"]
+        assert result.n_cases == expected, name
+
+
+def test_harmonised_ranking_matches_null_mechanism_md():
+    """The published ranking (docs/paper/review/null_mechanism.md Sec 1):
+    DrivAerML > DrivAerNet++ > AhmedML > AirfRANS > WindsorML."""
+    from neuroforge.nullbench.leaderboard import build_harmonised_table
+
+    table = build_harmonised_table(n_boot=100)
+    order = [name for name, _ in table["ranking_by_metadata_null_r2"]]
+    assert order == ["DrivAerML", "DrivAerNet++", "AhmedML", "AirfRANS", "WindsorML"]
+
+
+def test_harmonised_carries_no_published_comparison_and_says_why():
+    from neuroforge.nullbench.harmonised import REGISTRY as HARM_REGISTRY
+    from neuroforge.nullbench.harmonised import run_harmonised
+
+    result = run_harmonised(HARM_REGISTRY["drivaerml"], n_boot=50)
+    d = result.to_dict()
+    assert d["published_comparison"] is None
+    assert "own protocol" in d["published_comparison_note"].lower()
+
+
+# --------------------------------------------------------------------------- #
+# flexible-ceiling: sourced, not recomputed -- transcription guard only
+# --------------------------------------------------------------------------- #
+def test_flexible_ceiling_matches_null_mechanism_json_verbatim():
+    from neuroforge.nullbench.harmonised import REGISTRY as HARM_REGISTRY
+    from neuroforge.nullbench.harmonised import run_harmonised
+
+    committed = _load_committed("null_mechanism.json")
+    for name, cfg in HARM_REGISTRY.items():
+        result = run_harmonised(cfg, n_boot=50)
+        expected = committed["benchmarks"][cfg.display_name]["targets"]["cd"][
+            "C1_flex_r2_lower_bound"]
+        assert result.flexible_ceiling_r2_sourced == pytest.approx(expected, rel=1e-12), name
+
+
+def test_flexible_ceiling_at_or_above_linear_null_everywhere():
+    """Sanity on the sourced pair itself: a flexible model, chosen by
+    validation performance, cannot score below the linear one it contains as
+    a special case (within numerical tolerance of the model-selection noise)."""
+    from neuroforge.nullbench.harmonised import run_all_harmonised
+
+    for name, result in run_all_harmonised(n_boot=50).items():
+        assert result.flexible_ceiling_r2_sourced >= result.metadata_null_r2 - 1e-6, name
 
 
 # --------------------------------------------------------------------------- #

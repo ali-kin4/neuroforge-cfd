@@ -8,7 +8,10 @@ Three modes:
     Run one of the five shipped worked examples (``airfrans``, ``drivaerml``,
     ``drivaernet``, ``ahmedml``, ``windsorml``).
 ``leaderboard``
-    Rebuild the corrected leaderboard (JSON + markdown) for one or all five.
+    Rebuild the corrected leaderboard (JSON + markdown) for one benchmark
+    (``--name``), all five under their own protocols (``--all``, which also
+    writes the harmonised table), or just the cross-benchmark-comparable
+    harmonised table (``--harmonised``; see ``neuroforge.nullbench.harmonised``).
 
 Every JSON output is written with ``newline="\\n"`` -- Windows' default text
 mode would emit CRLF, which breaks the SHA-256 hashes in ``results/MANIFEST.json``.
@@ -44,7 +47,8 @@ def _cmd_run(args: argparse.Namespace) -> int:
             published.append(PublishedEntry(
                 name=e["name"], value=e.get("value"), std=e.get("std"),
                 source=e.get("source", ""), note=e.get("note", ""),
-                is_bound=e.get("is_bound", False), bound_kind=e.get("bound_kind", "upper")))
+                is_bound=e.get("is_bound", False), bound_kind=e.get("bound_kind", "upper"),
+                precision=e.get("precision")))
 
     result = run_null(table, metric=args.metric,
                       train_values=tuple(args.train_values.split(",")),
@@ -84,6 +88,17 @@ def _cmd_bench(args: argparse.Namespace) -> int:
     return 0
 
 
+def _write_harmonised(out_dir: str, boot: int) -> None:
+    from .leaderboard import build_harmonised_table, render_harmonised_markdown
+
+    table = build_harmonised_table(n_boot=boot)
+    _write_json(os.path.join(out_dir, "harmonised.json"), table)
+    with open(os.path.join(out_dir, "harmonised.md"), "w", encoding="utf-8",
+             newline="\n") as fh:
+        fh.write(render_harmonised_markdown(table))
+    print(f"wrote harmonised cross-benchmark table to {out_dir}/harmonised.{{json,md}}")
+
+
 def _cmd_leaderboard(args: argparse.Namespace) -> int:
     from .leaderboard import (
         build_all_leaderboards,
@@ -93,6 +108,10 @@ def _cmd_leaderboard(args: argparse.Namespace) -> int:
     )
 
     os.makedirs(args.out_dir, exist_ok=True)
+
+    if args.harmonised:
+        _write_harmonised(args.out_dir, args.boot)
+        return 0
 
     if args.all:
         records = build_all_leaderboards(n_boot=args.boot)
@@ -105,6 +124,10 @@ def _cmd_leaderboard(args: argparse.Namespace) -> int:
                  encoding="utf-8", newline="\n") as fh:
             fh.write(render_markdown_all(records))
         print(f"wrote {len(records)} leaderboards to {args.out_dir}")
+        # `--all` means "every corrected leaderboard", which includes the
+        # harmonised cross-benchmark view -- see harmonised.py for why it is a
+        # separate table rather than a column bolted onto the per-benchmark ones.
+        _write_harmonised(args.out_dir, args.boot)
     else:
         rec = build_leaderboard(args.name, n_boot=args.boot)
         _write_json(os.path.join(args.out_dir, f"{args.name}.json"), rec)
@@ -135,7 +158,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--boot", type=int, default=10000)
     p_run.add_argument("--seed", type=int, default=0)
     p_run.add_argument("--published", default=None,
-                       help="JSON list of {name, value, std, source, is_bound, bound_kind}")
+                       help="JSON list of {name, value, std, source, is_bound, bound_kind, "
+                            "precision} -- precision (decimal digits) drives the "
+                            "rounding-sensitivity check on the published-relative ratio")
     p_run.add_argument("--permute-check", action="store_true",
                        help="also fit on label-shuffled training data (should land at/below the floor)")
     p_run.add_argument("--out", default=None)
@@ -152,7 +177,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_lb = sub.add_parser("leaderboard", help="rebuild the corrected leaderboard(s)")
     p_lb.add_argument("--name", default=None,
                       choices=["airfrans", "drivaerml", "drivaernet", "ahmedml", "windsorml"])
-    p_lb.add_argument("--all", action="store_true")
+    p_lb.add_argument("--all", action="store_true",
+                      help="every per-benchmark leaderboard PLUS the harmonised table")
+    p_lb.add_argument("--harmonised", action="store_true",
+                      help="only the cross-benchmark-comparable harmonised table "
+                           "(see neuroforge.nullbench.harmonised)")
     p_lb.add_argument("--boot", type=int, default=10000)
     p_lb.add_argument("--out-dir", default="results/nullbench/leaderboards")
     p_lb.set_defaults(func=_cmd_leaderboard)
@@ -166,8 +195,8 @@ def main(argv: list[str] | None = None) -> int:
     if not getattr(args, "mode", None):
         ap.print_help()
         return 0
-    if args.mode == "leaderboard" and not args.all and not args.name:
-        print("leaderboard mode needs --name NAME or --all", file=sys.stderr)
+    if args.mode == "leaderboard" and not args.all and not args.name and not args.harmonised:
+        print("leaderboard mode needs --name NAME, --all, or --harmonised", file=sys.stderr)
         return 2
     return int(args.func(args))
 

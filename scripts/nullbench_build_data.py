@@ -221,6 +221,121 @@ def build_windsorml():
                  os.path.join("windsorml", "windsorml_355.csv"))
 
 
+# --------------------------------------------------------------------------------------
+# HARMONISED cross-benchmark protocol (docs/paper/review/null_mechanism.md /
+# naming_and_positioning.md): 10-fold OOS OLS, seed 0, R^2, constant reference area
+# where both conventions are published. These five CSVs deliberately mirror
+# scripts/null_mechanism.py's own load_airfrans/load_simple/load_drivaernet loaders
+# byte-for-byte in row order and column set -- NOT the per-benchmark worked-example
+# CSVs above, which use each benchmark's OWN split/metric and are not comparable to
+# each other (that non-comparability is exactly what null_mechanism.md diagnoses).
+# Row order matters here even though OLS-with-intercept is invariant to the per-fold
+# standardisation null_mechanism.py applies: the 10-fold split is POSITION-based
+# (np.random.default_rng(seed).permutation(n)), so matching row order is what makes
+# neuroforge.nullbench.fit.kfold_oos reproduce null_mechanism.json's null_r2_linear
+# bit-for-bit (verified to 1e-12 on AhmedML before the other four were built; see
+# tests/test_nullbench.py's harmonised reproduction tests).
+# --------------------------------------------------------------------------------------
+HARM_OUT = os.path.join(OUT, "harmonised")
+AIRFRANS_LABELS_TEST = os.path.join(CACHE, "official_labels_full_test_n200.json")
+
+
+def build_harmonised_airfrans():
+    with open(AIRFRANS_LABELS_TEST, encoding="utf-8") as fh:
+        lab = json.load(fh)
+    names = sorted(lab)  # alphabetical, matching null_mechanism.load_airfrans exactly
+    parsed = [parse_case(n) for n in names]
+    width = max(len(d) for _, _, d in parsed)
+    rows = []
+    for nm, (u, a, dig) in zip(names, parsed):
+        dig = dig + [0.0] * (width - len(dig))
+        # NOTE: no alpha^2 term here -- null_mechanism's harmonised feature set is
+        # (U, alpha, NACA digits) only, unlike the worked-example CSV above.
+        rows.append([nm, u, a, *dig, lab[nm]["cl"], lab[nm]["cd"]])
+    header = ["case_id", "U", "alpha"] + ["naca_%d" % i for i in range(width)] + ["cl", "cd"]
+    _write_csv(os.path.join(HARM_OUT, "airfrans.csv"), header, rows)
+
+
+def _load_simple_harmonised(geo_file, force_file, key_geo, key_force, tgt_cols):
+    """Mirrors scripts/null_mechanism.py::load_simple exactly: iterates the GEO file
+    (not the force file, unlike build_ashton above), keys by int(float(id))."""
+    geo = _read_csv(os.path.join(CROSSBENCH, geo_file))
+    force = _read_csv(os.path.join(CROSSBENCH, force_file))
+    pcols = [c for c in geo[0] if c != key_geo]
+    fmap = {}
+    for r in force:
+        try:
+            fmap[int(float(r[key_force]))] = r
+        except (TypeError, ValueError):
+            continue
+    rows = []
+    for r in geo:
+        rid = int(float(r[key_geo]))
+        if rid not in fmap:
+            continue
+        row = [float(r[c]) for c in pcols]
+        tv = [float(fmap[rid][c]) for c in tgt_cols]
+        rows.append([rid, *row, *tv])
+    header = ["run_id"] + pcols + list(tgt_cols)
+    return header, rows
+
+
+def build_harmonised_ahmedml():
+    header, rows = _load_simple_harmonised(
+        "ahmedml_geo.csv", "ahmedml_force.csv", "run", "run", ["cd", "cl"])
+    _write_csv(os.path.join(HARM_OUT, "ahmedml.csv"), header, rows)
+
+
+def build_harmonised_windsorml():
+    header, rows = _load_simple_harmonised(
+        "windsorml_geo.csv", "windsorml_force.csv", "run", "run", ["cd", "cl", "cs", "cmy"])
+    _write_csv(os.path.join(HARM_OUT, "windsorml.csv"), header, rows)
+
+
+def build_harmonised_drivaerml():
+    # CONSTANT reference area, per the harmonised protocol -- drivaerml_force.csv (used
+    # by the worked-example CSV above) is the per-geometry convention; this is deliberately
+    # the OTHER file.
+    header, rows = _load_simple_harmonised(
+        "drivaerml_geo.csv", "drivaerml_force_constref.csv", "Run", "run",
+        ["cd", "cl", "clf", "clr", "cs"])
+    _write_csv(os.path.join(HARM_OUT, "drivaerml.csv"), header, rows)
+
+
+def build_harmonised_drivaernet():
+    """Mirrors scripts/null_mechanism.py::load_drivaernet exactly: the PARAMETRIC POOL
+    only (every design in drivaernet_params.csv that has a published cd label -- no
+    zero-filling of the unparametrised v1-fastback families, unlike the worked-example
+    CSV above, which is scored on the FULL official test split instead)."""
+    p = _read_csv(os.path.join(CROSSBENCH, "drivaernet_params.csv"))
+    pcols = [c for c in p[0] if c != "Experiment"]
+    design_cols = [c for c in pcols if not c.startswith(("Average", "Std"))]
+    cd = {r["ID"]: float(r["Drag_Value"])
+          for r in _read_csv(os.path.join(CROSSBENCH, "drivaernet_cd.csv"))}
+    fams = sorted({"_".join(r["Experiment"].split("_")[:2]) for r in p})
+    rows = []
+    for r in p:
+        did = r["Experiment"]
+        if did not in cd:
+            continue
+        row = [float(r[c]) for c in design_cols]
+        fam = "_".join(did.split("_")[:2])
+        onehot = [1.0 if fam == fm else 0.0 for fm in fams[1:]]
+        rows.append([did, *row, *onehot, cd[did]])
+    header = ["design_id"] + design_cols + ["fam_" + f for f in fams[1:]] + ["cd"]
+    _write_csv(os.path.join(HARM_OUT, "drivaernet.csv"), header, rows)
+    print("  family levels (all designs with a published cd): %d -> %d one-hot columns"
+          % (len(fams), len(fams) - 1))
+
+
+def build_all_harmonised():
+    build_harmonised_airfrans()
+    build_harmonised_ahmedml()
+    build_harmonised_windsorml()
+    build_harmonised_drivaerml()
+    build_harmonised_drivaernet()
+
+
 def main():
     import argparse
 
@@ -252,6 +367,7 @@ def main():
     build_drivaernet()
     build_ahmedml()
     build_windsorml()
+    build_all_harmonised()
     return 0
 
 
