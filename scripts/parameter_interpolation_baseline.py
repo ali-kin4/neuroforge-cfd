@@ -52,8 +52,9 @@ the Delaunay bridge interpolation. A test cell that is FLUID in the test airfoil
 but SOLID in a thicker neighbour would otherwise receive a hard ``u=v=0`` --
 exactly the annulus where ``surface_pressure_mse`` bilinear-samples. Default
 ``--fill nearest`` extends each TRAIN field's u/v/nut into its own solid by
-nearest-fluid propagation before interpolation; ``--fill none`` is kept as the
-naive ablation.
+nearest-fluid propagation before interpolation; ``--fill nearest_all`` extends p
+too (the control for "your surface-pressure number is a bridge-interpolation
+artifact"); ``--fill none`` is kept as the naive ablation.
 
 Estimators (all reduce to a weight matrix ``W`` over train cases, so prediction
 is one GEMM):
@@ -124,6 +125,22 @@ P6. LEAKAGE / DUPLICATE CHECKS, reported whatever they show:
     (d) ``n_cases`` from ``evaluate_cases`` asserted == the test-set size
         (``coefficient_metrics`` silently drops cases whose force integration
         raises).
+
+P7. ADDED AFTER THE FIRST RUN, in response to review. These are ADDITIONAL
+    adversarial controls and reporting conventions; the P3 decision rule and its
+    thresholds are UNCHANGED and were not re-tuned.
+    (a) STANDARDISED MSE. Every row (ours and the references) is also divided by
+        the same TRAIN-set per-channel variance, because ``run_baselines.py``
+        trains Transolver on per-channel STANDARDISED MSE -- so a physical-unit
+        ``mse_p`` comparison alone is open to "it was never trained for that".
+    (b) FEATURE CONTAINMENT. Per-feature fraction of test cases inside the train
+        min/max box, making explicit whether the split is an interpolation
+        problem BY CONSTRUCTION.
+    (c) ``--fill nearest_all`` p-fill control (see above), because the
+        surface-pressure number is the only channel where the surrogate wins and
+        it must not rest on a bridge-interpolation artifact.
+    (d) ``scripts/interpolation_band_control.py``: wall-distance decomposition,
+        train-size ladder, permuted-parameter negative control, feature ablation.
 
 ===========================================================================
 RUNNING  (CPU-only, no GPU, no training)
@@ -279,7 +296,16 @@ def _nearest_fluid_fill(a: np.ndarray, fluid: np.ndarray) -> np.ndarray:
 
 
 def build_stack(pairs, rep: str, fill: str) -> tuple[np.ndarray, np.ndarray, list[str]]:
-    """``(Y (n, 4*H*W) float32, masks (n, H*W) bool, names)`` in representation ``rep``."""
+    """``(Y (n, 4*H*W) float32, masks (n, H*W) bool, names)`` in representation ``rep``.
+
+    ``fill='nearest'``   -- extend u/v/nut out of each case's OWN solid (p keeps
+                           the Delaunay bridge, which is already smooth there);
+    ``fill='nearest_all'``-- also nearest-fluid-fill p, which matters because a
+                           thin test airfoil's surface points lie INSIDE a thick
+                           neighbour's solid, exactly where ``surface_mse_p`` and
+                           ``force_coefficients`` (d1_cells=1.5) sample;
+    ``fill='none'``      -- naive: use the rasters as stored.
+    """
     names = [c.name for c, _ in pairs]
     n = len(pairs)
     H, W = pairs[0][1].u.shape
@@ -293,10 +319,12 @@ def build_stack(pairs, rep: str, fill: str) -> tuple[np.ndarray, np.ndarray, lis
         v = np.asarray(fld.v, np.float64)
         p = np.asarray(fld.p, np.float64)
         nut = np.asarray(fld.nut, np.float64)
-        if fill == "nearest":
+        if fill in ("nearest", "nearest_all"):
             u = _nearest_fluid_fill(u, fluid)
             v = _nearest_fluid_fill(v, fluid)
             nut = _nearest_fluid_fill(nut, fluid)
+        if fill == "nearest_all":
+            p = _nearest_fluid_fill(p, fluid)
         if rep == "nd":
             u = (u - U * np.cos(ar)) / U
             v = (v - U * np.sin(ar)) / U
@@ -505,7 +533,22 @@ def cv_select(Xtr, Ytr, Mtr, names_tr, rep, hw, n_folds, n_cells, seed, verbose=
 # ---------------------------------------------------------------------------
 # 5. Test-set scoring through the SHARED evaluate_cases
 # ---------------------------------------------------------------------------
-def make_predict_fn(pred_phys: np.ndarray, names: list[str], shape, domainless_pairs):
+_GEOM_CACHE: dict[str, tuple[np.ndarray, np.ndarray]] = {}
+
+
+def _geometry(case):
+    """``(sdf, mask)`` from ``case.geometry`` -- the SAME functions the Transolver
+    adapter calls. Memoised across configs: both are deterministic functions of
+    the geometry + domain only, so caching cannot change any number."""
+    hit = _GEOM_CACHE.get(case.name)
+    if hit is None:
+        hit = (signed_distance(case.geometry, case.domain),
+               solid_mask(case.geometry, case.domain))
+        _GEOM_CACHE[case.name] = hit
+    return hit
+
+
+def make_predict_fn(pred_phys: np.ndarray, names: list[str], shape):
     """``FlowCase -> FlowField``, geometry-derived mask/sdf exactly as the
     Transolver adapter builds them (``signed_distance`` / ``solid_mask`` from
     ``case.geometry``), never from the ground-truth field object."""
@@ -523,8 +566,7 @@ def make_predict_fn(pred_phys: np.ndarray, names: list[str], shape, domainless_p
         v = row[hw:2 * hw].reshape(H, W)
         p = row[2 * hw:3 * hw].reshape(H, W)
         nut = row[3 * hw:4 * hw].reshape(H, W)
-        sdf = signed_distance(case.geometry, case.domain)
-        mask = solid_mask(case.geometry, case.domain)
+        sdf, mask = _geometry(case)
         solid = mask < 0.5
         fld = FlowField(
             domain=case.domain,
@@ -624,6 +666,59 @@ def official_force_block(rows, names):
 # ---------------------------------------------------------------------------
 # 7. Verdict
 # ---------------------------------------------------------------------------
+def train_channel_variance(pairs) -> dict[str, float]:
+    """Pooled TRAIN-set variance of each channel over fluid cells, physical units.
+
+    Used to report STANDARDISED MSE alongside the physical-unit numbers. This
+    matters for admissibility: ``run_baselines.py`` trains Transolver on
+    ``mean((pred - normalizer.transform_out(y))**2)``, i.e. per-channel
+    STANDARDISED MSE, so its physical-unit ``mse_p`` is whatever falls out after
+    multiplying by a large ``var_p``. Dividing every row by the same
+    ``Var_train`` is the convention ``tab:airfrans-sota`` already uses.
+    """
+    s1 = {c: 0.0 for c in ("u", "v", "p", "nut")}
+    s2 = {c: 0.0 for c in ("u", "v", "p", "nut")}
+    n = 0
+    for _, fld in pairs:
+        m = np.asarray(fld.mask).ravel() > 0.5
+        n += int(m.sum())
+        for c, arr in (("u", fld.u), ("v", fld.v), ("p", fld.p), ("nut", fld.nut)):
+            a = np.asarray(arr, np.float64).ravel()[m]
+            s1[c] += float(a.sum())
+            s2[c] += float((a**2).sum())
+    return {c: s2[c] / n - (s1[c] / n) ** 2 for c in s1}
+
+
+def standardised_block(metrics: dict, var: dict[str, float]) -> dict:
+    """MSE / Var_train for the interpolator and for every reference row."""
+    out = {"var_train": var, "interpolation": {}}
+    for c in ("u", "v", "p"):
+        out["interpolation"][f"std_mse_{c}"] = metrics[f"mse_{c}"] / var[c]
+    for row, vals in REFERENCE_ROWS.items():
+        out[row] = {f"std_mse_{c}": vals[f"mse_{c}"] / var[c] for c in ("u", "v", "p")}
+    return out
+
+
+def feature_containment(Xtr: np.ndarray, Xte: np.ndarray, names: list[str]) -> dict:
+    """Is the test split INSIDE the train hull, feature by feature?
+
+    A parameter interpolator can only work if the answer is yes; stating it
+    makes the structural property of the benchmark explicit rather than letting
+    it hide inside the estimator's score.
+    """
+    lo, hi = Xtr.min(0), Xtr.max(0)
+    inside = (Xte >= lo) & (Xte <= hi)
+    return {
+        "per_feature_train_range": {n: [float(lo[i]), float(hi[i])]
+                                    for i, n in enumerate(names)},
+        "per_feature_test_range": {n: [float(Xte[:, i].min()), float(Xte[:, i].max())]
+                                   for i, n in enumerate(names)},
+        "per_feature_frac_test_inside_train_range":
+            {n: float(inside[:, i].mean()) for i, n in enumerate(names)},
+        "frac_test_inside_on_all_features": float(inside.all(1).mean()),
+    }
+
+
 def verdict(metrics: dict) -> dict:
     tr = REFERENCE_ROWS["transolver_tab_transolver"]
     gb = REFERENCE_ROWS["grid_backbone_tab_indist"]
@@ -700,7 +795,10 @@ def main(argv=None) -> int:
     ap.add_argument("--cache-dir", default="data/cache")
     ap.add_argument("--out-dir", default="results/interpolation")
     ap.add_argument("--reps", nargs="+", default=["nd", "raw"])
-    ap.add_argument("--fill", default="nearest", choices=["nearest", "none"])
+    ap.add_argument("--fill", default="nearest",
+                    choices=["nearest", "nearest_all", "none"])
+    ap.add_argument("--out-suffix", default="",
+                    help="appended to the output filename (for ablation runs)")
     ap.add_argument("--n-folds", type=int, default=5)
     ap.add_argument("--cv-cells", type=int, default=2048)
     ap.add_argument("--seed", type=int, default=0)
@@ -746,6 +844,12 @@ def main(argv=None) -> int:
         "variants": {},
     }
     assert len(overlap) == 0, f"train/test name overlap: {overlap[:5]}"
+    out["feature_containment"] = feature_containment(Xtr, Xte, out["feature_names"])
+    var_train = train_channel_variance(train_pairs)
+    out["train_channel_variance"] = var_train
+    print(f"[interp] test cases inside the train feature box on ALL 7 features: "
+          f"{out['feature_containment']['frac_test_inside_on_all_features']:.3f}",
+          flush=True)
 
     for rep in a.reps:
         print(f"[interp] === representation '{rep}' ===", flush=True)
@@ -769,7 +873,7 @@ def main(argv=None) -> int:
                 Wm = build_weights(cfg, Xtr, Xte)
                 pred_nd = Wm @ Ytr
             pred_phys = redimensionalise(pred_nd, names_te, rep, hw)
-            pfn = make_predict_fn(pred_phys, names_te, (H, W), test_pairs)
+            pfn = make_predict_fn(pred_phys, names_te, (H, W))
             agg = evaluate_cases(pfn, test_pairs)
             rows, pc, rc = per_case_metrics(pfn, test_pairs)
             return agg, rows, pc, rc, pred_phys
@@ -798,6 +902,7 @@ def main(argv=None) -> int:
             "cv_selected_cfg_raw": best,
             "cv_table_top10": cv_table[:10],
             "test_metrics": agg,
+            "standardised_metrics": standardised_block(agg, var_train),
             "verdict": verdict(agg) if a.task == "full" else None,
             "timing_sec": {"build_stack": t_stack, "cv": t_cv, "score": t_score},
             "nn_distance": {
@@ -844,7 +949,7 @@ def main(argv=None) -> int:
         del Ytr, Mtr
 
     out["wallclock_sec"] = time.time() - t_start
-    path = os.path.join(a.out_dir, f"interp_{a.task}.json")
+    path = os.path.join(a.out_dir, f"interp_{a.task}{a.out_suffix}.json")
     with open(path, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(out, fh, indent=2)
         fh.write("\n")

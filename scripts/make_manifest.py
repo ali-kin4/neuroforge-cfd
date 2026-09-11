@@ -80,6 +80,33 @@ HEADLINE: list[dict] = [
                "0.874, beating every ground-truth integrator arm (0.611-0.839) and every "
                "prediction (0.828-0.845); partial rho_D drops to 0.53-0.65, partial rho_L "
                "holds at 0.85-0.9999"},
+    # --- parameter-space interpolation baseline (the missing AirfRANS row) ---
+    {"path": "results/interpolation/interp_full.json",
+     "script": "scripts/parameter_interpolation_baseline.py", "tier": "cpu",
+     "claims": "AirfRANS full, 800/200, identical evaluate_cases protocol: kernel "
+               "interpolation from the case parameters alone scores mse_u 0.782 / mse_v "
+               "0.0336 / mse_p 75.03 / surf mse_p 10989, i.e. beats the matched-budget "
+               "Transolver row on mse_v (2.6x), mse_p (8.4x), rho_Cd and both force "
+               "relative errors, and loses 6.5x on mse_u; 97.5% of test cases lie inside "
+               "the train feature box"},
+    {"path": "results/interpolation/interp_reynolds.json",
+     "script": "scripts/parameter_interpolation_baseline.py", "tier": "cpu",
+     "claims": "AirfRANS reynolds split: 0/200 test cases have U inside the train U range, "
+               "yet the nondimensional interpolator degrades only +3% mse_u and -1% mse_p "
+               "vs in-distribution; the raw-field interpolator degrades 5x/10x -- the "
+               "split's difficulty is absorbed by dimensional analysis, not learning"},
+    {"path": "results/interpolation/interp_aoa.json",
+     "script": "scripts/parameter_interpolation_baseline.py", "tier": "cpu",
+     "claims": "AirfRANS aoa split: 0/196 test cases have alpha inside the train range; "
+               "interpolation degrades 2.1x on mse_u and 1.7x on mse_p, and C_l relative "
+               "error blows up 1.2% -> 23%; this split does bite"},
+    {"path": "results/interpolation/interp_band_control_full.json",
+     "script": "scripts/interpolation_band_control.py", "tier": "cpu",
+     "claims": "controls: 92% of the interpolator's u squared error sits in the first "
+               "0.02c off the wall (0.5% of cells) and R^2 >= 0.997 everywhere beyond "
+               "0.05c; 50 training cases already beat Transolver's mse_p; permuted "
+               "parameters collapse to the freestream floor; (U,alpha) alone gives "
+               "mse_p 9491 vs 75 with the shape digits"},
     # --- per-cell vs per-case trust scope ---
     {"path": "results/control/percell_residual_error.json",
      "script": "scripts/control_percell_residual_error.py", "tier": "cpu",
