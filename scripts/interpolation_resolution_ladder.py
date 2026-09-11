@@ -177,11 +177,22 @@ above was altered or re-tuned, and the 128^2 gate is untouched.
       as written above, and these two fields make the confound measurable
       instead of arguable.
 
-**Forces are not scored.** ``evaluate_cases`` is called (so aggregation, masking
-and the ``n_cases`` assert are the shared code path), which includes
-``force_coefficients``; ``rho_cl``/``rho_cd`` are recorded but are NOT part of
-any pre-registered reading here, because the question is about where field error
-lives.
+  (c) ``force_block``. Forces are still not part of any pre-registered reading --
+      but ``evaluate_cases`` was already returning ``cd_rel_err_mean``, and it
+      moves 0.024 -> 0.036 -> 1.84 across the ladder while ``cd_mae`` FALLS
+      (0.0085 -> 0.0057 -> 0.0060). ``coefficient_metrics`` divides by
+      ``|reference| + 1e-12``, which is unbounded near zero drag, so a mean
+      relative error can explode on a handful of cases while every case's
+      absolute error improves. Leaving that number in a committed artifact
+      unexamined would hand a reviewer a discoverable, so the per-case
+      coefficients, the reference conditioning and median/trimmed relative errors
+      are recorded and reported.
+
+**Forces are not scored as a verdict.** ``evaluate_cases`` is called (so
+aggregation, masking and the ``n_cases`` assert are the shared code path), which
+includes ``force_coefficients``; ``rho_cl``/``rho_cd`` and the relative errors are
+recorded and discussed but are NOT part of any pre-registered reading here,
+because the question is about where field error lives.
 
 ===========================================================================
 RUNNING  (CPU-only, no GPU, no training)
@@ -380,6 +391,55 @@ def outer_mse(pred_phys, test_pairs, hw, edge: float, over_masks=None) -> dict:
             "frac_of_outer_selected": n / max(n_fluid_outer, 1),
             "sel_sdf_mean": sdf_sum / n,
             **{f"mse_{c}": se[c] / n for c in chans}}
+
+
+def force_block(predict_fn, test_pairs) -> dict:
+    """Per-case predicted and ground-truth force coefficients, plus conditioning.
+
+    NOT part of any pre-registered reading here -- added because the aggregate
+    ``cd_rel_err_mean`` that ``evaluate_cases`` already returned moved from 0.024
+    to 1.84 between 128^2 and 512^2 while ``cd_mae`` FELL (0.0085 -> 0.0060).
+    ``coefficient_metrics`` computes ``|p - r| / (|r| + 1e-12)``, which is
+    unbounded as the reference approaches zero, so a mean relative error can
+    explode on a few near-zero-drag cases while every case's absolute error
+    improves. Recording the raw per-case coefficients and the reference
+    conditioning lets a reader tell those two apart instead of taking our word.
+    """
+    from neuroforge.physics.metrics import force_coefficients
+
+    rows = []
+    for case, ref in test_pairs:
+        try:
+            pc = force_coefficients(predict_fn(case), case)
+            rc = force_coefficients(ref, case)
+        except Exception:
+            continue
+        rows.append({"name": case.name, "pred_cl": pc["cl"], "pred_cd": pc["cd"],
+                     "gt_cl": rc["cl"], "gt_cd": rc["cd"]})
+    if not rows:
+        return {"n": 0}
+    gcd = np.array([r["gt_cd"] for r in rows], float)
+    pcd = np.array([r["pred_cd"] for r in rows], float)
+    acd = np.abs(gcd)
+    rel = np.abs(pcd - gcd) / (acd + 1e-12)
+    return {
+        "n": len(rows),
+        "gt_cd_abs_min": float(acd.min()),
+        "gt_cd_abs_p05": float(np.quantile(acd, 0.05)),
+        "gt_cd_abs_median": float(np.median(acd)),
+        "n_gt_cd_below_1e-3": int((acd < 1e-3).sum()),
+        "n_gt_cd_below_1e-4": int((acd < 1e-4).sum()),
+        "cd_rel_err_mean": float(rel.mean()),
+        "cd_rel_err_median": float(np.median(rel)),
+        "cd_rel_err_trimmed_mean_90": float(
+            rel[rel <= np.quantile(rel, 0.90)].mean()),
+        "cd_mae": float(np.abs(pcd - gcd).mean()),
+        "worst_rel_cases": [
+            {"name": rows[i]["name"], "gt_cd": rows[i]["gt_cd"],
+             "pred_cd": rows[i]["pred_cd"], "rel": float(rel[i])}
+            for i in np.argsort(rel)[::-1][:5]],
+        "per_case": rows,
+    }
 
 
 def surface_pressure_block(pred_phys, test_pairs, hw) -> dict:
@@ -696,6 +756,7 @@ def main(argv=None) -> int:
                 outer_mse(pred_phys, test_pairs, hw, OUTER_EDGE, over_masks)
                 if over_masks else {"n_cells": 0}),
             "surface_pressure": surface_pressure_block(pred_phys, test_pairs, hw),
+            "forces": force_block(pfn, test_pairs),
             "oversampled": over_stats,
             "cv_would_select": cfg_name(best_here),
             "cv_top5": cv_table[:5],
@@ -735,6 +796,13 @@ def main(argv=None) -> int:
         print(f"    surface p: pooled MSE {sp['pooled_mse']:.6g}  GT var "
               f"{sp['gt_variance']:.6g}  standardised {sp['standardised']:.6g}",
               flush=True)
+        fb = row["forces"]
+        if fb.get("n"):
+            print(f"    forces: cd_mae {fb['cd_mae']:.5g}  rel mean "
+                  f"{fb['cd_rel_err_mean']:.4g} median {fb['cd_rel_err_median']:.4g} "
+                  f"trimmed90 {fb['cd_rel_err_trimmed_mean_90']:.4g}  "
+                  f"min|gt_cd| {fb['gt_cd_abs_min']:.3g}  "
+                  f"n(|gt_cd|<1e-3) {fb['n_gt_cd_below_1e-3']}", flush=True)
 
         if res == 128 and not a.no_gate:
             gate = check_gate(agg, bands,

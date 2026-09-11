@@ -115,9 +115,21 @@ HEADLINE: list[dict] = [
                "learning is 0.9949/0.9949/0.9950 and the outer-region (>0.05c) MSE is "
                "flat within 1.5%, but the 0-0.02c SE share erodes 0.924/0.901/0.879 "
                "on u and 0.898/0.855/0.842 on v, so the PRE-REGISTERED verdict is "
-               "PARTIAL, not HOLDS. Surface-pressure MSE standardised by the sampled "
-               "truth's own variance rises 0.0029/0.0085/0.0055. The 128 rung "
+               "PARTIAL, not HOLDS. The share erodes because the near-wall error "
+               "falls 45% while the far field moves 0.6%. Surface-pressure and C_d "
+               "relative error both appear to degrade and neither survives its "
+               "control (see the _pfill artifact; the C_d mean of 1.84 at 512 is one "
+               "case with reference drag 1.7e-4, median 0.0274). The 128 rung "
                "reproduces the published row at relative error 0.00e+00"},
+    {"path": "results/interpolation/interp_resolution_ladder_pfill.json",
+     "script": "scripts/interpolation_resolution_ladder.py", "tier": "cpu",
+     "claims": "the same ladder under --fill nearest_all, the control that withdraws "
+               "the surface-pressure concession: standardised surface MSE goes "
+               "0.0398/0.0487/0.0095, i.e. 4.2x BETTER from 128 to 512, against 1.9x "
+               "WORSE under the default fill, so the sign of the resolution trend is "
+               "set by the solid-fill treatment and no resolution claim about that "
+               "channel is supportable. Its 128 row reproduces the published "
+               "nearest_all control, surface_mse_p 153174"},
     # --- per-cell vs per-case trust scope ---
     {"path": "results/control/percell_residual_error.json",
      "script": "scripts/control_percell_residual_error.py", "tier": "cpu",

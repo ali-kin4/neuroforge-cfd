@@ -34,7 +34,17 @@ So the one-line answer a reviewer should get is:
 > are all flat under a $4\times$ refinement — but the near-wall *share* of the total
 > error erodes from 92%/90% to 88%/84%, because the near-wall error itself falls
 > by 45% while the far field stays put. The share statistic dilutes; the structure
-> does not dissolve. One channel, surface pressure, genuinely degrades.
+> does not dissolve.
+
+Two things that are *not* about the field decomposition do move, and both are
+metric-conditioning stories rather than physics. **Surface pressure** appeared to
+degrade $1.9\times$ under refinement; running the ladder again under the
+`--fill nearest_all` control **reverses the sign** ($4.2\times$ better), so no
+resolution claim about that channel is supportable and the apparent degradation
+is a solid-fill/sampler interaction (§3b). **$C_d$ relative error** appears to go
+to $1.84$ at $512^2$, but that is *one* near-zero-drag case; the median and
+trimmed mean rise a modest $2.4\times$ while the absolute drag error *falls*
+(§3c).
 
 The three things the paper actually claims, at all three rungs:
 
@@ -145,7 +155,7 @@ flat, and `mse_p` returns to its $128^2$ value after a $7\%$ excursion at $256^2
 parameter interpolator; the $128^2$ raster was, if anything, making its job
 *harder* by aliasing the near-wall truth it had to match.
 
-### 3b. Surface pressure — the one channel that genuinely degrades
+### 3b. Surface pressure — an apparent degradation that its own control kills
 
 `surface_mse_p` moves $10989\to93105\to56126$. That absolute number overstates the
 effect, because at $128^2$ the $0.02c$ wall band is sub-cell so the bilinear
@@ -161,9 +171,69 @@ of the sampled truth is the resolution-comparable statistic (added post-hoc in
 
 The case-mean column reproduces `evaluate_cases`' `surface_mse_p` exactly at every
 rung — a free cross-check that the block samples the same field the paper's metric
-does. Standardised, the degradation is $1.9\times$ from 128 to 512, not $5\times$,
-and it is **non-monotone** (256 is worse than 512). But it is real, and it lands on
-the one channel where the surrogate wins. **This must be conceded in the paper.**
+does. Standardised, this looks like a $1.9\times$ degradation, non-monotone, with
+$256^2$ worse than $512^2$. **I was about to concede it. It does not survive its
+own control.**
+
+With the default `--fill nearest`, `build_stack` leaves each train case's $p$ as
+the Delaunay bridge inside its **own** solid. A thin test airfoil's surface points
+lie inside a thicker neighbour's solid, and `_bilinear_sample`'s stencil narrows as
+$h$ shrinks, so a finer grid draws surface samples more purely from bridge values.
+`parameter_interpolation_baseline.py` already ships the control for exactly this —
+`--fill nearest_all`, which nearest-fluid-fills $p$ too. Running the entire ladder
+under it (`results/interpolation/interp_resolution_ladder_pfill.json`):
+
+| standardised surface MSE, by fill | $128^2$ | $256^2$ | $512^2$ | $128\to512$ |
+|---|---:|---:|---:|---:|
+| `nearest` (default; the paper's) | 0.00291 | 0.00845 | 0.00545 | $1.87\times$ **worse** |
+| `nearest_all` (p-fill control) | 0.03983 | 0.04872 | 0.00947 | $4.21\times$ **better** |
+
+**The sign of the resolution trend flips with the fill treatment.** Both curves are
+non-monotone with a peak at $256^2$. The $128^2$ control row reproduces the
+published `nearest_all` number exactly ($153\,174$ absolute, in
+`interp_full_pfill.json` and quoted in the paper's "how we tried to break it"
+paragraph), so this is the control the paper already runs, extended along the
+ladder.
+
+The conclusion is the opposite of what I first wrote: **no claim about surface
+pressure and resolution is supportable from this ladder.** What the ladder shows is
+that the surface-pressure number is governed by the solid-fill/sampler interaction
+— which the paper already documents at $128^2$ as a $14\times$ swing — and that
+refinement modulates *that* sensitivity, not the boundary layer. The paper should
+say so, and should **not** claim refinement favours the surrogate on surface
+pressure.
+
+### 3c. Force coefficients — a mean that one case owns
+
+Not part of any pre-registered reading, but `evaluate_cases` was already returning
+these and leaving them unexamined in a committed artifact would hand a reviewer a
+discoverable.
+
+| statistic | $128^2$ | $256^2$ | $512^2$ |
+|---|---:|---:|---:|
+| $\rho_{C_l}$ | 0.99992 | 0.99984 | 0.99981 |
+| $\rho_{C_d}$ | 0.99907 | 0.99822 | 0.98107 |
+| $C_l$ rel. err. mean | 0.0118 | 0.0209 | 0.0214 |
+| $C_d$ rel. err. **mean** | 0.0239 | 0.0364 | **1.842** |
+| $C_d$ rel. err. median | 0.0114 | 0.0208 | **0.0274** |
+| $C_d$ rel. err. 90%-trimmed mean | 0.0136 | 0.0225 | **0.0350** |
+| $C_d$ **MAE** | 0.008455 | 0.005720 | **0.005966** |
+| $\min\lvert C_d^{\mathrm{GT}}\rvert$ | 6.13e-04 | 3.09e-03 | **1.71e-04** |
+| cases with $\lvert C_d^{\mathrm{GT}}\rvert<10^{-3}$ | 1 | 0 | 1 |
+
+`coefficient_metrics` computes $\lvert p-r\rvert/(\lvert r\rvert+10^{-12})$, which
+is unbounded as the reference approaches zero. The $1.842$ is **one case** whose
+rasterised ground-truth drag is $1.7\times10^{-4}$. On statistics a single case
+cannot own, $C_d$ relative error rises a modest $2.4\times$ (median) to $2.6\times$
+(trimmed mean) from $128^2$ to $512^2$ — while the **absolute** drag error *falls*
+($0.00845\to0.00597$). $\rho_{C_l}$ is unmoved; $\rho_{C_d}$ slips $0.9991\to0.9811$.
+
+Two scope notes that must travel with this. The ground-truth force integral is
+itself resolution-sensitive — $\min\lvert C_d^{\mathrm{GT}}\rvert$ is non-monotone
+across the rungs — so *both* sides of the ratio move under refinement. And there is
+no Transolver row at $256^2$ or $512^2$, so the paper's "$C_l$ $1.18\%$ against
+$5.81\%$; $C_d$ $2.39\%$ against $8.99\%$" **cannot be re-evaluated here**. Those
+are $128^2$ figures and should be labelled as such.
 
 ---
 
@@ -357,11 +427,14 @@ channel and one honest caveat about the share statistic.
 * *Does the near-wall share drop?* — **yes, from 0.92/0.90 to 0.88/0.84**, which is
   the pre-registered miss. It drops because the near-wall error fell 45% while the
   far field moved 0.6%.
-* *Is there anything that gets genuinely worse?* — **yes: surface pressure.**
-  Standardised by its own sampled-truth variance it rises $1.9\times$ from 128 to
-  512 (non-monotonically). This is the channel the surrogate wins, and the paper
-  should say that refinement widens, not narrows, that particular gap — while
-  noting there is no surrogate row at 256/512 to quantify by how much.
+* *Is there anything that gets genuinely worse?* — **in the field decomposition,
+  no.** Two candidates presented themselves and neither survives its control.
+  Surface pressure appeared $1.9\times$ worse, but the `--fill nearest_all` control
+  makes it $4.2\times$ *better*: the trend's sign is set by the solid-fill
+  treatment, so it is not a statement about resolution (§3b). $C_d$ relative error
+  appeared $77\times$ worse, but that is a single near-zero-drag reference case;
+  robustly it is $2.4\times$ worse while the absolute drag error improves (§3c).
+  Both belong in the paper as scoping, not as concessions about the boundary layer.
 
 **Is the finding partly a rasterisation effect?** For the domain fraction and the
 $R^2$ floor, no. For the exact share figures 92%/90%, yes to the extent that those
@@ -431,7 +504,7 @@ Two edits.
    > \textbf{$92\%$ of its $u$ error and $90\%$ of its $v$ error lie within $0.02c$
    > of the wall---a band holding $0.5\%$ of cells, thinner than the $0.0234c$ grid
    > spacing---and beyond $0.05c$ it reproduces every channel at $R^2\ge0.9996$}.
-   > Both statements survive refinement, and the first is resolution-dependent in a
+   > Both structures survive refinement, and the first is resolution-dependent in a
    > direction worth stating: at $512^2$, where that band is $3.4$ cells wide, the
    > shares are $88\%$ and $84\%$ and $72\%$ of the $u$ error sits inside $0.005c$
    > ($0.15\%$ of the domain), because the near-wall error falls $45\%$ under
@@ -465,15 +538,38 @@ Do **not** add "the coarse-raster objection is answered" anywhere. It is answere
 for the localisation and not for the head-to-head, and the limitations bullet is
 the only place that distinction can be carried accurately.
 
-### 8.4 Where surface pressure is discussed
+### 8.4 Where surface pressure is discussed — scope, do not concede
 
-Add, wherever `surface_mse_p` is compared to Transolver's $9110$:
+Earlier drafting of this report proposed conceding that refinement hurts the
+interpolator on surface pressure. **That is withdrawn**; the `--fill nearest_all`
+control reverses the sign of the trend. Add instead, near the existing
+"self-serving solid fill" sentence in "how we tried to break it":
 
-> This is also the one channel where refinement hurts the interpolator: standardised
-> by the variance of its own sampled truth, its surface-pressure error rises
-> $1.9\times$ from $128^2$ to $512^2$. We have no surrogate row at those resolutions,
-> so we do not claim the gap widens by a stated factor---only that the channel the
-> surrogate wins is the channel a finer grid favours it in.
+> The same control, run along a $128^2$/$256^2$/$512^2$ ladder, shows that this
+> channel's resolution behaviour is governed by the fill choice rather than by the
+> boundary layer: standardised by the variance of its own sampled truth, the
+> surface-pressure error changes by $1.9\times$ in one direction under
+> \texttt{nearest} and $4.2\times$ in the other under \texttt{nearest\_all}. We
+> therefore make no claim about surface pressure and grid resolution, and read the
+> $128^2$ surface number as what it is---a number about the sampler and the solid
+> fill as much as about the flow.
+
+### 8.5 Where the force relative errors are quoted
+
+The "$C_l$ $1.18\%$ against $5.81\%$; $C_d$ $2.39\%$ against $8.99\%$" figures
+appear in the intro paragraph, the contributions list and \autoref{sec:interp}.
+Label them once as $128^2$ figures and add, in \autoref{sec:interp} only:
+
+> These are $r128$ figures. On the resolution ladder the interpolator's $C_d$
+> relative error rises about $2.4\times$ by $512^2$ on the median and $2.6\times$
+> on a $90\%$-trimmed mean, while its absolute drag error \emph{falls}
+> ($0.0085\to0.0060$); the untrimmed mean reaches $1.84$, but that is a single case
+> whose rasterised reference drag is $1.7\times10^{-4}$ and
+> \texttt{coefficient\_metrics} divides by the reference. $\rho_{C_l}$ is unchanged
+> at $0.9998$; $\rho_{C_d}$ slips from $0.9991$ to $0.9811$. We have no surrogate
+> row at those resolutions, and the rasterised reference force integral is itself
+> resolution-sensitive, so the head-to-head ratio cannot be re-evaluated---only the
+> interpolator's own trend, and only with the metric's ill-conditioning stated.
 
 ---
 
@@ -549,8 +645,14 @@ Three engineering notes worth keeping, because they will recur:
   `24a4528` (two added diagnostics) both recorded in the docstring.
 * `results/interpolation/interp_resolution_ladder.json` — per-rung metrics, both
   band grids, all four $\tau$ under both $R^2$ flavours, outer-region MSE with and
-  without the oversampled restriction, the surface-pressure block, the weight-matrix
-  hashes, the geometry bit-equality proof, the protocol gate, timings.
+  without the oversampled restriction, the surface-pressure block, the per-case
+  force block, the weight-matrix hashes, the geometry bit-equality proof, the
+  protocol gate, timings.
+* `results/interpolation/interp_resolution_ladder_pfill.json` — the identical
+  ladder under `--fill nearest_all`, the control that withdraws the
+  surface-pressure concession (§3b). Run with `--no-gate`, because the gate is
+  keyed to the default-fill published numbers; its $128^2$ row instead reproduces
+  the published `nearest_all` control ($153\,174$).
 * `results/MANIFEST.json` — regenerated, 81 files, hashes verified with
   `make_manifest.py --check`.
 * Reuses `parameter_interpolation_baseline.py` (weights, stacks, scoring),
@@ -558,8 +660,30 @@ Three engineering notes worth keeping, because they will recur:
   $128^2$ gate meaningful) and `floor_resolution_ladder.{source_positions,
   oversampled_cells}`. None of the three was edited.
 
+**Cache provenance, stated because it is not the library path.** The ladder needs
+`data/cache/airfrans_full_{train_n800,test_n200}_r{128,256,512}.pkl`. The canonical
+producer is
+
+```
+load_airfrans(task='full', train=..., resolution=..., limit=...,
+              cache_dir='data/cache')
+```
+
+and the $128^2$ and $256^2$ caches, plus `test r512`, were built that way. The
+`train r512` cache was **not**: the library path is ~3.6 h at $512^2$ because
+`_rasterize_pairs` is thread-based and GIL-bound, so it was built by a
+process-parallel equivalent calling the same pure `_sim_to_pair`. That equivalence
+was checked, not assumed — **bit-identical over 24 cases × 6 arrays plus geometry**
+against the serially-built `test r512` cache — and the ladder independently asserts
+that the train and test case name lists are identical, in identical order, to the
+library-built $128^2$ caches at every rung. Rebuilding with the library call
+reproduces the same file; it just takes 3.6 h.
+
 Reproduce (CPU only, no GPU, no training), given the caches:
 
 ```
 .venv/Scripts/python.exe scripts/interpolation_resolution_ladder.py --levels 128 256 512
+.venv/Scripts/python.exe scripts/interpolation_resolution_ladder.py \
+    --levels 128 256 512 --fill nearest_all --no-gate --no-oversampled \
+    --out-name interp_resolution_ladder_pfill.json
 ```
