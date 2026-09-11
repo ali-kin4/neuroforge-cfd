@@ -6,11 +6,11 @@ Source verification: `docs/paper/review/null_travels.md#22-drivaernet--the-null-
 
 ### target: `cd` (metric: r2, protocol: `official_split`, n_fit=5819, n_score=1154)
 
-> The dataset paper's own NeurIPS checklist answers "[No]" to error bars, so these rows carry no seed spread.
+> The dataset paper's own NeurIPS checklist answers "[No]" to error bars, so these rows carry no seed spread. This target zero-fills the 595 test designs with no published parameters at all -- see harmonised.py for the parametric-pool-only anchor (0.8248) that excludes them.
 
-Null out-of-sample: **0.7365** [0.7050, 0.7643] (95% case-level bootstrap, n_boot=10000)
+metadata_null_r2: **0.7365** [0.7050, 0.7643] (95% case-level bootstrap, n_boot=10000); metadata_null_mse: 0.000
 
-| model | published | published std | null | null CI95 | covariate-null fraction | flags | verdict | source |
+| model | published | published std | metadata null | null CI95 | published-relative ratio | flags | verdict | source |
 |---|---|---|---|---|---|---|---|---|
 | PointNet | 0.6430 | -- | 0.7365 | [0.7050, 0.7643] | 1.1454 | null_exceeds_published | BELOW THE NULL | NeurIPS 2024 D&B Table 4 |
 | GCNN | 0.5960 | -- | 0.7365 | [0.7050, 0.7643] | 1.2357 | null_exceeds_published | BELOW THE NULL | NeurIPS 2024 D&B Table 4 |
@@ -18,4 +18,4 @@ Null out-of-sample: **0.7365** [0.7050, 0.7643] (95% case-level bootstrap, n_boo
 | TripNet | 0.9570 | -- | 0.7365 | [0.7050, 0.7643] | 0.7696 |  | clears | arXiv 2503.17400 Table 5 (current SOTA) |
 | PointNet2D+BiLSTM | 0.9528 | -- | 0.7365 | [0.7050, 0.7643] | 0.7730 |  | clears | arXiv 2601.02112 Table 1 (preprint) |
 
-**Headline** (target `cd`, metric r2): null 0.7365 [0.7050, 0.7643] vs best verified published `TripNet` = 0.9570 -> covariate-null fraction 0.7696. 
+**Headline** (target `cd`, metric r2): metadata null 0.7365 [0.7050, 0.7643] vs best verified published `TripNet` = 0.9570 -> published-relative ratio 0.7696. 

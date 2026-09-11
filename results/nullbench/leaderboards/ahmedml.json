@@ -16,6 +16,16 @@
         0.727253250122702
       ],
       "n_boot_finite": 10000,
+      "metadata_null_r2": 0.6842016571598261,
+      "metadata_null_r2_ci95": [
+        0.6376971739918247,
+        0.727253250122702
+      ],
+      "metadata_null_mse": 0.001144774049169255,
+      "metadata_null_mse_ci95": [
+        0.000928985707029833,
+        0.0013868079999486609
+      ],
       "feature_names": [
         "body-length",
         "body-height",
@@ -43,6 +53,16 @@
         0.4933637941434809
       ],
       "n_boot_finite": 10000,
+      "metadata_null_r2": 0.4515489994954991,
+      "metadata_null_r2_ci95": [
+        0.4039491854457114,
+        0.4933637941434809
+      ],
+      "metadata_null_mse": 0.025064645933833198,
+      "metadata_null_mse_ci95": [
+        0.02215643301919102,
+        0.028148518000228932
+      ],
       "feature_names": [
         "body-length",
         "body-height",
@@ -62,6 +82,7 @@
     "target": "cd",
     "metric": "r2",
     "protocol": "kfold_oos_k10",
+    "metadata_null_r2": 0.6842016571598261,
     "null_point": 0.6842016571598261,
     "null_ci95": [
       0.6376971739918247,
@@ -69,7 +90,7 @@
     ],
     "best_published_model": null,
     "best_published_value": null,
-    "covariate_null_fraction": null,
+    "published_relative_ratio": null,
     "note": "no verified published point-estimate baseline for this target"
   }
 }

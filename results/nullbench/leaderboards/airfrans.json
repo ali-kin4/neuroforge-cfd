@@ -16,6 +16,16 @@
         0.9865537582913887
       ],
       "n_boot_finite": 10000,
+      "metadata_null_spearman": 0.982140553513838,
+      "metadata_null_spearman_ci95": [
+        0.9736963564528004,
+        0.9865537582913887
+      ],
+      "metadata_null_mse": 0.012377028857624728,
+      "metadata_null_mse_ci95": [
+        0.008918167730124512,
+        0.01631222198065073
+      ],
       "feature_names": [
         "U",
         "alpha",
@@ -35,7 +45,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "BELOW THE NULL",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "spearman",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -46,10 +56,15 @@
             ],
             "published": 0.913,
             "published_std": 0.018,
-            "covariate_null_fraction": 1.0757289742758356,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 3,
+            "published_relative_ratio": 1.0757289742758356,
+            "published_relative_ratio_ci95": [
               1.066480127549617,
               1.0805627144483994
+            ],
+            "rounding_interval": [
+              1.075140178997086,
+              1.0763184148096854
             ],
             "flags": [
               "null_exceeds_published"
@@ -64,7 +79,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "BELOW THE NULL",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "spearman",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -75,10 +90,15 @@
             ],
             "published": 0.965,
             "published_std": 0.011,
-            "covariate_null_fraction": 1.0177622316205575,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 3,
+            "published_relative_ratio": 1.0177622316205575,
+            "published_relative_ratio_ci95": [
               1.009011768344871,
               1.0223355008200918
+            ],
+            "rounding_interval": [
+              1.0172351667673103,
+              1.018289842938142
             ],
             "flags": [
               "null_exceeds_published"
@@ -93,7 +113,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "BELOW THE NULL",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "spearman",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -104,10 +124,15 @@
             ],
             "published": 0.938,
             "published_std": 0.023,
-            "covariate_null_fraction": 1.0470581593964159,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 3,
+            "published_relative_ratio": 1.0470581593964159,
+            "published_relative_ratio_ci95": [
               1.0380558171138599,
               1.0517630685409263
+            ],
+            "rounding_interval": [
+              1.0465003234031307,
+              1.0476165904147605
             ],
             "flags": [
               "null_exceeds_published"
@@ -122,7 +147,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "BELOW THE NULL",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "spearman",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -133,10 +158,15 @@
             ],
             "published": 0.967,
             "published_std": 0.019,
-            "covariate_null_fraction": 1.0156572425168955,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 3,
+            "published_relative_ratio": 1.0156572425168955,
+            "published_relative_ratio_ci95": [
               1.0069248774072392,
               1.020221053041767
+            ],
+            "rounding_interval": [
+              1.0151323550530627,
+              1.0161826730613948
             ],
             "flags": [
               "null_exceeds_published"
@@ -151,7 +181,7 @@
           "published_note": "no drag column reported; lift only",
           "is_bound": false,
           "verdict": "clears",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "spearman",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -162,10 +192,15 @@
             ],
             "published": 0.9978,
             "published_std": null,
-            "covariate_null_fraction": 0.984306026772738,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 4,
+            "published_relative_ratio": 0.984306026772738,
+            "published_relative_ratio_ci95": [
               0.9758432115181402,
               0.9887289620078058
+            ],
+            "rounding_interval": [
+              0.9842567054305136,
+              0.984355353058219
             ],
             "flags": []
           }
@@ -186,6 +221,16 @@
         0.9531027487175117
       ],
       "n_boot_finite": 10000,
+      "metadata_null_spearman": 0.9317797944948625,
+      "metadata_null_spearman_ci95": [
+        0.8980931736755087,
+        0.9531027487175117
+      ],
+      "metadata_null_mse": 2.1743696273425256e-06,
+      "metadata_null_mse_ci95": [
+        1.416512032751068e-06,
+        3.3116029295961737e-06
+      ],
       "feature_names": [
         "U",
         "alpha",
@@ -205,7 +250,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "BELOW THE NULL",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "spearman",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -216,8 +261,10 @@
             ],
             "published": -0.117,
             "published_std": 0.256,
-            "covariate_null_fraction": null,
-            "covariate_null_fraction_ci95": null,
+            "published_precision_decimals": 3,
+            "published_relative_ratio": null,
+            "published_relative_ratio_ci95": null,
+            "rounding_interval": null,
             "flags": [
               "published_at_or_below_floor"
             ]
@@ -231,7 +278,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "BELOW THE NULL",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "spearman",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -242,8 +289,10 @@
             ],
             "published": -0.303,
             "published_std": 0.124,
-            "covariate_null_fraction": null,
-            "covariate_null_fraction_ci95": null,
+            "published_precision_decimals": 3,
+            "published_relative_ratio": null,
+            "published_relative_ratio_ci95": null,
+            "rounding_interval": null,
             "flags": [
               "published_at_or_below_floor"
             ]
@@ -257,7 +306,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "BELOW THE NULL",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "spearman",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -268,8 +317,10 @@
             ],
             "published": -0.022,
             "published_std": 0.097,
-            "covariate_null_fraction": null,
-            "covariate_null_fraction_ci95": null,
+            "published_precision_decimals": 3,
+            "published_relative_ratio": null,
+            "published_relative_ratio_ci95": null,
+            "rounding_interval": null,
             "flags": [
               "published_at_or_below_floor"
             ]
@@ -283,7 +334,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "BELOW THE NULL",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "spearman",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -294,21 +345,24 @@
             ],
             "published": -0.138,
             "published_std": 0.258,
-            "covariate_null_fraction": null,
-            "covariate_null_fraction_ci95": null,
+            "published_precision_decimals": 3,
+            "published_relative_ratio": null,
+            "published_relative_ratio_ci95": null,
+            "rounding_interval": null,
             "flags": [
               "published_at_or_below_floor"
             ]
           }
         }
       ],
-      "target_note": "Every published rho_D is negative; three of four 95% intervals span zero. The covariate-null fraction is undefined for all four rows -- see stats.py's floor convention -- because the published metric never exceeds its own floor."
+      "target_note": "Every published rho_D is negative; three of four 95% intervals span zero. The published-relative ratio is undefined for all four rows -- see stats.py's floor convention -- because the published metric never exceeds its own floor."
     }
   },
   "headline": {
     "target": "cd",
     "metric": "spearman",
     "protocol": "official_split",
+    "metadata_null_spearman": 0.9317797944948625,
     "null_point": 0.9317797944948625,
     "null_ci95": [
       0.8980931736755087,
@@ -316,7 +370,7 @@
     ],
     "best_published_model": null,
     "best_published_value": null,
-    "covariate_null_fraction": null,
-    "note": "every verified published entry for this target is at or below the metric's own floor (0.0) -- no fraction is defined for any of them; see stats.py's floor convention. The published entries themselves not clearing the floor is the more important fact here."
+    "published_relative_ratio": null,
+    "note": "every verified published entry for this target is at or below the metric's own floor (0.0) -- no ratio is defined for any of them; see stats.py's floor convention. The published entries themselves not clearing the floor is the more important fact here."
   }
 }

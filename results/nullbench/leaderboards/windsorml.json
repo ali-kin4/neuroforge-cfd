@@ -16,6 +16,16 @@
         0.26676857071045296
       ],
       "n_boot_finite": 10000,
+      "metadata_null_r2": 0.10449352113588983,
+      "metadata_null_r2_ci95": [
+        -0.14274841268390373,
+        0.26676857071045296
+      ],
+      "metadata_null_mse": 0.0012031869235369676,
+      "metadata_null_mse_ci95": [
+        0.0008543230454608488,
+        0.0016177229799619322
+      ],
       "feature_names": [
         "ratio_length_back_fast",
         "ratio_height_nose_windshield",
@@ -35,7 +45,7 @@
           "published_note": "SI D.2 verbatim: 'MSE of less than 0.00028 for the drag coefficient' on a 60/20/20 split (no id lists published). Implied R2 floor uses the label's population variance (1.344e-03) as the SST proxy: 1 - 0.00028/1.344e-03 = 0.7916.",
           "is_bound": true,
           "verdict": "clears (published bound beats the null outright)",
-          "covariate_null_fraction": null
+          "published_relative_ratio": null
         }
       ],
       "target_note": "The one published number here is a BOUND, not a point estimate -- see `windsor_implied_r2_floor`. This is the benchmark where the null decisively fails: R2 0.104 [-0.143, 0.267], while the published bound implies the MeshGraphNet attains R2 >= 0.79."
@@ -45,6 +55,7 @@
     "target": "cd",
     "metric": "r2",
     "protocol": "kfold_oos_k10",
+    "metadata_null_r2": 0.10449352113588983,
     "null_point": 0.10449352113588983,
     "null_ci95": [
       -0.14274841268390373,
@@ -52,7 +63,7 @@
     ],
     "best_published_model": null,
     "best_published_value": null,
-    "covariate_null_fraction": null,
-    "note": "no verified published point-estimate baseline for this target (a published BOUND exists -- MeshGraphNet (direct KPI head): clears (published bound beats the null outright) -- see the target's own comparisons; a bound never yields a covariate-null fraction)"
+    "published_relative_ratio": null,
+    "note": "no verified published point-estimate baseline for this target (a published BOUND exists -- MeshGraphNet (direct KPI head): clears (published bound beats the null outright) -- see the target's own comparisons; a bound never yields a published-relative ratio)"
   }
 }

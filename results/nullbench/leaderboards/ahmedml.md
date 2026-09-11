@@ -8,7 +8,7 @@ Source verification: `docs/paper/review/null_travels.md#23-ahmedml--a-bar-nobody
 
 > No published ML drag baseline found: searched the dataset paper (arXiv 2407.20801, which reports no ML results), NeuralCFD/GP-UPT (arXiv 2502.09692, whose drag result is on DrivAerML not AhmedML), PhysicsNeMo-CFD (DrivAerML only), and FIGConvNet (its "Ahmed body" is a different dataset). Not adjudicable: a benchmark cannot be said to be beaten by a model whose number was never published. R2 0.684 [0.638, 0.727] (const-area) is reported here as the bar any future AhmedML drag surrogate must clear.
 
-Null out-of-sample: **0.6842** [0.6377, 0.7273] (95% case-level bootstrap, n_boot=10000)
+metadata_null_r2: **0.6842** [0.6377, 0.7273] (95% case-level bootstrap, n_boot=10000); metadata_null_mse: 0.001
 
 _No published entries verified for this target._
 
@@ -16,8 +16,8 @@ _No published entries verified for this target._
 
 > no published ML lift baseline found.
 
-Null out-of-sample: **0.4515** [0.4039, 0.4934] (95% case-level bootstrap, n_boot=10000)
+metadata_null_r2: **0.4515** [0.4039, 0.4934] (95% case-level bootstrap, n_boot=10000); metadata_null_mse: 0.025
 
 _No published entries verified for this target._
 
-**Headline** (target `cd`, metric r2): null 0.6842 [0.6377, 0.7273] vs best verified published `None` = -- -> covariate-null fraction --. no verified published point-estimate baseline for this target
+**Headline** (target `cd`, metric r2): metadata null 0.6842 [0.6377, 0.7273] vs best verified published `None` = -- -> published-relative ratio --. no verified published point-estimate baseline for this target

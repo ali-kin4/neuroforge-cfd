@@ -1,0 +1,144 @@
+{
+  "protocol": "10-fold out-of-sample OLS, seed 0, R2 (sklearn convention), constant reference area where both conventions are published",
+  "protocol_source": "docs/paper/review/null_mechanism.md; scripts/null_mechanism.py (pre-registration commit ffbec98)",
+  "note": "Cross-benchmark-comparable by construction: identical protocol, identical metric, applied to all five. NOT the per-benchmark worked examples in the sibling leaderboard files, which use each benchmark's own split/metric and are not comparable to each other or to this table -- see benchmarks.py and harmonised.py.",
+  "benchmarks": {
+    "airfrans": {
+      "benchmark": "AirfRANS",
+      "protocol": "10-fold out-of-sample OLS, seed 0, R2 (sklearn convention), constant reference area where both conventions are published",
+      "metric": "r2",
+      "n_cases": 200,
+      "metadata_null_r2": 0.6832844323156677,
+      "metadata_null_r2_ci95": [
+        0.619686210882044,
+        0.7371780185112872
+      ],
+      "metadata_null_mse": 7.073953516314028e-06,
+      "metadata_null_mse_ci95": [
+        4.943011994807175e-06,
+        9.980181491183154e-06
+      ],
+      "flexible_ceiling_r2_sourced": 0.9462826909859643,
+      "flexible_ceiling_source": "results/review/null_mechanism.json",
+      "flexible_ceiling_best_model_sourced": "quadratic_ridge_lam0.1",
+      "linearity_share_sourced": 0.7220722082570594,
+      "note": "Official full/test 200 cases (the cached official labels); NO alpha^2 term (unlike benchmarks.AIRFRANS) -- this mirrors null_mechanism.py's feature set exactly, not the worked-example one.",
+      "published_comparison": null,
+      "published_comparison_note": "published entries were scored on each benchmark's OWN protocol (see benchmarks.py); comparing them against a harmonised-protocol null would repeat the exact mixing error this artifact exists to flag, so none is attempted here"
+    },
+    "ahmedml": {
+      "benchmark": "AhmedML",
+      "protocol": "10-fold out-of-sample OLS, seed 0, R2 (sklearn convention), constant reference area where both conventions are published",
+      "metric": "r2",
+      "n_cases": 499,
+      "metadata_null_r2": 0.6842016571598261,
+      "metadata_null_r2_ci95": [
+        0.6376971739918247,
+        0.727253250122702
+      ],
+      "metadata_null_mse": 0.001144774049169255,
+      "metadata_null_mse_ci95": [
+        0.000928985707029833,
+        0.0013868079999486609
+      ],
+      "flexible_ceiling_r2_sourced": 0.7747560497267596,
+      "flexible_ceiling_source": "results/review/null_mechanism.json",
+      "flexible_ceiling_best_model_sourced": "quadratic_ols",
+      "linearity_share_sourced": 0.8831188312774444,
+      "note": "",
+      "published_comparison": null,
+      "published_comparison_note": "published entries were scored on each benchmark's OWN protocol (see benchmarks.py); comparing them against a harmonised-protocol null would repeat the exact mixing error this artifact exists to flag, so none is attempted here"
+    },
+    "windsorml": {
+      "benchmark": "WindsorML",
+      "protocol": "10-fold out-of-sample OLS, seed 0, R2 (sklearn convention), constant reference area where both conventions are published",
+      "metric": "r2",
+      "n_cases": 355,
+      "metadata_null_r2": 0.10449352113588983,
+      "metadata_null_r2_ci95": [
+        -0.14274841268390373,
+        0.26676857071045296
+      ],
+      "metadata_null_mse": 0.0012031869235369676,
+      "metadata_null_mse_ci95": [
+        0.0008543230454608488,
+        0.0016177229799619322
+      ],
+      "flexible_ceiling_r2_sourced": 0.25158561674795477,
+      "flexible_ceiling_source": "results/review/null_mechanism.json",
+      "flexible_ceiling_best_model_sourced": "knn_k10",
+      "linearity_share_sourced": 0.4153398055365234,
+      "note": "6 published parameters + 1 derived (frontal_area); see benchmarks.WINDSORML.",
+      "published_comparison": null,
+      "published_comparison_note": "published entries were scored on each benchmark's OWN protocol (see benchmarks.py); comparing them against a harmonised-protocol null would repeat the exact mixing error this artifact exists to flag, so none is attempted here"
+    },
+    "drivaerml": {
+      "benchmark": "DrivAerML",
+      "protocol": "10-fold out-of-sample OLS, seed 0, R2 (sklearn convention), constant reference area where both conventions are published",
+      "metric": "r2",
+      "n_cases": 484,
+      "metadata_null_r2": 0.9597878540295852,
+      "metadata_null_r2_ci95": [
+        0.9522723421595181,
+        0.9659162107739123
+      ],
+      "metadata_null_mse": 3.670124776249188e-05,
+      "metadata_null_mse_ci95": [
+        3.1613676692573473e-05,
+        4.2531186512421186e-05
+      ],
+      "flexible_ceiling_r2_sourced": 0.9883385718776794,
+      "flexible_ceiling_source": "results/review/null_mechanism.json",
+      "flexible_ceiling_best_model_sourced": "quadratic_ridge_lam1",
+      "linearity_share_sourced": 0.9711124116163422,
+      "note": "CONSTANT reference area (force_mom_constref_all.csv) and plain 10-fold OOS -- NOT the PhysicsNeMo drag-sorted 436/48 split benchmarks.DRIVAERML uses.",
+      "published_comparison": null,
+      "published_comparison_note": "published entries were scored on each benchmark's OWN protocol (see benchmarks.py); comparing them against a harmonised-protocol null would repeat the exact mixing error this artifact exists to flag, so none is attempted here"
+    },
+    "drivaernet": {
+      "benchmark": "DrivAerNet++",
+      "protocol": "10-fold out-of-sample OLS, seed 0, R2 (sklearn convention), constant reference area where both conventions are published",
+      "metric": "r2",
+      "n_cases": 4165,
+      "metadata_null_r2": 0.8248228408844176,
+      "metadata_null_r2_ci95": [
+        0.8151214040637392,
+        0.8341810984758901
+      ],
+      "metadata_null_mse": 8.493148041099471e-05,
+      "metadata_null_mse_ci95": [
+        8.112648878439273e-05,
+        8.877660968704508e-05
+      ],
+      "flexible_ceiling_r2_sourced": 0.8811330937842178,
+      "flexible_ceiling_source": "results/review/null_mechanism.json",
+      "flexible_ceiling_best_model_sourced": "quadratic_ridge_lam10",
+      "linearity_share_sourced": 0.9360933628562712,
+      "note": "PARAMETRIC POOL only (4165 designs with published parameters; excludes the 595 test-split v1-fastbacks benchmarks.DRIVAERNET zero-fills), family dummies fit on ALL parametric designs (not train-only).",
+      "published_comparison": null,
+      "published_comparison_note": "published entries were scored on each benchmark's OWN protocol (see benchmarks.py); comparing them against a harmonised-protocol null would repeat the exact mixing error this artifact exists to flag, so none is attempted here"
+    }
+  },
+  "ranking_by_metadata_null_r2": [
+    [
+      "DrivAerML",
+      0.9597878540295852
+    ],
+    [
+      "DrivAerNet++",
+      0.8248228408844176
+    ],
+    [
+      "AhmedML",
+      0.6842016571598261
+    ],
+    [
+      "AirfRANS",
+      0.6832844323156677
+    ],
+    [
+      "WindsorML",
+      0.10449352113588983
+    ]
+  ]
+}

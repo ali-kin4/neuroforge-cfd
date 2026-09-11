@@ -8,10 +8,10 @@ Source verification: `docs/paper/review/null_travels.md#24-windsorml--the-null-d
 
 > The one published number here is a BOUND, not a point estimate -- see `windsor_implied_r2_floor`. This is the benchmark where the null decisively fails: R2 0.104 [-0.143, 0.267], while the published bound implies the MeshGraphNet attains R2 >= 0.79.
 
-Null out-of-sample: **0.1045** [-0.1427, 0.2668] (95% case-level bootstrap, n_boot=10000)
+metadata_null_r2: **0.1045** [-0.1427, 0.2668] (95% case-level bootstrap, n_boot=10000); metadata_null_mse: 0.001
 
-| model | published | published std | null | null CI95 | covariate-null fraction | flags | verdict | source |
+| model | published | published std | metadata null | null CI95 | published-relative ratio | flags | verdict | source |
 |---|---|---|---|---|---|---|---|---|
 | MeshGraphNet (direct KPI head) | 0.7916* | -- | 0.1045 | [-0.1427, 0.2668] | -- | bound | clears (published bound beats the null outright) | WindsorML arXiv 2407.19320 SI D.2 (MSE bound, converted to implied R2) |
 
-**Headline** (target `cd`, metric r2): null 0.1045 [-0.1427, 0.2668] vs best verified published `None` = -- -> covariate-null fraction --. no verified published point-estimate baseline for this target (a published BOUND exists -- MeshGraphNet (direct KPI head): clears (published bound beats the null outright) -- see the target's own comparisons; a bound never yields a covariate-null fraction)
+**Headline** (target `cd`, metric r2): metadata null 0.1045 [-0.1427, 0.2668] vs best verified published `None` = -- -> published-relative ratio --. no verified published point-estimate baseline for this target (a published BOUND exists -- MeshGraphNet (direct KPI head): clears (published bound beats the null outright) -- see the target's own comparisons; a bound never yields a published-relative ratio)

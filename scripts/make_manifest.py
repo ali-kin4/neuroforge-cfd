@@ -474,43 +474,69 @@ HEADLINE: list[dict] = [
                "vs 0.7365 official, near-duplicate ratios 0.944/0.955, per-family decomposition, "
                "both reference-area normalisations everywhere. Decision rule committed at 8928087 "
                "BEFORE any of these numbers existed"},
-    # --- NullBench: the covariate-null fraction, packaged (docs/paper/review/nullbench_release.md) ---
+    # --- NullBench: the metadata null, packaged (docs/paper/review/nullbench_release.md) ---
+    # Statistic renamed post-review (naming_and_positioning.md): the headline is
+    # metadata_null_r2 (R2_meta); the demoted comparison ratio (formerly
+    # "covariate-null fraction") is published_relative_ratio.
     {"path": "results/nullbench/leaderboards/airfrans.json",
      "script": "neuroforge nullbench leaderboard --all (neuroforge.nullbench.leaderboard)",
      "tier": "cpu",
-     "claims": "AirfRANS worked example, both targets: cl null 0.9821 [0.9737,0.9866] vs "
-               "Transolver 0.9978 (CNF 0.9843, clears); cd null 0.9318 [0.8981,0.9531] vs "
-               "four published rho_D, all negative (CNF undefined, every entry at/below the "
-               "floor). Reproduces results/review/covariate_null_trainfit.json to rel=1e-9 "
-               "including the bootstrap interval (tests/test_nullbench.py)."},
+     "claims": "AirfRANS worked example, own protocol, both targets: cl metadata_null_r2 (here "
+               "Spearman) 0.9821 [0.9737,0.9866] vs Transolver 0.9978 (ratio 0.9843, clears); cd "
+               "0.9318 [0.8981,0.9531] vs four published rho_D, all negative (ratio undefined, "
+               "every entry at/below the floor). Reproduces results/review/"
+               "covariate_null_trainfit.json to rel=1e-9 including the bootstrap interval "
+               "(tests/test_nullbench.py)."},
     {"path": "results/nullbench/leaderboards/drivaerml.json",
      "script": "neuroforge nullbench leaderboard --all (neuroforge.nullbench.leaderboard)",
      "tier": "cpu",
-     "claims": "DrivAerML worked example, PhysicsNeMo-CFD 436/48 split: drag_force_N null "
-               "R2 0.9731 [0.9581,0.9826] vs DoMINO 0.98 (CNF 0.9929, straddles), "
-               "FIGConvNet/X-MeshGraphNet also scored. Reproduces "
+     "claims": "DrivAerML worked example, own protocol (PhysicsNeMo-CFD 436/48 split): "
+               "drag_force_N metadata_null_r2 0.9731 [0.9581,0.9826] vs DoMINO 0.98 (ratio "
+               "0.9929, straddles; rounding-sensitivity checked at 2-decimal precision, swing "
+               "~1.0%, NOT flagged), FIGConvNet/X-MeshGraphNet also scored. Reproduces "
                "covariate_null_crossbench.json's DrivAerML_benchmark_split row to rel=1e-9."},
     {"path": "results/nullbench/leaderboards/drivaernet.json",
      "script": "neuroforge nullbench leaderboard --all (neuroforge.nullbench.leaderboard)",
      "tier": "cpu",
-     "claims": "DrivAerNet++ worked example, official 5819/1154 split, full test set: cd null "
-               "R2 0.7365 [0.7050,0.7643] vs TripNet 0.957 (CNF 0.7696, clears), above all "
-               "three dataset-paper baselines (CNF > 1 each). Reproduces "
+     "claims": "DrivAerNet++ worked example, own protocol, official 5819/1154 split, full test "
+               "set: cd metadata_null_r2 0.7365 [0.7050,0.7643] vs TripNet 0.957 (ratio 0.7696, "
+               "clears), above all three dataset-paper baselines (ratio > 1 each). Reproduces "
                "covariate_null_crossbench.json's category_params_where_published row to rel=1e-9."},
     {"path": "results/nullbench/leaderboards/ahmedml.json",
      "script": "neuroforge nullbench leaderboard --all (neuroforge.nullbench.leaderboard)",
      "tier": "cpu",
-     "claims": "AhmedML worked example, 10-fold OOS: cd null R2 0.6842 [0.6377,0.7273], no "
-               "verified published baseline (reported as a bar, not adjudicated). Reproduces "
-               "covariate_null_crossbench.json's AhmedML params_linear row to rel=1e-9."},
+     "claims": "AhmedML worked example, own protocol, 10-fold OOS: cd metadata_null_r2 0.6842 "
+               "[0.6377,0.7273], no verified published baseline (reported as a bar, not "
+               "adjudicated). Reproduces covariate_null_crossbench.json's AhmedML params_linear "
+               "row to rel=1e-9."},
     {"path": "results/nullbench/leaderboards/windsorml.json",
      "script": "neuroforge nullbench leaderboard --all (neuroforge.nullbench.leaderboard)",
      "tier": "cpu",
-     "claims": "WindsorML worked example, 10-fold OOS: cd null R2 0.1045 [-0.1427,0.2668] vs "
-               "a published MeshGraphNet MSE bound converted to an implied R2 floor >= 0.7916 "
-               "-- the one counterexample among the five, and clears outright (bound beats the "
-               "null). Reproduces covariate_null_crossbench.json's WindsorML params_linear row "
-               "to rel=1e-9."},
+     "claims": "WindsorML worked example, own protocol, 10-fold OOS: cd metadata_null_r2 0.1045 "
+               "[-0.1427,0.2668] vs a published MeshGraphNet MSE bound converted to an implied "
+               "R2 floor >= 0.7916 -- the one counterexample among the five, and clears outright "
+               "(bound beats the null). Config description corrected post-null_mechanism.md: "
+               "6 published parameters + 1 derived frontal_area column, not 7 published. "
+               "Reproduces covariate_null_crossbench.json's WindsorML params_linear row to "
+               "rel=1e-9."},
+    {"path": "results/nullbench/leaderboards/harmonised.json",
+     "script": "neuroforge nullbench leaderboard --harmonised "
+               "(neuroforge.nullbench.harmonised + leaderboard)",
+     "tier": "cpu",
+     "claims": "the cross-benchmark-comparable view (docs/paper/review/null_mechanism.md, "
+               "naming_and_positioning.md): one protocol (10-fold OOS OLS, seed 0, R2, constant "
+               "reference area) applied identically to all five benchmarks -- NOT the "
+               "per-benchmark tables above, which use each benchmark's own protocol and are not "
+               "comparable to each other. metadata_null_r2, highest to lowest: DrivAerML 0.9598 "
+               "[0.9523,0.9659], DrivAerNet++ 0.8248 [0.8151,0.8342], AhmedML 0.6842 "
+               "[0.6377,0.7273], AirfRANS 0.6833 [0.6197,0.7372], WindsorML 0.1045 "
+               "[-0.1427,0.2668]. Reproduces results/review/null_mechanism.json's "
+               "null_r2_linear to floating-point precision for all five (tests/"
+               "test_nullbench.py). Flexible ceiling (0.9883/0.8811/0.7748/0.9463/0.2516 "
+               "respectively) is SOURCED from null_mechanism.json, not recomputed -- see "
+               "nullbench_release.md Sec 2.4/3 for the explicit scope decision. No published "
+               "comparison in this view by design (published_comparison: null in the JSON "
+               "itself, with the reason stated in published_comparison_note)."},
 ]
 
 

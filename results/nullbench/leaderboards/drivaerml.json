@@ -16,6 +16,16 @@
         0.9826207956902174
       ],
       "n_boot_finite": 10000,
+      "metadata_null_r2": 0.9730580198150222,
+      "metadata_null_r2_ci95": [
+        0.9580772227747316,
+        0.9826207956902174
+      ],
+      "metadata_null_mse": 129.98537369564352,
+      "metadata_null_mse_ci95": [
+        83.68135564725395,
+        188.4152364527594
+      ],
       "feature_names": [
         "Vehicle_Length",
         "Vehicle_Width",
@@ -44,7 +54,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "BELOW THE NULL",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "r2",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -55,10 +65,15 @@
             ],
             "published": 0.92,
             "published_std": null,
-            "covariate_null_fraction": 1.0576717606685022,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 2,
+            "published_relative_ratio": 1.0576717606685022,
+            "published_relative_ratio_ci95": [
               1.0413882856247083,
               1.0680660822719754
+            ],
+            "rounding_interval": [
+              1.05195461601624,
+              1.0634513877759804
             ],
             "flags": [
               "null_exceeds_published"
@@ -73,7 +88,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "straddles",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "r2",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -84,10 +99,15 @@
             ],
             "published": 0.97,
             "published_std": null,
-            "covariate_null_fraction": 1.0031525977474456,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 2,
+            "published_relative_ratio": 1.0031525977474456,
+            "published_relative_ratio_ci95": [
               0.9877084770873522,
               1.0130111295775437
+            ],
+            "rounding_interval": [
+              0.9980082254513049,
+              1.0083502796010593
             ],
             "flags": [
               "null_exceeds_published"
@@ -102,7 +122,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "straddles",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "r2",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -113,16 +133,21 @@
             ],
             "published": 0.98,
             "published_std": null,
-            "covariate_null_fraction": 0.9929163467500226,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 2,
+            "published_relative_ratio": 0.9929163467500226,
+            "published_relative_ratio_ci95": [
               0.9776298191578894,
               1.0026742813165483
+            ],
+            "rounding_interval": [
+              0.9878761622487535,
+              0.9980082254513049
             ],
             "flags": []
           }
         }
       ],
-      "target_note": "PhysicsNeMo's validation set is built by sorting on drag and taking the top/bottom deciles, which RAISES its variance relative to a random 10% and inflates R2 for every model scored on it equally -- including the null. The head-to-head is unaffected; the absolute R2 is not comparable to a random-split R2. Published values are given to 2 decimals."
+      "target_note": "PhysicsNeMo's validation set is built by sorting on drag and taking the top/bottom deciles, which RAISES its variance relative to a random 10% and inflates R2 for every model scored on it equally -- including the null. The head-to-head is unaffected; the absolute R2 is not comparable to a random-split R2. Published values are given to 2 decimals -- see harmonised.py for the split-free anchor (10-fold OOS, R2 0.9598) that IS comparable across benchmarks, and stats.py's rounding-sensitivity discussion for why this benchmark is the one where 2-decimal precision was checked explicitly."
     },
     "drag_force_N_rank": {
       "metric": "spearman",
@@ -137,6 +162,16 @@
         0.9908710536325601
       ],
       "n_boot_finite": 10000,
+      "metadata_null_spearman": 0.9836083369518019,
+      "metadata_null_spearman_ci95": [
+        0.9563845986512944,
+        0.9908710536325601
+      ],
+      "metadata_null_mse": 129.98537369564352,
+      "metadata_null_mse_ci95": [
+        83.68135564725395,
+        188.4152364527594
+      ],
       "feature_names": [
         "Vehicle_Length",
         "Vehicle_Width",
@@ -165,7 +200,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "straddles",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "spearman",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -176,10 +211,15 @@
             ],
             "published": 0.96,
             "published_std": null,
-            "covariate_null_fraction": 1.0245920176581271,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 2,
+            "published_relative_ratio": 1.0245920176581271,
+            "published_relative_ratio_ci95": [
               0.9962339569284318,
               1.0321573475339167
+            ],
+            "rounding_interval": [
+              1.019283250727256,
+              1.0299563737715205
             ],
             "flags": [
               "null_exceeds_published"
@@ -194,7 +234,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "straddles",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "spearman",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -205,10 +245,15 @@
             ],
             "published": 0.99,
             "published_std": null,
-            "covariate_null_fraction": 0.9935437746987898,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 2,
+            "published_relative_ratio": 0.9935437746987898,
+            "published_relative_ratio_ci95": [
               0.9660450491427217,
               1.0008798521541011
+            ],
+            "rounding_interval": [
+              0.9885510924138713,
+              0.9985871441135046
             ],
             "flags": []
           }
@@ -221,7 +266,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "straddles",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "spearman",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -232,10 +277,15 @@
             ],
             "published": 0.99,
             "published_std": null,
-            "covariate_null_fraction": 0.9935437746987898,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 2,
+            "published_relative_ratio": 0.9935437746987898,
+            "published_relative_ratio_ci95": [
               0.9660450491427217,
               1.0008798521541011
+            ],
+            "rounding_interval": [
+              0.9885510924138713,
+              0.9985871441135046
             ],
             "flags": []
           }
@@ -248,6 +298,7 @@
     "target": "drag_force_N",
     "metric": "r2",
     "protocol": "official_split",
+    "metadata_null_r2": 0.9730580198150222,
     "null_point": 0.9730580198150222,
     "null_ci95": [
       0.9580772227747316,
@@ -255,7 +306,7 @@
     ],
     "best_published_model": "DoMINO",
     "best_published_value": 0.98,
-    "covariate_null_fraction": {
+    "published_relative_ratio": {
       "metric": "r2",
       "floor": 0.0,
       "ceiling": 1.0,
@@ -266,10 +317,15 @@
       ],
       "published": 0.98,
       "published_std": null,
-      "covariate_null_fraction": 0.9929163467500226,
-      "covariate_null_fraction_ci95": [
+      "published_precision_decimals": 2,
+      "published_relative_ratio": 0.9929163467500226,
+      "published_relative_ratio_ci95": [
         0.9776298191578894,
         1.0026742813165483
+      ],
+      "rounding_interval": [
+        0.9878761622487535,
+        0.9980082254513049
       ],
       "flags": []
     },

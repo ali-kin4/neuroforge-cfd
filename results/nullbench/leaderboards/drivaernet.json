@@ -16,6 +16,16 @@
         0.764277085568821
       ],
       "n_boot_finite": 10000,
+      "metadata_null_r2": 0.7364711158772645,
+      "metadata_null_r2_ci95": [
+        0.7049980903603935,
+        0.764277085568821
+      ],
+      "metadata_null_mse": 0.00010933535270098617,
+      "metadata_null_mse_ci95": [
+        9.830923791914002e-05,
+        0.00012149876553668086
+      ],
       "feature_names": [
         "cat_0",
         "cat_1",
@@ -58,7 +68,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "BELOW THE NULL",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "r2",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -69,10 +79,15 @@
             ],
             "published": 0.643,
             "published_std": null,
-            "covariate_null_fraction": 1.1453672097624643,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 3,
+            "published_relative_ratio": 1.1453672097624643,
+            "published_relative_ratio_ci95": [
               1.0964200472167862,
               1.1886113305891461
+            ],
+            "rounding_interval": [
+              1.1444772585505276,
+              1.146258546112474
             ],
             "flags": [
               "null_exceeds_published"
@@ -87,7 +102,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "BELOW THE NULL",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "r2",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -98,10 +113,15 @@
             ],
             "published": 0.596,
             "published_std": null,
-            "covariate_null_fraction": 1.2356897917403769,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 3,
+            "published_relative_ratio": 1.2356897917403769,
+            "published_relative_ratio_ci95": [
               1.182882701946969,
               1.282344103303391
+            ],
+            "rounding_interval": [
+              1.2346540081764705,
+              1.2367273146553561
             ],
             "flags": [
               "null_exceeds_published"
@@ -116,7 +136,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "BELOW THE NULL",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "r2",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -127,10 +147,15 @@
             ],
             "published": 0.641,
             "published_std": null,
-            "covariate_null_fraction": 1.148940898404469,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 3,
+            "published_relative_ratio": 1.148940898404469,
+            "published_relative_ratio_ci95": [
               1.099841014602798,
               1.192319946285212
+            ],
+            "rounding_interval": [
+              1.148045387182018,
+              1.1498378077709046
             ],
             "flags": [
               "null_exceeds_published"
@@ -145,7 +170,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "clears",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "r2",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -156,10 +181,15 @@
             ],
             "published": 0.957,
             "published_std": null,
-            "covariate_null_fraction": 0.7695622945425962,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 3,
+            "published_relative_ratio": 0.7695622945425962,
+            "published_relative_ratio_ci95": [
               0.7366751205437759,
               0.7986176442725402
+            ],
+            "rounding_interval": [
+              0.7691604343365688,
+              0.7699645748847512
             ],
             "flags": []
           }
@@ -172,7 +202,7 @@
           "published_note": "",
           "is_bound": false,
           "verdict": "clears",
-          "covariate_null_fraction": {
+          "published_relative_ratio": {
             "metric": "r2",
             "floor": 0.0,
             "ceiling": 1.0,
@@ -183,22 +213,28 @@
             ],
             "published": 0.9528,
             "published_std": null,
-            "covariate_null_fraction": 0.7729545716595976,
-            "covariate_null_fraction_ci95": [
+            "published_precision_decimals": 4,
+            "published_relative_ratio": 0.7729545716595976,
+            "published_relative_ratio_ci95": [
               0.739922429009649,
               0.8021379991276459
+            ],
+            "rounding_interval": [
+              0.772914011520454,
+              0.7729951360559061
             ],
             "flags": []
           }
         }
       ],
-      "target_note": "The dataset paper's own NeurIPS checklist answers \"[No]\" to error bars, so these rows carry no seed spread."
+      "target_note": "The dataset paper's own NeurIPS checklist answers \"[No]\" to error bars, so these rows carry no seed spread. This target zero-fills the 595 test designs with no published parameters at all -- see harmonised.py for the parametric-pool-only anchor (0.8248) that excludes them."
     }
   },
   "headline": {
     "target": "cd",
     "metric": "r2",
     "protocol": "official_split",
+    "metadata_null_r2": 0.7364711158772645,
     "null_point": 0.7364711158772645,
     "null_ci95": [
       0.7049980903603935,
@@ -206,7 +242,7 @@
     ],
     "best_published_model": "TripNet",
     "best_published_value": 0.957,
-    "covariate_null_fraction": {
+    "published_relative_ratio": {
       "metric": "r2",
       "floor": 0.0,
       "ceiling": 1.0,
@@ -217,10 +253,15 @@
       ],
       "published": 0.957,
       "published_std": null,
-      "covariate_null_fraction": 0.7695622945425962,
-      "covariate_null_fraction_ci95": [
+      "published_precision_decimals": 3,
+      "published_relative_ratio": 0.7695622945425962,
+      "published_relative_ratio_ci95": [
         0.7366751205437759,
         0.7986176442725402
+      ],
+      "rounding_interval": [
+        0.7691604343365688,
+        0.7699645748847512
       ],
       "flags": []
     },

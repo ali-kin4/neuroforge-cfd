@@ -1,6 +1,6 @@
-# NullBench — corrected leaderboards
+# NullBench — corrected leaderboards (per-benchmark, own protocol)
 
-Machine-readable form: the sibling `.json` files in this directory. Regenerate both with `neuroforge nullbench leaderboard --all`. See `docs/NULLBENCH.md` for the statistic's definition.
+Machine-readable form: the sibling `.json` files in this directory. Regenerate with `neuroforge nullbench leaderboard --all`. See `docs/NULLBENCH.md` for the statistic's definition, and `harmonised.md` in this directory for the SEPARATE cross-benchmark view -- these per-benchmark tables are not comparable to each other; see benchmarks.py's module docstring.
 
 ## AirfRANS
 
@@ -10,9 +10,9 @@ Source verification: `docs/paper/review/published_baselines_verified.md`
 
 ### target: `cl` (metric: spearman, protocol: `official_split`, n_fit=800, n_score=200)
 
-Null out-of-sample: **0.9821** [0.9737, 0.9866] (95% case-level bootstrap, n_boot=10000)
+metadata_null_spearman: **0.9821** [0.9737, 0.9866] (95% case-level bootstrap, n_boot=10000); metadata_null_mse: 0.012
 
-| model | published | published std | null | null CI95 | covariate-null fraction | flags | verdict | source |
+| model | published | published std | metadata null | null CI95 | published-relative ratio | flags | verdict | source |
 |---|---|---|---|---|---|---|---|---|
 | MLP | 0.9130 | 0.0180 | 0.9821 | [0.9737, 0.9866] | 1.0757 | null_exceeds_published | BELOW THE NULL | NeurIPS 2022 D&B Table 3 |
 | GraphSAGE | 0.9650 | 0.0110 | 0.9821 | [0.9737, 0.9866] | 1.0178 | null_exceeds_published | BELOW THE NULL | NeurIPS 2022 D&B Table 3 |
@@ -22,18 +22,18 @@ Null out-of-sample: **0.9821** [0.9737, 0.9866] (95% case-level bootstrap, n_boo
 
 ### target: `cd` (metric: spearman, protocol: `official_split`, n_fit=800, n_score=200)
 
-> Every published rho_D is negative; three of four 95% intervals span zero. The covariate-null fraction is undefined for all four rows -- see stats.py's floor convention -- because the published metric never exceeds its own floor.
+> Every published rho_D is negative; three of four 95% intervals span zero. The published-relative ratio is undefined for all four rows -- see stats.py's floor convention -- because the published metric never exceeds its own floor.
 
-Null out-of-sample: **0.9318** [0.8981, 0.9531] (95% case-level bootstrap, n_boot=10000)
+metadata_null_spearman: **0.9318** [0.8981, 0.9531] (95% case-level bootstrap, n_boot=10000); metadata_null_mse: 0.000
 
-| model | published | published std | null | null CI95 | covariate-null fraction | flags | verdict | source |
+| model | published | published std | metadata null | null CI95 | published-relative ratio | flags | verdict | source |
 |---|---|---|---|---|---|---|---|---|
 | MLP | -0.1170 | 0.2560 | 0.9318 | [0.8981, 0.9531] | -- | published_at_or_below_floor | BELOW THE NULL | NeurIPS 2022 D&B Table 3 |
 | GraphSAGE | -0.3030 | 0.1240 | 0.9318 | [0.8981, 0.9531] | -- | published_at_or_below_floor | BELOW THE NULL | NeurIPS 2022 D&B Table 3 |
 | PointNet | -0.0220 | 0.0970 | 0.9318 | [0.8981, 0.9531] | -- | published_at_or_below_floor | BELOW THE NULL | NeurIPS 2022 D&B Table 3 |
 | Graph U-Net | -0.1380 | 0.2580 | 0.9318 | [0.8981, 0.9531] | -- | published_at_or_below_floor | BELOW THE NULL | NeurIPS 2022 D&B Table 3 |
 
-**Headline** (target `cd`, metric spearman): null 0.9318 [0.8981, 0.9531] vs best verified published `None` = -- -> covariate-null fraction --. every verified published entry for this target is at or below the metric's own floor (0.0) -- no fraction is defined for any of them; see stats.py's floor convention. The published entries themselves not clearing the floor is the more important fact here.
+**Headline** (target `cd`, metric spearman): metadata null 0.9318 [0.8981, 0.9531] vs best verified published `None` = -- -> published-relative ratio --. every verified published entry for this target is at or below the metric's own floor (0.0) -- no ratio is defined for any of them; see stats.py's floor convention. The published entries themselves not clearing the floor is the more important fact here.
 
 ## DrivAerML
 
@@ -43,11 +43,11 @@ Source verification: `docs/paper/review/null_travels.md#21-drivaerml--the-clean-
 
 ### target: `drag_force_N` (metric: r2, protocol: `official_split`, n_fit=436, n_score=48)
 
-> PhysicsNeMo's validation set is built by sorting on drag and taking the top/bottom deciles, which RAISES its variance relative to a random 10% and inflates R2 for every model scored on it equally -- including the null. The head-to-head is unaffected; the absolute R2 is not comparable to a random-split R2. Published values are given to 2 decimals.
+> PhysicsNeMo's validation set is built by sorting on drag and taking the top/bottom deciles, which RAISES its variance relative to a random 10% and inflates R2 for every model scored on it equally -- including the null. The head-to-head is unaffected; the absolute R2 is not comparable to a random-split R2. Published values are given to 2 decimals -- see harmonised.py for the split-free anchor (10-fold OOS, R2 0.9598) that IS comparable across benchmarks, and stats.py's rounding-sensitivity discussion for why this benchmark is the one where 2-decimal precision was checked explicitly.
 
-Null out-of-sample: **0.9731** [0.9581, 0.9826] (95% case-level bootstrap, n_boot=10000)
+metadata_null_r2: **0.9731** [0.9581, 0.9826] (95% case-level bootstrap, n_boot=10000); metadata_null_mse: 129.985
 
-| model | published | published std | null | null CI95 | covariate-null fraction | flags | verdict | source |
+| model | published | published std | metadata null | null CI95 | published-relative ratio | flags | verdict | source |
 |---|---|---|---|---|---|---|---|---|
 | X-MeshGraphNet | 0.9200 | -- | 0.9731 | [0.9581, 0.9826] | 1.0577 | null_exceeds_published | BELOW THE NULL | arXiv 2507.10747 Table 6 (surface mesh) |
 | FIGConvNet | 0.9700 | -- | 0.9731 | [0.9581, 0.9826] | 1.0032 | null_exceeds_published | straddles | arXiv 2507.10747 Table 6 (surface mesh) |
@@ -57,15 +57,15 @@ Null out-of-sample: **0.9731** [0.9581, 0.9826] (95% case-level bootstrap, n_boo
 
 > same split and label as drag_force_N, scored in Spearman (Table 4).
 
-Null out-of-sample: **0.9836** [0.9564, 0.9909] (95% case-level bootstrap, n_boot=10000)
+metadata_null_spearman: **0.9836** [0.9564, 0.9909] (95% case-level bootstrap, n_boot=10000); metadata_null_mse: 129.985
 
-| model | published | published std | null | null CI95 | covariate-null fraction | flags | verdict | source |
+| model | published | published std | metadata null | null CI95 | published-relative ratio | flags | verdict | source |
 |---|---|---|---|---|---|---|---|---|
 | X-MeshGraphNet | 0.9600 | -- | 0.9836 | [0.9564, 0.9909] | 1.0246 | null_exceeds_published | straddles | arXiv 2507.10747 Table 4 |
 | FIGConvNet | 0.9900 | -- | 0.9836 | [0.9564, 0.9909] | 0.9935 |  | straddles | arXiv 2507.10747 Table 4 |
 | DoMINO | 0.9900 | -- | 0.9836 | [0.9564, 0.9909] | 0.9935 |  | straddles | arXiv 2507.10747 Table 4 |
 
-**Headline** (target `drag_force_N`, metric r2): null 0.9731 [0.9581, 0.9826] vs best verified published `DoMINO` = 0.9800 -> covariate-null fraction 0.9929. 
+**Headline** (target `drag_force_N`, metric r2): metadata null 0.9731 [0.9581, 0.9826] vs best verified published `DoMINO` = 0.9800 -> published-relative ratio 0.9929. 
 
 ## DrivAerNet++
 
@@ -75,11 +75,11 @@ Source verification: `docs/paper/review/null_travels.md#22-drivaernet--the-null-
 
 ### target: `cd` (metric: r2, protocol: `official_split`, n_fit=5819, n_score=1154)
 
-> The dataset paper's own NeurIPS checklist answers "[No]" to error bars, so these rows carry no seed spread.
+> The dataset paper's own NeurIPS checklist answers "[No]" to error bars, so these rows carry no seed spread. This target zero-fills the 595 test designs with no published parameters at all -- see harmonised.py for the parametric-pool-only anchor (0.8248) that excludes them.
 
-Null out-of-sample: **0.7365** [0.7050, 0.7643] (95% case-level bootstrap, n_boot=10000)
+metadata_null_r2: **0.7365** [0.7050, 0.7643] (95% case-level bootstrap, n_boot=10000); metadata_null_mse: 0.000
 
-| model | published | published std | null | null CI95 | covariate-null fraction | flags | verdict | source |
+| model | published | published std | metadata null | null CI95 | published-relative ratio | flags | verdict | source |
 |---|---|---|---|---|---|---|---|---|
 | PointNet | 0.6430 | -- | 0.7365 | [0.7050, 0.7643] | 1.1454 | null_exceeds_published | BELOW THE NULL | NeurIPS 2024 D&B Table 4 |
 | GCNN | 0.5960 | -- | 0.7365 | [0.7050, 0.7643] | 1.2357 | null_exceeds_published | BELOW THE NULL | NeurIPS 2024 D&B Table 4 |
@@ -87,7 +87,7 @@ Null out-of-sample: **0.7365** [0.7050, 0.7643] (95% case-level bootstrap, n_boo
 | TripNet | 0.9570 | -- | 0.7365 | [0.7050, 0.7643] | 0.7696 |  | clears | arXiv 2503.17400 Table 5 (current SOTA) |
 | PointNet2D+BiLSTM | 0.9528 | -- | 0.7365 | [0.7050, 0.7643] | 0.7730 |  | clears | arXiv 2601.02112 Table 1 (preprint) |
 
-**Headline** (target `cd`, metric r2): null 0.7365 [0.7050, 0.7643] vs best verified published `TripNet` = 0.9570 -> covariate-null fraction 0.7696. 
+**Headline** (target `cd`, metric r2): metadata null 0.7365 [0.7050, 0.7643] vs best verified published `TripNet` = 0.9570 -> published-relative ratio 0.7696. 
 
 ## AhmedML
 
@@ -99,7 +99,7 @@ Source verification: `docs/paper/review/null_travels.md#23-ahmedml--a-bar-nobody
 
 > No published ML drag baseline found: searched the dataset paper (arXiv 2407.20801, which reports no ML results), NeuralCFD/GP-UPT (arXiv 2502.09692, whose drag result is on DrivAerML not AhmedML), PhysicsNeMo-CFD (DrivAerML only), and FIGConvNet (its "Ahmed body" is a different dataset). Not adjudicable: a benchmark cannot be said to be beaten by a model whose number was never published. R2 0.684 [0.638, 0.727] (const-area) is reported here as the bar any future AhmedML drag surrogate must clear.
 
-Null out-of-sample: **0.6842** [0.6377, 0.7273] (95% case-level bootstrap, n_boot=10000)
+metadata_null_r2: **0.6842** [0.6377, 0.7273] (95% case-level bootstrap, n_boot=10000); metadata_null_mse: 0.001
 
 _No published entries verified for this target._
 
@@ -107,11 +107,11 @@ _No published entries verified for this target._
 
 > no published ML lift baseline found.
 
-Null out-of-sample: **0.4515** [0.4039, 0.4934] (95% case-level bootstrap, n_boot=10000)
+metadata_null_r2: **0.4515** [0.4039, 0.4934] (95% case-level bootstrap, n_boot=10000); metadata_null_mse: 0.025
 
 _No published entries verified for this target._
 
-**Headline** (target `cd`, metric r2): null 0.6842 [0.6377, 0.7273] vs best verified published `None` = -- -> covariate-null fraction --. no verified published point-estimate baseline for this target
+**Headline** (target `cd`, metric r2): metadata null 0.6842 [0.6377, 0.7273] vs best verified published `None` = -- -> published-relative ratio --. no verified published point-estimate baseline for this target
 
 ## WindsorML
 
@@ -123,10 +123,10 @@ Source verification: `docs/paper/review/null_travels.md#24-windsorml--the-null-d
 
 > The one published number here is a BOUND, not a point estimate -- see `windsor_implied_r2_floor`. This is the benchmark where the null decisively fails: R2 0.104 [-0.143, 0.267], while the published bound implies the MeshGraphNet attains R2 >= 0.79.
 
-Null out-of-sample: **0.1045** [-0.1427, 0.2668] (95% case-level bootstrap, n_boot=10000)
+metadata_null_r2: **0.1045** [-0.1427, 0.2668] (95% case-level bootstrap, n_boot=10000); metadata_null_mse: 0.001
 
-| model | published | published std | null | null CI95 | covariate-null fraction | flags | verdict | source |
+| model | published | published std | metadata null | null CI95 | published-relative ratio | flags | verdict | source |
 |---|---|---|---|---|---|---|---|---|
 | MeshGraphNet (direct KPI head) | 0.7916* | -- | 0.1045 | [-0.1427, 0.2668] | -- | bound | clears (published bound beats the null outright) | WindsorML arXiv 2407.19320 SI D.2 (MSE bound, converted to implied R2) |
 
-**Headline** (target `cd`, metric r2): null 0.1045 [-0.1427, 0.2668] vs best verified published `None` = -- -> covariate-null fraction --. no verified published point-estimate baseline for this target (a published BOUND exists -- MeshGraphNet (direct KPI head): clears (published bound beats the null outright) -- see the target's own comparisons; a bound never yields a covariate-null fraction)
+**Headline** (target `cd`, metric r2): metadata null 0.1045 [-0.1427, 0.2668] vs best verified published `None` = -- -> published-relative ratio --. no verified published point-estimate baseline for this target (a published BOUND exists -- MeshGraphNet (direct KPI head): clears (published bound beats the null outright) -- see the target's own comparisons; a bound never yields a published-relative ratio)

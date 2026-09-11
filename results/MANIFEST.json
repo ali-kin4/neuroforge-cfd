@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-11T17:13:40.271451+00:00",
-  "git_head": "e393981a9ddc35bb7457b8585adedbd7e96809fd",
-  "git_head_short": "e393981",
+  "generated_utc": "2026-09-11T17:37:48.862714+00:00",
+  "git_head": "f69f5f6961a66cd7ff539d7ee4f4631ca7801e3e",
+  "git_head_short": "f69f5f6",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -12,7 +12,7 @@
     "cuda_toolkit": "12.4",
     "gpu": "NVIDIA GeForce RTX 4070 Ti"
   },
-  "n_files": 79,
+  "n_files": 80,
   "n_missing": 0,
   "missing": [],
   "files": [
@@ -760,49 +760,59 @@
       "path": "results/nullbench/leaderboards/airfrans.json",
       "script": "neuroforge nullbench leaderboard --all (neuroforge.nullbench.leaderboard)",
       "tier": "cpu",
-      "claims": "AirfRANS worked example, both targets: cl null 0.9821 [0.9737,0.9866] vs Transolver 0.9978 (CNF 0.9843, clears); cd null 0.9318 [0.8981,0.9531] vs four published rho_D, all negative (CNF undefined, every entry at/below the floor). Reproduces results/review/covariate_null_trainfit.json to rel=1e-9 including the bootstrap interval (tests/test_nullbench.py).",
-      "sha256": "8784e9492994281c6352fc28824d69ed5db3fc87f8a255fc4fd8ebaa64dd1e71",
-      "bytes": 10296,
-      "git_tracked": false,
-      "last_commit": ""
+      "claims": "AirfRANS worked example, own protocol, both targets: cl metadata_null_r2 (here Spearman) 0.9821 [0.9737,0.9866] vs Transolver 0.9978 (ratio 0.9843, clears); cd 0.9318 [0.8981,0.9531] vs four published rho_D, all negative (ratio undefined, every entry at/below the floor). Reproduces results/review/covariate_null_trainfit.json to rel=1e-9 including the bootstrap interval (tests/test_nullbench.py).",
+      "sha256": "916642aa7354151f697fd8416c469dcf617c01bdefc78b8fa3ff5d132b0923a3",
+      "bytes": 12148,
+      "git_tracked": true,
+      "last_commit": "f69f5f6"
     },
     {
       "path": "results/nullbench/leaderboards/drivaerml.json",
       "script": "neuroforge nullbench leaderboard --all (neuroforge.nullbench.leaderboard)",
       "tier": "cpu",
-      "claims": "DrivAerML worked example, PhysicsNeMo-CFD 436/48 split: drag_force_N null R2 0.9731 [0.9581,0.9826] vs DoMINO 0.98 (CNF 0.9929, straddles), FIGConvNet/X-MeshGraphNet also scored. Reproduces covariate_null_crossbench.json's DrivAerML_benchmark_split row to rel=1e-9.",
-      "sha256": "f7a30b42358b8076d70279cde3457a240df1703b7ae2f24f964a4411b5a37d94",
-      "bytes": 8882,
-      "git_tracked": false,
-      "last_commit": ""
+      "claims": "DrivAerML worked example, own protocol (PhysicsNeMo-CFD 436/48 split): drag_force_N metadata_null_r2 0.9731 [0.9581,0.9826] vs DoMINO 0.98 (ratio 0.9929, straddles; rounding-sensitivity checked at 2-decimal precision, swing ~1.0%, NOT flagged), FIGConvNet/X-MeshGraphNet also scored. Reproduces covariate_null_crossbench.json's DrivAerML_benchmark_split row to rel=1e-9.",
+      "sha256": "8cfe729b1bac17e315f8044676a126befeaed4af902dfebda0da25fdcc2d52ab",
+      "bytes": 10886,
+      "git_tracked": true,
+      "last_commit": "f69f5f6"
     },
     {
       "path": "results/nullbench/leaderboards/drivaernet.json",
       "script": "neuroforge nullbench leaderboard --all (neuroforge.nullbench.leaderboard)",
       "tier": "cpu",
-      "claims": "DrivAerNet++ worked example, official 5819/1154 split, full test set: cd null R2 0.7365 [0.7050,0.7643] vs TripNet 0.957 (CNF 0.7696, clears), above all three dataset-paper baselines (CNF > 1 each). Reproduces covariate_null_crossbench.json's category_params_where_published row to rel=1e-9.",
-      "sha256": "002bd9ff32b23c6b0ccf3a6e52ac30413ec7fd9cfa36c591ccdedae085424659",
-      "bytes": 7294,
-      "git_tracked": false,
-      "last_commit": ""
+      "claims": "DrivAerNet++ worked example, own protocol, official 5819/1154 split, full test set: cd metadata_null_r2 0.7365 [0.7050,0.7643] vs TripNet 0.957 (ratio 0.7696, clears), above all three dataset-paper baselines (ratio > 1 each). Reproduces covariate_null_crossbench.json's category_params_where_published row to rel=1e-9.",
+      "sha256": "4397ac70bea95f6fa23eec9b3f30fd6282a0edb294a7cd7c3665224a6367feb2",
+      "bytes": 8771,
+      "git_tracked": true,
+      "last_commit": "f69f5f6"
     },
     {
       "path": "results/nullbench/leaderboards/ahmedml.json",
       "script": "neuroforge nullbench leaderboard --all (neuroforge.nullbench.leaderboard)",
       "tier": "cpu",
-      "claims": "AhmedML worked example, 10-fold OOS: cd null R2 0.6842 [0.6377,0.7273], no verified published baseline (reported as a bar, not adjudicated). Reproduces covariate_null_crossbench.json's AhmedML params_linear row to rel=1e-9.",
-      "sha256": "e26f7e100b0a5f0cbaf6b4b43afa19bc938ad9b799b72d74047a5a34db585a00",
-      "bytes": 2854,
-      "git_tracked": false,
-      "last_commit": ""
+      "claims": "AhmedML worked example, own protocol, 10-fold OOS: cd metadata_null_r2 0.6842 [0.6377,0.7273], no verified published baseline (reported as a bar, not adjudicated). Reproduces covariate_null_crossbench.json's AhmedML params_linear row to rel=1e-9.",
+      "sha256": "0970ba0f04f9dea158bc960265362c1bb91480bc9d1c8500cb429fdafba92041",
+      "bytes": 3486,
+      "git_tracked": true,
+      "last_commit": "f69f5f6"
     },
     {
       "path": "results/nullbench/leaderboards/windsorml.json",
       "script": "neuroforge nullbench leaderboard --all (neuroforge.nullbench.leaderboard)",
       "tier": "cpu",
-      "claims": "WindsorML worked example, 10-fold OOS: cd null R2 0.1045 [-0.1427,0.2668] vs a published MeshGraphNet MSE bound converted to an implied R2 floor >= 0.7916 -- the one counterexample among the five, and clears outright (bound beats the null). Reproduces covariate_null_crossbench.json's WindsorML params_linear row to rel=1e-9.",
-      "sha256": "f1153addab3ee27f407f8b0fbfea2896f6ae5dfd792cee0bcfcd4e84a176619f",
-      "bytes": 3243,
+      "claims": "WindsorML worked example, own protocol, 10-fold OOS: cd metadata_null_r2 0.1045 [-0.1427,0.2668] vs a published MeshGraphNet MSE bound converted to an implied R2 floor >= 0.7916 -- the one counterexample among the five, and clears outright (bound beats the null). Config description corrected post-null_mechanism.md: 6 published parameters + 1 derived frontal_area column, not 7 published. Reproduces covariate_null_crossbench.json's WindsorML params_linear row to rel=1e-9.",
+      "sha256": "e874dd73bb4567170d8f8813a0476f2421c47f1b20a87b4aba51a0b73532d093",
+      "bytes": 3592,
+      "git_tracked": true,
+      "last_commit": "f69f5f6"
+    },
+    {
+      "path": "results/nullbench/leaderboards/harmonised.json",
+      "script": "neuroforge nullbench leaderboard --harmonised (neuroforge.nullbench.harmonised + leaderboard)",
+      "tier": "cpu",
+      "claims": "the cross-benchmark-comparable view (docs/paper/review/null_mechanism.md, naming_and_positioning.md): one protocol (10-fold OOS OLS, seed 0, R2, constant reference area) applied identically to all five benchmarks -- NOT the per-benchmark tables above, which use each benchmark's own protocol and are not comparable to each other. metadata_null_r2, highest to lowest: DrivAerML 0.9598 [0.9523,0.9659], DrivAerNet++ 0.8248 [0.8151,0.8342], AhmedML 0.6842 [0.6377,0.7273], AirfRANS 0.6833 [0.6197,0.7372], WindsorML 0.1045 [-0.1427,0.2668]. Reproduces results/review/null_mechanism.json's null_r2_linear to floating-point precision for all five (tests/test_nullbench.py). Flexible ceiling (0.9883/0.8811/0.7748/0.9463/0.2516 respectively) is SOURCED from null_mechanism.json, not recomputed -- see nullbench_release.md Sec 2.4/3 for the explicit scope decision. No published comparison in this view by design (published_comparison: null in the JSON itself, with the reason stated in published_comparison_note).",
+      "sha256": "4c35aa299b830fd945395e7f3b84d2a234911898d75a069a62578b183eabdbb6",
+      "bytes": 7073,
       "git_tracked": false,
       "last_commit": ""
     }
