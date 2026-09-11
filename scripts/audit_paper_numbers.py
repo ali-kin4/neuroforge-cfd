@@ -83,6 +83,11 @@ def ladder_rose(root):
     return float(sum(1 for c in a if c in b and b[c] > a[c]))
 
 
+# The next four readers, and transolver_inversion/gate_followup below, have no
+# CLAIMS row any more: the 2026-09-11 compaction pass moved the passages that quoted
+# them to the companion paper. They are retained, unreferenced, so that paper's
+# auditor can reuse them without re-deriving the key paths.
+
 def descent(root, arm, field, agg="mean", where="end"):
     d = load(os.path.join(root, "results/residual_descent.json"))
     if d is None:
@@ -448,6 +453,88 @@ def covariate_below_null(root, target):
                      and r[target]["verdict"] == "BELOW THE NULL"))
 
 
+def covariate_entries_scored(root, target):
+    """Total published entries carrying a number on this coefficient.
+
+    This is the denominator of the manuscript's "four of five" on lift: the four
+    AirfRANS-paper baselines plus Transolver, which clears. Transolver reports no
+    drag column, so on drag the denominator is four, not five.
+    """
+    d = review(root, "covariate_null_trainfit.json")
+    if d is None:
+        return None
+    return float(sum(1 for r in d["leaderboard_vs_full_name_null"]
+                     if r[target].get("published") is not None))
+
+
+def covariate_drag_spans_zero(root):
+    """Published drag intervals (mean +- published seed std) that contain zero."""
+    d = review(root, "covariate_null_trainfit.json")
+    if d is None:
+        return None
+    n = 0
+    for r in d["leaderboard_vs_full_name_null"]:
+        cd = r["cd"]
+        m, s = cd.get("published"), cd.get("published_std")
+        if m is None or s is None:
+            continue
+        if m - s <= 0.0 <= m + s:
+            n += 1
+    return float(n)
+
+
+# ---- the derived percentages the abstract and the introduction bold ---------
+# Each is recomputed from the same two artifacts the ratio beside it uses, so a
+# re-run that moves either side is caught in both forms at once.
+
+def interp_pct_lower(root, field):
+    """How much lower the interpolator's error is than Transolver's, in percent."""
+    d = interp(root)
+    if d is None:
+        return None
+    ours = d["variants"]["nd"]["test_metrics"][field]
+    ref = d["reference_rows"]["transolver_tab_transolver"][field]
+    return float(100.0 * (1.0 - ours / ref)) if ref else None
+
+
+def transolver_table2(root, metric):
+    """Read one Transolver cell out of the committed baseline table.
+
+    interp_full.json's reference_rows block carries no force columns, so the
+    force ratios must come from results/baselines/table2.csv, which is the file
+    tab:interp's Transolver row was transcribed from.
+    """
+    path = os.path.join(root, "results/baselines/table2.csv")
+    if not os.path.isfile(path):
+        return None
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            parts = [p.strip() for p in line.split(",")]
+            if len(parts) == 5 and parts[0] == "transolver" and parts[2] == metric:
+                return float(parts[3])
+    return None
+
+
+def interp_force_ratio(root, metric):
+    """Transolver / interpolation on a mean relative force error."""
+    ref = transolver_table2(root, metric)
+    ours = interp_metric(root, metric)
+    if ref is None or ours is None or not ours:
+        return None
+    return float(ref / ours)
+
+
+def band_outer_cell_frac(root):
+    """Percent of cells lying beyond 0.05c -- the domain share the R^2 claim covers."""
+    d = load(os.path.join(root,
+                          "results/interpolation/interp_band_control_full.json"))
+    if d is None:
+        return None
+    outer = ["0.05-0.15c", "0.15-0.5c", ">0.5c"]
+    return float(100.0 * sum(d["A_band_decomposition"][b]["cell_frac"]
+                             for b in outer))
+
+
 # ---- the claim table --------------------------------------------------------
 # (label, reader, manuscript value, absolute tolerance)
 CLAIMS = [
@@ -459,15 +546,13 @@ CLAIMS = [
     ("ladder floor @512^2", lambda r: ladder_level(r, 512), 0.1067, 0.0002),
     ("ladder fitted exponent p", ladder_p, -0.387, 0.002),
     ("cases where the floor rose", ladder_rose, 21, 0.5),
-    ("omitted closure @128^2", lambda r: ladder_level(r, 128, "omitted_closure"),
-     0.0018, 0.0002),
-    ("omitted closure @512^2", lambda r: ladder_level(r, 512, "omitted_closure"),
-     0.0054, 0.0002),
-    ("residual cut, descent from truth (%)", descent_residual_cut, 84.0, 1.5),
-    ("cases where residual fell, from truth", lambda r: descent_wins(r, "from_truth"),
-     24, 0.5),
-    ("median field error after descent from truth",
-     lambda r: descent(r, "from_truth", "mse_u", "median"), 0.91, 0.02),
+    # The per-rung "omitted closure" magnitudes, the 84% residual cut, the 24/24
+    # residual-fell count and the 0.91 median field error were quoted only by the
+    # detailed residual-audit treatment, which the 2026-09-11 compaction pass moved
+    # to the companion paper (docs/paper/sections/residual_audit_removed.tex). Their
+    # rows are removed here rather than left dangling; the surviving sec:residual
+    # quotes the closure term as a FRACTION of the floor, which the
+    # decomp_omitted_fraction row below still checks.
     ("residual-chosen iterate worse, from truth",
      lambda r: descent_selection_worse(r, "from_truth"), 24, 0.5),
     ("residual-chosen iterate worse, perturbed",
@@ -475,7 +560,10 @@ CLAIMS = [
     ("perturbed cases where descent helped", descent_perturbed_helped, 18, 0.5),
     ("audit cost, median ms", audit_cost_median, 1.13, 0.02),
     ("deployed solve, median ms", deployed_solve_median, 3822.0, 2.0),
-    ("omitted term as % of floor", decomp_omitted_fraction, 4.2, 1.0),
+    # sec:residual states this as the range 3.5-4.8%; the reader returns the mean
+    # over cases and rungs, which must sit inside it.
+    ("omitted term as % of floor (paper: 3.5-4.8)",
+     decomp_omitted_fraction, 4.2, 1.0),
     ("largest shift from repairing the operator (%)", decomp_repaired_shift,
      0.18, 0.05),
     # --- the concessions. These are the rows a referee checks, and the ones
@@ -506,18 +594,15 @@ CLAIMS = [
      ["deployed_backbone_DEQ"]["policies"]["gate"]["median_err_rel_change"], 5.8, 0.1),
     ("C4 residual AUROC on drag error",
      c4_drag_auroc, 0.952, 0.001),
-    ("floor share of a typical score (%)",
-     lambda r: 100 * gate_followup(r, "floor_share_of_typical_score"), 86.0, 1.0),
+    # The 86% floor-share of a typical score and the 2.5-7.0% Transolver inversion
+    # rate were quoted only by the Related Work paragraph and the theorem section
+    # that the 2026-09-11 compaction pass removed. Rows deleted rather than dangling.
     ("conformal bound width, min (x the error)",
      lambda r: bound_over_error(r, "min"), 6.5, 0.05),
     ("conformal bound width, max (x the error)",
      lambda r: bound_over_error(r, "max"), 7.9, 0.05),
     ("conformal coverage at a 0.90 target",
      conformal_coverage, 0.90, 0.005),
-    ("Transolver inversion rate, min (%)",
-     lambda r: transolver_inversion(r, "min"), 2.5, 0.1),
-    ("Transolver inversion rate, max (%)",
-     lambda r: transolver_inversion(r, "max"), 7.0, 0.1),
     # --- sec:interp, the headline. Every cell of tab:interp that the prose
     # quotes, plus the two standardised means that must always travel together.
     ("interp mse_u", lambda r: interp_metric(r, "mse_u"), 0.782, 0.001),
@@ -545,6 +630,17 @@ CLAIMS = [
      lambda r: interp_std_ratio(r, "mean_std_mse_uvp"), 1.9, 0.05),
     ("TRANSOLVER better on the 4-channel std mean by",
      lambda r: 1.0 / interp_std_ratio(r, "mean_std_mse_uvpnut"), 6.4, 0.05),
+    # --- the same three results as the percentages the abstract bolds. Each is
+    # recomputed from the artifact, not from the ratio beside it, so the two forms
+    # cannot drift apart in the manuscript.
+    ("interp mse_p lower than Transolver by (%)",
+     lambda r: interp_pct_lower(r, "mse_p"), 88.0, 0.5),
+    ("interp mse_v lower than Transolver by (%)",
+     lambda r: interp_pct_lower(r, "mse_v"), 62.0, 0.5),
+    ("interp C_l error lower than Transolver by",
+     lambda r: interp_force_ratio(r, "cl_rel_err_mean"), 4.9, 0.05),
+    ("interp C_d error lower than Transolver by",
+     lambda r: interp_force_ratio(r, "cd_rel_err_mean"), 3.8, 0.05),
     # --- the wall-band decomposition: the boundary claim.
     ("u error share inside 0.02c", lambda r: band(r, "se_share_u"), 0.924, 0.002),
     ("v error share inside 0.02c", lambda r: band(r, "se_share_v"), 0.898, 0.002),
@@ -553,6 +649,15 @@ CLAIMS = [
     ("worst R^2 beyond 0.05c", lambda r: band_outer_min_r2(r, "r2"), 0.9996, 0.0002),
     ("worst per-case-centred R^2 beyond 0.05c",
      lambda r: band_outer_min_r2(r, "r2_pc"), 0.9965, 0.0002),
+    # The domain share the R^2>=0.9996 claim actually covers. NOTE these are two
+    # different quantities and the manuscript keeps them apart: 98.7% of cells lie
+    # beyond 0.05c (where the R^2 claim holds), while the 0-0.02c wall band that
+    # carries 92%/90% of the u/v error is 0.5% of cells. The 0.02-0.05c band lies
+    # between them and is covered by neither statement. Do not merge them.
+    ("cells beyond 0.05c, where R^2 >= 0.9996 (%)",
+     band_outer_cell_frac, 98.7, 0.1),
+    ("cells inside the 0-0.02c wall band",
+     lambda r: band(r, "cell_frac"), 0.005, 0.0005),
     # --- the controls that had to survive for sec:interp to stand.
     ("permuted-parameter control, mse_u",
      lambda r: band_permuted(r, "mse_u"), 22.82, 0.02),
@@ -609,6 +714,13 @@ CLAIMS = [
      lambda r: covariate_below_null(r, "cl"), 4, 0.5),
     ("AirfRANS-paper entries below the drag null",
      lambda r: covariate_below_null(r, "cd"), 4, 0.5),
+    # The denominator of "four of five" on lift: the four AirfRANS-paper baselines
+    # plus Transolver, which clears at 0.9978. Transolver reports no drag column,
+    # so the manuscript says "every AirfRANS-paper entry" on drag, not "four of five".
+    ("published entries carrying a lift number",
+     lambda r: covariate_entries_scored(r, "cl"), 5, 0.5),
+    ("published drag intervals that span zero at +-1 seed std",
+     covariate_drag_spans_zero, 3, 0.5),
 ]
 
 

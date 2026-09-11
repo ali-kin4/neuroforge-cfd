@@ -3,23 +3,23 @@
 % Kept to the 250-word limit of the Computers & Fluids guide; the
 % Keywords line is a separate Editorial Manager field and is not counted.
 Machine-learning CFD surrogates predict steady flow fields far faster than solvers, but
-their reported gains are measured only against other learned models. Kernel
-interpolation over seven scalars parsed from the AirfRANS case name---with no network
-and no flow-field learning---scored through the identical protocol and split, beats a
-Transolver trained on the same data on volume pressure ($8.4\times$), cross-flow velocity
-($2.6\times$) and both force errors ($C_l$ $1.18\%$ against $5.81\%$; $C_d$ $2.39\%$
-against $8.99\%$). It loses on streamwise velocity ($6.5\times$) and eddy viscosity
-($15\times$), and so loses $6.4\times$ on the four-channel standardised objective the
-surrogate trains on. The boundary is sharp: $92\%$ of the interpolator's $u$ error and
-$90\%$ of its $v$ error lie within $0.02c$ of the wall, $0.5\%$ of cells, and beyond
-$0.05c$ it reproduces every channel at $R^2\ge0.9996$. What a surrogate buys here is
-the first cell off the wall and the closure.
-The benchmark's declared primary metric cannot see that difference. A regression on the
-case name, fit on train and scored on test, ranks official lift at $0.9821$
-$[0.9737,0.9866]$ and drag at $0.9318$ $[0.8981,0.9531]$; every baseline in the
-AirfRANS paper falls below both. Its \texttt{reynolds} split does not test Reynolds
-generalisation either: no test case has an in-range inlet velocity, yet a
-nondimensional interpolator degrades $3\%$ where a dimensional one degrades
-$5.2$--$10.1\times$.
-We also audit the surrogate-side physics residual: it ranks errors and certifies them,
-but the ground truth itself fails the check, so it cannot be descended.
+their gains are reported only against other learned models. Kernel interpolation over
+seven scalars parsed from the AirfRANS case name---no network, no flow-field
+learning---scored through the identical protocol, gives \textbf{$88\%$ lower}
+volume-pressure error than a Transolver trained on the same data ($8.4\times$), $62\%$
+lower cross-flow error, and force errors \textbf{$4.9\times$ lower on lift} and
+$3.8\times$ lower on drag. It loses on streamwise velocity ($6.5\times$) and eddy
+viscosity ($15\times$), hence $6.4\times$ on the four-channel standardised training
+objective. The boundary is sharp: $92\%$ of its $u$ error and $90\%$ of its $v$ error lie
+inside $0.02$ chord of the wall, \textbf{$0.5\%$ of cells}, while \textbf{$98.7\%$ of the
+domain}, beyond $0.05$ chord, is reproduced at $R^2\ge0.9996$. A surrogate buys the first
+cell off the wall and the closure---where the benchmark's own authors located their
+models' failure. The benchmark's declared primary metric cannot see that difference: a
+train-fit regression on the case name ranks official lift at
+$0.9821$ $[0.9737,0.9866]$ and drag at $0.9318$ $[0.8981,0.9531]$, and \textbf{four of
+five} published baselines fall below it on lift while three of four drag intervals span
+zero. The \texttt{reynolds} split does not test Reynolds generalisation either---no test
+case has an in-range inlet velocity, yet a nondimensional interpolator degrades $3\%$
+where a dimensional one degrades $5.2$--$10.1\times$. The surrogate-side physics
+residual, audited here, ranks errors and certifies them but cannot be descended: the
+ground truth itself fails the check.
