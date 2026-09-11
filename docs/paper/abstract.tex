@@ -2,22 +2,24 @@
 % neuroforge_cfd_elsevier.tex (elsarticle) so the two cannot drift.
 % Kept to the 250-word limit of the Computers & Fluids guide; the
 % Keywords line is a separate Editorial Manager field and is not counted.
-Machine-learning CFD surrogates predict steady flow fields far faster than solvers;
-the standard proposal for trusting them is a self-check against the governing equations. We show that this check rests on an operator the truth itself cannot pass. On
-$200/200$ real AirfRANS cases the monitored residual of the \emph{ground-truth} field is
-nonzero (mean $0.192$), while the physically wrong uniform freestream scores an exact
-zero: the objective prefers a wrong field to the truth. Refinement does not remove it. We prove the monitored
-operator is an inconsistent discretisation, so its floor has a nonzero continuum limit,
-and two implementations measure it \emph{growing} rather than merely persisting: rising
-in $21$ of $24$ cases on one, decaying in $0$ of $16$ on the other, under a rule fixed
-in advance.
-The consequence for correction is direct: started at the exact ground truth, with
-no network in the loop, line-searched gradient descent on the residual drives the field
-error up on $200/200$ cases, and on $94$--$98\%$ from the deployed surrogate across three
-seeds ($p<10^{-30}$), unchanged under three step rules. Descent does not always harm---from
-a perturbed start it often helps before overshooting---but the residual never selects the
-error-optimal iterate, failing to in $24/24$ cases on both arms. What the monitor does
-deliver is triage and a certificate: it flags worst-decile drag error at AUROC $0.952$ and
-supports a valid split-conformal band at $0.90$ coverage, at a width
-$6.5$--$7.9\times$ the drag error it bounds, and $2.3\times$ tighter than one
-built without it.
+Machine-learning CFD surrogates predict steady flow fields far faster than solvers, but
+their reported gains are measured only against other learned models. Kernel
+interpolation over seven scalars parsed from the AirfRANS case name---with no network
+and no flow-field learning---scored through the identical protocol and split, beats a
+Transolver trained on the same data on volume pressure ($8.4\times$), cross-flow velocity
+($2.6\times$) and both force errors ($C_l$ $1.18\%$ against $5.81\%$; $C_d$ $2.39\%$
+against $8.99\%$). It loses on streamwise velocity ($6.5\times$) and eddy viscosity
+($15\times$), and so loses $6.4\times$ on the four-channel standardised objective the
+surrogate trains on. The boundary is sharp: $92\%$ of the interpolator's $u$ error and
+$90\%$ of its $v$ error lie within $0.02c$ of the wall, $0.5\%$ of cells, and beyond
+$0.05c$ it reproduces every channel at $R^2\ge0.9996$. What a surrogate buys here is
+the first cell off the wall and the closure.
+The benchmark's declared primary metric cannot see that difference. A regression on the
+case name, fit on train and scored on test, ranks official lift at $0.9821$
+$[0.9737,0.9866]$ and drag at $0.9318$ $[0.8981,0.9531]$; every baseline in the
+AirfRANS paper falls below both. Its \texttt{reynolds} split does not test Reynolds
+generalisation either: no test case has an in-range inlet velocity, yet a
+nondimensional interpolator degrades $3\%$ where a dimensional one degrades
+$5.2$--$10.1\times$.
+We also audit the surrogate-side physics residual: it ranks errors and certifies them,
+but the ground truth itself fails the check, so it cannot be descended.

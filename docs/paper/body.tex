@@ -12,145 +12,139 @@ surrogates promise the opposite trade---millisecond inference---and a vigorous
 literature now maps geometry plus boundary conditions directly to flow fields with
 neural operators and attention models.
 
-The problem is \textbf{trust}. A trained surrogate is a one-shot function: it emits a
-field with no self-assessment, no convergence signal, and no recovery path when it
-extrapolates. On a geometry far from the training set---the common case in design---the
-user cannot distinguish a faithful prediction from a confident hallucination.
+That promise is assessed almost entirely against other learned models. AirfRANS
+\citep{bonnet2022airfrans}, the standard 2-D external-aerodynamics benchmark, has
+accumulated a leaderboard of graph networks, point-cloud operators and physics-attention
+transformers, each reported against its predecessors. What it has not accumulated is a
+\emph{non-learned} reference point---and the dataset hands one over for free, because
+every case is indexed by a design vector printed in its own file name and parsed by its
+own loader: inlet velocity, angle of attack, and four NACA digits.
 
-The governing physics offers an obvious lever. The steady incompressible RANS residual
-of any candidate field is computable directly from the field, with no ground truth.
-A neural-CFD pipeline could use this residual in three distinct ways: as a
-\emph{trust signal} that flags \emph{which} predictions to distrust (a case-level error
-proxy that drives a conformal trust layer), as a \emph{correction objective} that a step
-should minimise, and as an \emph{acceptance gate} that a step must not worsen. These are
-not the same role, and---this is the crux---they do not earn the same verdict. The
-measurement that decides it is stark: on $200/200$ real AirfRANS cases the monitored
-residual of the \emph{ground-truth} field is nonzero, while the physically wrong uniform
-freestream scores an exact zero. Put plainly, the residual tells you
-\emph{which} predictions are wrong, not \emph{how} to fix them. This paper separates the two
-roles and answers each empirically on a SOTA backbone, and---separately---deploys a
-learned, supervised corrector whose gain we attribute by ablation to the learned
-correction, not to the residual.
+\paragraph{Research question.} \emph{What does learning add, on this benchmark, over
+interpolating between cases in that parameter space---and do the benchmark's own metrics
+measure whatever it adds?}
 
-\paragraph{Research question.} \emph{A deployed surrogate cannot afford the solver that
-produced its training data, so any self-audit must monitor a cheaper, different operator.
-What does that substitution cost, and which of the residual's roles---error detector,
-correction objective, acceptance gate---survive it?}
+We answer both, and the answers are specific enough to act on.
 
-\paragraph{Thesis (one sentence).} \textbf{\emph{The steady-RANS residual a deployed
-surrogate can afford to monitor is inconsistent with the operator that generated its
-labels, so the ground truth itself fails the check by a margin that grows under grid
-refinement; consequently the residual cannot be minimised---the iterate it selects is
-never the error-optimal one---while it remains useful for ranking errors, and the boundary
-between the residual corrections that work in the literature and the failure we report is
-operator consistency, not the problem class.}}
+\paragraph{Learning earns its keep in the first cell off the wall.} Gaussian
+kernel-ridge interpolation over seven scalars derived from the case name, with no
+network, no geometry encoder and no flow-field learning, scored through the identical
+\texttt{evaluate\_cases} protocol on the identical $800/200$ split, \textbf{beats a
+matched-budget Transolver on volume pressure ($75.0$ against $628.5$, $8.4\times$), on
+cross-flow velocity ($0.0336$ against $0.088$) and on both force errors ($C_l$ $1.18\%$
+against $5.81\%$; $C_d$ $2.39\%$ against $8.99\%$)}. It loses on streamwise velocity
+($6.5\times$) and on eddy viscosity ($15\times$), and therefore loses $6.4\times$ on the
+four-channel standardised objective the surrogate is actually trained on; interpolation
+cannot represent the turbulence closure at all. That counterweight travels with the
+result everywhere it appears in this paper. What makes the pair informative rather than
+merely mixed is where the difference lives. \textbf{$92\%$ of the interpolator's $u$
+error and $90\%$ of its $v$ error lie within $0.02$ chord of the wall---$0.5\%$ of
+cells, thinner than one grid spacing---and beyond $0.05$ chord it reproduces every
+channel at $R^2\ge0.9996$} (\autoref{sec:interp}). The far field is $80\%$ of the domain
+and carries $3.6\%$ of the $u$ error, which disposes of the objection that the win is on
+easy cells. Whatever a surrogate buys on AirfRANS, it buys inside the first grid cell
+and in the closure; the pressure field and the force coefficients that early-design
+ranking actually consumes are recoverable from seven numbers in a file name.
 
-\paragraph{Why this is not a statement about our grid.} The obvious reply to a nonzero
-residual at the truth is that the grid is too coarse. We test it directly and it is wrong:
-refining from $128^2$ to $512^2$ makes the floor \emph{larger}, in $21$ of $24$ cases, by
-a rule registered before the measurement (\autoref{sec:floor_ladder}); a second,
-independent $16$-case, five-rung implementation finds the floor decaying in $0$ of $16$
-cases, at $p=-0.64\pm0.29$, with its own reproduction gate passing to $3\times10^{-8}$
-relative (\autoref{sec:residual_floor}). The sharpest
-control is on the real data rather than a manufactured one: rasterising the \emph{same}
-reference cloud with cubic instead of linear interpolation \emph{raises} the floor by
-$6$--$12\%$, and lowers it in only $2$--$4$ of $16$ cases, so the kinks of a piecewise
-linear reconstruction are not what sets it. Restoring the omitted closure term moves it
-by less than $0.2\%$. The uniform freestream, meanwhile, scores an
-exact zero at every resolution, because a spatially constant field has identically zero
-finite differences---so the gap by which the objective prefers a wrong field to the truth
-widens as the grid improves.
+\paragraph{The benchmark's force metrics do not measure that difference.} AirfRANS
+declares the Spearman rank correlation of the force coefficients its primary metric.
+Ordinary least squares on the case name, fit on the official $800$ train cases and
+scored on the $200$ test cases, ranks the official lift at $\mathbf{0.9821}$
+$[0.9737,0.9866]$ and the official drag at $\mathbf{0.9318}$ $[0.8981,0.9531]$.
+\textbf{Every baseline in the AirfRANS paper falls below both} (lift $0.913$, $0.938$,
+$0.965$, $0.967$; drag $-0.117$, $-0.022$, $-0.303$, $-0.138$). Transolver clears on
+lift ($0.9978$) and reports no drag column, stating in its Appendix B.1 that the deep
+models fail at drag. The reading was fixed in the script's docstring before any number
+existed, the in-sample optimism of such a fit is $0.0008$--$0.0035$, and the
+two-parameter version of the null is \emph{not} sufficient---$(U,\alpha)$ alone gives
+$0.9344$ on lift, which one published entry straddles. The result needs the digits, and
+the digits are fair, because they are the geometry the surrogate is given as an input
+channel (\autoref{sec:covariate}).
 
-\paragraph{Self-auditing, defined---and what the physics earns.} We call a surrogate
-\emph{self-auditing} if, from its own prediction and inputs alone---no ground truth, no
-reference solver---it supplies three measurable things: \textbf{(i)} a case-level
-\emph{trust score} whose ranking of predictions by true error is validated; \textbf{(ii)}
-a \emph{calibrated error band} with a distribution-free guarantee; and \textbf{(iii)} an
-\emph{accept/reject decision} whose efficiency is measured against an oracle. We
-instantiate all three, and separate which of them the physics earns.
-(i) holds, but a \emph{physics-free} ensemble score ranks field error at least as well and
-a paired bootstrap cannot separate them; the physics wins outright only on drag
-(\autoref{sec:selective}). (ii) holds outright, and needs no operator at all---though what
-the operator-based score can certify, it certifies only to a width the floor sets
-(\autoref{sec:conformal}). (iii)
-holds as a \emph{guarantee}---the gate cannot raise the residual---but its accuracy
-advantage does not survive an ungated fixed half step, so we claim the certificate and not
-the accuracy (\autoref{sec:iters}). What the residual uniquely supplies is none of these:
-it is the diagnosis of why the fourth role, correction objective, cannot work. In the
-shorthand we use throughout: the monitor can be \emph{ranked} on, can \emph{certify} only
-to a floor-limited width, and cannot be \emph{descended}.
+\paragraph{One of the extrapolation splits does not extrapolate.} On the
+\texttt{reynolds} split, $0$ of $200$ test cases have an inlet velocity inside the
+training range---outside on both sides---yet a \emph{nondimensional} parameter
+interpolator degrades by $3\%$ on $\texttt{mse\_u}$ and not at all on $\texttt{mse\_p}$,
+while the same interpolator on dimensional fields degrades $5.2\times$ and $10.1\times$.
+The split's entire difficulty is absorbed by dimensional analysis. The \texttt{aoa}
+split, by contrast, bites exactly where it should: $C_l$ relative error rises from
+$1.18\%$ to $23.1\%$ (\autoref{sec:splits}).
 
-The evidence is a full
-predict$\rightarrow$verify$\rightarrow$estimate-uncertainty$\rightarrow$correct$\rightarrow$fall-back
-pipeline with pre-registered hypotheses: a 3-seed ablation on real AirfRANS, an
-out-of-distribution study, two formal certificates, and the same trust layer and corrector
-on a SOTA Transolver backbone. The verdict on the objective rests on minimising the
-residual directly, with no network in the loop (\autoref{sec:descent}), and takes the form
-the data supports: not that residual descent always harms the field---from a perturbed
-start it often helps---but that the iterate it selects is never the best one on its own
-path. Two findings accompany the learned corrector: correction quality is
-backbone-dependent, and a controlled ablation attributes its gain to the learned correction
-rather than to conditioning on the residual.
+\paragraph{What a surrogate-side physics residual can and cannot do.} The remaining
+question is what a deployed surrogate can check for itself, since it cannot afford the
+solver that produced its labels and must therefore monitor a cheaper, different
+operator. We audit that substitution and state the verdict in three verbs: the monitored
+residual can be \emph{ranked} on (AUROC $0.871$ on field error, $0.952$ on worst-decile
+drag error---though on field error a physics-free ensemble score matches it within
+noise), can \emph{certify} only to a floor-limited width (a valid split-conformal band
+at $0.90$ coverage, $6.5$--$7.9\times$ the drag error it bounds), and cannot be
+\emph{descended}. The obstruction is that the ground truth itself fails the check: on
+$200/200$ AirfRANS cases the monitored residual of the exact field is nonzero (mean
+$0.192$) while the physically wrong uniform freestream scores an exact zero, and the
+floor does not decay under refinement. Descending $J=\tfrac12\|R_h\|^2$ from the exact
+truth, with no network in the loop, raises the field error on $200/200$ cases
+(\autoref{sec:residual}). We report this because it is measured and because it bounds
+what self-auditing can deliver, not because it is the headline.
 
 \subsection{Contributions}
 
 In priority order:
 
 \begin{enumerate}
-\item \textbf{The ground truth fails the check (headline).} The residual a deployed
-surrogate can afford to monitor is not the operator that produced its training labels,
-and the gap is not small. On $200/200$ real AirfRANS test cases the monitored residual of
-the \emph{ground-truth} field is substantially nonzero---$\|r^\star\|$ mean $0.192$,
-median $0.133$---while the physically wrong uniform-freestream field scores an
-\textbf{exact zero} at every resolution, because a spatially constant field has
-identically zero finite differences. The objective therefore strictly prefers a wrong
-field to the truth (\autoref{sec:residual_floor}). This is a property of the
-\emph{operator}, not of any model: no network appears anywhere in the measurement.
+\item \textbf{The missing baseline, and the boundary it draws (headline).} We run the
+non-learned reference AirfRANS has never carried: kernel-ridge interpolation of the
+nondimensional field over a seven-dimensional parameter vector built from the case name,
+scored through the identical protocol on the identical split. It beats a matched-budget
+Transolver on $\texttt{mse\_v}$ ($2.6\times$), $\texttt{mse\_p}$ ($8.4\times$) and both
+force relative errors ($1.18\%$/$2.39\%$ against $5.81\%$/$8.99\%$), loses on
+$\texttt{mse\_u}$ ($6.5\times$) and $\nu_t$ ($15\times$), and therefore loses
+$6.4\times$ on the four-channel standardised training objective. A wall-distance
+decomposition locates the entire remaining gap inside the first grid cell: $92\%$ of its
+$u$ error and $90\%$ of its $v$ error lie within $0.02c$ of the wall ($0.5\%$ of cells),
+and beyond $0.05c$ it reproduces every channel at $R^2\ge0.9996$
+($\ge0.9965$ with each case's own band mean removed). Five adversarial controls---name
+overlap, near-duplicates, a permuted-parameter negative control, silent case drops, and
+the solid-fill choice---leave it standing, and $100$ training cases suffice to beat a
+$7.35$M-parameter Transolver trained on $800$ on $\texttt{mse\_p}$
+(\autoref{sec:interp}). The decision rule was registered before any number existed and
+returned \textsc{mixed}; the decomposition is the finding.
 
-\item \textbf{The floor cannot be refined away, and in practice it grows.} Two separate
-statements. \emph{Provably}, the monitored operator
-is an inconsistent discretisation of RANS---it uses $\nu_{\mathrm{eff}}\nabla^2 u$ in
-place of $\nabla\!\cdot\!(\nu_{\mathrm{eff}}(\nabla u+\nabla u^{\top}))$---so its floor has a nonzero
-continuum limit rather than converging to zero as $h\to0$, so (H2) stops being an
-assumption (\autoref{sec:residual_floor}). \emph{Empirically}, the floor does not merely
-persist but \textbf{rises} under refinement: over $24$ cases at $128^2/256^2/512^2$,
-scored on a region fixed in physical units, $\|r^\star\|$ goes $0.0624\to0.0779\to0.1067$,
-rising in $21/24$ cases, fitting $\|r^\star\|\sim h^{p}$ with $p=-0.387$
-(\autoref{sec:floor_ladder}). The decision rule was registered before the measurement.
-The omitted closure term grows as predicted but accounts for only $3.5$--$4.8\%$ of the
-floor: restoring it moves each level's mean by $-0.01\%$ to $+0.18\%$, and no
-individual case by more than $1.5\%$. Neither a higher-order
-interpolant (cubic \emph{raises} the floor by $6$--$12\%$) nor operator repair removes it.
-What sets its size is the mismatch between our Cartesian stencil and the body-fitted
-discrete balance the reference solved.
+\item \textbf{The benchmark's primary metric is a covariate property of the case
+index.} OLS on the case name---$(U,\alpha,\alpha^2,\text{NACA digits})$---fit on the
+official $800$ train cases and scored on the $200$ test cases ranks official lift at
+$0.9821$ $[0.9737,0.9866]$ and official drag at $0.9318$ $[0.8981,0.9531]$. Every
+baseline in \citet{bonnet2022airfrans} falls below both; Transolver clears on lift and
+reports no drag column. In-sample optimism for such a fit is $0.0008$--$0.0035$, and the
+$(U,\alpha)$ null alone ($0.9344$) is \emph{not} sufficient to support the claim---the
+digits are, and they are fair, being the geometry the surrogate receives as input. We
+make no leakage accusation: the claim is that a force-rank number is uninterpretable
+without this baseline, and that no paper in this line reports it
+(\autoref{sec:covariate}).
 
-\item \textbf{Descending the residual moves the field away from the truth, and the
-residual-selected iterate is never the best one.} We test this directly, by minimising the
-residual with the differentiable operator and no network in the loop. Under
-Armijo-line-searched gradient descent---so the objective is monotone non-increasing by
-construction---on $200$ AirfRANS cases, starting at the \emph{exact ground truth} drives
-the field error up on $\mathbf{200/200}$ cases, ending at $1.57\times$ the entire error of
-the deployed surrogate; starting from that deployed surrogate it drives the error up on
-$\mathbf{94}$--$\mathbf{98\%}$ of cases across three seeds (median $+74$ to $+87\%$,
-$p<10^{-30}$), and the verdict is unchanged under three step rules and twelve decades of
-step size (\autoref{sec:descent}). We state the claim as one about \textbf{iterate
-selection}, because that is what holds universally: the error-minimising and
-residual-minimising iterates differ in $24/24$ cases on both a truth-started and a
-perturbed-start arm, and the residual-selected iterate is strictly worse in $24/24$. We
-explicitly do \emph{not} claim residual descent always harms. From a perturbed start it
-\emph{reduces} error in $18/24$ cases before overshooting, and on a backbone far from the
-floor it lowers error on $75\%$ of cases---so this is a regime claim, and the deployed
-backbone already sits inside the regime where descent almost never helps.
+\item \textbf{The \texttt{reynolds} split does not test Reynolds generalisation.} None
+of its $200$ test cases has an in-range inlet velocity, yet a nondimensional parameter
+interpolator degrades $3\%$ on $\texttt{mse\_u}$ and not at all on $\texttt{mse\_p}$,
+while the same interpolator on dimensional fields degrades $5.2\times$ and $10.1\times$.
+The difficulty is dimensional scaling, not physics. The \texttt{aoa} split does bite,
+and on lift specifically ($1.18\%\to23.1\%$) (\autoref{sec:splits}).
 
-\item \textbf{The boundary is the operator, not the problem class.} Residual-driven
-correction demonstrably succeeds on steady CFD when the residual is the
-\emph{solver's own}: \citet{lei2026newtonkrylov} drive a surrogate initial guess with
-Newton--Krylov correction and lower the median residual ratio by seven orders of magnitude
-\emph{while} reducing field and aerodynamic error. That is not a counterexample to our
-result, it locates it. Correction works where the monitored operator is
-solver-consistent, and fails where an affordable surrogate-side monitor is inconsistent
-with the data generator. We draw the boundary there rather than at
-steady-versus-transient or resolved-versus-under-resolved (\autoref{sec:regime}).
+\item \textbf{What a surrogate-side physics residual can and cannot do.} A deployed
+surrogate cannot afford the solver that produced its labels, so any self-check monitors a
+cheaper, different operator. We measure what that substitution costs. The monitored
+residual of the \emph{ground-truth} field is nonzero on $200/200$ AirfRANS cases
+($\|r^\star\|$ mean $0.192$) while the physically wrong uniform freestream scores an
+\textbf{exact zero}, and we prove the monitored operator is an inconsistent
+discretisation, so its floor has a nonzero continuum limit and refinement cannot remove
+it (\autoref{sec:residual_floor}). Consequently the residual cannot be used as a
+correction objective: under Armijo-line-searched gradient descent with no network in the
+loop, starting at the exact truth raises field error on $\mathbf{200/200}$ cases, and on
+$94$--$98\%$ started from the deployed surrogate across three seeds ($p<10^{-30}$). The
+universal form of the claim is about \textbf{iterate selection}---the residual-selected
+iterate is strictly worse than the error-optimal one in $24/24$ cases on both arms---and
+we explicitly do \emph{not} claim descent always harms, since from a perturbed start it
+helps in $18/24$. The boundary is the operator, not the problem class: where the
+monitored residual is the \emph{solver's own}, correction works
+\citep{lei2026newtonkrylov} (\autoref{sec:residual}).
 
 \item \textbf{The residual still ranks errors---but it earns its place only in fusion.}
 As a \emph{detector} the residual is consistently positive across three architecturally
@@ -190,20 +184,19 @@ out-of-distribution coverage \emph{guarantee}, and make a competitiveness claim 
 the Transolver backbone our trust layer runs on (\autoref{sec:v2}), not for the grid
 backbone.
 
-\paragraph{How to read this paper.} \autoref{sec:method} defines the audit and proves its
-two properties---contraction under the acceptance gate, and split-conformal coverage---and
-\autoref{sec:residual_floor} proves the floor survives the continuum limit and
-characterises what the audit cannot detect at all. \autoref{sec:floor_ladder} refines the
-grid and finds the floor grows, with the controls that rule out the operator, the
-interpolant and the pipeline; \autoref{sec:descent} minimises the residual directly from
-the exact truth; \autoref{sec:regime} draws the boundary at operator consistency. What the
-audit does deliver is in \autoref{sec:v2} (detector across backbones, learned correction),
-\autoref{sec:selective} (physics against a physics-free score), \autoref{sec:conformal}
-(calibrated bands), \autoref{sec:ood} (three backbone families, two datasets, a regime
-shift) and \autoref{sec:cost} (what it costs). Every number maps to a committed script and
-result file through \texttt{docs/REPRODUCE.md}, with a manifest recording seeds,
-environment and SHA-256 hashes. Readers who want only the central result can read
-\autoref{sec:floor_ladder} and \autoref{sec:descent}.
+\paragraph{How to read this paper.} The three evaluation results lead:
+\autoref{sec:interp} is the parameter-interpolation baseline and the wall-distance
+decomposition, \autoref{sec:splits} the extrapolation splits, \autoref{sec:covariate}
+the covariate null. \autoref{sec:method} then defines the self-audit and proves its two
+properties---contraction under the acceptance gate, and split-conformal coverage---and
+\autoref{sec:v2}, \autoref{sec:ood}, \autoref{sec:iters}, \autoref{sec:conformal},
+\autoref{sec:selective} and \autoref{sec:cost} report what that audit delivers on a SOTA
+backbone: the detector across backbones, the learned correction, the acceptance gate,
+the calibrated bands and the cost. \autoref{sec:residual} collects what the residual
+cannot do, and \autoref{sec:residual_floor} proves why. Every number maps to a
+committed script and result file through \texttt{docs/REPRODUCE.md}, with a manifest
+recording seeds, environment and SHA-256 hashes. Readers who want only the central
+result can read \autoref{sec:interp} and \autoref{sec:covariate}.
 
 \section{Related Work}
 
@@ -332,35 +325,64 @@ split-conformal calibration to MC-dropout uncertainty; the new content is the
 coverage survives out-of-distribution empirically via uncertainty inflation, while the
 formal guarantee does not transfer once exchangeability fails.
 
-\paragraph{Benchmarks (AirfRANS).} AirfRANS \citep{bonnet2022airfrans} provides
-$\sim 1000$ incompressible steady-RANS simulations over NACA airfoils with
-\texttt{full}, \texttt{scarce}, \texttt{reynolds}, and \texttt{aoa} splits designed to
-probe generalisation. We use \texttt{full} for in-distribution evaluation and the
-regime-disjoint \texttt{reynolds}/\texttt{aoa} splits for the out-of-distribution study.
+\paragraph{Benchmarks, and what they compare against.} AirfRANS
+\citep{bonnet2022airfrans} provides $\sim 1000$ incompressible steady-RANS simulations
+over NACA airfoils with \texttt{full}, \texttt{scarce}, \texttt{reynolds}, and
+\texttt{aoa} splits designed to probe generalisation, and declares the Spearman rank
+correlation of the force coefficients its primary metric. We use \texttt{full} for
+in-distribution evaluation and the regime-disjoint \texttt{reynolds}/\texttt{aoa} splits
+for the extrapolation study. The benchmark's reported entries---and those of the
+Transolver lineage \citep{wu2024transolver,luo2025transolverpp} and of subsequent
+architecture surveys \citep{scherz2026evaluation,rigotti2026gist}---are compared against
+one another and against earlier learned models, never against a model of the design
+parameters that index the cases. The same is true of the aerodynamic benchmarks that
+followed \citep{ahmedml2024}, with one partial exception: DrivAerNet++
+\citep{elrefaie2024drivaernet} reports an AutoML tabular baseline on its $26$ design
+parameters. That exception is narrower than it looks and we state it precisely rather
+than claiming the gap is total: it is an $R^2$-on-magnitude comparison, not a rank one;
+the same group's follow-on architecture benchmark drops it; and no paper in this line
+audits \emph{published} force-rank numbers against such a null. Our
+\autoref{sec:interp} and \autoref{sec:covariate} supply the field-level and the
+rank-level version of that baseline for AirfRANS.
+
+\paragraph{Evaluation and reporting standards in ML for PDEs.} A parallel line asks
+whether the reported gains in this field mean what they appear to mean.
+\citet{mcgreivy2024weak} find that $60$ of $76$ surveyed ML-for-PDE papers compare
+against a weak baseline, and identify outcome-reporting bias as a systematic problem in
+the literature rather than an occasional lapse. Our two evaluation results are
+instances of exactly the failure modes they describe, made concrete on one benchmark and
+with a constructive replacement: a baseline that can be run in fifteen minutes of CPU
+time, and a null that any author can compute for their own force numbers. We do not
+claim published AirfRANS results are wrong, and we specifically do not claim label
+leakage---conditioning a surrogate on its inlet state is necessary, not suspect. We
+claim that these numbers have been read against a missing reference point.
 
 \subsection{Positioning}
 
-The closest prior art treats the physics residual primarily as a \emph{correction
-objective} (PINNs, FNO-DEQ, learned correctors) or treats UQ in isolation from physics.
-NeuroForge's distinctive question is which of two roles the residual can play, evaluated
-head-to-head on the same model and data and then on a SOTA backbone: as a trust
-\emph{signal} (detect error, drive conformal calibration) and as a correction
-\emph{objective}, with the acceptance \emph{gate} built on it judged separately. Our
-answer---signal yes (it tells you \emph{which} predictions to distrust), objective no, gate
-yes as a guarantee and not as an accuracy mechanism, and certification only at a
-floor-limited width---and the resulting calibrated trust layer are the contribution.
+This work sits in the evaluation line rather than the architecture line. Our primary
+contribution is a pair of reference points for AirfRANS---a non-learned field baseline
+and a case-name force-rank null---and the boundary they draw: what a learned surrogate
+adds is localised to the first grid cell off the wall and the turbulence closure, and
+the benchmark's declared primary metric cannot resolve it. The secondary contribution is
+an audit of the self-check a deployed surrogate could run instead. The closest prior art
+there treats the physics residual primarily as a \emph{correction objective} (PINNs,
+FNO-DEQ, learned correctors) or treats UQ in isolation from physics; our question is
+which of three roles the residual can play, evaluated head-to-head on the same model and
+data and then on a SOTA backbone. The answer---rank yes, certify only at a
+floor-limited width, descend no---is stated in \autoref{sec:residual} and proved in
+\autoref{sec:residual_floor}.
 Separately, a learned, supervised corrector reduces field error on the strong backbone,
 with a controlled ablation attributing that gain to the learned correction rather than to
 the residual input. The no-harm/contraction machinery of \autoref{sec:method} carries its
 own guarantee, and the acceptance gate is materially useful: it admits a step on $99.8\%$
 of deployed cases and that step lowers field error on $89.3\%$ of them
 (\autoref{sec:iters}).
-\autoref{tab:positioning} places the neighbouring work on the boundary this paper draws.
-The organising question is not which features a system has, but whether the residual it
-drives is the \emph{same discrete operator} that produced its reference data. Where it is,
-residual-driven correction works and is already demonstrated. Where an affordable
-surrogate-side proxy stands in for it, the truth itself fails the check, and this paper is
-about what follows from that.
+\autoref{tab:positioning} places the neighbouring work on the boundary that secondary
+result draws. The organising question there is not which features a system has, but
+whether the residual it drives is the \emph{same discrete operator} that produced its
+reference data. Where it is, residual-driven correction works and is already
+demonstrated. Where an affordable surrogate-side proxy stands in for it, the truth itself
+fails the check.
 
 \begin{table}[t]
 \centering
@@ -804,6 +826,312 @@ dropout-enabled FNO (width 48, 4 layers, 20 modes, dropout 0.05) with a DEQ corr
 under the same protocol; \autoref{sec:indist-ablation}--\ref{sec:conformal} are the
 weak-grid-backbone runs that establish the backbone-dependence finding.
 
+\subsection{Where learning earns its keep: the parameter-interpolation baseline}
+\label{sec:interp}
+
+AirfRANS indexes every case by a short design vector that the dataset's own file name
+prints and its own loader parses: the fields of
+\texttt{airFoil2D\_SST\_U\_alpha\_digits} are the inlet velocity, the angle of attack
+and the four NACA digits, and \texttt{Simulation.reset()} reads the first two directly
+off the name. Before asking how well a neural operator predicts
+these flows, we ask what that index alone already determines. The answer sets the bar
+every learned number on this benchmark should be read against, and it is high.
+
+\paragraph{The baseline.} From the name alone we build seven analytic scalars---inlet
+velocity $U$, geometric incidence $\alpha$, NACA maximum thickness $t_{\max}$,
+thin-airfoil effective incidence $\alpha-\alpha_{0L}$, and the camber line at
+$x/c\in\{0.25,0.5,0.75\}$---and interpolate the \emph{nondimensional} field
+$(\hat u,\hat v,\hat p,\hat\nu_t)=((u-U\cos\alpha)/U,\,(v-U\sin\alpha)/U,\,p/U^2,\,
+\nu_t/(Uc))$ across training cases with Gaussian kernel ridge regression,
+redimensionalising with the test case's own $(U,\alpha)$. There is no network, no
+geometry encoder and no flow-field learning; fitting is one $800\times800$ Cholesky
+solve and prediction is one GEMM. Hyperparameters come from 5-fold cross-validation
+\emph{inside} the train split on a scalar registered before any number existed, applied
+to test once. Scoring is byte-identical to the surrogates': the same cached rasterised
+pairs at $128^2$, the same \texttt{evaluate\_cases}, the same mask, surface sampler and
+force integrator, with \texttt{sdf} and \texttt{mask} rebuilt from
+\texttt{case.geometry} exactly as the Transolver adapter does
+(\texttt{scripts/parameter\_interpolation\_baseline.py},
+\texttt{results/interpolation/interp\_full.json}). The input asymmetry runs
+\emph{against} the baseline: the surrogates receive the full $7$-channel geometry and
+freestream encoding per case, the interpolator receives seven scalars.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Parameter interpolation against learned surrogates on AirfRANS \texttt{full}
+($800$ train / $200$ test, $r128$, identical \texttt{evaluate\_cases}). Force columns
+are mean relative error. The last block is the floor ladder and the negative control;
+``permuted'' predicts each test case from another case's parameters under a fixed
+derangement, everything else identical.}
+\label{tab:interp}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l r r r r r r r}
+\toprule
+model & \texttt{n\_params} & $\texttt{mse\_u}$ & $\texttt{mse\_v}$ & $\texttt{mse\_p}$ & surf.\ $\texttt{mse\_p}$ & $C_l$ err & $C_d$ err \\
+\midrule
+Transolver (\autoref{tab:transolver}, 3 seeds) & $7.35$M & $\mathbf{0.120{\pm}0.005}$ & $0.088{\pm}0.013$ & $628.5{\pm}29$ & $\mathbf{9110{\pm}500}$ & $5.81\%$ & $8.99\%$ \\
+our grid backbone (\autoref{tab:indist}) & --- & $3.479$ & $0.385$ & $2444.8$ & $548823$ & --- & --- \\
+\textbf{parameter interpolation (no learning)} & $0$ ($210$\,MB) & $0.782$ & $\mathbf{0.0336}$ & $\mathbf{75.03}$ & $10989$ & $\mathbf{1.18\%}$ & $\mathbf{2.39\%}$ \\
+\midrule
+\quad floor: $8$-NN, inverse distance & $0$ & $0.904$ & $0.143$ & $1145.5$ & $108022$ & --- & --- \\
+\quad floor: $1$-NN & $0$ & $1.415$ & $0.308$ & $2744.0$ & $192123$ & --- & --- \\
+\quad floor: train-mean field & $0$ & $11.01$ & $6.577$ & $57980$ & $2792467$ & --- & --- \\
+\quad floor: uniform freestream & $0$ & $26.01$ & $17.65$ & $151365$ & $4120337$ & --- & --- \\
+\quad control: permuted parameters & $0$ & $22.82$ & $14.36$ & $129622$ & $5939745$ & $365\%$ & $367\%$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{Result, with its counterweight.} The interpolator beats a matched-budget
+Transolver on cross-flow velocity ($\texttt{mse\_v}$ $0.0336$ against $0.088$,
+$2.6\times$), on volume pressure ($\texttt{mse\_p}$ $75.0$ against $628.5$,
+$\mathbf{8.4\times}$), and on both force magnitudes ($C_l$ relative error $1.18\%$
+against $5.81\%$; $C_d$ $2.39\%$ against $8.99\%$). It loses on the streamwise channel
+($\texttt{mse\_u}$ $0.782$ against $0.120$, $6.5\times$), marginally on surface
+pressure ($10989$ against $9110$, $1.21\times$), and heavily on the turbulence variable
+($\texttt{mse\_nut}$ $8.8{\times}10^{-8}$ against $5.7{\times}10^{-9}$, $15\times$).
+Because \texttt{run\_baselines.py} trains on per-channel \emph{standardised} MSE over
+all four output channels, we report that metric too, so the comparison cannot be
+dismissed as scoring a model on something it was never trained for
+(\autoref{tab:interp_std}). Both of its means must be quoted together:
+\textbf{over the three channels the tables report the interpolator is $1.9\times$
+better, and over all four channels of Transolver's actual loss Transolver is
+$6.4\times$ better}, because $\nu_t$ dominates both models' standardised error and the
+interpolator cannot represent the closure at all. We do not describe this as beating
+Transolver on its own objective. What the two tables show is the \emph{shape} of each
+method's error: Transolver's accuracy is concentrated---$13\times$ better on $u$ than
+on $p$ in standardised terms---and it is the only method here that gets $\nu_t$ right;
+the interpolator is uniform across $u$, $v$ and $p$ and is blind to the closure.
+
+\begin{table}[t]
+\centering
+\small
+\caption{The same runs in per-channel standardised MSE---each channel divided by its
+own train-set variance ($u$ $341.9$, $v$ $52.45$, $p$ $135590$, $\nu_t$
+$1.320{\times}10^{-6}$), which is the quantity the surrogates are trained on, with
+$\texttt{F\_OUT}=4$. The last two columns are the two means, and neither should be
+quoted without the other.}
+\label{tab:interp_std}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l r r r r r r}
+\toprule
+model & std.\ $\texttt{mse\_u}$ & std.\ $\texttt{mse\_v}$ & std.\ $\texttt{mse\_p}$ & std.\ $\texttt{mse\_nut}$ & mean $u,v,p$ & mean $u,v,p,\nu_t$ \\
+\midrule
+Transolver & $3.51{\times}10^{-4}$ & $1.68{\times}10^{-3}$ & $4.64{\times}10^{-3}$ & $4.34{\times}10^{-3}$ & $2.22{\times}10^{-3}$ & $\mathbf{2.75{\times}10^{-3}}$ \\
+parameter interpolation & $2.29{\times}10^{-3}$ & $6.41{\times}10^{-4}$ & $5.53{\times}10^{-4}$ & $6.70{\times}10^{-2}$ & $\mathbf{1.16{\times}10^{-3}}$ & $1.76{\times}10^{-2}$ \\
+our grid backbone & $1.02{\times}10^{-2}$ & $7.34{\times}10^{-3}$ & $1.80{\times}10^{-2}$ & --- & $1.18{\times}10^{-2}$ & --- \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{The boundary is one grid cell wide, and that is the contribution.}
+Decomposing the interpolator's squared error by signed distance to the wall
+(\texttt{scripts/interpolation\_band\_control.py},
+\texttt{results/interpolation/interp\_band\_control\_full.json}) locates the entire
+remaining gap. \textbf{$92\%$ of its $u$ error and $90\%$ of its $v$ error lie within
+$0.02c$ of the wall---a band holding $0.5\%$ of cells, thinner than the $0.0234c$ grid
+spacing---and beyond $0.05c$ it reproduces every channel at $R^2\ge0.9996$}
+(\autoref{tab:interp_bands}). We report the strict per-case-centred statistic
+alongside the pooled one, because $U$ spans $31$--$93$\,m/s and a pooled far-field
+$R^2$ partly rewards knowing the freestream: subtracting each case's own band mean
+first leaves $R^2\ge0.9965$ on every channel beyond $0.05c$, and moves only the
+sub-cell wall band ($0.840\to0.754$ on $u$). This cuts both ways and both cuts matter.
+It defeats the obvious objection that the win is on easy cells: the far field is $80\%$
+of the domain and carries $3.6\%$ of the $u$ error and $2.2\%$ of the $p$ error. And it
+says precisely what a learned surrogate buys on this benchmark: the first cell off the
+wall, the streamwise channel that carries the boundary-layer and wake deficit, and the
+turbulence closure. Those are exactly the three channels the surrogate
+wins---$\texttt{mse\_u}$, surface pressure sampled $1.5$ cells off the wall, and
+$\nu_t$---so the decomposition and the head-to-head agree on where the advantage is.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Wall-distance decomposition of the interpolator's error on AirfRANS
+\texttt{full} test. $R^2_{\mathrm{pc}}$ subtracts each case's own band mean before
+scoring, so it asks whether spatial structure \emph{within} the band was captured
+beyond case-level scale. ``SE share'' is the fraction of the channel's total squared
+error in that band and is unaffected by the centring choice. The pooled (non-centred)
+$R^2$ quoted in the text is higher than $R^2_{\mathrm{pc}}$ at every entry; both are in
+the artifact.}
+\label{tab:interp_bands}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l r r r r r r r}
+\toprule
+band (chord) & cell frac. & $R^2_{\mathrm{pc}}\,u$ & $R^2_{\mathrm{pc}}\,v$ & $R^2_{\mathrm{pc}}\,p$ & SE share $u$ & SE share $v$ & SE share $p$ \\
+\midrule
+$0$--$0.02c$ & $0.005$ & $0.7539$ & $0.9722$ & $0.9966$ & $\mathbf{0.924}$ & $\mathbf{0.898}$ & $0.535$ \\
+$0.02$--$0.05c$ & $0.007$ & $0.9929$ & $0.9990$ & $0.9986$ & $0.018$ & $0.040$ & $0.238$ \\
+$0.05$--$0.15c$ & $0.029$ & $0.9991$ & $0.9997$ & $0.9996$ & $0.005$ & $0.030$ & $0.154$ \\
+$0.15$--$0.5c$ & $0.158$ & $0.9983$ & $0.9999$ & $0.9999$ & $0.017$ & $0.018$ & $0.052$ \\
+$>0.5c$ & $0.800$ & $0.9965$ & $0.9999$ & $1.0000$ & $0.036$ & $0.014$ & $0.022$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{How we tried to break it.} Five checks could have killed the result and did
+not. \emph{Leakage}: train/test case-name overlap is $0$ on all three splits, asserted
+in the script, and verified independently against \texttt{manifest.json}.
+\emph{Near-duplicates}: the minimum nearest-neighbour distance in standardised feature
+space is $0.189$ (median $0.440$), and excluding the closest $10\%$ of test cases makes
+the aggregate \emph{worse}, not better ($\texttt{mse\_p}$ $75.0\to82.1$), so the
+headline is not carried by a few near-copies. \emph{Degenerate metric}: predicting each
+test case from another case's parameters collapses the result to the freestream floor
+(last row of \autoref{tab:interp}; $\rho_{C_l}$ $0.9999\to0.345$, $C_l$ error
+$1.18\%\to365\%$), so the signal is in the parameters, not in the rasterisation or the
+mask. \emph{Silent drops}: \texttt{coefficient\_metrics} swallows failed force
+integrations, so the script asserts $n=200/200$ (and $196/196$ on \texttt{aoa}) on
+every scored variant. \emph{Self-serving solid fill}: filling pressure inside
+neighbours' solids by nearest-fluid propagation instead of leaving the Delaunay bridge
+makes surface pressure $14\times$ \emph{worse} ($10989\to153174$), so the one channel
+the surrogate wins is not flattered by our treatment. Selection never saw test: the
+cross-validated ranking inside train and the test ranking agree, with kernel ridge and
+local linear filling the CV top ten and every $k$-NN configuration $33\times$ behind.
+
+\paragraph{It needs the shape, and it needs few examples.} Restricted to $(U,\alpha)$
+the baseline collapses ($\texttt{mse\_p}$ $9491$); adding thickness gives $7507$; the
+full seven features give $75.0$. The airfoil digits are worth $126\times$ on
+$\texttt{mse\_p}$, so this is not a freestream-lookup table. Conversely, dropping $U$
+from the feature metric while keeping the nondimensional rescaling barely moves
+anything ($75.0\to93.4$), which shows $U$ entering as pure dimensional scaling---the
+mechanism behind \autoref{sec:splits}. On a train-size ladder with five random subsets
+per size, \textbf{$100$ training cases} of parameter interpolation beat the
+$7.35$M-parameter Transolver trained on $800$ on $\texttt{mse\_p}$
+($238{\pm}65$, worst of five subsets $344$, against $628.5$) and on $\texttt{mse\_v}$
+($0.0720{\pm}0.013$ against $0.088$). At $50$ cases the mean already clears
+$\texttt{mse\_p}$ ($519$) but one subset of five does not ($735$), so the claim we make
+is $100$, not $50$. Convergence in $\texttt{mse\_p}$ has not saturated at $800$.
+
+\paragraph{The cost asymmetry, and what this does not say.} The interpolator has zero
+parameters but is non-parametric: it carries $800\times128^2\times4$ float32
+$=210$\,MB of training fields, all resident at inference, against Transolver's
+$7.35$M parameters ($\approx29$\,MB). That is a real objection to calling it a
+deployable surrogate. It is not an objection to reporting it as the baseline, which is
+the only claim we make for it. Nor is this a claim that published AirfRANS results are
+wrong: it is a claim that they have been read against a baseline nobody ran, and that
+the baseline is strong enough to change how they read.
+
+\subsection{The \texttt{reynolds} split does not test Reynolds generalisation}
+\label{sec:splits}
+
+The same estimator, re-selected by cross-validation inside each split's own train set,
+separates the benchmark's two extrapolation tasks cleanly. The script proves
+disjointness rather than asserting it: on \texttt{reynolds}, \textbf{$0$ of $200$} test
+cases have an inlet velocity inside the training range---$U\in[46.8,78.0]$ train
+against $[31.5,93.4]$ test, outside on both sides---and on \texttt{aoa},
+$0$ of $196$ have an in-range incidence.
+
+Yet the nondimensional interpolator barely notices \texttt{reynolds}: $\texttt{mse\_u}$
+degrades by $3\%$ ($0.782\to0.808$) and $\texttt{mse\_p}$ by $-1\%$ ($75.0\to74.1$),
+and it is \emph{better} than in-distribution on $\texttt{mse\_v}$ and on surface
+pressure. The control that explains why is in the same run: the \texttt{raw}
+cell-wise interpolator, identical except that it does not nondimensionalise, degrades
+$5.2\times$ on $\texttt{mse\_u}$ ($0.808\to4.194$) and $10.1\times$ on
+$\texttt{mse\_p}$ ($74.1\to751.1$) on that split. \textbf{The split's entire difficulty
+is absorbed by dimensional analysis, not by learning.} Physically this is unsurprising
+---$Re$ spans $2.0$--$6.0\times10^6$, all fully turbulent---but the consequence for
+evaluation is sharp: a ``Reynolds OOD'' result on this split is not evidence of learned
+extrapolation unless the method is shown not to be exploiting $u/U$ and $p/U^2$.
+
+The \texttt{aoa} split does bite, and only where it should. Lift is the quantity that
+depends on incidence, and the $C_l$ relative error rises from $1.18\%$ to
+$\mathbf{23.1\%}$; $\texttt{mse\_u}$ degrades $2.1\times$ and $\texttt{mse\_p}$
+$1.7\times$, while drag is barely touched ($2.39\%\to2.71\%$). That is the expected
+signature of extrapolating past the stall-approach end of the $\alpha$ range. One
+caveat is load-bearing: no matched \emph{surrogate} row exists on either split in our
+results, so these numbers report the interpolator's own in-distribution-to-OOD
+degradation and must not be read as ``interpolation generalises better than a
+surrogate''.
+
+\subsection{The benchmark's force metrics do not measure that difference}
+\label{sec:covariate}
+
+\autoref{sec:interp} locates the surrogate's advantage in the first cell off the wall.
+The benchmark's declared primary metric cannot see it. \citet{bonnet2022airfrans} name
+the Spearman rank correlation of the force coefficients as ``the main metrics to
+maximize the recovery of the best airfoils''---and that rank is a covariate property of
+the case index.
+
+We fit ordinary least squares on the case name---inlet velocity, incidence, incidence
+squared, and the four NACA digits---on the official $800$ train cases, and score
+Spearman against the official labels on the $200$ test cases: the exact protocol the
+published entries were produced under. The reading was fixed in the script's docstring
+before any number existed (\textsc{below the null} iff the published mean is below the
+null's point estimate \emph{and} the null's $95\%$ bootstrap interval excludes it).
+The null ranks official lift at $\mathbf{0.9821}$ $[0.9737,0.9866]$ and official drag
+at $\mathbf{0.9318}$ $[0.8981,0.9531]$ (\autoref{tab:covariate};
+\texttt{scripts/covariate\_null\_trainfit.py},
+\texttt{results/review/covariate\_null\_trainfit.json}).
+
+\begin{table}[t]
+\centering
+\small
+\caption{The case-name null against the published AirfRANS \texttt{full} field.
+Nulls are OLS fit on the official $800$ train cases and scored on the $200$ test
+cases; intervals are $95\%$ percentile bootstrap over $10^4$ case-level resamples.
+Published rows are from \citet{bonnet2022airfrans} Table 3 and
+\citet{wu2024transolver}; Transolver reports no drag column.}
+\label{tab:covariate}
+\begin{tabular}{l r r}
+\toprule
+ & $\rho_{C_l}$ vs official & $\rho_{C_d}$ vs official \\
+\midrule
+null: $\alpha$ & $0.9335$ $[0.9114,0.9483]$ & $0.8001$ $[0.7249,0.8563]$ \\
+null: $(U,\alpha)$ & $0.9344$ $[0.9123,0.9492]$ & $0.8276$ $[0.7601,0.8768]$ \\
+null: $(U,\alpha,\alpha^2)$ & $0.9344$ $[0.9123,0.9492]$ & $0.8752$ $[0.8278,0.9083]$ \\
+\textbf{null: $(U,\alpha,\alpha^2,\text{NACA})$} & $\mathbf{0.9821}$ $[0.9737,0.9866]$ & $\mathbf{0.9318}$ $[0.8981,0.9531]$ \\
+\midrule
+MLP & $0.913{\pm}0.018$ & $-0.117$ \\
+GraphSAGE & $0.965$ & $-0.303$ \\
+PointNet & $0.938{\pm}0.023$ & $-0.022$ \\
+Graph U-Net & $0.967$ & $-0.138$ \\
+Transolver & $0.9978$ & not reported \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Every baseline in the AirfRANS paper sits below the full null on both
+coefficients}, on the metric that paper declares primary. Transolver clears on lift
+($0.9978$) and reports no drag column at all, stating in its Appendix B.1 that ``all
+the deep models fail in drag coefficient estimation'' and that it therefore focuses on
+lift and pressure. Three qualifications belong with this, and we state them before a
+reviewer does.
+
+\emph{The digits are fair.} The NACA digits are the geometry the surrogate is handed as
+an input channel, so a null that uses them is not exploiting information the models
+lack; it is asking whether the models extract anything from that geometry beyond what a
+seven-coefficient regression already extracts. Restricting the null to
+$(U,\alpha)$---the reading an earlier version of this control used---gives $0.9344$ on
+lift, which PointNet straddles and MLP sits just below at $1.2$ seed standard
+deviations. \textbf{The two-parameter null is not sufficient to support this claim; the
+digits are what make it decisive.}
+
+\emph{The fit is honest.} The numbers above avoid in-sample optimism by construction,
+being fit on train and scored on test. A companion run that fits and scores entirely
+within the $200$ test cases bounds the optimism directly: the gap between the in-sample
+and the 10-fold cross-validated Spearman is $0.0017$ on lift and $0.0020$ on drag at
+the full feature set, and $0.0008$--$0.0035$ across all four feature sets
+(\texttt{scripts/covariate\_null.py},
+\texttt{results/review/covariate\_null.json}). Covariate regressions of this form carry
+negligible optimism at this sample size.
+
+\emph{This is a statement about the metric, not an accusation.} We do not claim label
+leakage. A drag \emph{rank} metric cannot distinguish a better integrator from a head
+that has learned the covariate dependence, and conditioning a surrogate on its inlet
+state is necessary rather than suspect---it cannot predict a field without knowing the
+flow condition. The defensible claim is the measurement gap: no paper in this line
+reports the null, so its force-rank numbers are uninterpretable as evidence about
+integration quality. The claim is also narrower than ``nobody publishes parameter-space
+baselines'', which is false as stated: DrivAerNet++ reports an AutoML tabular baseline
+on its $26$ design parameters \citep{elrefaie2024drivaernet}. What survives is that
+theirs is an $R^2$-on-magnitude comparison rather than a rank one, that the same
+group's follow-on benchmark drops it, and that nobody audits \emph{published} force
+numbers against a null.
+
 \subsection{Backbone-agnostic trust + learned correction on a SOTA backbone (v2)}
 \label{sec:v2}
 
@@ -876,9 +1204,15 @@ fields ($0.828$--$0.845$); $\alpha$ alone gives $0.800$
 (\texttt{scripts/drag\_covariate\_control.py},
 \texttt{results/control/drag\_covariate\_control.json}). The operating conditions are
 recoverable because \texttt{Simulation.reset()} parses them from the case name. The
+parameter interpolator of \autoref{sec:interp} makes the same point from the other
+direction: scored through this integrator it ranks the official drag at $\rho=0.8389$,
+\emph{indistinguishable from the same integrator applied to the exact ground-truth
+field} ($0.8394$), and matching it on lift to four significant figures ($0.8758$ vs
+$0.8757$). Both are still beaten by the three-parameter name regression. The
 consequence generalises beyond this paper: \textbf{a drag rank correlation reported on this
 benchmark is uninterpretable without its covariate baseline}, and the conventional
-near-field number sits below that baseline.
+near-field number sits below that baseline. Adding the NACA digits raises the null
+further still, to $0.9318$ on drag and $0.9821$ on lift (\autoref{sec:covariate}).
 
 \paragraph{What the rasterisation costs, measured against AirfRANS's own integrator.}
 To separate information destroyed by the raster from our choice of quadrature, we
@@ -1325,38 +1659,40 @@ additionally note that for the DEQ corrector the trust-gating and acceptance-tes
 are structural no-ops---the DEQ branch bypasses both---so the only live correction knob is
 the applied-delta step size (\texttt{results/sensitivity/toggles.json}).
 
-\subsection{The floor does not refine away---it grows}
+\subsection{What the physics residual can and cannot do}
+\label{sec:residual}
+
+A deployed surrogate cannot afford the solver that produced its labels, so any
+self-check it runs must monitor a cheaper, different operator. This section reports what
+that substitution costs. The verdict is three verbs with three separately measured
+outcomes: the monitored residual can be \emph{ranked} on, can \emph{certify} only to a
+floor-limited width, and cannot be \emph{descended}. The first two are established in
+\autoref{sec:conformal} and \autoref{sec:selective}; this section establishes the third,
+and the obstruction behind it---a floor at the reference solution that refinement does
+not remove.
+
+\subsubsection{The floor does not refine away}
 \label{sec:floor_ladder}
 
 If the floor $r^\star=R_h(u^\star)$ were an artifact of the $128^2$ grid
 under-resolving the boundary layer, everything built on it would collapse to ``you
 under-resolved your data''. It is not. We rasterise the same AirfRANS truth at
 $128^2$, $256^2$ and $512^2$ and measure the floor on each
-(\texttt{scripts/floor\_resolution\_ladder.py}).
-
-\paragraph{Protocol, fixed before the measurement.} Three choices decide this
-experiment and all three were registered in the repository before it was run.
-\emph{(i)} The scored region is fixed in \textbf{physical} units---fluid cells with
-$\mathrm{sdf}\ge 1.5\,h_{128}=0.0352$ chord---because the solid-adjacent ring the
-monitor zeroes is physically thinner on a finer grid, so scoring the default set
-would compare different regions at different levels and could manufacture a plateau
-by unmasking the steepest cells. \emph{(ii)} The reading of the fitted exponent in
-$\|r^\star\|\sim C h^{p}$ was fixed in advance: $p\ge1$ with an extrapolation to zero
-is \textsc{decay}, $p<0.5$ is \textsc{plateau}. \emph{(iii)} Levels whose spacing
-falls below the source cloud's own are excluded, since below that the raster
-differentiates a piecewise-linear reconstruction rather than sampling a solution.
-
-\paragraph{Result.} The floor rises monotonically as the grid is refined
-(\autoref{tab:floor_ladder}): $0.0624\to0.0779\to0.1067$ while $h$ falls by $4\times$,
-rising in $\mathbf{21/24}$ cases, with $p=-0.387$---not merely inside the
-pre-registered \textsc{plateau} band but the wrong \emph{sign} for decay. (These are
-band-restricted values, scored on the physically fixed region of protocol~\emph{(i)},
-and are therefore smaller than the whole-grid RMS floor of mean $0.192$ quoted in
-\autoref{sec:residual_floor}; the two score different regions and are not directly
-comparable.) Meanwhile
-$\|R_h(u_\infty)\|=0$ exactly at every level, as it must: a spatially constant field
-has identically zero finite differences at any $h$. The gap the objective must be
-blamed for therefore \emph{widens} with refinement.
+(\texttt{scripts/floor\_resolution\_ladder.py}). Three choices were registered before
+the run: the scored region is fixed in \textbf{physical} units (fluid cells with
+$\mathrm{sdf}\ge 1.5\,h_{128}=0.0352$ chord), so refinement cannot manufacture a plateau
+by unmasking the steepest cells; the reading of the fitted exponent in
+$\|r^\star\|\sim Ch^{p}$ was fixed as $p\ge1$ is \textsc{decay} and $p<0.5$ is
+\textsc{plateau}; and levels finer than the source cloud's own spacing are excluded. The
+floor \emph{rises} as the grid is refined (\autoref{tab:floor_ladder}):
+$0.0624\to0.0779\to0.1067$ while $h$ falls $4\times$, rising in $\mathbf{21/24}$ cases,
+at $p=-0.387$---not merely inside the \textsc{plateau} band but the wrong \emph{sign}
+for decay. A second, independent $16$-case five-rung implementation finds it decaying in
+$0$ of $16$. (These band-restricted values are smaller than the whole-grid RMS floor of
+mean $0.192$ quoted in \autoref{sec:residual_floor}; the two score different regions.)
+Meanwhile $\|R_h(u_\infty)\|=0$ exactly at every level, because a spatially constant
+field has identically zero finite differences at any $h$---so the gap by which the
+objective prefers a wrong field to the truth widens as the grid improves.
 
 \begin{table}[t]
 \centering
@@ -1381,105 +1717,100 @@ rose in & & $21/24$ & $21/24$ & $21/24$ & --- \\
 
 \paragraph{Four controls, because a rising floor is usually a bug.}
 \emph{The operator is second order.} Method of manufactured solutions on the same
-monitor gives $p=2.06$ in the interior band (fitted on the rung means; $2.02\pm0.05$
-across the per-case fits), so the discretisation converges as
-claimed and the behaviour on real data is a statement about the data. The manufactured
-field is a potential flow, on which the monitored viscous term vanishes identically, so
-this control bounds truncation error and is \emph{not} evidence that the operator is
-consistent (\autoref{sec:residual_floor}).
+monitor gives $p=2.06$ in the interior band ($2.02\pm0.05$ across per-case fits), so the
+discretisation converges as claimed and the behaviour on real data is a statement about
+the data. The manufactured field is a potential flow, on which the monitored viscous
+term vanishes identically, so this control bounds truncation error and is \emph{not}
+evidence that the operator is consistent (\autoref{sec:residual_floor}).
 \emph{Restoring the omitted closure term does nothing.} Adding
-$(\partial_j\nu_t)(\partial_j u_i+\partial_i u_j)$ back changes each rung's mean
-floor by $-0.01\%$ to $+0.18\%$ across five rungs, and no individual case by more
-than $1.5\%$ (the per-case range is $-1.06\%$ to $+1.45\%$, wider than the range
-of means and still two orders of magnitude too small to matter); the term itself
-is $3.5$--$4.8\%$ of the floor. At $Re\approx2\times10^6$ the entire viscous term is $1$--$4\%$ of convection,
-so no part of it can carry a floor of this size---the floor lives in the
-convection/pressure block.
-\emph{A higher-order interpolant does not reduce it.} Rasterising the same source
-cloud with cubic rather than linear interpolation \emph{raises} the floor by
-$6$--$12\%$, and lowers it in only $2$--$4$ of $16$ cases; if linear interpolation's
-kinks set the floor, cubic would cut it.
-\emph{The pipeline does not manufacture rising residuals.} Pushing a manufactured
-analytic solution through the identical rasteriser gives a residual that \emph{falls}
-with refinement (fine/coarse $0.41$--$0.74$) where the real truth's rises.
+$(\partial_j\nu_t)(\partial_j u_i+\partial_i u_j)$ back changes each rung's mean floor
+by $-0.01\%$ to $+0.18\%$ across five rungs, and no individual case by more than
+$1.5\%$; the term itself is $3.5$--$4.8\%$ of the floor. At $Re\approx2\times10^6$ the
+entire viscous term is $1$--$4\%$ of convection, so no part of it can carry a floor of
+this size.
+\emph{A higher-order interpolant does not reduce it.} Rasterising the same source cloud
+with cubic rather than linear interpolation \emph{raises} the floor by $6$--$12\%$, and
+lowers it in only $2$--$4$ of $16$ cases. That control bears on the second-derivative
+block---$5$--$7\%$ of the floor---and not on the first-derivative block carrying
+$93$--$95\%$ of it, so we do not present it as the sharpest control.
+\emph{The pipeline null, reported in full because its fine end reverses.} Pushing a
+manufactured analytic solution through the identical rasteriser gives a residual that
+falls over the ladder as a whole (fine/coarse $0.41$--$0.74$), but it reaches a minimum
+at $256^2$ and then \emph{rises}, in $16/16$ cases, at $p=-0.49\pm0.14$ against the real
+truth's $-0.58$ over the same rungs. At $512^2$ the pure-truncation curve is $10.9\%$ of
+the raster curve in amplitude and $1.2\%$ in mean square, so over that range the raster
+numbers are the pipeline-induced component to better than $1\%$. The null therefore does
+\emph{not} show that the rasteriser cannot manufacture a rising residual; it shows that
+on a field smooth at the cloud scale the effect is ${\sim}280\times$ smaller than on the
+real data.
 
-\paragraph{What this leaves.} Two statements, which we keep separate. The
-inconsistency of the monitored operator gives the floor a nonzero \textbf{continuum
-limit}, so refinement alone cannot remove it (\autoref{sec:residual_floor}). Its measured \textbf{size},
-however, is set by the mismatch between our Cartesian stencil and the body-fitted
-discrete balance the AirfRANS reference actually solved---a mismatch common to every
-equation, which is why continuity and momentum rise at the same rate in the same
-cases. We report the closure term as a small, separately provable component and do not
-attribute the observed floor to it. A limitation of the ladder itself: at $512^2$ the
-raster spacing is only $1.27\times$ the source cloud's far-field spacing, so that level
-is near the exclusion limit; the $128^2\!\to\!256^2$ leg, comfortably clear of it,
-already shows the rise.
+\paragraph{What this leaves.} Two statements, which we keep separate. The inconsistency
+of the monitored operator gives the floor a nonzero \textbf{continuum limit}, so
+refinement alone cannot remove it (\autoref{sec:residual_floor}). Its measured
+\textbf{size} has two contributions we can name and cannot separate: the mismatch
+between our Cartesian stencil and the body-fitted discrete balance the AirfRANS
+reference actually solved, and the reconstruction of that reference onto our grid---at
+fixed $h$, thinning the source point cloud eightfold raises the floor in $16/16$ cases,
+on every band and at both rungs
+(\texttt{results/certificates/floor\_cloud\_decimation.json}). The lockstep of
+continuity and momentum does not discriminate between them, and no measurement we have
+separates their shares. We therefore report both and attribute neither. A limitation of
+the ladder itself: at $512^2$ the raster spacing is only $1.27\times$ the source cloud's
+far-field spacing, so that level is near the exclusion limit; the $128^2\!\to\!256^2$
+leg, comfortably clear of it, already shows the rise.
 
-\subsection{Descending the residual directly}
+\subsubsection{Descending the residual directly}
 \label{sec:descent}
 
 Testing the residual as an objective requires minimising it, which the corrector sweep of
 \autoref{tab:iters} does not do: that corrector is trained by supervised regression toward
-ground truth and never sees the residual as an objective. We minimise it directly here
-(\texttt{scripts/residual\_descent.py}).
+ground truth and never sees the residual as an objective. We minimise it directly, with
+no network in the loop (\texttt{scripts/residual\_descent.py},
+\texttt{scripts/residual\_descent\_test.py}).
 
-\paragraph{Design.} We run $300$ Adam steps on $J(y)=\tfrac12\|R_h(y)\|^2$ using the
-differentiable residual, over $24$ AirfRANS test cases, from two starting points. The
-first is the \textbf{exact ground truth}---no network is involved anywhere, so the
-standard reply that a surrogate is over-smoothed has nothing to attach to. The second
-is the truth plus a smooth displacement, which is where a surrogate's error actually
-lives. Steps are taken in units of each channel's own scale, since a uniform absolute
-step would destroy $\nu_t$ (order $10^{-3}$) long before the velocity (order $10$)
-moved. As a control we descend the true field error from the same perturbed start; it
-must, and does, recover the truth.
-
-\paragraph{Result: the truth is not a fixed point.} Starting at $u^\star$, descent cuts
-the monitored residual by $84\%$ in $\mathbf{24/24}$ cases and drives the field error
-from exactly zero to a median of $0.91$---the range in which a trained backbone
-\emph{starts}. This is \autoref{thm:residual-floor}(ii) as a measurement rather than an algebraic
-remark: the same descent applied to the \emph{error} objective from the same point does
-not move at all, because $\nabla\|e\|^2=0$ there exactly, while $\nabla J\ne0$. The
-compact-stencil monitor we report falls in $24/24$ cases too, so this is not the
-differentiable twin's wider Laplacian being gamed.
+\paragraph{The truth is not a fixed point.} Over $24$ AirfRANS cases, $300$ Adam steps
+on $J(y)=\tfrac12\|R_h(y)\|^2$ started at the \textbf{exact ground truth}---so the
+standard reply that a surrogate is over-smoothed has nothing to attach to---cut the
+monitored residual by $84\%$ in $\mathbf{24/24}$ cases while driving the field error
+from exactly zero to a median of $0.91$, the range in which a trained backbone
+\emph{starts}. This is \autoref{thm:residual-floor}(ii) as a measurement: the same
+descent applied to the \emph{error} objective from the same point does not move at all,
+because $\nabla\|e\|^2=0$ there exactly while $\nabla J\ne0$. The compact-stencil
+monitor falls in $24/24$ cases too, so this is not the differentiable twin's wider
+Laplacian being gamed. Descent terminates at a residual of $0.028$ while the exact truth
+sits at $0.110$: the objective ranks a field with error $1.31$ as four times better than
+the field with error zero.
 
 \paragraph{What holds universally is iterate selection.} We do \emph{not} claim residual
-descent always harms the field: from the perturbed start it \emph{reduces} error in
+descent always harms the field: from a perturbed start it \emph{reduces} error in
 $18/24$ cases, typically by $60\%$, before overshooting. What holds universally is a
 statement about \textbf{iterate selection}. The error-minimising and residual-minimising
 iterates never coincide---they differ in $24/24$ cases on both arms---and the
 residual-selected iterate is strictly worse in $\mathbf{24/24}$. From the perturbed
-start the error bottoms at step ${\approx}62$ and the residual keeps falling to step
+start the error bottoms at step ${\approx}62$ while the residual keeps falling to step
 ${\approx}192$, by which point the error is $1.3\times$ its best value on the path. A
 practitioner who stops where the residual says lands worse than a point already
-traversed. Descent also terminates at a residual of $0.028$ while the exact truth sits
-at $0.110$: the objective ranks a field with error $1.31$ as four times better than the
-field with error zero.
+traversed.
 
-\paragraph{At $n=200$, on the deployed backbone, and under gradient descent.} The
-preceding arms use $24$ cases, an Adam optimiser and a synthetic displacement. We
-repeated the experiment with the framework's \emph{monitored} operator (a differentiable
-replica verified against \texttt{Diagnostics.residual\_norm} to $10^{-8}$ relative),
-under \textbf{Armijo-line-searched gradient descent}---so $J$ is monotone non-increasing
-and the step is chosen by the objective---on $200$ AirfRANS test cases, starting from the
-\emph{deployed} Transolver (three backbone seeds) and from the dropout-FNO of
-\autoref{tab:iters}, with the far-field and near-wall Dirichlet data \emph{pinned at
-ground truth} so the negative cannot be attributed to an unconstrained residual
-(\autoref{tab:descent200}; \texttt{scripts/residual\_descent\_test.py}). Unpinning those
-boundaries makes the negative stronger, not weaker---the error then rises on
-$100/99.5/100\%$ of cases across the three seeds---so the pinned arm is the conservative
-one and is what we report
-(\texttt{results/residual\_descent/descent\_*\_free\_uvp\_armijo.json}).
-From the truth, $J$ falls to $39.8\%$ of $J_0$ while the field error rises on
-$\mathbf{200/200}$ cases and never returns to its starting value at any of $500$ steps,
-ending at $\mathrm{rel}\text{-}L_2=0.0069$---$1.57\times$ the \emph{entire} error of the
-deployed Transolver---at a measured exchange rate
-$\Delta\mathrm{err}/\Delta\|R_h\|=-0.140$. From the deployed Transolver the residual
-falls $34\%$ while the error rises on $\mathbf{96.5/94.0/98.0\%}$ of cases (seeds
-$0/1/2$; median $+76.5/+73.9/+86.9\%$; Wilcoxon $p<10^{-30}$), against the supervised
-corrector's $-9/-21/-25\%$ on the same backbone. The verdict is unchanged under three
-step rules---Armijo, fixed $\eta$ swept over $12$ decades, and Adam---and in every one
-the outcome is monotone in the \emph{achieved} $J$: the harder the objective is
-minimised, the worse the field.
+\paragraph{At $n=200$, on the deployed backbone, under gradient descent.} We repeated
+the experiment with the framework's \emph{monitored} operator (a differentiable replica
+verified against \texttt{Diagnostics.residual\_norm} to $10^{-8}$ relative), under
+\textbf{Armijo-line-searched gradient descent}---so $J$ is monotone non-increasing and
+the step is chosen by the objective---on $200$ cases, from the \emph{deployed}
+Transolver (three seeds) and from the dropout-FNO of \autoref{tab:iters}, with the
+far-field and near-wall Dirichlet data \emph{pinned at ground truth} so the negative
+cannot be blamed on an unconstrained residual (\autoref{tab:descent200}). Unpinning
+makes the negative stronger, not weaker ($100/99.5/100\%$ of cases across seeds), so the
+pinned arm is the conservative one and is what we report. From the truth, $J$ falls to
+$39.8\%$ of $J_0$ while field error rises on $\mathbf{200/200}$ cases and never returns
+to its starting value at any of $500$ steps, ending at $1.57\times$ the \emph{entire}
+error of the deployed Transolver. From the deployed Transolver the residual falls $34\%$
+while the error rises on $\mathbf{96.5/94.0/98.0\%}$ of cases (median
+$+76.5/+73.9/+86.9\%$; Wilcoxon $p<10^{-30}$), against the supervised corrector's
+$-9/-21/-25\%$ on the same backbone. The verdict is unchanged under three step
+rules---Armijo, fixed $\eta$ swept over $12$ decades, and Adam---and in each the outcome
+is monotone in the \emph{achieved} $J$: the harder the objective is minimised, the worse
+the field.
 
 \begin{table}[t]
 \centering
@@ -1511,72 +1842,48 @@ dropout-FNO            & $0.286\to0.153$ & $0.238$ & $-18.7\%$ & $0.250$ & $0.89
 \paragraph{Where descent helps, and why that does not rescue the objective.} The
 dropout-FNO row is a genuine exception: there descent \emph{lowers} the error, on $75\%$
 of cases. The boundary is measurable in the theorem's own variable
-$\rho=\|R_h(\hat u)\|/\|r^\star\|$, since the truth arm supplies $\|r^\star\|$ for the
-same case. Over $200$ cases the fraction on which residual descent lowers
+$\rho=\|R_h(\hat u)\|/\|r^\star\|$. Over $200$ cases the fraction on which descent lowers
 $\mathrm{rel}\text{-}L_2$ rises monotonically with $\rho$: for the dropout-FNO $0.40$ at
 $\rho\in[1,1.5)$, $0.97$ at $[1.5,2)$ and $1.00$ above $2$; for the deployed Transolver
-$0.01$, $0.28$ and $0.25$. The deployed backbone has median $\rho=1.13$--$1.14$ with
-$88\%$ of cases in the lowest bin: it is already inside the regime where descent almost
-never helps. ($\rho$ is a strong trend, not a complete predictor---at matched
-$\rho\in[1.5,2)$ the two backbones differ---so we claim the ordering, not a law.) Even in
-the favourable regime the objective is not usable: the gain is ${\approx}1/35$ of the
-supervised corrector's, and there is \textbf{no stopping rule}---$J$ falls monotonically
-on $100\%$ of cases while the error minimum is interior on $78.5\%$, so driving $J$ lower
-with Adam cuts the gain from $-15.3\%$ to $-6.7\%$.
+$0.01$, $0.28$, $0.25$. The deployed backbone has median $\rho=1.13$--$1.14$ with $88\%$
+of cases in the lowest bin: it is already inside the regime where descent almost never
+helps. ($\rho$ is a strong trend, not a complete predictor, so we claim the ordering and
+not a law.) Even in the favourable regime the objective is unusable: the gain is
+${\approx}1/35$ of the supervised corrector's, and there is \textbf{no stopping
+rule}---$J$ falls monotonically on $100\%$ of cases while the error minimum is interior
+on $78.5\%$. Two readings we record because they went against our expectation: the error
+does not rise monotonically, so the claim is about endpoints and not paths; and the
+iterate moves \emph{away} from the uniform freestream, so the damage does not require
+reaching the spurious global minimum of leg~(i).
 
-Two further readings we record because they went against our own expectation. The error
-does not rise monotonically---these are Adam steps on a non-convex objective, not
-gradient flow---so the claim is about endpoints, not paths. And the iterate moves
-\emph{away} from the uniform freestream rather than toward it: descent does not travel
-to the spurious global minimum of leg (i), it finds a nearby different low-residual
-field. The damage does not require reaching $u_\infty$, which makes it more relevant to
-a short practical polish, not less.
-
-\subsection{The boundary is the operator, not the problem class}
+\subsubsection{The boundary is the operator, not the problem class}
 \label{sec:regime}
 
-Residual-driven correction is not doomed in general, and it is important to say exactly
-where it works. \citet{lei2026newtonkrylov} take a surrogate prediction as an initial
-guess for Newton--Krylov correction on \emph{steady} CFD and lower the median residual
-$L_2$ ratio by over seven orders of magnitude \emph{while} substantially reducing field
-and aerodynamic error---residual down and error down, on steady problems as here.
-\citet{huang2025physicscorrect} report a similar success on \emph{transient} rollouts,
-which matters for the boundary we are about to draw: the two successes differ in problem
-class but share the property that does the work.
-
-That is not a counterexample to our result; it locates it. In those works the residual
-being driven is the \emph{solver's own} discrete operator, the one whose root the
-reference solution is. Its floor at the truth is zero by construction, so minimising it
-and minimising the error are the same problem. Our monitor is the affordable
-surrogate-side one: a different discretisation, on a different mesh, from the generator
-of the labels. Its floor at the truth is \emph{not} zero, does not vanish under
-refinement (\autoref{sec:floor_ladder}), and its minimiser is displaced from $u^\star$
-(\autoref{sec:residual_floor}).
-
-We therefore draw the boundary at \textbf{operator consistency}. The obvious
-alternatives---steady versus transient, resolved versus under-resolved---are falsified by
-\citet{lei2026newtonkrylov} being steady and successful. The operator boundary is not: it predicts success exactly
-where the monitored residual is the generator's own, and failure exactly where an
-affordable proxy replaces it.
+Residual-driven correction is not doomed in general, and it matters to say exactly where
+it works. \citet{lei2026newtonkrylov} take a surrogate prediction as an initial guess
+for Newton--Krylov correction on \emph{steady} CFD and lower the median residual $L_2$
+ratio by over seven orders of magnitude \emph{while} substantially reducing field and
+aerodynamic error---residual down and error down, on steady problems as here;
+\citet{huang2025physicscorrect} report the same on transient rollouts. That is not a
+counterexample to our result, it locates it. In those works the residual being driven is
+the \emph{solver's own} discrete operator, the one whose root the reference solution is,
+so its floor at the truth is zero by construction and minimising the residual is
+minimising the error. Our monitor is the affordable surrogate-side one: a different
+discretisation, on a different mesh, from the generator of the labels. Its floor is not
+zero, does not vanish under refinement (\autoref{sec:floor_ladder}), and its minimiser is
+displaced from $u^\star$ (\autoref{sec:residual_floor}). We therefore draw the boundary
+at \textbf{operator consistency}; the obvious alternatives---steady versus transient,
+resolved versus under-resolved---are falsified by \citet{lei2026newtonkrylov} being
+steady and successful.
 
 The observation that a PDE residual need not vanish at the ground truth is not ours
-alone---\citet{zhang2026phymgn} report it for shock physics and conclude that a
+alone: \citet{zhang2026phymgn} report it for shock physics and conclude that a
 physics-informed loss ``cannot be formulated using the absolute PDE residual alone;
 instead, it must be defined relative to the residual present in the ground-truth
-data''. Their remedy requires $R_h(u^\star)$, which a deployment-time monitor by
-definition does not have.
-
-We also note the genre this paper belongs to. \citet{mcgreivy2024weak} show that weak
-baselines and reporting biases have produced systematic overoptimism in machine learning
-for fluid PDEs; the corrective in both cases is a measurement rather than a method, and
-the controls we report above---an ungated baseline against our gate, a
-physics-free score against our physics one---are exactly the comparisons that work
-argues are routinely omitted.
-
-Our contribution relative to \citet{zhang2026phymgn} is to establish that the
-floor has a nonzero continuum limit for an inconsistent operator, to measure that it grows
-under refinement rather than merely persisting, and to show what the resulting
-misplaced minimum does to a correction path.
+data''. Their remedy requires $R_h(u^\star)$, which a deployment-time monitor does not
+have. Our contribution relative to theirs is to establish that the floor has a nonzero
+continuum limit for an inconsistent operator, to measure that refinement does not remove
+it, and to show what the resulting misplaced minimum does to a correction path.
 
 \subsection{The conformal trust layer: coverage and contraction}
 \label{sec:conformal}
@@ -1672,9 +1979,9 @@ not an artifact of the counterfactual score having a smaller median). What sets 
 width is the heavy tail of the drag error itself: its $0.9$ quantile is $15.1\times$ its
 median, so a score carrying no information at all would give $15.1\times$. Against that
 reference the monitor is worth $\mathbf{2.34\times}$, and that---not the floor---is the
-honest statement of what it buys. \autoref{sec:floor_ladder} closes the obvious escape---the
-floor grows under refinement, so a finer grid widens this certificate rather than
-narrowing it. This is the precise sense in which the audit can certify and yet not
+honest statement of what it buys. \autoref{sec:floor_ladder} closes the obvious escape: the
+floor does not decay under refinement, so a finer grid does not narrow this certificate.
+This is the precise sense in which the audit can certify and yet not
 certify usefully, and it is why we describe the residual's certification role as priced
 rather than absent.
 
@@ -1861,8 +2168,10 @@ the same cases, under the same thread caps.
 \centering
 \small
 \caption{Matched-budget baseline on AirfRANS \texttt{full} ($\texttt{n\_train}=800$, 80
-epochs, identical rasterisation and \texttt{evaluate\_cases} scoring), 3 seeds. See
-\autoref{fig:fig3}.}
+epochs, identical rasterisation and \texttt{evaluate\_cases} scoring), 3 seeds, with the
+non-learned parameter-interpolation baseline of \autoref{sec:interp} on the same split
+and the same scorer. That last row is non-parametric: it has no weights but carries the
+$800$ training fields ($210$\,MB) resident at inference. See \autoref{fig:fig3}.}
 \label{tab:transolver}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{l r r r r r r r}
@@ -1872,6 +2181,7 @@ model & \texttt{n\_params} & $\texttt{mse\_u}$ & $\texttt{mse\_v}$ & $\texttt{ms
 Transolver (baseline) & 7.35M & $0.120{\pm}0.005$ & $0.088{\pm}0.013$ & $628.5{\pm}29$ & $9110{\pm}500$ & $0.9992{\pm}0.0002$ & $0.9963{\pm}0.0012$ \\
 our backbone (\autoref{tab:indist}) & --- & $3.479$ & $0.385$ & $2444.8$ & $548823$ & $0.987$ & $0.895$ \\
 our backbone + DEQ & --- & $3.457$ & $0.880$ & $3832.7$ & $361681$ & $0.986$ & $0.923$ \\
+parameter interpolation (no learning) & $0$ ($210$MB) & $0.782$ & $\mathbf{0.0336}$ & $\mathbf{75.03}$ & $10989$ & $0.9999$ & $0.9991$ \\
 \bottomrule
 \end{tabular}%
 }
@@ -1910,6 +2220,22 @@ reproduces the canonical AirfRANS-paper baselines as field context. Note the ben
 signature difficulty---drag ranking $\rho_{C_d}$ is near zero or negative for every baseline,
 the headline finding of \citet{bonnet2022airfrans}---which is also why we read our own
 $\rho_{C_d}$ as internal self-consistency rather than a solved drag-ranking claim.
+\autoref{sec:covariate} adds the row that makes \autoref{tab:airfrans-sota} readable:
+every entry in it falls below a regression on the case name.
+
+\paragraph{Relation to the corrector result.} The Transolver row that parameter
+interpolation beats on $\texttt{mse\_v}$ and $\texttt{mse\_p}$ is the same backbone
+whose $-8/-21/-25\%$ DEQ-corrector improvement appears in \autoref{tab:v2}, so we
+connect them before a reviewer does. The corrector deltas are measured \emph{on} that
+backbone and are a statement about what a residual-conditioned DEQ loop adds to it;
+they are unaffected by the existence of a cheaper non-learned predictor that is better
+on two of four channels. What the interpolation baseline changes is the \emph{reading}
+of the absolute values: $\texttt{mse\_p}=485$ after correction is still $6.5\times$ the
+$75.0$ a parameter interpolator reaches with no learning, so the corrector's $-25\%$ is
+a relative improvement to a learned backbone, not a field-accuracy record. Its value on
+this benchmark lies in the channels where interpolation fails---$u$, $\nu_t$ and the
+first cell off the wall---and in being reference-free at deployment, which an
+interpolator carrying $210$\,MB of training fields is not.
 
 \begin{table}[t]
 \centering\small
@@ -2064,6 +2390,38 @@ Every number comes from the committed, reproducible harness
 \label{sec:limitations}
 
 \begin{itemize}
+\item \textbf{The point-space head-to-head was not run, and it is the obvious attack on
+\autoref{sec:interp}.} Every number there is scored on the $r128$ rasterised crop,
+because that is the protocol our Transolver row uses. The native AirfRANS point clouds
+resolve the boundary layer far better than $0.0234c$ cells, and our own decomposition
+says the entire remaining gap lives inside the first cell. A reviewer is entitled to ask
+whether the interpolation advantage survives at native resolution, and we cannot answer
+from these runs: doing so needs Transolver inference with the \texttt{PointNormalizer}
+fitted on the $800$ train point clouds, and the checkpoints do not store the normaliser.
+This is the single most valuable follow-up in the paper. Relatedly, the standardised
+comparison of \autoref{tab:interp_std} divides by variances computed on the $r128$
+raster rather than in point space, so it is faithful in spirit but not byte-identical to
+the training normaliser; the ratios between rows are unaffected, since the divisor is
+shared.
+\item \textbf{No matched surrogate row on the extrapolation splits.} The degradations in
+\autoref{sec:splits} are the interpolator's own in-distribution-to-OOD changes. No
+surrogate was rerun on \texttt{reynolds} or \texttt{aoa} under the same protocol, so
+these numbers must not be read as ``interpolation generalises better than a
+surrogate''---only as evidence about what the \texttt{reynolds} split measures. Two
+further scope notes: the \texttt{reynolds} test split is the first $200$ of $496$ cases
+(the $r128$ cache limit), an unbiased subsample whose $U$/$\alpha$ ranges match the full
+set but a subsample nonetheless; and \texttt{aoa} has $196$ test cases, not $200$.
+\item \textbf{The interpolator is a baseline, not a method.} It has zero parameters but
+carries $210$\,MB of training fields resident at inference, and it is deterministic given
+the split, so the headline rows have no seed variance to report (the train-subset ladder
+uses five random subsets per size for $n<800$; $n=800$ is the whole train split). We make
+no deployability claim for it.
+\item \textbf{The covariate null is one benchmark, one metric family.} We compute it for
+AirfRANS lift and drag only. Extending it to DrivAerNet++, DrivAerML and AhmedML is
+straightforward---all three publish their design parameters---and is not done here, so
+we claim nothing about the force numbers reported on those datasets. We also do not
+refit the null inside the \texttt{scarce}, \texttt{reynolds} and \texttt{aoa} splits,
+which would be required before comparing published per-split force numbers against it.
 \item \textbf{Backbone-dependent correction quality.} The supervised DEQ corrector reduces
 field MSE by $8$--$25\%$ on the SOTA Transolver backbone (\autoref{sec:v2}) but is
 flat-to-unhelpful on the weak grid backbone (\autoref{sec:indist-ablation}). We report both
@@ -2076,13 +2434,20 @@ control returns \textsc{density-driven}, so the matched-density range is
 $\rho\approx0.40$--$0.61$ (\autoref{sec:v2}). We make no competitiveness claim for the
 grid backbone (it trails SOTA $\sim 4$--$60\times$); the Transolver backbone we run
 \emph{on} is itself competitive.
-\item \textbf{The resolution ladder has its own ceiling.} The floor's growth is measured
-over $128^2$--$512^2$, and at the finest level the raster spacing is only $1.27\times$ the
-source cloud's far-field nearest-neighbour spacing, so a still finer level would begin
-differentiating the interpolant rather than sampling the solution. The
-$128^2\!\to\!256^2$ leg is clear of that limit and already shows the rise, but we cannot
-extend the ladder further on this data and do not claim an asymptotic rate---only that the
-floor does not decay over the range a $128^2$-trained surrogate is deployed in.
+\item \textbf{The resolution ladder has its own ceiling, and we do not explain the
+rise.} The floor's growth is measured over $128^2$--$512^2$, and at the finest level the
+raster spacing is only $1.27\times$ the source cloud's far-field nearest-neighbour
+spacing, so a still finer level would begin differentiating the interpolant rather than
+sampling the solution. The $128^2\!\to\!256^2$ leg is clear of that limit and already
+shows the rise, but we cannot extend the ladder further on this data and do not claim an
+asymptotic rate---only that the floor does not decay over the range a $128^2$-trained
+surrogate is deployed in. We also stop short of naming the mechanism. Holding $h$ fixed
+and thinning the source point cloud eightfold raises the floor in $16/16$ cases
+($\mathrm{d}\log\|r^\star\|/\mathrm{d}\log s=+0.55\pm0.27$), which rules out attributing
+the growth to operator provenance alone; the registered representation-error model,
+which predicts an exponent of $1.64$ and a rise of $4.8$--$8.0\times$, is also refuted
+(measured rise $1.8\times$, with $1/16$ cases reaching an exponent of $1$). Both
+contributions are reported and neither is separated.
 \item \textbf{The $n{=}24$ descent arms are Adam, not gradient flow.} The $24$-case arms
 of \autoref{sec:descent} minimise the residual with a first-order optimiser and
 per-channel scaling, so the field error rises overall but not monotonically and those
@@ -2183,22 +2548,46 @@ control ($0/5$ seeds), neither of which has this dependency.
 
 \section{Conclusion}
 
-We set out to have a neural-CFD surrogate audit itself against the governing equations,
-and found that the operator such an audit can afford is not the operator that produced its
-training data. The consequences follow from that one fact.
+\textbf{Learning earns its keep in the first cell off the wall.} Kernel interpolation
+over seven scalars read off the AirfRANS case name---no network, no geometry encoder, no
+flow-field learning, one Cholesky solve---beats a matched-budget Transolver on volume
+pressure by $8.4\times$, on cross-flow velocity by $2.6\times$, and on both force
+relative errors by roughly $4\times$, under the identical scoring protocol and split. It
+loses on streamwise velocity, loses heavily on the turbulence closure, and therefore
+loses $6.4\times$ on the four-channel standardised objective the surrogate is trained
+on. That pair is not a stalemate, because the difference is localised: $92\%$ of the
+interpolator's $u$ error and $90\%$ of its $v$ error lie within $0.02$ chord of the wall,
+in $0.5\%$ of the cells, and beyond $0.05$ chord it reproduces every channel at
+$R^2\ge0.9996$. The far field is four fifths of the domain and carries $3.6\%$ of the
+error, so this is not a win on easy cells. What a learned surrogate buys on this
+benchmark is the first grid cell and the closure; the pressure field and the force
+coefficients that early-design ranking consumes are recoverable from the file name.
 
-\textbf{The ground truth fails the check.} On $200/200$ AirfRANS cases the monitored
-residual of the exact field is substantially nonzero (mean $0.192$) while the physically
-wrong uniform freestream scores an exact zero, so the objective strictly prefers a wrong
-field to the truth. This is not an artifact of resolution. Refining from $128^2$ to
-$512^2$ makes the floor \emph{larger}, in $21$ of $24$ cases, under a rule fixed before the
-measurement, and a second independent implementation over five rungs finds it decaying in
-$0$ of $16$ cases at $p=-0.64\pm0.29$; restoring the omitted closure term moves it by under
-$0.2\%$; and a
-higher-order interpolant on the same reference data raises rather than lowers it. What
-sets the floor is the mismatch between an affordable Cartesian monitor and the body-fitted
-discrete balance the reference actually solved, and refinement resolves more of that
-mismatch, not less.
+\textbf{The benchmark's primary metric cannot see that.} A regression on the case name,
+fit on the official train split and scored on test, ranks the official lift at $0.9821$
+and the official drag at $0.9318$, and every baseline in the AirfRANS paper falls below
+both. The most-cited model on the benchmark reports no drag column at all. We do not
+read this as evidence that those results are wrong; we read it as evidence that a
+force-rank number on this benchmark is uninterpretable without its covariate baseline,
+and that the baseline costs minutes to compute. The same lens exposes an
+extrapolation split that does not extrapolate: none of the \texttt{reynolds} test cases
+has an in-range inlet velocity, yet a nondimensional interpolator degrades by $3\%$
+where a dimensional one degrades five- to tenfold, so that split measures dimensional
+analysis rather than learned generalisation. The \texttt{aoa} split, by contrast, bites
+exactly where it should.
+
+\textbf{On the self-check a deployed surrogate could run instead: the ground truth fails
+it.} On $200/200$ AirfRANS cases the monitored residual of the exact field is
+substantially nonzero (mean $0.192$) while the physically wrong uniform freestream scores
+an exact zero, so the objective strictly prefers a wrong field to the truth. This is not
+an artifact of resolution: refining from $128^2$ to $512^2$ makes the floor
+\emph{larger}, in $21$ of $24$ cases under a rule fixed before the measurement, with a
+second independent implementation over five rungs finding it decaying in $0$ of $16$; a
+higher-order interpolant on the same reference data raises rather than lowers it; and
+restoring the omitted closure term moves it by under $0.2\%$. We stop short of naming
+what makes the measured floor larger on a finer grid, because the same experiment that
+refines the grid also samples a fixed reconstruction more finely, and holding the grid
+fixed while thinning the source cloud raises the floor in $16/16$ cases.
 
 \textbf{So the residual cannot be minimised, in a precise sense.} Descending it from the
 \emph{exact} ground truth---no network anywhere in the loop, so no appeal to an
@@ -2246,12 +2635,14 @@ accuracy. And the learned corrector that improves a competitive backbone is supe
 toward truth, with a controlled ablation attributing its gain to the learned correction
 rather than to the residual it ingests.
 
-The durable contribution is therefore a measurement and the boundary it draws, not a
-system: an audit built on a proxy operator can tell you \emph{which} predictions to
-distrust, and cannot tell you how to fix them, because the field it would move you toward
-is not the one you want. Anyone building a surrogate-side physics check should measure
-their operator's floor on their own ground truth first; if it is not near zero, the
-detector may still be worth having, but the objective is not.
+The durable contribution is a pair of reference points and the boundary they draw, not a
+system. Anyone reporting a field metric on AirfRANS should report it against parameter
+interpolation, which takes fifteen minutes of CPU time and localises whatever advantage
+remains to the first cell off the wall. Anyone reporting a force-rank metric should
+report it against a regression on the case name, which takes seconds. And anyone
+building a surrogate-side physics check should measure their operator's floor on their
+own ground truth first: if it is not near zero, the detector may still be worth having,
+but the objective is not.
 
 \section*{Code and data availability}
 The complete source, training/evaluation harnesses, and per-claim reproduction map

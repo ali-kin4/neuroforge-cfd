@@ -300,6 +300,154 @@ def transolver_inversion(root, which):
     return float(100.0 * (min(vals) if which == "min" else max(vals)))
 
 
+# ---- the parameter-interpolation baseline and the covariate null ------------
+# These are the paper's headline evaluation results (sec:interp, sec:splits,
+# sec:covariate). Ratios are recomputed here rather than hardcoded, so a re-run
+# that moves either side of a ratio is caught.
+
+def interp(root, task="full"):
+    return load(os.path.join(root, "results/interpolation", f"interp_{task}.json"))
+
+
+def interp_metric(root, field, task="full", variant="nd"):
+    d = interp(root, task)
+    if d is None:
+        return None
+    return float(d["variants"][variant]["test_metrics"][field])
+
+
+def interp_ratio_vs_transolver(root, field):
+    """interpolation / Transolver on a volume channel, from one file."""
+    d = interp(root)
+    if d is None:
+        return None
+    ours = d["variants"]["nd"]["test_metrics"][field]
+    ref = d["reference_rows"]["transolver_tab_transolver"][field]
+    return float(ref / ours) if ours else None
+
+
+def interp_std_mean(root, who, key):
+    d = interp(root)
+    if d is None:
+        return None
+    return float(d["variants"]["nd"]["standardised_metrics"][who][key])
+
+
+def interp_std_ratio(root, key):
+    """How many times better the interpolator is than Transolver on a mean."""
+    d = interp(root)
+    if d is None:
+        return None
+    s = d["variants"]["nd"]["standardised_metrics"]
+    return float(s["transolver_tab_transolver"][key] / s["interpolation"][key])
+
+
+def band(root, key, band_name="0-0.02c"):
+    d = load(os.path.join(root,
+                          "results/interpolation/interp_band_control_full.json"))
+    if d is None:
+        return None
+    return float(d["A_band_decomposition"][band_name][key])
+
+
+def band_outer_min_r2(root, which="r2"):
+    """Worst R^2 over the three bands beyond 0.05c, all channels."""
+    d = load(os.path.join(root,
+                          "results/interpolation/interp_band_control_full.json"))
+    if d is None:
+        return None
+    outer = ["0.05-0.15c", "0.15-0.5c", ">0.5c"]
+    keys = [f"{which}_{c}" for c in ("u", "v", "p")]
+    return float(min(d["A_band_decomposition"][b][k] for b in outer for k in keys))
+
+
+def band_ladder(root, n, field, which="mean"):
+    d = load(os.path.join(root,
+                          "results/interpolation/interp_band_control_full.json"))
+    if d is None:
+        return None
+    row = d["B_train_size_ladder"][str(n)]
+    return float(row[field] if which == "mean" else row[f"{field}_max"])
+
+
+def band_permuted(root, field):
+    d = load(os.path.join(root,
+                          "results/interpolation/interp_band_control_full.json"))
+    if d is None:
+        return None
+    return float(d["C_permuted_parameters"][field])
+
+
+def band_ablation(root, arm, field):
+    d = load(os.path.join(root,
+                          "results/interpolation/interp_band_control_full.json"))
+    if d is None:
+        return None
+    return float(d["D_feature_ablation"][arm][field])
+
+
+def interp_ood_ratio(root, task, field):
+    """raw (dimensional) / nd (nondimensional) on an OOD split."""
+    d = interp(root, task)
+    if d is None:
+        return None
+    nd = d["variants"]["nd"]["test_metrics"][field]
+    raw = d["variants"]["raw"]["test_metrics"][field]
+    return float(raw / nd) if nd else None
+
+
+def interp_containment(root, task):
+    d = interp(root, task)
+    if d is None:
+        return None
+    return float(d["feature_containment"]["per_feature_frac_test_inside_train_range"]["U"])
+
+
+def interp_forces(root, key):
+    d = interp(root)
+    if d is None:
+        return None
+    return float(d["variants"]["nd"]["official_forces"][key]["rho_marginal"])
+
+
+def covariate_trainfit(root, target, which="point"):
+    d = review(root, "covariate_null_trainfit.json")
+    if d is None:
+        return None
+    node = d["targets"][target]["U_alpha_alpha2_naca"]
+    if which == "point":
+        return float(node["spearman_train_fit_test_score"])
+    return float(node["ci95"][0 if which == "lo" else 1])
+
+
+def covariate_trainfit_2param(root, target):
+    d = review(root, "covariate_null_trainfit.json")
+    if d is None:
+        return None
+    return float(d["targets"][target]["U_alpha"]["spearman_train_fit_test_score"])
+
+
+def covariate_inflation(root, which):
+    """Range of in-sample optimism over every feature set and both targets."""
+    d = review(root, "covariate_null.json")
+    if d is None:
+        return None
+    vals = [v["in_sample_inflation"]
+            for t in d["targets"].values() for v in t.values()]
+    return float(min(vals) if which == "min" else max(vals))
+
+
+def covariate_below_null(root, target):
+    """How many published AirfRANS-paper entries fall below the full null."""
+    d = review(root, "covariate_null_trainfit.json")
+    if d is None:
+        return None
+    names = {"MLP", "GraphSAGE", "PointNet", "Graph U-Net"}
+    return float(sum(1 for r in d["leaderboard_vs_full_name_null"]
+                     if r["model"] in names
+                     and r[target]["verdict"] == "BELOW THE NULL"))
+
+
 # ---- the claim table --------------------------------------------------------
 # (label, reader, manuscript value, absolute tolerance)
 CLAIMS = [
@@ -370,6 +518,97 @@ CLAIMS = [
      lambda r: transolver_inversion(r, "min"), 2.5, 0.1),
     ("Transolver inversion rate, max (%)",
      lambda r: transolver_inversion(r, "max"), 7.0, 0.1),
+    # --- sec:interp, the headline. Every cell of tab:interp that the prose
+    # quotes, plus the two standardised means that must always travel together.
+    ("interp mse_u", lambda r: interp_metric(r, "mse_u"), 0.782, 0.001),
+    ("interp mse_v", lambda r: interp_metric(r, "mse_v"), 0.0336, 0.0001),
+    ("interp mse_p", lambda r: interp_metric(r, "mse_p"), 75.03, 0.02),
+    ("interp surface mse_p", lambda r: interp_metric(r, "surface_mse_p"),
+     10989.0, 1.0),
+    ("interp C_l rel err (%)",
+     lambda r: 100 * interp_metric(r, "cl_rel_err_mean"), 1.18, 0.01),
+    ("interp C_d rel err (%)",
+     lambda r: 100 * interp_metric(r, "cd_rel_err_mean"), 2.39, 0.01),
+    ("interp beats Transolver on mse_p by",
+     lambda r: interp_ratio_vs_transolver(r, "mse_p"), 8.4, 0.05),
+    ("interp beats Transolver on mse_v by",
+     lambda r: interp_ratio_vs_transolver(r, "mse_v"), 2.6, 0.05),
+    ("Transolver beats interp on mse_u by",
+     lambda r: 1.0 / interp_ratio_vs_transolver(r, "mse_u"), 6.5, 0.05),
+    # NOTE the mixed precision in interp_full.json's reference_rows: mse_u/v/p are
+    # stored rounded (0.12, 0.088, 628.5) while mse_nut is full precision. The
+    # tolerances below absorb that; do not tighten them without switching the
+    # reference side to results/baselines/table2.csv.
+    ("Transolver beats interp on nu_t by",
+     lambda r: 1.0 / interp_ratio_vs_transolver(r, "mse_nut"), 15.4, 1.0),
+    ("interp better on the 3-channel std mean by",
+     lambda r: interp_std_ratio(r, "mean_std_mse_uvp"), 1.9, 0.05),
+    ("TRANSOLVER better on the 4-channel std mean by",
+     lambda r: 1.0 / interp_std_ratio(r, "mean_std_mse_uvpnut"), 6.4, 0.05),
+    # --- the wall-band decomposition: the boundary claim.
+    ("u error share inside 0.02c", lambda r: band(r, "se_share_u"), 0.924, 0.002),
+    ("v error share inside 0.02c", lambda r: band(r, "se_share_v"), 0.898, 0.002),
+    ("u error share beyond 0.5c",
+     lambda r: band(r, "se_share_u", ">0.5c"), 0.036, 0.002),
+    ("worst R^2 beyond 0.05c", lambda r: band_outer_min_r2(r, "r2"), 0.9996, 0.0002),
+    ("worst per-case-centred R^2 beyond 0.05c",
+     lambda r: band_outer_min_r2(r, "r2_pc"), 0.9965, 0.0002),
+    # --- the controls that had to survive for sec:interp to stand.
+    ("permuted-parameter control, mse_u",
+     lambda r: band_permuted(r, "mse_u"), 22.82, 0.02),
+    ("permuted-parameter control, C_l rel err (%)",
+     lambda r: 100 * band_permuted(r, "cl_rel_err_mean"), 365.0, 1.0),
+    ("(U,alpha) only, mse_p",
+     lambda r: band_ablation(r, "U_alpha_only", "mse_p"), 9491.0, 2.0),
+    ("digits are worth this much on mse_p",
+     lambda r: band_ablation(r, "U_alpha_only", "mse_p")
+     / band_ablation(r, "all7", "mse_p"), 126.0, 1.0),
+    ("n_train=100 mse_p, mean over 5 subsets",
+     lambda r: band_ladder(r, 100, "mse_p"), 238.0, 1.0),
+    ("n_train=100 mse_p, worst of 5 subsets",
+     lambda r: band_ladder(r, 100, "mse_p", "worst"), 344.0, 1.0),
+    ("interp rho_Cd vs official labels",
+     lambda r: interp_forces(r, "interp_cd_vs_official"), 0.8389, 0.0005),
+    ("exact-truth-field rho_Cd vs official labels",
+     lambda r: interp_forces(r, "gt_field_cd_vs_official"), 0.8394, 0.0005),
+    # --- sec:splits.
+    ("reynolds: frac of test U inside train range",
+     lambda r: interp_containment(r, "reynolds"), 0.0, 1e-9),
+    ("reynolds mse_u, nondimensional",
+     lambda r: interp_metric(r, "mse_u", "reynolds"), 0.808, 0.002),
+    ("reynolds mse_p, nondimensional",
+     lambda r: interp_metric(r, "mse_p", "reynolds"), 74.1, 0.1),
+    ("reynolds: dimensional/nondimensional on mse_u",
+     lambda r: interp_ood_ratio(r, "reynolds", "mse_u"), 5.2, 0.05),
+    ("reynolds: dimensional/nondimensional on mse_p",
+     lambda r: interp_ood_ratio(r, "reynolds", "mse_p"), 10.1, 0.05),
+    ("aoa C_l rel err (%)",
+     lambda r: 100 * interp_metric(r, "cl_rel_err_mean", "aoa"), 23.06, 0.02),
+    ("aoa C_d rel err (%)",
+     lambda r: 100 * interp_metric(r, "cd_rel_err_mean", "aoa"), 2.71, 0.02),
+    # --- sec:covariate, the case-name null.
+    ("case-name null, official lift",
+     lambda r: covariate_trainfit(r, "cl"), 0.9821, 0.0002),
+    ("case-name null, official lift, CI lo",
+     lambda r: covariate_trainfit(r, "cl", "lo"), 0.9737, 0.0002),
+    ("case-name null, official lift, CI hi",
+     lambda r: covariate_trainfit(r, "cl", "hi"), 0.9866, 0.0002),
+    ("case-name null, official drag",
+     lambda r: covariate_trainfit(r, "cd"), 0.9318, 0.0002),
+    ("case-name null, official drag, CI lo",
+     lambda r: covariate_trainfit(r, "cd", "lo"), 0.8981, 0.0002),
+    ("case-name null, official drag, CI hi",
+     lambda r: covariate_trainfit(r, "cd", "hi"), 0.9531, 0.0002),
+    ("two-parameter null on lift (NOT sufficient)",
+     lambda r: covariate_trainfit_2param(r, "cl"), 0.9344, 0.0002),
+    ("in-sample optimism, min", lambda r: covariate_inflation(r, "min"),
+     0.0008, 0.0001),
+    ("in-sample optimism, max", lambda r: covariate_inflation(r, "max"),
+     0.0035, 0.0001),
+    ("AirfRANS-paper entries below the lift null",
+     lambda r: covariate_below_null(r, "cl"), 4, 0.5),
+    ("AirfRANS-paper entries below the drag null",
+     lambda r: covariate_below_null(r, "cd"), 4, 0.5),
 ]
 
 

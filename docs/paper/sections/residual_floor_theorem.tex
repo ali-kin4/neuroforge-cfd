@@ -385,15 +385,33 @@ Certification \emph{from the residual norm alone} asks for a map from $\|R_h(\ha
 a bound on $\|\hat u-u^\star\|$.
 The floor does \emph{not} make such a bound invalid---split conformal returns one
 whatever the score, and ours attains $0.901$--$0.903$ coverage against a $0.90$ target.
-What the floor costs is the bound's \textbf{width}. Because $u^\star$ itself is rejected
-at every threshold below $\|r^\star\|$ (\autoref{thm:residual-floor}(i)) and the sublevel
-sets are unbounded in the directions of \autoref{prop:kernel}, a fixed, irreducible part
-of every score is present at zero error: the median truth-to-prediction residual ratio on
-the deployed arm is $0.864$, so $86\%$ of a typical score is floor. The bound that results
-is $5.6$--$6.8\times$ the median drag error it certifies and $1.6\times$ the median field
-error (\autoref{sec:conformal}). An interval $1.6\times$ the median error is usable; one
-$6\times$ the median drag error is not a design tool. And refinement cannot recover it,
-because the floor grows (\autoref{sec:floor_ladder}). Ranking asks something much
+What the floor leaves is a wide bound: $6.5$--$7.9\times$ the median drag error it
+certifies and $1.7\times$ the median field error (\autoref{sec:conformal}). We do
+\emph{not} attribute that width to the floor. Because $u^\star$ itself is rejected at
+every threshold below $\|r^\star\|$ (\autoref{thm:residual-floor}(i)) and the sublevel
+sets are unbounded in the directions of \autoref{prop:kernel}, a fixed part of every
+score is present at zero error---the median truth-to-prediction residual ratio on the
+deployed arm is $0.864$, so $86\%$ of a typical score is floor---but removing the floor
+\emph{exactly}, via the oracle field difference
+$\sigma'=\|R_h(\hat u)-R_h(u^\star)\|$ (a difference of norms is not a valid
+decomposition, and $\|R_h(\hat u)\|<\|r^\star\|$ on $2.5$--$4.0\%$ of cases), makes the
+bound \emph{wider}, $7.4\times\!\to\!11.3\times$ on $3/3$ seeds
+(\texttt{results/review/floor\_subtraction\_gate.json}). Floor subtraction improves the
+score's \emph{ranking} (Spearman $0.616/0.592/0.626\to0.681/0.703/0.601$) and degrades
+its use as a conformal \emph{scale}: the width tracks the dispersion of the
+nonconformity ratio $E/\sigma$ ($Q_{0.9}/\mathrm{median}$ of $15.1$ for an uninformative
+score, $6.3$ for the monitor, $10.5$ after floor subtraction). The width is the heavy
+tail of the drag-error distribution, not the floor---the marginal interval with no
+monitor at all is $17.2\times$, so the monitor already buys $2.3\times$---and since the
+oracle $r^\star$ dominates any predictor of it, no learned floor correction can improve
+this certificate either. An interval $1.7\times$ the median error is usable; one
+$8\times$ the median drag error is not a design tool. And refinement does not recover
+it: the floor does not decay under refinement, and the reconstruction the ladder
+differentiates is fixed independently of $h$, so the fitted order is a crossover slope
+rather than the exponent of a scaling law (\autoref{sec:floor_ladder}). The guarantee is
+marginal and rests on exchangeability of the calibration and test cases, here a random
+split of one pooled AirfRANS partition; it says nothing about the out-of-distribution
+regime in which a certificate is most wanted. Ranking asks something much
 weaker and \emph{between} cases: that a case whose prediction is worse tend to carry a
 larger monitored residual. Nothing above forbids that, and it is measured---$\rho=0.61$
 and AUROC $0.871$ on field error, $0.952$ on worst-decile drag error
@@ -531,15 +549,23 @@ grows along the very path that reduces the error.
 hypotheses live: it holds on a compact subset of the open fluid domain on which the
 solution is $C^4$ and $\nu_t$ is $C^1$, which excludes a neighbourhood of the wall---the
 same methodological restriction the refinement ladder makes when it scores a region fixed
-in physical units. (H2) therefore holds here for a reason that is \emph{not} grid
-resolution. It follows from operator provenance: the floor grows
-under refinement, the individually grid-converged convective and pressure-gradient terms
-($0.183\!\to\!0.199$ and $0.180\!\to\!0.181$) fail to cancel under a discretisation
+in physical units. (H2) therefore holds here for a reason that is \emph{not} the deployed
+grid's resolution: the floor does not decay under refinement, the individually
+grid-converged convective and pressure-gradient terms
+($0.183\!\to\!0.199$ and $0.180\!\to\!0.181$) do not cancel under a discretisation
 different from the one that produced the labels, and restoring the omitted stress
-divergence moves the floor by under $0.1\%$. One further bound: the measured
+divergence moves the floor by under $0.1\%$. We do \emph{not} attribute the floor's
+\emph{growth} to operator provenance. Holding $h$ fixed and thinning the source point
+cloud by a factor of eight raises the floor in $16/16$ cases on every band and at both
+rungs tested (fitted $\mathrm{d}\log\|r^\star\|/\mathrm{d}\log s=+0.55\pm0.27$;
+\texttt{results/certificates/floor\_cloud\_decimation.json}), so the measured floor
+depends on the reconstruction of the label as well as on the operator, and no
+measurement we have separates the two contributions. One further bound: the measured
 $r^\star$ is evaluated on a \emph{rasterised} $u^\star$---a linear interpolant of an
 unstructured finite-volume solution---which is not $C^4$ and carries its own
-representation error, so the measured floor mixes the theorem's term with that error. That
+representation error, so the measured floor mixes the theorem's term with that error. The
+decimation experiment above bounds that mixing from below: at fixed $h$ the
+representation term is large enough to move the measured floor by $80\%$. That
 is why the theorem is stated as a limit on the exact solution and the magnitude is reported
 as a measurement, and why we never present one as evidence for the other.
 
