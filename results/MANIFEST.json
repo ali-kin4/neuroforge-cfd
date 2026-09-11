@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-11T18:39:54.383920+00:00",
-  "git_head": "7e7f4520a0c4b221655a4926e39a205a9d5550f9",
-  "git_head_short": "7e7f452",
+  "generated_utc": "2026-09-11T19:13:03.855232+00:00",
+  "git_head": "adce427c2995ff68d00e3d6f49f602242ed49100",
+  "git_head_short": "adce427",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -12,7 +12,7 @@
     "cuda_toolkit": "12.4",
     "gpu": "NVIDIA GeForce RTX 4070 Ti"
   },
-  "n_files": 81,
+  "n_files": 82,
   "n_missing": 0,
   "missing": [],
   "files": [
@@ -140,11 +140,21 @@
       "path": "results/interpolation/interp_resolution_ladder.json",
       "script": "scripts/interpolation_resolution_ladder.py",
       "tier": "cpu",
-      "claims": "resolution ladder on the interpolation finding, 128/256/512 on the same 800/200 split with the estimator frozen (weight matrix hash identical at every rung): the domain fraction reproduced without learning is 0.9949/0.9949/0.9950 and the outer-region (>0.05c) MSE is flat within 1.5%, but the 0-0.02c SE share erodes 0.924/0.901/0.879 on u and 0.898/0.855/0.842 on v, so the PRE-REGISTERED verdict is PARTIAL, not HOLDS. Surface-pressure MSE standardised by the sampled truth's own variance rises 0.0029/0.0085/0.0055. The 128 rung reproduces the published row at relative error 0.00e+00",
-      "sha256": "8da49f30d4eb54459e73adc9fac84b7896aad2c73318b7f74ceefb67031aad05",
-      "bytes": 80772,
+      "claims": "resolution ladder on the interpolation finding, 128/256/512 on the same 800/200 split with the estimator frozen (weight matrix hash identical at every rung): the domain fraction reproduced without learning is 0.9949/0.9949/0.9950 and the outer-region (>0.05c) MSE is flat within 1.5%, but the 0-0.02c SE share erodes 0.924/0.901/0.879 on u and 0.898/0.855/0.842 on v, so the PRE-REGISTERED verdict is PARTIAL, not HOLDS. The share erodes because the near-wall error falls 45% while the far field moves 0.6%. Surface-pressure and C_d relative error both appear to degrade and neither survives its control (see the _pfill artifact; the C_d mean of 1.84 at 512 is one case with reference drag 1.7e-4, median 0.0274). The 128 rung reproduces the published row at relative error 0.00e+00",
+      "sha256": "e7cecdc5605ade1aaf402abaa028fbcbd9365f80ba032226f9c211084a45671c",
+      "bytes": 244611,
       "git_tracked": true,
-      "last_commit": "7e7f452"
+      "last_commit": "adce427"
+    },
+    {
+      "path": "results/interpolation/interp_resolution_ladder_pfill.json",
+      "script": "scripts/interpolation_resolution_ladder.py",
+      "tier": "cpu",
+      "claims": "the same ladder under --fill nearest_all, the control that withdraws the surface-pressure concession: standardised surface MSE goes 0.0398/0.0487/0.0095, i.e. 4.2x BETTER from 128 to 512, against 1.9x WORSE under the default fill, so the sign of the resolution trend is set by the solid-fill treatment and no resolution claim about that channel is supportable. Its 128 row reproduces the published nearest_all control, surface_mse_p 153174",
+      "sha256": "0b8710351489f6fa79b0980bb4ac18b2b54b689433ed10c022b5f33e77eaaa75",
+      "bytes": 241802,
+      "git_tracked": true,
+      "last_commit": "adce427"
     },
     {
       "path": "results/control/percell_residual_error.json",
