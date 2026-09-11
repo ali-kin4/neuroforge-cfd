@@ -52,14 +52,17 @@ CACHE = os.path.join("results", "control", "_cache")
 LABELS = os.path.join(CACHE, "official_labels_full_test_n200.json")
 
 # Published AirfRANS `full` numbers, for the comparison table. Sources:
-#   MLP / GraphSAGE / PointNet / Graph U-Net -- Bonnet et al., NeurIPS 2022 D&B, Tables 3/5.
+#   MLP / GraphSAGE / PointNet / Graph U-Net -- Bonnet et al., NeurIPS 2022 D&B, Table 3,
+#   read at source from the proceedings PDF on 2026-09-11; see
+#   docs/paper/review/published_baselines_verified.md. Note the drag spreads are large
+#   enough that three of the four intervals span zero.
 #   Transolver -- Wu et al., ICML 2024. It reports no drag column; Appendix B.1 states
 #   the deep models fail at drag, so lift only.
 PUBLISHED = [
-    ("MLP",          {"cl": (0.913, 0.018), "cd": (-0.117, None)}),
-    ("GraphSAGE",    {"cl": (0.965, None),  "cd": (-0.303, None)}),
-    ("PointNet",     {"cl": (0.938, 0.023), "cd": (-0.022, None)}),
-    ("Graph U-Net",  {"cl": (0.967, None),  "cd": (-0.138, None)}),
+    ("MLP",          {"cl": (0.913, 0.018), "cd": (-0.117, 0.256)}),
+    ("GraphSAGE",    {"cl": (0.965, 0.011), "cd": (-0.303, 0.124)}),
+    ("PointNet",     {"cl": (0.938, 0.023), "cd": (-0.022, 0.097)}),
+    ("Graph U-Net",  {"cl": (0.967, 0.019), "cd": (-0.138, 0.258)}),
     ("Transolver",   {"cl": (0.9978, None), "cd": (None, None)}),
 ]
 
