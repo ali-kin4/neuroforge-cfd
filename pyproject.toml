@@ -52,7 +52,7 @@ Repository = "https://github.com/ali-kin4/neuroforge-cfd"
 where = ["src"]
 
 [tool.setuptools.package-data]
-neuroforge = ["py.typed", "assets/*.pt"]
+neuroforge = ["py.typed", "assets/*.pt", "nullbench/data/**/*.csv"]
 
 [tool.ruff]
 line-length = 100

@@ -217,6 +217,13 @@ def cmd_predict(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_nullbench(args: argparse.Namespace) -> int:
+    """Run the NullBench covariate-null harness (see `neuroforge nullbench --help`)."""
+    from neuroforge.nullbench.cli import main as nullbench_main
+
+    return nullbench_main(args.nullbench_args)
+
+
 def cmd_benchmark(args: argparse.Namespace) -> int:
     """Run the model comparison benchmark suite (repo-root ``benchmarks/``)."""
     try:
@@ -286,6 +293,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_bench = sub.add_parser("benchmark", help="run the model comparison benchmarks")
     p_bench.add_argument("--out", default=None, help="optional JSON results path")
     p_bench.set_defaults(func=cmd_benchmark)
+
+    p_null = sub.add_parser(
+        "nullbench",
+        help="covariate-null harness (run/bench/leaderboard); see 'neuroforge nullbench --help'",
+    )
+    p_null.add_argument("nullbench_args", nargs=argparse.REMAINDER,
+                        help="forwarded to neuroforge.nullbench.cli, e.g. "
+                             "'run --csv cases.csv --id-col id --label-col cd'")
+    p_null.set_defaults(func=cmd_nullbench)
 
     return parser
 
