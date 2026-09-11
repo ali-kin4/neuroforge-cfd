@@ -1,0 +1,1377 @@
+{
+  "artifact": "null_mechanism",
+  "question": "What computable property of a CFD-ML benchmark's published metadata determines whether a parameter-only null beats the published surrogates?",
+  "prereg": "see the module docstring; committed before this script was run",
+  "protocol": {
+    "null": "10-fold OOS OLS, per-fold standardisation, R^2 (sklearn convention)",
+    "seed": 0,
+    "reference_area": "CONSTANT where both conventions are published",
+    "no_field_data": true
+  },
+  "benchmarks": {
+    "AirfRANS": {
+      "n_cases": 200,
+      "n_features": 6,
+      "param_names": [
+        "U",
+        "alpha",
+        "naca_0",
+        "naca_1",
+        "naca_2",
+        "naca_3"
+      ],
+      "note": "official full/test 200 cases; the cached official labels. Params are the complete generative spec in the case name (U, alpha, NACA digits).",
+      "sampling_design": "randomised sampling of U, alpha and NACA digits",
+      "dof_varied_per_paper": 6,
+      "dof_varied_source": "arXiv 2212.07564: U, angle of attack, and the NACA digit spec; the case name carries the complete generative specification",
+      "dof_published": 6,
+      "A1_d_eff": 4.003271134863862,
+      "A4_metadata_completeness": 1.0,
+      "targets": {
+        "cd": {
+          "null_r2_linear": 0.6832844323156678,
+          "B1_label_cv": 0.37446568886580883,
+          "label_mean": 0.012652397398126932,
+          "label_sd": 0.004737888707493569,
+          "B3_dip": 0.009957351297622194,
+          "B3_bimodality_coef": 0.6398978362175335,
+          "B3_skew": 1.7584826893199377,
+          "B3_excess_kurtosis": 3.349417066349484,
+          "C1_flex_r2_lower_bound": 0.9462826909859643,
+          "C1_flex_best_model": "quadratic_ridge_lam0.1",
+          "C1_flex_family": {
+            "quadratic_ols": 0.9460948470067087,
+            "quadratic_ridge_lam0.001": 0.9460998328908262,
+            "quadratic_ridge_lam0.01": 0.9461402216600353,
+            "quadratic_ridge_lam0.1": 0.9462826909859643,
+            "quadratic_ridge_lam1": 0.9454618539957734,
+            "quadratic_ridge_lam10": 0.9298914987471336,
+            "quadratic_ridge_lam100": 0.8143252624332946,
+            "knn_k3": 0.6311575068075244,
+            "knn_k5": 0.6538473915884658,
+            "knn_k10": 0.6184052381551863,
+            "knn_k20": 0.5516474334521859,
+            "locallin_k10": 0.753881800387084,
+            "locallin_k20": 0.8229581338480778,
+            "locallin_k40": 0.8101968712706884
+          },
+          "C1_linearity_share": 0.7220722082570594,
+          "C2_coef_instability": 0.13644119250251338
+        },
+        "cl": {
+          "null_r2_linear": 0.961630745666829,
+          "B1_label_cv": 0.826421974109575,
+          "label_mean": 0.7026567704215588,
+          "label_sd": 0.5806909953332431,
+          "B3_dip": 0.019444872585401896,
+          "B3_bimodality_coef": 0.4942938039041177,
+          "B3_skew": 0.02652219963335418,
+          "B3_excess_kurtosis": -1.021250818512422,
+          "C1_flex_r2_lower_bound": 0.9899891865373432,
+          "C1_flex_best_model": "quadratic_ridge_lam0.1",
+          "C1_flex_family": {
+            "quadratic_ols": 0.9898782289492836,
+            "quadratic_ridge_lam0.001": 0.9898805899431091,
+            "quadratic_ridge_lam0.01": 0.9899003109145063,
+            "quadratic_ridge_lam0.1": 0.9899891865373432,
+            "quadratic_ridge_lam1": 0.9881777993551808,
+            "quadratic_ridge_lam10": 0.9730812370231302,
+            "quadratic_ridge_lam100": 0.94171796698983,
+            "knn_k3": 0.8569484297784621,
+            "knn_k5": 0.8808841465307381,
+            "knn_k10": 0.8689020186781954,
+            "knn_k20": 0.7967606486839585,
+            "locallin_k10": 0.9834273208525417,
+            "locallin_k20": 0.9853024849464239,
+            "locallin_k40": 0.9842905045922336
+          },
+          "C1_linearity_share": 0.9713547973491481,
+          "C2_coef_instability": 0.017814468016523477
+        }
+      },
+      "A2_density_logn_over_deff": 1.3234970073362804,
+      "A3_area_cv": null
+    },
+    "AhmedML": {
+      "n_cases": 499,
+      "n_features": 8,
+      "param_names": [
+        "body-length",
+        "body-height",
+        "body-width",
+        "front-arc-diameter",
+        "slant-angle-length",
+        "slant-angle-height",
+        "slant-surface-length",
+        "slant-angle-degrees"
+      ],
+      "note": "force_mom_all.csv = constant reference area 0.112 m^2. body-height and body-width are ABSOLUTE dimensions in mm, so their product is a genuine frontal-area proxy.",
+      "sampling_design": "Latin hypercube, space-filling",
+      "dof_varied_per_paper": 6,
+      "dof_varied_source": "arXiv 2407.20801: 6 parameters, Latin hypercube",
+      "dof_published": 6,
+      "A1_d_eff": 5.317402121528218,
+      "A4_metadata_completeness": 1.0,
+      "targets": {
+        "cd": {
+          "null_r2_linear": 0.6842016571598255,
+          "B1_label_cv": 0.20109018636231313,
+          "label_mean": 0.29970893429002,
+          "label_sd": 0.060268525450830376,
+          "B3_dip": 0.010513453187564858,
+          "B3_bimodality_coef": 0.39226892638276895,
+          "B3_skew": 0.56179370508114,
+          "B3_excess_kurtosis": 0.3356952903834709,
+          "C1_flex_r2_lower_bound": 0.7747560497267596,
+          "C1_flex_best_model": "quadratic_ols",
+          "C1_flex_family": {
+            "quadratic_ols": 0.7747560497267596,
+            "quadratic_ridge_lam0.001": 0.7346996377717414,
+            "quadratic_ridge_lam0.01": 0.7297455276836567,
+            "quadratic_ridge_lam0.1": 0.7264471428230541,
+            "quadratic_ridge_lam1": 0.7153682515576156,
+            "quadratic_ridge_lam10": 0.6945598916765193,
+            "quadratic_ridge_lam100": 0.6669128005680576,
+            "knn_k3": 0.6003161284493015,
+            "knn_k5": 0.6538258446867009,
+            "knn_k10": 0.6575435871696864,
+            "knn_k20": 0.6420332114337256,
+            "locallin_k20": 0.7625793788550654,
+            "locallin_k40": 0.7744523740794155
+          },
+          "C1_linearity_share": 0.8831188312774444,
+          "C2_coef_instability": 0.46918743405608115
+        },
+        "cl": {
+          "null_r2_linear": 0.4515489994954993,
+          "B1_label_cv": 2.3532922897922157,
+          "label_mean": 0.09093301690933828,
+          "label_sd": 0.21399196758029093,
+          "B3_dip": 0.008093537813465668,
+          "B3_bimodality_coef": 0.6600967551806803,
+          "B3_skew": 0.9453047592353142,
+          "B3_excess_kurtosis": -0.1494853175166826,
+          "C1_flex_r2_lower_bound": 0.7704802221758402,
+          "C1_flex_best_model": "locallin_k20",
+          "C1_flex_family": {
+            "quadratic_ols": 0.7519225122924548,
+            "quadratic_ridge_lam0.001": 0.7030946113701511,
+            "quadratic_ridge_lam0.01": 0.702715540834233,
+            "quadratic_ridge_lam0.1": 0.700810132407393,
+            "quadratic_ridge_lam1": 0.6416590250286113,
+            "quadratic_ridge_lam10": 0.5073668549286201,
+            "quadratic_ridge_lam100": 0.44865585902353033,
+            "knn_k3": 0.5953798580919647,
+            "knn_k5": 0.6555063055767318,
+            "knn_k10": 0.650537217428256,
+            "knn_k20": 0.6219066176780853,
+            "locallin_k20": 0.7704802221758402,
+            "locallin_k40": 0.759438279426567
+          },
+          "C1_linearity_share": 0.5860617657651517,
+          "C2_coef_instability": 0.48489413812518795
+        }
+      },
+      "A2_density_logn_over_deff": 1.1683536346816703,
+      "A3_area_cv": 0.16042431389675832
+    },
+    "WindsorML": {
+      "n_cases": 355,
+      "n_features": 7,
+      "param_names": [
+        "ratio_length_back_fast",
+        "ratio_height_nose_windshield",
+        "ratio_height_fast_back",
+        "side_taper",
+        "clearance",
+        "bottom_taper_angle",
+        "frontal_area"
+      ],
+      "note": "6 of the paper's 7 design parameters + frontal_area; ratio_length_front_rear is not published. -2.5 deg yaw.",
+      "sampling_design": "Halton quasi-random low-discrepancy sequence, space-filling",
+      "dof_varied_per_paper": 7,
+      "dof_varied_source": "arXiv 2407.19320: 7 parameters, Halton sequence",
+      "dof_published": 6,
+      "A1_d_eff": 5.443565135857776,
+      "A4_metadata_completeness": 0.8571428571428571,
+      "targets": {
+        "cd": {
+          "null_r2_linear": 0.10449352113588184,
+          "B1_label_cv": 0.11839305408859195,
+          "label_mean": 0.31004055609853054,
+          "label_sd": 0.03670664832783045,
+          "B3_dip": 0.010779042327466265,
+          "B3_bimodality_coef": 0.3549841561026818,
+          "B3_skew": 1.2837625629352858,
+          "B3_excess_kurtosis": 4.434026005241986,
+          "C1_flex_r2_lower_bound": 0.25158561674795477,
+          "C1_flex_best_model": "knn_k10",
+          "C1_flex_family": {
+            "quadratic_ols": -99568.65630987147,
+            "quadratic_ridge_lam0.001": 0.06247446914352728,
+            "quadratic_ridge_lam0.01": 0.045077251599137225,
+            "quadratic_ridge_lam0.1": 0.0492448964387725,
+            "quadratic_ridge_lam1": 0.1033717098698842,
+            "quadratic_ridge_lam10": 0.20743582534324057,
+            "quadratic_ridge_lam100": 0.22323064561015238,
+            "knn_k3": 0.09337665752659963,
+            "knn_k5": 0.17527153815314955,
+            "knn_k10": 0.25158561674795477,
+            "knn_k20": 0.24568870455739844,
+            "locallin_k10": -275332.301465738,
+            "locallin_k20": -48.517065522100985,
+            "locallin_k40": -0.1268996948554082
+          },
+          "C1_linearity_share": 0.4153398055365234,
+          "C2_coef_instability": 0.5005095379173059
+        },
+        "cl": {
+          "null_r2_linear": 0.2353500001843466,
+          "B1_label_cv": 4.6294630455227175,
+          "label_mean": 0.06523067063854772,
+          "label_sd": 0.30198297915582045,
+          "B3_dip": 0.008055124652531276,
+          "B3_bimodality_coef": 0.5308008753269027,
+          "B3_skew": 0.8036423685669141,
+          "B3_excess_kurtosis": 0.07508277329445212,
+          "C1_flex_r2_lower_bound": 0.44133189829120767,
+          "C1_flex_best_model": "quadratic_ridge_lam1",
+          "C1_flex_family": {
+            "quadratic_ols": -7095.27146649448,
+            "quadratic_ridge_lam0.001": 0.4258531393469349,
+            "quadratic_ridge_lam0.01": 0.4294388238024347,
+            "quadratic_ridge_lam0.1": 0.4318430053101703,
+            "quadratic_ridge_lam1": 0.44133189829120767,
+            "quadratic_ridge_lam10": 0.4385060322376686,
+            "quadratic_ridge_lam100": 0.3211305544613853,
+            "knn_k3": 0.24157171247974574,
+            "knn_k5": 0.296342229508318,
+            "knn_k10": 0.33956207536169614,
+            "knn_k20": 0.3286373552579812,
+            "locallin_k10": -7264844.670855181,
+            "locallin_k20": -1.0252200562966873,
+            "locallin_k40": 0.03923622019663109
+          },
+          "C1_linearity_share": 0.53327212715781,
+          "C2_coef_instability": 0.4710777894491951
+        },
+        "cs": {
+          "null_r2_linear": 0.13932452587718513,
+          "B1_label_cv": 1.637640985292984,
+          "label_mean": -0.03652842686617989,
+          "label_sd": 0.05982044896433354,
+          "B3_dip": 0.015648824029181774,
+          "B3_bimodality_coef": 0.48840639611100306,
+          "B3_skew": 0.5036415937917486,
+          "B3_excess_kurtosis": -0.45876505835326853,
+          "C1_flex_r2_lower_bound": 0.17252258492839667,
+          "C1_flex_best_model": "quadratic_ridge_lam100",
+          "C1_flex_family": {
+            "quadratic_ols": -73090.70049333392,
+            "quadratic_ridge_lam0.001": 0.08889919794918633,
+            "quadratic_ridge_lam0.01": 0.09385731433641076,
+            "quadratic_ridge_lam0.1": 0.09925009410500008,
+            "quadratic_ridge_lam1": 0.1258770951318111,
+            "quadratic_ridge_lam10": 0.169144995324775,
+            "quadratic_ridge_lam100": 0.17252258492839667,
+            "knn_k3": -0.08060032162956032,
+            "knn_k5": 0.028771520625663904,
+            "knn_k10": 0.13308910146615438,
+            "knn_k20": 0.10514149974090059,
+            "locallin_k10": -1627326.6031352468,
+            "locallin_k20": -71.39342520077699,
+            "locallin_k40": -0.37475880756939084
+          },
+          "C1_linearity_share": 0.8075726777164278,
+          "C2_coef_instability": 0.5013779609732008
+        },
+        "cmy": {
+          "null_r2_linear": 0.14651817974714965,
+          "B1_label_cv": 0.39392964678672154,
+          "label_mean": -0.0568031255625058,
+          "label_sd": 0.022376435189219702,
+          "B3_dip": 0.011132382103932942,
+          "B3_bimodality_coef": 0.3924718101405043,
+          "B3_skew": -0.2521890881248053,
+          "B3_excess_kurtosis": -0.31559046376115507,
+          "C1_flex_r2_lower_bound": 0.18596436041184372,
+          "C1_flex_best_model": "quadratic_ridge_lam10",
+          "C1_flex_family": {
+            "quadratic_ols": -43907.02761881335,
+            "quadratic_ridge_lam0.001": 0.13746687250855905,
+            "quadratic_ridge_lam0.01": 0.14106787505938778,
+            "quadratic_ridge_lam0.1": 0.1444321126621777,
+            "quadratic_ridge_lam1": 0.1614136115834367,
+            "quadratic_ridge_lam10": 0.18596436041184372,
+            "quadratic_ridge_lam100": 0.16659388957617682,
+            "knn_k3": -0.11290231244513382,
+            "knn_k5": 0.010677031234214374,
+            "knn_k10": 0.13362165095123746,
+            "knn_k20": 0.11837306885012777,
+            "locallin_k10": -825065.2132315708,
+            "locallin_k20": -90.49420336298111,
+            "locallin_k40": -0.296635577250864
+          },
+          "C1_linearity_share": 0.7878831160049428,
+          "C2_coef_instability": 0.4920688222787687
+        }
+      },
+      "A2_density_logn_over_deff": 1.0787264674752735,
+      "A3_area_cv": 0.014929536323154139
+    },
+    "DrivAerML": {
+      "n_cases": 484,
+      "n_features": 16,
+      "param_names": [
+        "Vehicle_Length",
+        "Vehicle_Width",
+        "Vehicle_Height",
+        "Front_Overhang",
+        "Front_Planview",
+        "Hood_Angle",
+        "Approach_Angle",
+        "Windscreen_Angle",
+        "Greenhouse_Tapering",
+        "Backlight_Angle",
+        "Decklid_Height",
+        "Rearend_tapering",
+        "Rear_Overhang",
+        "Rear_Diffusor_Angle",
+        "Vehicle_Ride_Height",
+        "Vehicle_Pitch"
+      ],
+      "note": "force_mom_constref_all.csv; 16 published morph params, published as deltas from the baseline, with no reference area, so no frontal-area proxy exists.",
+      "sampling_design": "modified extensible lattice sequence (ANSA DoE), space-filling",
+      "dof_varied_per_paper": 16,
+      "dof_varied_source": "arXiv 2408.11969: 16 morphing parameters, extensible lattice DoE",
+      "dof_published": 16,
+      "A1_d_eff": 15.806521320115891,
+      "A4_metadata_completeness": 1.0,
+      "targets": {
+        "cd": {
+          "null_r2_linear": 0.9597878540295848,
+          "B1_label_cv": 0.10848488293693169,
+          "label_mean": 0.2787672047520662,
+          "label_sd": 0.030242027574183566,
+          "B3_dip": 0.008724666821154525,
+          "B3_bimodality_coef": 0.3929304675380169,
+          "B3_skew": 0.1811618529943686,
+          "B3_excess_kurtosis": -0.39021916621727337,
+          "C1_flex_r2_lower_bound": 0.9883385718776794,
+          "C1_flex_best_model": "quadratic_ridge_lam1",
+          "C1_flex_family": {
+            "quadratic_ols": 0.988271765257237,
+            "quadratic_ridge_lam0.001": 0.9882718661304045,
+            "quadratic_ridge_lam0.01": 0.9882727708437813,
+            "quadratic_ridge_lam0.1": 0.9882815073845357,
+            "quadratic_ridge_lam1": 0.9883385718776794,
+            "quadratic_ridge_lam10": 0.9865056212854945,
+            "quadratic_ridge_lam100": 0.9178054996370757,
+            "knn_k3": 0.5828672549378717,
+            "knn_k5": 0.64713243694024,
+            "knn_k10": 0.678048107155881,
+            "knn_k20": 0.6546106569900147,
+            "locallin_k20": -2582853969.171944,
+            "locallin_k40": 0.9576622820875895
+          },
+          "C1_linearity_share": 0.9711124116163422,
+          "C2_coef_instability": 0.01533420438312536
+        },
+        "cl": {
+          "null_r2_linear": 0.9669101101045134,
+          "B1_label_cv": 2.261719587959085,
+          "label_mean": 0.02989479544772727,
+          "label_sd": 0.06761364444215484,
+          "B3_dip": 0.011237042195194807,
+          "B3_bimodality_coef": 0.391746979911284,
+          "B3_skew": -0.03235449932845076,
+          "B3_excess_kurtosis": -0.4633837390788331,
+          "C1_flex_r2_lower_bound": 0.9841664915102764,
+          "C1_flex_best_model": "quadratic_ridge_lam1",
+          "C1_flex_family": {
+            "quadratic_ols": 0.984137039419145,
+            "quadratic_ridge_lam0.001": 0.9841370969350323,
+            "quadratic_ridge_lam0.01": 0.9841376119891851,
+            "quadratic_ridge_lam0.1": 0.9841425068530527,
+            "quadratic_ridge_lam1": 0.9841664915102764,
+            "quadratic_ridge_lam10": 0.982410744453646,
+            "quadratic_ridge_lam100": 0.9211281404476339,
+            "knn_k3": 0.6577516886312031,
+            "knn_k5": 0.6887025372282832,
+            "knn_k10": 0.6975770845500318,
+            "knn_k20": 0.663036629424112,
+            "locallin_k20": -2869096360.39097,
+            "locallin_k40": 0.9607171758158967
+          },
+          "C1_linearity_share": 0.9824659937575382,
+          "C2_coef_instability": 0.013322902962959828
+        },
+        "clf": {
+          "null_r2_linear": 0.9709831151095368,
+          "B1_label_cv": 0.6814360743771526,
+          "label_mean": -0.08186807840163224,
+          "label_sd": 0.05578786196280923,
+          "B3_dip": 0.009482284081332365,
+          "B3_bimodality_coef": 0.43794100269323327,
+          "B3_skew": -0.19450501391855693,
+          "B3_excess_kurtosis": -0.6489248439351547,
+          "C1_flex_r2_lower_bound": 0.9925193933072839,
+          "C1_flex_best_model": "quadratic_ridge_lam1",
+          "C1_flex_family": {
+            "quadratic_ols": 0.992507506353743,
+            "quadratic_ridge_lam0.001": 0.9925075490298519,
+            "quadratic_ridge_lam0.01": 0.9925079302713539,
+            "quadratic_ridge_lam0.1": 0.9925114618921456,
+            "quadratic_ridge_lam1": 0.9925193933072839,
+            "quadratic_ridge_lam10": 0.9904313862225219,
+            "quadratic_ridge_lam100": 0.9242612572151292,
+            "knn_k3": 0.6132871749144746,
+            "knn_k5": 0.6852975151479809,
+            "knn_k10": 0.7076061560793643,
+            "knn_k20": 0.6733843873689672,
+            "locallin_k20": -1618413389.9103906,
+            "locallin_k40": 0.97631431947753
+          },
+          "C1_linearity_share": 0.9783014031333094,
+          "C2_coef_instability": 0.00873674494630633
+        },
+        "clr": {
+          "null_r2_linear": 0.9649356834403321,
+          "B1_label_cv": 0.44611708501595426,
+          "label_mean": 0.11176287371394628,
+          "label_sd": 0.04985932743427193,
+          "B3_dip": 0.009372675046032453,
+          "B3_bimodality_coef": 0.3492559447617213,
+          "B3_skew": 0.0043370754307328506,
+          "B3_excess_kurtosis": -0.15544038322599762,
+          "C1_flex_r2_lower_bound": 0.9841050774378721,
+          "C1_flex_best_model": "quadratic_ridge_lam0.1",
+          "C1_flex_family": {
+            "quadratic_ols": 0.9841044422213396,
+            "quadratic_ridge_lam0.001": 0.9841044514404936,
+            "quadratic_ridge_lam0.01": 0.9841045318007815,
+            "quadratic_ridge_lam0.1": 0.9841050774378721,
+            "quadratic_ridge_lam1": 0.9840853558544597,
+            "quadratic_ridge_lam10": 0.9818826967706928,
+            "quadratic_ridge_lam100": 0.916859008340989,
+            "knn_k3": 0.6222104694226385,
+            "knn_k5": 0.6534978780375865,
+            "knn_k10": 0.6697941754615329,
+            "knn_k20": 0.63966024327507,
+            "locallin_k20": -4305976039.144562,
+            "locallin_k40": 0.9512733836850987
+          },
+          "C1_linearity_share": 0.9805209886250686,
+          "C2_coef_instability": 0.012914168380041826
+        },
+        "cs": {
+          "null_r2_linear": 0.601826409933633,
+          "B1_label_cv": 0.6860812106319665,
+          "label_mean": 0.02193630747911157,
+          "label_sd": 0.015050088392063924,
+          "B3_dip": 0.00983005986935992,
+          "B3_bimodality_coef": 0.4104638394087672,
+          "B3_skew": 0.39735300280113084,
+          "B3_excess_kurtosis": -0.19779481044373926,
+          "C1_flex_r2_lower_bound": 0.597946497697371,
+          "C1_flex_best_model": "quadratic_ridge_lam100",
+          "C1_flex_family": {
+            "quadratic_ols": 0.5576215462590812,
+            "quadratic_ridge_lam0.001": 0.5576239516271521,
+            "quadratic_ridge_lam0.01": 0.5576455944846492,
+            "quadratic_ridge_lam0.1": 0.557861484062595,
+            "quadratic_ridge_lam1": 0.5599675206447607,
+            "quadratic_ridge_lam10": 0.5766123256739042,
+            "quadratic_ridge_lam100": 0.597946497697371,
+            "knn_k3": 0.4580956531755672,
+            "knn_k5": 0.47544831396510345,
+            "knn_k10": 0.5030667896844617,
+            "knn_k20": 0.4677733785516348,
+            "locallin_k20": -57937892467.24819,
+            "locallin_k40": 0.40059878582527586
+          },
+          "C1_linearity_share": 1.006488728090562,
+          "C2_coef_instability": 0.1661471688858004
+        }
+      },
+      "A2_density_logn_over_deff": 0.3911097692854854,
+      "A3_area_cv": null
+    },
+    "DrivAerNet++": {
+      "n_cases": 4165,
+      "n_features": 25,
+      "param_names": [
+        "B_Ramp_Angle",
+        "B_Diffusor_Angle",
+        "B_Trunklid_Angle",
+        "C_Side_Mirrors_Rotation",
+        "D_Rear_Window_Inclination",
+        "D_Winscreen_Inclination",
+        "C_Side_Mirrors_Translate_X",
+        "C_Side_Mirrors_Translate_Z",
+        "D_Winscreen_Length",
+        "D_Rear_Window_Length",
+        "E_A_B_C_Pillar_Thickness",
+        "G_Trunklid_Curvature",
+        "G_Trunklid_Length",
+        "H_Front_Bumper_Curvature",
+        "H_Front_Bumper_Length",
+        "F_Door_Handles_Thickness",
+        "F_Door_Handles_Z_Position",
+        "E_Fenders_Arch_Offset",
+        "A_Car_Length",
+        "F_Door_Handles_X_Position",
+        "A_Car_Width",
+        "A_Car_Roof_Height",
+        "A_Car_Green_House_Angle",
+        "fam_F_S",
+        "fam_N_S"
+      ],
+      "note": "parametric pool (designs with published parameters), 23 design params + family dummies.",
+      "sampling_design": "parametric morph DoE over 23-26 parameters, space-filling",
+      "dof_varied_per_paper": 26,
+      "dof_varied_source": "NeurIPS 2024 D&B sec. 5.1.2 fits 26 parameters; 23 shape parameters + 3 categorical axes are published for the parametric families",
+      "dof_published": 26,
+      "A1_d_eff": 24.271592479535833,
+      "A4_metadata_completeness": 1.0,
+      "targets": {
+        "cd": {
+          "null_r2_linear": 0.8248228408844186,
+          "B1_label_cv": 0.08677062014754855,
+          "label_mean": 0.2537903172799725,
+          "label_sd": 0.022021543217826317,
+          "B3_dip": 0.002747586537594604,
+          "B3_bimodality_coef": 0.4214238015439678,
+          "B3_skew": 0.21517699803721735,
+          "B3_excess_kurtosis": -0.5193860251283904,
+          "C1_flex_r2_lower_bound": 0.8811330937842178,
+          "C1_flex_best_model": "quadratic_ridge_lam10",
+          "C1_flex_family": {
+            "quadratic_ols": 0.881001193785387,
+            "quadratic_ridge_lam0.001": 0.8810012161441386,
+            "quadratic_ridge_lam0.01": 0.88100141728406,
+            "quadratic_ridge_lam0.1": 0.8810034198934725,
+            "quadratic_ridge_lam1": 0.8810225736302693,
+            "quadratic_ridge_lam10": 0.8811330937842178,
+            "quadratic_ridge_lam100": 0.8778712303954903,
+            "knn_k3": 0.3062914136746846,
+            "knn_k5": 0.4366248982637152,
+            "knn_k10": 0.6330469303304326,
+            "knn_k20": 0.6782641649019008,
+            "locallin_k40": 0.2446489518063505
+          },
+          "C1_linearity_share": 0.9360933628562712,
+          "C2_coef_instability": 0.4091988622727253
+        }
+      },
+      "A2_density_logn_over_deff": 0.34338379575332795,
+      "A3_area_cv": 0.0730992880213633
+    }
+  },
+  "B2_label_noise_floor": {
+    "finding": "only ONE of the five benchmarks publishes a per-case label uncertainty, so candidate B2 (signal-to-noise) is NOT adjudicable at n=5. That is itself a reporting-practice finding.",
+    "DrivAerNet++": {
+      "source": "Std Cd column of DrivAerNet_ParametricData.csv",
+      "mean_std_cd": 0.006368160997469784,
+      "label_sd": 0.022021543217826317,
+      "snr_label_sd_over_noise": 3.4580694845146
+    },
+    "why_the_symmetry_channel_fails": {
+      "note": "a side-force channel is a zero-mean noise probe only at zero yaw and with a laterally symmetric body; both benchmarks that publish one fail that test empirically, so neither is used as a floor"
+    }
+  },
+  "within_vs_between": {
+    "n_pairs": 14,
+    "n_benchmarks": 5,
+    "per_benchmark_null_r2": {
+      "AirfRANS": [
+        0.6832844323156678,
+        0.961630745666829
+      ],
+      "AhmedML": [
+        0.6842016571598255,
+        0.4515489994954993
+      ],
+      "WindsorML": [
+        0.10449352113588184,
+        0.2353500001843466,
+        0.13932452587718513,
+        0.14651817974714965
+      ],
+      "DrivAerML": [
+        0.9597878540295848,
+        0.9669101101045134,
+        0.9709831151095368,
+        0.9649356834403321,
+        0.601826409933633
+      ],
+      "DrivAerNet++": [
+        0.8248228408844186
+      ]
+    },
+    "SS_between": 1.3613080129563937,
+    "SS_within": 0.18107999820020837,
+    "MS_between": 0.3403270032390984,
+    "MS_within": 0.02011999980002315,
+    "share_of_total_SS_between": 0.8825976363337908,
+    "cap_on_design_space_only_explanations": "SS_between / (SS_between + SS_within): the largest share of the observed spread in null R^2 that any property constant within a benchmark (d_eff, n, sampling design) could possibly account for.",
+    "independence_warning": "the 14 (benchmark, target) pairs share a parameter matrix within each benchmark; a 14-point correlation is NOT reported, by pre-registration."
+  },
+  "candidate_vs_drag_null": {
+    "benchmark_order": [
+      "DrivAerML",
+      "AirfRANS",
+      "DrivAerNet++",
+      "AhmedML",
+      "WindsorML"
+    ],
+    "harmonised_drag_null_r2": {
+      "DrivAerML": 0.9597878540295848,
+      "AirfRANS": 0.6832844323156678,
+      "DrivAerNet++": 0.8248228408844186,
+      "AhmedML": 0.6842016571598255,
+      "WindsorML": 0.10449352113588184
+    },
+    "adjudication": "pre-registered: SURVIVES only if the candidate orders all five benchmarks perfectly AND in the predicted direction. |rho|=1 is p=2/120=0.0167 uncorrected, p=0.167 after correcting for the ~10 candidates tried, so no candidate can reach corrected significance at n=5.",
+    "candidates": {
+      "A1_d_eff": {
+        "values_in_order": {
+          "DrivAerML": 15.806521320115891,
+          "AirfRANS": 4.003271134863862,
+          "DrivAerNet++": 24.271592479535833,
+          "AhmedML": 5.317402121528218,
+          "WindsorML": 5.443565135857776
+        },
+        "n_used": 5,
+        "predicted_sign": -1,
+        "spearman_rho": 0.6,
+        "exact_perm_p_two_sided": 0.35,
+        "spearman_rho_without_AirfRANS": 0.6000000000000001,
+        "exact_perm_p_without_AirfRANS": 0.4166666666666667,
+        "sign_matches_prediction": false,
+        "SURVIVES_prereg": false
+      },
+      "A2_density_logn_over_deff": {
+        "values_in_order": {
+          "DrivAerML": 0.3911097692854854,
+          "AirfRANS": 1.3234970073362804,
+          "DrivAerNet++": 0.34338379575332795,
+          "AhmedML": 1.1683536346816703,
+          "WindsorML": 1.0787264674752735
+        },
+        "n_used": 5,
+        "predicted_sign": 1,
+        "spearman_rho": -0.6,
+        "exact_perm_p_two_sided": 0.35,
+        "spearman_rho_without_AirfRANS": -0.6000000000000001,
+        "exact_perm_p_without_AirfRANS": 0.4166666666666667,
+        "sign_matches_prediction": false,
+        "SURVIVES_prereg": false
+      },
+      "A2b_n_cases": {
+        "values_in_order": {
+          "DrivAerML": 484.0,
+          "AirfRANS": 200.0,
+          "DrivAerNet++": 4165.0,
+          "AhmedML": 499.0,
+          "WindsorML": 355.0
+        },
+        "n_used": 5,
+        "predicted_sign": 1,
+        "spearman_rho": 0.6,
+        "exact_perm_p_two_sided": 0.35,
+        "spearman_rho_without_AirfRANS": 0.39999999999999997,
+        "exact_perm_p_without_AirfRANS": 0.75,
+        "sign_matches_prediction": true,
+        "SURVIVES_prereg": false
+      },
+      "A3_area_cv": {
+        "values_in_order": {
+          "DrivAerML": null,
+          "AirfRANS": null,
+          "DrivAerNet++": 0.0730992880213633,
+          "AhmedML": 0.16042431389675832,
+          "WindsorML": 0.014929536323154139
+        },
+        "n_used": 3,
+        "predicted_sign": 1,
+        "spearman_rho": 0.5,
+        "exact_perm_p_two_sided": 1.0,
+        "spearman_rho_without_AirfRANS": 0.5,
+        "exact_perm_p_without_AirfRANS": 1.0,
+        "sign_matches_prediction": true,
+        "SURVIVES_prereg": false
+      },
+      "A4_metadata_completeness": {
+        "values_in_order": {
+          "DrivAerML": 1.0,
+          "AirfRANS": 1.0,
+          "DrivAerNet++": 1.0,
+          "AhmedML": 1.0,
+          "WindsorML": 0.8571428571428571
+        },
+        "n_used": 5,
+        "predicted_sign": 1,
+        "spearman_rho": 0.7071067811865475,
+        "exact_perm_p_two_sided": 0.4,
+        "spearman_rho_without_AirfRANS": 0.7745966692414834,
+        "exact_perm_p_without_AirfRANS": 0.5,
+        "sign_matches_prediction": true,
+        "SURVIVES_prereg": false
+      },
+      "B1_label_cv": {
+        "values_in_order": {
+          "DrivAerML": 0.10848488293693169,
+          "AirfRANS": 0.37446568886580883,
+          "DrivAerNet++": 0.08677062014754855,
+          "AhmedML": 0.20109018636231313,
+          "WindsorML": 0.11839305408859195
+        },
+        "n_used": 5,
+        "predicted_sign": 1,
+        "spearman_rho": -0.6,
+        "exact_perm_p_two_sided": 0.35,
+        "spearman_rho_without_AirfRANS": -0.6000000000000001,
+        "exact_perm_p_without_AirfRANS": 0.4166666666666667,
+        "sign_matches_prediction": false,
+        "SURVIVES_prereg": false
+      },
+      "B3_dip": {
+        "values_in_order": {
+          "DrivAerML": 0.008724666821154525,
+          "AirfRANS": 0.009957351297622194,
+          "DrivAerNet++": 0.002747586537594604,
+          "AhmedML": 0.010513453187564858,
+          "WindsorML": 0.010779042327466265
+        },
+        "n_used": 5,
+        "predicted_sign": -1,
+        "spearman_rho": -0.7999999999999999,
+        "exact_perm_p_two_sided": 0.13333333333333333,
+        "spearman_rho_without_AirfRANS": -0.7999999999999999,
+        "exact_perm_p_without_AirfRANS": 0.3333333333333333,
+        "sign_matches_prediction": true,
+        "SURVIVES_prereg": false
+      },
+      "B3_bimodality_coef": {
+        "values_in_order": {
+          "DrivAerML": 0.3929304675380169,
+          "AirfRANS": 0.6398978362175335,
+          "DrivAerNet++": 0.4214238015439678,
+          "AhmedML": 0.39226892638276895,
+          "WindsorML": 0.3549841561026818
+        },
+        "n_used": 5,
+        "predicted_sign": -1,
+        "spearman_rho": 0.3,
+        "exact_perm_p_two_sided": 0.6833333333333333,
+        "spearman_rho_without_AirfRANS": 0.7999999999999999,
+        "exact_perm_p_without_AirfRANS": 0.3333333333333333,
+        "sign_matches_prediction": false,
+        "SURVIVES_prereg": false
+      },
+      "B3_excess_kurtosis": {
+        "values_in_order": {
+          "DrivAerML": -0.39021916621727337,
+          "AirfRANS": 3.349417066349484,
+          "DrivAerNet++": -0.5193860251283904,
+          "AhmedML": 0.3356952903834709,
+          "WindsorML": 4.434026005241986
+        },
+        "n_used": 5,
+        "predicted_sign": -1,
+        "spearman_rho": -0.8999999999999998,
+        "exact_perm_p_two_sided": 0.08333333333333333,
+        "spearman_rho_without_AirfRANS": -0.7999999999999999,
+        "exact_perm_p_without_AirfRANS": 0.3333333333333333,
+        "sign_matches_prediction": true,
+        "SURVIVES_prereg": false
+      },
+      "C2_coef_instability": {
+        "values_in_order": {
+          "DrivAerML": 0.01533420438312536,
+          "AirfRANS": 0.13644119250251338,
+          "DrivAerNet++": 0.4091988622727253,
+          "AhmedML": 0.46918743405608115,
+          "WindsorML": 0.5005095379173059
+        },
+        "n_used": 5,
+        "predicted_sign": -1,
+        "spearman_rho": -0.7,
+        "exact_perm_p_two_sided": 0.23333333333333334,
+        "spearman_rho_without_AirfRANS": -1.0,
+        "exact_perm_p_without_AirfRANS": 0.08333333333333333,
+        "sign_matches_prediction": true,
+        "SURVIVES_prereg": false
+      },
+      "C1_flex_r2_lower_bound": {
+        "values_in_order": {
+          "DrivAerML": 0.9883385718776794,
+          "AirfRANS": 0.9462826909859643,
+          "DrivAerNet++": 0.8811330937842178,
+          "AhmedML": 0.7747560497267596,
+          "WindsorML": 0.25158561674795477
+        },
+        "n_used": 5,
+        "predicted_sign": 1,
+        "spearman_rho": 0.7,
+        "exact_perm_p_two_sided": 0.23333333333333334,
+        "spearman_rho_without_AirfRANS": 1.0,
+        "exact_perm_p_without_AirfRANS": 0.08333333333333333,
+        "sign_matches_prediction": true,
+        "SURVIVES_prereg": false
+      }
+    }
+  },
+  "n_matched_control": {
+    "purpose": "every benchmark subsampled to the smallest n, 5 draws, so the ordering cannot be an artefact of differing sample size",
+    "results": {
+      "DrivAerML": {
+        "n": 200,
+        "mean_r2": 0.9545707910408938,
+        "sd_r2": 0.0027379201673317045,
+        "per_subsample": [
+          0.9591761317654265,
+          0.9540216512249933,
+          0.9525379257523664,
+          0.9546302499383762,
+          0.9524879965233067
+        ]
+      },
+      "AirfRANS": {
+        "n": 200,
+        "mean_r2": 0.6880530363243456,
+        "sd_r2": 0.006973168636446606,
+        "per_subsample": [
+          0.6775779163265454,
+          0.6883251957307164,
+          0.6968502876514977,
+          0.6869784667756,
+          0.6905333151373685
+        ]
+      },
+      "DrivAerNet++": {
+        "n": 200,
+        "mean_r2": 0.8111922255460637,
+        "sd_r2": 0.020357439044640435,
+        "per_subsample": [
+          0.7881641194458733,
+          0.8278520654021013,
+          0.8084738050569015,
+          0.8357503586366224,
+          0.7957207791888201
+        ]
+      },
+      "AhmedML": {
+        "n": 200,
+        "mean_r2": 0.6849289110815802,
+        "sd_r2": 0.032847752432977134,
+        "per_subsample": [
+          0.6559375324352126,
+          0.69279322336139,
+          0.6767831904578688,
+          0.7377670788978952,
+          0.6613635302555343
+        ]
+      },
+      "WindsorML": {
+        "n": 200,
+        "mean_r2": -0.017466449991680788,
+        "sd_r2": 0.4370973503507536,
+        "per_subsample": [
+          0.21615476876623607,
+          0.15822449572809616,
+          0.11306421458617766,
+          -0.795333136195582,
+          0.22055740715666816
+        ]
+      }
+    }
+  },
+  "C3_leave_one_param_out": {
+    "purpose": "calibrates what ONE design degree of freedom is worth, which is what candidate A4 (metadata completeness) needs in order to be adjudicated on WindsorML",
+    "P4_prediction": "on complete-metadata benchmarks the largest single-parameter drop is smaller than the gap WindsorML must close; FALSIFIED if any single parameter is worth > 0.5 of R^2",
+    "results": {
+      "DrivAerML": {
+        "base_r2": 0.9597878540295848,
+        "max_single_param_drop": 0.5666831531473573,
+        "top5": [
+          [
+            "Vehicle_Width",
+            0.5666831531473573
+          ],
+          [
+            "Vehicle_Ride_Height",
+            0.238399613137654
+          ],
+          [
+            "Vehicle_Height",
+            0.11252729855870847
+          ],
+          [
+            "Rear_Overhang",
+            0.05506183500093642
+          ],
+          [
+            "Vehicle_Pitch",
+            0.010038172997152595
+          ]
+        ],
+        "all_drops": {
+          "Vehicle_Length": 0.00013882518343166783,
+          "Vehicle_Width": 0.5666831531473573,
+          "Vehicle_Height": 0.11252729855870847,
+          "Front_Overhang": 0.00015611743710264303,
+          "Front_Planview": -0.00011153696919141698,
+          "Hood_Angle": -0.00012414402404370417,
+          "Approach_Angle": 0.0001414016309468913,
+          "Windscreen_Angle": 0.0002413093923968601,
+          "Greenhouse_Tapering": 0.004795082831007713,
+          "Backlight_Angle": -0.00025377322871278363,
+          "Decklid_Height": -5.0830492013931305e-05,
+          "Rearend_tapering": 0.007045733607327187,
+          "Rear_Overhang": 0.05506183500093642,
+          "Rear_Diffusor_Angle": -2.093957528281898e-05,
+          "Vehicle_Ride_Height": 0.238399613137654,
+          "Vehicle_Pitch": 0.010038172997152595
+        }
+      },
+      "AirfRANS": {
+        "base_r2": 0.6832844323156678,
+        "max_single_param_drop": 0.7053004601408485,
+        "top5": [
+          [
+            "alpha",
+            0.7053004601408485
+          ],
+          [
+            "naca_0",
+            0.05439512285010839
+          ],
+          [
+            "U",
+            0.028800359106225693
+          ],
+          [
+            "naca_2",
+            0.013758449495996583
+          ],
+          [
+            "naca_3",
+            0.013333679376038021
+          ]
+        ],
+        "all_drops": {
+          "U": 0.028800359106225693,
+          "alpha": 0.7053004601408485,
+          "naca_0": 0.05439512285010839,
+          "naca_1": 0.012444300533337338,
+          "naca_2": 0.013758449495996583,
+          "naca_3": 0.013333679376038021
+        }
+      },
+      "DrivAerNet++": {
+        "base_r2": 0.8248228408844186,
+        "max_single_param_drop": 0.261783651395434,
+        "top5": [
+          [
+            "fam_F_S",
+            0.261783651395434
+          ],
+          [
+            "fam_N_S",
+            0.23045383437448452
+          ],
+          [
+            "B_Diffusor_Angle",
+            0.16500744546807677
+          ],
+          [
+            "E_Fenders_Arch_Offset",
+            0.16299693843089003
+          ],
+          [
+            "E_A_B_C_Pillar_Thickness",
+            0.10307990988813343
+          ]
+        ],
+        "all_drops": {
+          "B_Ramp_Angle": 0.008602917715547886,
+          "B_Diffusor_Angle": 0.16500744546807677,
+          "B_Trunklid_Angle": 0.0008278768362789402,
+          "C_Side_Mirrors_Rotation": 0.0015406122343509798,
+          "D_Rear_Window_Inclination": 0.006167669779781448,
+          "D_Winscreen_Inclination": 0.002328001953355918,
+          "C_Side_Mirrors_Translate_X": -9.255922508111247e-05,
+          "C_Side_Mirrors_Translate_Z": -0.0001065753131521685,
+          "D_Winscreen_Length": 0.002172552227449054,
+          "D_Rear_Window_Length": 0.018711824003556865,
+          "E_A_B_C_Pillar_Thickness": 0.10307990988813343,
+          "G_Trunklid_Curvature": 0.004773638001591585,
+          "G_Trunklid_Length": 0.003185086735675413,
+          "H_Front_Bumper_Curvature": 0.0024622059867145385,
+          "H_Front_Bumper_Length": 0.0016704869370413045,
+          "F_Door_Handles_Thickness": -5.0045538711684934e-05,
+          "F_Door_Handles_Z_Position": -6.805182337976667e-05,
+          "E_Fenders_Arch_Offset": 0.16299693843089003,
+          "A_Car_Length": 0.006119687178335997,
+          "F_Door_Handles_X_Position": -2.5561034617815892e-05,
+          "A_Car_Width": 0.012091249706296714,
+          "A_Car_Roof_Height": 0.00015811811199706316,
+          "A_Car_Green_House_Angle": 2.7334901281705903e-05,
+          "fam_F_S": 0.261783651395434,
+          "fam_N_S": 0.23045383437448452
+        }
+      },
+      "AhmedML": {
+        "base_r2": 0.6842016571598255,
+        "max_single_param_drop": 0.41492755923036895,
+        "top5": [
+          [
+            "body-width",
+            0.41492755923036895
+          ],
+          [
+            "body-height",
+            0.15552166336473938
+          ],
+          [
+            "slant-surface-length",
+            0.0854802472691446
+          ],
+          [
+            "slant-angle-length",
+            0.07849334641037709
+          ],
+          [
+            "slant-angle-height",
+            0.046918460995741706
+          ]
+        ],
+        "all_drops": {
+          "body-length": 0.00010961458300584592,
+          "body-height": 0.15552166336473938,
+          "body-width": 0.41492755923036895,
+          "front-arc-diameter": -0.00020978511923419596,
+          "slant-angle-length": 0.07849334641037709,
+          "slant-angle-height": 0.046918460995741706,
+          "slant-surface-length": 0.0854802472691446,
+          "slant-angle-degrees": -0.00019733555336998165
+        }
+      },
+      "WindsorML": {
+        "base_r2": 0.10449352113588184,
+        "max_single_param_drop": 0.11958293553540134,
+        "top5": [
+          [
+            "ratio_height_fast_back",
+            0.11958293553540134
+          ],
+          [
+            "ratio_height_nose_windshield",
+            0.006169818188794696
+          ],
+          [
+            "ratio_length_back_fast",
+            -0.0067168860367528005
+          ],
+          [
+            "side_taper",
+            -0.008592011320188497
+          ],
+          [
+            "bottom_taper_angle",
+            -0.01369758688843492
+          ]
+        ],
+        "all_drops": {
+          "ratio_length_back_fast": -0.0067168860367528005,
+          "ratio_height_nose_windshield": 0.006169818188794696,
+          "ratio_height_fast_back": 0.11958293553540134,
+          "side_taper": -0.008592011320188497,
+          "clearance": -0.109900934971215,
+          "bottom_taper_angle": -0.01369758688843492,
+          "frontal_area": -0.1008598411570033
+        }
+      }
+    },
+    "P4_verdict": "FALSIFIED"
+  },
+  "P1_ahmed_regime_crossing": {
+    "prediction": "C_d non-monotone in slant-angle-degrees with an interior maximum in 25-35 deg; the |slant-30| basis buys >= 0.05 R^2 and more than any other parameter's |x-median| kink",
+    "base_r2": 0.6842016571598255,
+    "gain_from_abs_slant_minus_30": 0.04885499036336127,
+    "gain_from_median_kink_per_param": {
+      "body-length": {
+        "knot": 999.5991983967936,
+        "gain": 0.0007325109241307359
+      },
+      "body-height": {
+        "knot": 282.4348697394789,
+        "gain": -0.0005791611620341586
+      },
+      "body-width": {
+        "knot": 400.2004008016032,
+        "gain": -0.0005868320012025752
+      },
+      "front-arc-diameter": {
+        "knot": 199.91983967935872,
+        "gain": -0.0010774811622992209
+      },
+      "slant-angle-length": {
+        "knot": 160.42942409821632,
+        "gain": 0.005868553135892407
+      },
+      "slant-angle-height": {
+        "knot": 121.46762960398247,
+        "gain": 0.00784872543924342
+      },
+      "slant-surface-length": {
+        "knot": 211.05498174257258,
+        "gain": -0.00036195747693457125
+      },
+      "slant-angle-degrees": {
+        "knot": 36.685918007765075,
+        "gain": 0.0191593281473853
+      }
+    },
+    "best_other_param_median_kink_gain": 0.00784872543924342,
+    "binned_cd_vs_slant": [
+      {
+        "slant_lo": 6.328848645063755,
+        "slant_hi": 12.736971579863223,
+        "n": 31,
+        "mean_cd": 0.26794258916612906
+      },
+      {
+        "slant_lo": 12.736971579863223,
+        "slant_hi": 19.145094514662688,
+        "n": 44,
+        "mean_cd": 0.26550935678795456
+      },
+      {
+        "slant_lo": 19.145094514662688,
+        "slant_hi": 25.553217449462156,
+        "n": 55,
+        "mean_cd": 0.2692547407978182
+      },
+      {
+        "slant_lo": 25.553217449462156,
+        "slant_hi": 31.96134038426162,
+        "n": 65,
+        "mean_cd": 0.3311741262646154
+      },
+      {
+        "slant_lo": 31.96134038426162,
+        "slant_hi": 38.36946331906109,
+        "n": 75,
+        "mean_cd": 0.3412021812366666
+      },
+      {
+        "slant_lo": 38.36946331906109,
+        "slant_hi": 44.77758625386056,
+        "n": 77,
+        "mean_cd": 0.3027981455346754
+      },
+      {
+        "slant_lo": 44.77758625386056,
+        "slant_hi": 51.18570918866003,
+        "n": 59,
+        "mean_cd": 0.2899131853144068
+      },
+      {
+        "slant_lo": 51.18570918866003,
+        "slant_hi": 57.59383212345949,
+        "n": 48,
+        "mean_cd": 0.298432369920625
+      },
+      {
+        "slant_lo": 57.59383212345949,
+        "slant_hi": 64.00195505825896,
+        "n": 27,
+        "mean_cd": 0.27482009430851856
+      },
+      {
+        "slant_lo": 64.00195505825896,
+        "slant_hi": 70.41007799305842,
+        "n": 18,
+        "mean_cd": 0.30418901454611114
+      }
+    ],
+    "interior_maximum": true,
+    "argmax_bin": {
+      "slant_lo": 31.96134038426162,
+      "slant_hi": 38.36946331906109,
+      "n": 75,
+      "mean_cd": 0.3412021812366666
+    },
+    "VERDICT": "FALSIFIED"
+  },
+  "P2_windsor_learning_curve": {
+    "prediction": "the flexible learning curve has plateaued by n=355 and lies below R^2=0.5, i.e. the deficit is not sampling sparsity",
+    "curve": [
+      {
+        "n": 50,
+        "flex_r2_mean": 0.10376458201644123,
+        "flex_r2_sd": 0.11839327690382462
+      },
+      {
+        "n": 100,
+        "flex_r2_mean": 0.21089143791201312,
+        "flex_r2_sd": 0.06648177238680086
+      },
+      {
+        "n": 200,
+        "flex_r2_mean": 0.21961448030679948,
+        "flex_r2_sd": 0.06396806885948579
+      },
+      {
+        "n": 355,
+        "flex_r2_mean": 0.25158561674795477,
+        "flex_r2_sd": 0.0
+      }
+    ],
+    "tail_slope_200_to_full": 0.03197113644115529,
+    "VERDICT": "HELD"
+  },
+  "P3_drivaerml_scale_only": {
+    "prediction": "Vehicle_Length/Width/Height alone reach R^2 >= 0.5 on drag",
+    "r2_scale_params_only": 0.6490702971420739,
+    "r2_all_16_params": 0.9597878540295848,
+    "VERDICT": "HELD"
+  },
+  "published_column_redundancy": {
+    "purpose": "a published column that is a function of the other published columns adds no design information; it inflates the apparent parameter count without raising the metadata's information content",
+    "results": {
+      "DrivAerML": {
+        "most_redundant_column": "Vehicle_Pitch",
+        "its_r2_on_the_others": 0.023735586368824557,
+        "per_column_r2_on_the_others": {
+          "Vehicle_Length": 0.012678421923572936,
+          "Vehicle_Width": 0.005247004201657135,
+          "Vehicle_Height": 0.008822592286762854,
+          "Front_Overhang": 0.012162387274107456,
+          "Front_Planview": 0.012620890279361308,
+          "Hood_Angle": 0.004368033577776154,
+          "Approach_Angle": 0.009291889392577635,
+          "Windscreen_Angle": 0.02003996509235173,
+          "Greenhouse_Tapering": 0.004783129840242206,
+          "Backlight_Angle": 0.016872440548230894,
+          "Decklid_Height": 0.012229054511402437,
+          "Rearend_tapering": 0.010568153574495809,
+          "Rear_Overhang": 0.01763047731565781,
+          "Rear_Diffusor_Angle": 0.013495743861976384,
+          "Vehicle_Ride_Height": 0.007461269069782839,
+          "Vehicle_Pitch": 0.023735586368824557
+        },
+        "cond_number_standardised": 1.205883479899597
+      },
+      "AirfRANS": {
+        "most_redundant_column": "naca_3",
+        "its_r2_on_the_others": 0.7115115477726863,
+        "per_column_r2_on_the_others": {
+          "U": 0.008052755048918447,
+          "alpha": 0.07320598298425252,
+          "naca_0": 0.22644503180481312,
+          "naca_1": 0.2390591855252805,
+          "naca_2": 0.6750870777084211,
+          "naca_3": 0.7115115477726863
+        },
+        "cond_number_standardised": 3.7862436069312344
+      },
+      "DrivAerNet++": {
+        "most_redundant_column": "fam_N_S",
+        "its_r2_on_the_others": 0.25184454645015264,
+        "per_column_r2_on_the_others": {
+          "B_Ramp_Angle": 0.014985828764736309,
+          "B_Diffusor_Angle": 0.01089106424777364,
+          "B_Trunklid_Angle": 0.00921934486298237,
+          "C_Side_Mirrors_Rotation": 0.007740390601633784,
+          "D_Rear_Window_Inclination": 0.01092249744727769,
+          "D_Winscreen_Inclination": 0.014730596787367323,
+          "C_Side_Mirrors_Translate_X": 0.011456953880528031,
+          "C_Side_Mirrors_Translate_Z": 0.015021081527971991,
+          "D_Winscreen_Length": 0.006820250468532185,
+          "D_Rear_Window_Length": 0.010605884360887718,
+          "E_A_B_C_Pillar_Thickness": 0.01247714368272368,
+          "G_Trunklid_Curvature": 0.007074912735951733,
+          "G_Trunklid_Length": 0.00910827616362253,
+          "H_Front_Bumper_Curvature": 0.015807079278362113,
+          "H_Front_Bumper_Length": 0.007201741286262275,
+          "F_Door_Handles_Thickness": 0.0136282132968778,
+          "F_Door_Handles_Z_Position": 0.005682400018988121,
+          "E_Fenders_Arch_Offset": 0.011843890311891592,
+          "A_Car_Length": 0.00690055137067358,
+          "F_Door_Handles_X_Position": 0.014657075999327307,
+          "A_Car_Width": 0.010672955620944391,
+          "A_Car_Roof_Height": 0.009311588845815066,
+          "A_Car_Green_House_Angle": 0.007618032916812623,
+          "fam_F_S": 0.2506656114548361,
+          "fam_N_S": 0.25184454645015264
+        },
+        "cond_number_standardised": 1.7374604032272067
+      },
+      "AhmedML": {
+        "most_redundant_column": "slant-surface-length",
+        "its_r2_on_the_others": 0.9756622071446068,
+        "per_column_r2_on_the_others": {
+          "body-length": 0.033466864854982736,
+          "body-height": 0.024085653948475505,
+          "body-width": 0.003345552347432168,
+          "front-arc-diameter": 0.04880313370360123,
+          "slant-angle-length": 0.9712459132865097,
+          "slant-angle-height": 0.9726923532823439,
+          "slant-surface-length": 0.9756622071446068,
+          "slant-angle-degrees": 0.9674664680923473
+        },
+        "cond_number_standardised": 13.167689571610127
+      },
+      "WindsorML": {
+        "most_redundant_column": "frontal_area",
+        "its_r2_on_the_others": 0.9710956081902623,
+        "per_column_r2_on_the_others": {
+          "ratio_length_back_fast": 0.019786480145295937,
+          "ratio_height_nose_windshield": 0.004135141999294434,
+          "ratio_height_fast_back": 0.00805063373386461,
+          "side_taper": 0.014210395504509532,
+          "clearance": 0.9710876525740508,
+          "bottom_taper_angle": 0.010650770477081517,
+          "frontal_area": 0.9710956081902623
+        },
+        "cond_number_standardised": 11.704894682625499
+      }
+    }
+  },
+  "windsor_variance_accounting": {
+    "published_mgn_implied_r2_lower_bound": 0.79,
+    "mgn_source": "WindsorML SI D.2 quotes MSE < 0.00028 on a 60/20/20 split; converted to R^2 against the label's own variance in covariate_null_crossbench / null_travels.md sec 2.4",
+    "published_metadata_linear_r2": 0.10449352113588184,
+    "published_metadata_flexible_r2_lower_bound": 0.25158561674795477,
+    "unexplained_gap_at_least": 0.5384143832520453,
+    "largest_single_param_worth_on_a_complete_benchmark": 0.7053004601408485,
+    "one_withheld_dof_is_quantitatively_sufficient": true,
+    "sparsity_excluded_by": "P2 learning curve",
+    "reading": "at least 0.54 of WindsorML's drag variance is reachable from the geometry but not from the published metadata. On benchmarks whose metadata IS complete a single design parameter is worth up to 0.71 of R^2, so ONE withheld degree of freedom is a quantitatively sufficient explanation -- not a proven one.",
+    "the_test_that_would_settle_it": "publish ratio_length_front_rear for the 355 runs, or recover it from the distributed STL geometries, and refit. If the null rises to the 0.6-0.8 range the cause is metadata incompleteness; if it stays near 0.10 the cause is the physics of this body."
+  },
+  "reference_area_convention": {
+    "claim": "null strength is a property of (benchmark, target, reference-area convention), not of a benchmark",
+    "results": {
+      "AhmedML": {
+        "const_area": 0.6842016571598255,
+        "per_geometry_area": 0.33966086550221963,
+        "delta": 0.34454079165760587
+      },
+      "WindsorML": {
+        "const_area": 0.10449352113588184,
+        "per_geometry_area": 0.07312513580262381,
+        "delta": 0.03136838533325803
+      },
+      "DrivAerML": {
+        "const_area": 0.9597878540295848,
+        "per_geometry_area": 0.8904871860629547,
+        "delta": 0.06930066796663004
+      }
+    }
+  }
+}

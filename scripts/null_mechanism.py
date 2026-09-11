@@ -289,8 +289,10 @@ def knn_pred(X, y, k_nn, k=10, seed=0, local_linear=False):
         m[f] = False
         A, B = _standardise(X[m], X[f])
         ytr = y[m]
-        d2 = ((B[:, None, :] - A[None, :, :]) ** 2).sum(-1)
-        idx = np.argsort(d2, axis=1)[:, : min(k_nn, A.shape[0])]
+        # ||a-b||^2 = |a|^2 + |b|^2 - 2 a.b, so no (n_te, n_tr, d) array is built
+        d2 = ((B * B).sum(1)[:, None] + (A * A).sum(1)[None, :] - 2.0 * (B @ A.T))
+        kk = min(k_nn, A.shape[0])
+        idx = np.argpartition(d2, kk - 1, axis=1)[:, :kk]
         if not local_linear:
             pred[f] = ytr[idx].mean(1)
         else:
@@ -304,11 +306,36 @@ def knn_pred(X, y, k_nn, k=10, seed=0, local_linear=False):
     return pred
 
 
+def ridge_oos(X, y, lam, k=10, seed=0):
+    """10-fold OOS ridge, per-fold standardisation, intercept unpenalised."""
+    n = len(y)
+    pred = np.empty(n)
+    for f in folds_of(n, k, seed):
+        m = np.ones(n, bool)
+        m[f] = False
+        A, Bt = _standardise(X[m], X[f])
+        ym = y[m].mean()
+        G = A.T @ A + lam * np.eye(A.shape[1])
+        beta = np.linalg.solve(G, A.T @ (y[m] - ym))
+        pred[f] = Bt @ beta + ym
+    return pred
+
+
 def flexible_r2(X, y, k=10, seed=0, ns_local=(10, 20, 40)):
-    """Lower bound on determinacy: best OOS R^2 over a small flexible family."""
+    """Lower bound on determinacy: best OOS R^2 over a small flexible family.
+
+    The quadratic expansion is run with a ridge path as well as plain OLS, because
+    on a benchmark with a near-collinear parameter table (WindsorML publishes a
+    frontal_area column that is 97% explained by clearance alone) the unregularised
+    quadratic is numerically unusable out of fold. Since this quantity is used as a
+    LOWER bound on how much the metadata determines the label, taking the maximum
+    over the path is the conservative direction for every claim made from it."""
     cands = {}
     try:
-        cands["quadratic_ols"] = r2_score(y, ols_oos(quad_expand(X), y, k, seed))
+        Q = quad_expand(X)
+        cands["quadratic_ols"] = r2_score(y, ols_oos(Q, y, k, seed))
+        for lam in (1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0):
+            cands["quadratic_ridge_lam%g" % lam] = r2_score(y, ridge_oos(Q, y, lam, k, seed))
     except np.linalg.LinAlgError:
         cands["quadratic_ols"] = float("nan")
     for kk in (3, 5, 10, 20):
@@ -335,46 +362,44 @@ def d_eff(X):
     return float(lam.sum() ** 2 / (lam ** 2).sum())
 
 
-def dip_statistic(y, n_boot=0, seed=0):
-    """Hartigan's dip statistic: sup-norm distance from the ECDF to the closest
-    unimodal (greatest convex minorant / least concave majorant) distribution.
-    Implemented directly; only the statistic is used, as a relative index."""
-    x = np.sort(np.asarray(y, float))
-    n = len(x)
-    ecdf_lo = np.arange(n) / n
-    ecdf_hi = np.arange(1, n + 1) / n
+def _gcm(x, f):
+    """Greatest convex minorant of the points (x, f), by a monotone (lower-hull)
+    stack. O(m). x must be non-decreasing."""
+    st = []
+    for i in range(len(x)):
+        while len(st) >= 2:
+            a, b = st[-2], st[-1]
+            if (f[i] - f[a]) * (x[b] - x[a]) <= (f[b] - f[a]) * (x[i] - x[a]) + 1e-18:
+                st.pop()
+            else:
+                break
+        st.append(i)
+    st = np.asarray(st)
+    return np.interp(x, x[st], f[st])
+
+
+def dip_statistic(y, m_grid=201):
+    """Multimodality index in the spirit of Hartigan's dip: the smallest sup-norm
+    distance from the ECDF to a unimodal cdf, minimised over the mode location.
+
+    Evaluated on ``m_grid`` equally-spaced quantiles rather than all n order
+    statistics, which makes it O(m^2) instead of O(n^3) and independent of n --
+    a deliberate choice, since it is used only as a RELATIVE index to order five
+    benchmarks, never as a calibrated test statistic. Reported as such."""
+    y = np.asarray(y, float)
+    n = len(y)
+    m = min(m_grid, n)
+    x = np.quantile(np.sort(y), np.linspace(0.0, 1.0, m))
+    if x[-1] - x[0] <= 0:
+        return 0.0
+    ecdf = np.linspace(0.0, 1.0, m)
     best = np.inf
-    # A cheap, monotone-envelope surrogate: the dip is bounded below by the
-    # smallest sup-distance to any unimodal cdf; evaluate the two-piece
-    # convex/concave envelope anchored at each candidate mode.
-    for mi in range(1, n - 1):
-        gcm = _greatest_convex_minorant(x[: mi + 1], ecdf_lo[: mi + 1])
-        lcm = _least_concave_majorant(x[mi:], ecdf_hi[mi:])
-        d = max(np.abs(gcm - ecdf_hi[: mi + 1]).max(),
-                np.abs(lcm - ecdf_lo[mi:]).max())
-        best = min(best, d)
+    for mi in range(1, m - 1):
+        lo = _gcm(x[: mi + 1], ecdf[: mi + 1])
+        hi = -_gcm(x[mi:], -ecdf[mi:])
+        best = min(best, max(float(np.abs(lo - ecdf[: mi + 1]).max()),
+                             float(np.abs(hi - ecdf[mi:]).max())))
     return float(best / 2.0)
-
-
-def _greatest_convex_minorant(x, f):
-    n = len(x)
-    out = f.copy()
-    for _ in range(n):
-        changed = False
-        for i in range(1, n - 1):
-            if x[i + 1] > x[i - 1]:
-                t = (x[i] - x[i - 1]) / (x[i + 1] - x[i - 1])
-                lin = out[i - 1] + t * (out[i + 1] - out[i - 1])
-                if out[i] > lin + 1e-15:
-                    out[i] = lin
-                    changed = True
-        if not changed:
-            break
-    return out
-
-
-def _least_concave_majorant(x, f):
-    return -_greatest_convex_minorant(x, -f)
 
 
 def bimodality_coefficient(y):
@@ -564,7 +589,9 @@ def main():
     B["AhmedML"] = dict(X=Xh, pnames=ph, targets=th,
                         area=Xh[:, ph.index("body-height")] * Xh[:, ph.index("body-width")],
                         noise=None,
-                        note="force_mom_all.csv = constant reference area 0.112 m^2.")
+                        note="force_mom_all.csv = constant reference area 0.112 m^2. "
+                             "body-height and body-width are ABSOLUTE dimensions in mm, "
+                             "so their product is a genuine frontal-area proxy.")
 
     # ---- WindsorML (constant reference area) ---------------------------- #
     Xw, pw, tw, _ = load_simple("windsorml_geo.csv", "windsorml_force.csv",
@@ -577,18 +604,44 @@ def main():
     # ---- DrivAerML (constant reference area) ---------------------------- #
     Xd, pd_, td, _ = load_simple("drivaerml_geo.csv", "drivaerml_force_constref.csv",
                                  "Run", "run", ["cd", "cl", "clf", "clr", "cs"])
-    B["DrivAerML"] = dict(X=Xd, pnames=pd_, targets=td,
-                          area=Xd[:, pd_.index("Vehicle_Width")] *
-                               Xd[:, pd_.index("Vehicle_Height")],
-                          noise=None,
-                          note="force_mom_constref_all.csv; 16 published morph params.")
+    # DrivAerML's geo_parameters_all.csv publishes morph DELTAS (Vehicle_Width is
+    # -21.12 on run 1), not absolute dimensions, and no reference area. A product of
+    # deltas is not an area -- its mean passes through zero and its CV is meaningless.
+    # A3 is therefore NOT COMPUTABLE here, and is recorded as such rather than faked.
+    B["DrivAerML"] = dict(X=Xd, pnames=pd_, targets=td, area=None, noise=None,
+                          note="force_mom_constref_all.csv; 16 published morph params, "
+                               "published as deltas from the baseline, with no "
+                               "reference area, so no frontal-area proxy exists.")
 
     # ---- DrivAerNet++ (parametric pool) --------------------------------- #
-    Xn, pn, tn, _, stdcd, dn_design = load_drivaernet()
-    B["DrivAerNet++"] = dict(X=Xn, pnames=pn, targets=tn, area=None,
+    Xn, pn, tn, ids_n, stdcd, dn_design = load_drivaernet()
+    areas = {r["Car Design"]: float(r["Frontal Area (m²)"])
+             for r in _read_csv(os.path.join(CB, "drivaernet_areas.csv"))
+             if r.get("Frontal Area (m²)")}
+    a_n = np.array([areas.get(i, np.nan) for i in ids_n], float)
+    B["DrivAerNet++"] = dict(X=Xn, pnames=pn, targets=tn,
+                             area=(a_n[np.isfinite(a_n)] if np.isfinite(a_n).any()
+                                   else None),
                              noise=float(np.nanmean(stdcd)),
                              note="parametric pool (designs with published "
                                   "parameters), 23 design params + family dummies.")
+    out["B2_label_noise_floor"] = {
+        "finding": ("only ONE of the five benchmarks publishes a per-case label "
+                    "uncertainty, so candidate B2 (signal-to-noise) is NOT adjudicable "
+                    "at n=5. That is itself a reporting-practice finding."),
+        "DrivAerNet++": {
+            "source": "Std Cd column of DrivAerNet_ParametricData.csv",
+            "mean_std_cd": float(np.nanmean(stdcd)),
+            "label_sd": float(np.std(tn["cd"], ddof=1)),
+            "snr_label_sd_over_noise": float(np.std(tn["cd"], ddof=1)
+                                             / np.nanmean(stdcd)),
+        },
+        "why_the_symmetry_channel_fails": {
+            "note": ("a side-force channel is a zero-mean noise probe only at zero yaw "
+                     "and with a laterally symmetric body; both benchmarks that publish "
+                     "one fail that test empirically, so neither is used as a floor"),
+        },
+    }
 
     # ---- harmonised nulls, all targets ---------------------------------- #
     for name, rec in B.items():
@@ -704,12 +757,13 @@ def main():
         v = np.array([np.nan if x is None else float(x) for x in vals], float)
         rho, p = exact_perm_p(v, tgt)
         ok = np.isfinite(v)
-        rho4, p4 = (exact_perm_p(v[[i for i, b in enumerate(order)
-                                    if b != "AirfRANS" and ok[i]]],
-                                tgt[[i for i, b in enumerate(order)
-                                     if b != "AirfRANS" and ok[i]]])
-                    if ok.sum() >= 4 else (float("nan"), float("nan")))
-        perfect = np.isfinite(rho) and abs(abs(rho) - 1.0) < 1e-9
+        sel = [i for i, b in enumerate(order) if b != "AirfRANS" and ok[i]]
+        rho4, p4 = (exact_perm_p(v[sel], tgt[sel]) if len(sel) >= 3
+                    else (float("nan"), float("nan")))
+        # the pre-registration says "orders all FIVE benchmarks perfectly", so a
+        # candidate computable on only a subset cannot survive, however it orders them
+        perfect = (np.isfinite(rho) and abs(abs(rho) - 1.0) < 1e-9
+                   and int(ok.sum()) == len(order))
         signed_ok = np.isfinite(rho) and (np.sign(rho) == direction)
         res[nm] = {
             "values_in_order": {b: (None if not np.isfinite(v[i]) else float(v[i]))
@@ -852,6 +906,70 @@ def main():
         "r2_scale_params_only": float(r2_scale),
         "r2_all_16_params": float(r2_score(yd_, ols_oos(Xd_, yd_, K, SEED))),
         "VERDICT": "HELD" if r2_scale >= 0.5 else "FALSIFIED",
+    }
+
+    # --- is any published column redundant? ------------------------------- #
+    redun = {}
+    for b in order:
+        X, names = B[b]["X"], B[b]["pnames"]
+        Z = (X - X.mean(0)) / np.where(X.std(0) < 1e-12, 1.0, X.std(0))
+        worst = None
+        per = {}
+        for j in range(Z.shape[1]):
+            keep = [c for c in range(Z.shape[1]) if c != j]
+            A = np.column_stack([np.ones(len(Z)), Z[:, keep]])
+            beta, *_ = np.linalg.lstsq(A, Z[:, j], rcond=None)
+            resid = Z[:, j] - A @ beta
+            r2j = float(1.0 - resid.var() / Z[:, j].var()) if Z[:, j].var() > 0 else 1.0
+            per[names[j]] = r2j
+            if worst is None or r2j > worst[1]:
+                worst = (names[j], r2j)
+        redun[b] = {"most_redundant_column": worst[0], "its_r2_on_the_others": worst[1],
+                    "per_column_r2_on_the_others": per,
+                    "cond_number_standardised": float(np.linalg.cond(Z))}
+    out["published_column_redundancy"] = {
+        "purpose": ("a published column that is a function of the other published "
+                    "columns adds no design information; it inflates the apparent "
+                    "parameter count without raising the metadata's information "
+                    "content"),
+        "results": redun,
+    }
+
+    # --- WindsorML variance accounting ------------------------------------ #
+    # The chain: the published MeshGraphNet reads only the GEOMETRY, and the geometry
+    # is generated from the 7 design parameters, so its R^2 is a lower bound on what
+    # SOME function of those 7 parameters attains. The published-metadata flexible
+    # ceiling is a lower bound on what the 6 PUBLISHED parameters attain. The gap is
+    # drag variance carried by information the benchmark does not publish.
+    w_lin = out["benchmarks"]["WindsorML"]["targets"]["cd"]["null_r2_linear"]
+    w_flex = out["benchmarks"]["WindsorML"]["targets"]["cd"]["C1_flex_r2_lower_bound"]
+    mgn = 0.79
+    complete_max_drop = max(v["max_single_param_drop"]
+                            for k, v in loo.items() if k != "WindsorML")
+    gap = mgn - w_flex
+    out["windsor_variance_accounting"] = {
+        "published_mgn_implied_r2_lower_bound": mgn,
+        "mgn_source": ("WindsorML SI D.2 quotes MSE < 0.00028 on a 60/20/20 split; "
+                       "converted to R^2 against the label's own variance in "
+                       "covariate_null_crossbench / null_travels.md sec 2.4"),
+        "published_metadata_linear_r2": float(w_lin),
+        "published_metadata_flexible_r2_lower_bound": float(w_flex),
+        "unexplained_gap_at_least": float(gap),
+        "largest_single_param_worth_on_a_complete_benchmark": float(complete_max_drop),
+        "one_withheld_dof_is_quantitatively_sufficient": bool(complete_max_drop >= gap),
+        "sparsity_excluded_by": "P2 learning curve",
+        "reading": ("at least %.2f of WindsorML's drag variance is reachable from the "
+                    "geometry but not from the published metadata. On benchmarks whose "
+                    "metadata IS complete a single design parameter is worth up to "
+                    "%.2f of R^2, so ONE withheld degree of freedom is a "
+                    "quantitatively sufficient explanation -- not a proven one."
+                    % (gap, complete_max_drop)),
+        "the_test_that_would_settle_it": ("publish ratio_length_front_rear for the 355 "
+                                          "runs, or recover it from the distributed "
+                                          "STL geometries, and refit. If the null rises "
+                                          "to the 0.6-0.8 range the cause is metadata "
+                                          "incompleteness; if it stays near 0.10 the "
+                                          "cause is the physics of this body."),
     }
 
     # --- reference-area convention sensitivity ---------------------------- #
