@@ -156,6 +156,27 @@ defensive table. DISSOLVES: the localisation is partly a rasterisation effect,
 ``sec:interp``'s band paragraph must be scoped to the deployed resolution, and
 the paper says so before submission. Both are reported plainly.
 
+**ADDED AFTER THE 128/256 STAGE, in response to what those two rungs showed.**
+These are ADDITIONAL diagnostics; no threshold and no clause of the decision rule
+above was altered or re-tuned, and the 128^2 gate is untouched.
+  (a) ``surface_pressure_block``. ``surface_mse_p`` moved 10989 -> 93105 from
+      128^2 to 256^2. That is an ABSOLUTE number in the one channel whose
+      resolvable structure changes most with ``h``: at 128^2 the wall band is
+      sub-cell, so the bilinear sampler smooths the TRUTH as well as the
+      prediction. The variance of the sampled ground truth is therefore reported
+      at every rung next to the MSE, together with their ratio, so "the
+      interpolator got worse" can be told apart from "the metric started seeing
+      structure". The ratio is the resolution-comparable statistic; the absolute
+      MSE is the one the paper's tables print.
+  (b) ``sel_sdf_mean`` and ``frac_of_outer_selected`` on the oversampled-cell
+      control. That restriction is NOT composition-neutral: the source cloud is
+      densest near the body, so as ``h`` shrinks the qualifying cells retreat
+      toward the wall (362160 -> 267304 cells from 128 to 256). Its MSE trend
+      therefore mixes resolution with region and must not be read as the
+      far-field trend; the pre-registered outer-MSE arm uses ``outer_mse_all``,
+      as written above, and these two fields make the confound measurable
+      instead of arguable.
+
 **Forces are not scored.** ``evaluate_cases`` is called (so aggregation, masking
 and the ``n_cases`` assert are the shared code path), which includes
 ``force_coefficients``; ``rho_cl``/``rho_cd`` are recorded but are NOT part of
@@ -317,19 +338,31 @@ def f_band(bands: dict, order: list[str], fracs: list[float], tau: float,
 
 def outer_mse(pred_phys, test_pairs, hw, edge: float, over_masks=None) -> dict:
     """Absolute MSE over cells with ``sdf > edge``, optionally restricted to
-    cells the rasteriser AVERAGED (>= min_points source points)."""
+    cells the rasteriser AVERAGED (>= min_points source points).
+
+    The wall-distance summary of the SELECTED set is returned alongside, because
+    the oversampled restriction is NOT composition-neutral across rungs: the
+    source cloud is densest near the body, so as ``h`` shrinks the cells that
+    still hold >= min_points points retreat toward the wall. Comparing that
+    subset's MSE across rungs therefore mixes a resolution effect with a region
+    change, and the numbers must be read with ``sel_sdf_mean`` in view.
+    """
     chans = ("u", "v", "p")
     se = {c: 0.0 for c in chans}
     n = 0
+    n_fluid_outer = 0
+    sdf_sum = 0.0
     for i, (case, ref) in enumerate(test_pairs):
         fluid = np.asarray(ref.mask).ravel() > 0.5
         d = np.asarray(ref.sdf, np.float64).ravel()
-        m = fluid & (d > edge)
+        base = fluid & (d > edge)
+        n_fluid_outer += int(base.sum())
+        m = base
         if over_masks is not None:
             om = over_masks.get(case.name)
             if om is None:
                 continue
-            m = m & om.ravel()
+            m = base & om.ravel()
         if not m.any():
             continue
         row = pred_phys[i]
@@ -338,11 +371,59 @@ def outer_mse(pred_phys, test_pairs, hw, edge: float, over_masks=None) -> dict:
               "p": np.asarray(ref.p, np.float64).ravel()}
         pr = {"u": row[0:hw], "v": row[hw:2 * hw], "p": row[2 * hw:3 * hw]}
         n += int(m.sum())
+        sdf_sum += float(d[m].sum())
         for c in chans:
             se[c] += float(((pr[c][m] - gt[c][m]) ** 2).sum())
     if n == 0:
         return {"n_cells": 0}
-    return {"n_cells": n, **{f"mse_{c}": se[c] / n for c in chans}}
+    return {"n_cells": n, "n_fluid_outer": n_fluid_outer,
+            "frac_of_outer_selected": n / max(n_fluid_outer, 1),
+            "sel_sdf_mean": sdf_sum / n,
+            **{f"mse_{c}": se[c] / n for c in chans}}
+
+
+def surface_pressure_block(pred_phys, test_pairs, hw) -> dict:
+    """Surface pressure MSE AND the variance of the sampled ground truth.
+
+    ``surface_mse_p`` is an absolute number in a channel whose resolvable
+    structure changes with ``h``: at 128^2 the wall band is sub-cell, so the
+    bilinear sampler smooths BOTH prediction and truth. A bare MSE comparison
+    across rungs therefore cannot separate "the interpolator got worse" from
+    "the metric started seeing structure". The same MSE divided by the variance
+    of the SAMPLED TRUTH is the resolution-comparable version, and both are
+    reported together. Pooled across all cases' surface points.
+    """
+    from neuroforge.physics.evaluation import _surface_points_normals
+    from neuroforge.physics.metrics import _bilinear_sample
+
+    se = 0.0
+    s1 = 0.0
+    s2 = 0.0
+    n = 0
+    per_case = []
+    H = test_pairs[0][1].u.shape[0]
+    for i, (case, ref) in enumerate(test_pairs):
+        pts, _ = _surface_points_normals(case)
+        if pts.shape[0] < 2:
+            continue
+        p_pred = _bilinear_sample(
+            pred_phys[i][2 * hw:3 * hw].reshape(H, -1).astype(np.float32),
+            ref.domain, pts)
+        p_ref = _bilinear_sample(np.asarray(ref.p), ref.domain, pts)
+        e = np.asarray(p_pred, np.float64) - np.asarray(p_ref, np.float64)
+        g = np.asarray(p_ref, np.float64)
+        se += float((e ** 2).sum())
+        s1 += float(g.sum())
+        s2 += float((g ** 2).sum())
+        n += int(g.size)
+        per_case.append(float(np.mean(e ** 2)))
+    if n == 0:
+        return {"n_points": 0}
+    mse = se / n
+    var = s2 / n - (s1 / n) ** 2
+    return {"n_points": n, "pooled_mse": mse, "gt_variance": var,
+            "standardised": mse / var if var > 0 else float("nan"),
+            "case_mean_mse": float(np.mean(per_case))}
 
 
 # ---------------------------------------------------------------------------
@@ -614,6 +695,7 @@ def main(argv=None) -> int:
             "outer_mse_oversampled": (
                 outer_mse(pred_phys, test_pairs, hw, OUTER_EDGE, over_masks)
                 if over_masks else {"n_cells": 0}),
+            "surface_pressure": surface_pressure_block(pred_phys, test_pairs, hw),
             "oversampled": over_stats,
             "cv_would_select": cfg_name(best_here),
             "cv_top5": cv_table[:5],
@@ -645,8 +727,14 @@ def main(argv=None) -> int:
         if row["outer_mse_oversampled"]["n_cells"]:
             oo = row["outer_mse_oversampled"]
             print(f"    outer, >= {a.min_points} src pts/cell "
-                  f"({oo['n_cells']} cells) u/v/p = {oo['mse_u']:.5g}/"
-                  f"{oo['mse_v']:.5g}/{oo['mse_p']:.6g}", flush=True)
+                  f"({oo['n_cells']} cells, {oo['frac_of_outer_selected']:.3f} of "
+                  f"outer, mean sdf {oo['sel_sdf_mean']:.4f}c) u/v/p = "
+                  f"{oo['mse_u']:.5g}/{oo['mse_v']:.5g}/{oo['mse_p']:.6g}",
+                  flush=True)
+        sp = row["surface_pressure"]
+        print(f"    surface p: pooled MSE {sp['pooled_mse']:.6g}  GT var "
+              f"{sp['gt_variance']:.6g}  standardised {sp['standardised']:.6g}",
+              flush=True)
 
         if res == 128 and not a.no_gate:
             gate = check_gate(agg, bands,
