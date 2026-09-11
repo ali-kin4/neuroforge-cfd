@@ -95,6 +95,12 @@ hypothesis for future benchmarks, not a finding.**
 * **Sample size is not the driver.** Every benchmark subsampled to n = 200 (5 draws each):
   DrivAerML 0.955, DrivAerNet++ 0.811, AirfRANS 0.688, AhmedML 0.685, WindsorML **−0.018
   (sd 0.437)**. The ordering is preserved exactly.
+* **The AirfRANS entry is conservative, not depressed by its small n.** It uses the 200
+  cached official test labels, the smallest n of the five. Repeating on the official
+  800-case train labels and on the pooled 1000 gives a *lower* linear null, not a higher
+  one — 0.6833 (n=200), 0.6116 (800), 0.6306 (1000) — while the linearity share that the
+  AirfRANS-vs-AhmedML contrast in §3 rests on is invariant at 0.722 / 0.726 / 0.731. More
+  data moves AirfRANS further below AhmedML, so nothing in §3 or §2 turns on the choice.
 * **The ordering is not even invariant to a reporting convention.** Switching from constant
   to per-geometry reference area moves AhmedML by **0.345** (0.684 → 0.340), DrivAerML by
   0.069 and WindsorML by 0.031. Under the per-geometry convention AhmedML drops below

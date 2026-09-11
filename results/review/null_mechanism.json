@@ -1240,6 +1240,33 @@
     "r2_all_16_params": 0.9597878540295848,
     "VERDICT": "HELD"
   },
+  "airfrans_sample_size_robustness": {
+    "purpose": "the AirfRANS entry uses the smallest n of the five; this shows the conclusion drawn from it does not depend on that",
+    "results": {
+      "test_200_used_in_report": {
+        "n": 200,
+        "cd_linear": 0.6832844323156678,
+        "cd_flexible": 0.9462826909859643,
+        "linearity_share": 0.7220722082570594,
+        "cl_linear": 0.961630745666829
+      },
+      "train_800": {
+        "n": 800,
+        "cd_linear": 0.6115720930607802,
+        "cd_flexible": 0.841809661403833,
+        "linearity_share": 0.7264968805904413,
+        "cl_linear": 0.9688147888629643
+      },
+      "pooled_1000": {
+        "n": 1000,
+        "cd_linear": 0.630620881418003,
+        "cd_flexible": 0.8627654517138945,
+        "linearity_share": 0.7309296868172764,
+        "cl_linear": 0.9678543289307703
+      }
+    },
+    "reading": "more AirfRANS data LOWERS the linear null (0.683 at n=200 to 0.631 at n=1000), so the reported entry is conservative, and the linearity share -- the quantity the AirfRANS-vs-AhmedML contrast rests on -- is invariant at 0.72-0.73."
+  },
   "published_column_redundancy": {
     "purpose": "a published column that is a function of the other published columns adds no design information; it inflates the apparent parameter count without raising the metadata's information content",
     "results": {

@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-11T16:59:21.636763+00:00",
-  "git_head": "2c0ae0786599a6d08d53fb78252ee2442f9a41eb",
-  "git_head_short": "2c0ae07",
+  "generated_utc": "2026-09-11T17:01:09.988483+00:00",
+  "git_head": "1e57b4f9255677f6f669393ce597508416ddbd66",
+  "git_head_short": "1e57b4f",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -741,10 +741,10 @@
       "script": "scripts/null_mechanism.py",
       "tier": "cpu",
       "claims": "pre-registered search (candidates, predicted directions and adjudication rule committed at ffbec98 with the script UNRUN) for a computable property of benchmark metadata that predicts covariate-null strength. HEADLINE IS A NULL RESULT: of eleven candidates none orders the five benchmarks, and two of the most intuitive -- effective dimensionality and sampling density per dimension -- order them with the sign REVERSED. At n=5 a perfect ordering would be p=0.0167 exact-permutation, p=0.167 corrected, so nothing could have reached significance; that was committed before the run. Harmonises the input table first and it REORDERS: AirfRANS 0.932 was a Spearman not an R2 and becomes 0.6833, DrivAerML 0.973 (outer-decile split) becomes 0.9598, DrivAerNet++ 0.737 (595 test designs have no parameters at all) becomes 0.8248; AhmedML 0.6842, WindsorML 0.1045. Two positive findings. (1) A single null number conflates two different failures: AirfRANS 0.6833 and AhmedML 0.6842 are the same number with opposite causes -- flexible ceiling 0.946 vs 0.775 -- so the pair (R2_linear, R2_flexible) must be reported. (2) WindsorML's counterexample status is most likely a metadata defect: its paper lists 7 design parameters, geo_parameters_all.csv publishes 6 (ratio_length_front_rear absent, verified against the live HuggingFace file) plus a frontal_area column that is 97.1%% explained by clearance alone. Accounting gap >= 0.538 against the published MGN bound; the pre-registered leave-one-parameter-out calibration was FALSIFIED, showing one design parameter is worth up to 0.705 (AirfRANS alpha) or 0.567 (DrivAerML Vehicle_Width), so one withheld DOF is quantitatively sufficient. Sparsity excluded (P2 held: Windsor flexible learning curve plateaus at 0.252). Controls: n-matched at n=200 preserves the ordering exactly; reference-area convention moves AhmedML by 0.345 and reorders the table; null strength varies within a benchmark by up to 0.36 across force channels. AhmedML regime-crossing prediction P1 FALSIFIED on its committed 0.05 threshold (gain 0.0489) though the critical-slant drag peak is present at 32-38 deg exactly as predicted. Metadata only; no field data, no GPU.",
-      "sha256": "b9c2f27dc5fac7d2ba596a52766b87b33609ddd4accdbabfadd21942af30e714",
-      "bytes": 52836,
-      "git_tracked": false,
-      "last_commit": ""
+      "sha256": "84321e5566f903c7da4476215c2d25fc016ec437c0b3f6deb5203b85e1d61230",
+      "bytes": 53955,
+      "git_tracked": true,
+      "last_commit": "1e57b4f"
     },
     {
       "path": "results/review/covariate_null_crossbench.json",
