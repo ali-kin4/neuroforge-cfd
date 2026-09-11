@@ -324,8 +324,8 @@ case: min nearest-neighbour distance in standardised 7-D feature space is
 Spearman is **+0.394** — positive, as it must be, but modest. Excluding the
 closest 10 % of test cases makes the aggregate **worse, not better**
 (`mse_u` 0.782 → 0.823, `mse_p` 75.0 → 82.1, surf. `mse_p` 10989 → 12038), so
-the headline is not carried by a handful of near-duplicates. Same on `reynolds`
-(75.0 → 80.3) and `aoa` (125.3 → 130.7).
+the headline is not carried by a handful of near-duplicates. Same direction on
+`reynolds` (`mse_p` 74.1 → 80.3) and `aoa` (125.3 → 130.7).
 
 **(d) Silently dropped cases. [KILL CHECK]** `coefficient_metrics` wraps force
 integration in a bare `try/except`, so a pathological field can drop cases and
@@ -390,9 +390,10 @@ matching `tab:transolver` exactly.
   CLAUDE.md tells us to avoid — and the checkpoints do not store the normaliser.
   **This is the single most valuable follow-up and it is not done here.**
 * **Matched surrogate rows on `reynolds`/`aoa`** (see §4 caveat (i)).
-* **More than one interpolator seed.** The estimator is deterministic given the
-  split, so there is no seed variance to report; the train-subset ladder (§3) is
-  a single random subset per size.
+* **Interpolator seed variance.** The estimator is deterministic given the
+  split, so the headline rows have no seed variance to report. The train-subset
+  ladder (§3) uses 5 random subsets per size for n < 800; n = 800 is the whole
+  train split.
 
 ### Cost asymmetry (qualifies any "competitive" reading)
 
@@ -424,8 +425,9 @@ parameter-space kernel interpolator with no flow-field learning:
   32.6x) and by 50x on surface pressure;
 * reaches Transolver's `mse_p` with **100 training cases** (238 +/- 65 over 5
   random subsets, worst-of-5 344, vs 628.5);
-* confines **92 % of its remaining `u` error to the first 0.02 c off the wall**,
-  reproducing the field at **R² >= 0.9996 beyond 0.05 c**;
+* confines **92 % of its remaining `u` error to the first 0.02 c off the wall**
+  (0.5 % of cells), reproducing the field at **R² >= 0.9996 beyond 0.05 c**
+  (>= 0.9965 with each case's own band mean removed);
 * **does not degrade at all** on the `reynolds` OOD split, where 0/200 test cases
   have an in-range inlet velocity — because that split's difficulty is
   dimensional scaling, not physics;
