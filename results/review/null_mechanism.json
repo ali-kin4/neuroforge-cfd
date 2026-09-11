@@ -649,6 +649,8 @@
         "spearman_rho_without_AirfRANS": 0.6000000000000001,
         "exact_perm_p_without_AirfRANS": 0.4166666666666667,
         "sign_matches_prediction": false,
+        "n_distinct_levels": 5,
+        "adjudicable_as_a_correlate": true,
         "SURVIVES_prereg": false
       },
       "A2_density_logn_over_deff": {
@@ -666,6 +668,8 @@
         "spearman_rho_without_AirfRANS": -0.6000000000000001,
         "exact_perm_p_without_AirfRANS": 0.4166666666666667,
         "sign_matches_prediction": false,
+        "n_distinct_levels": 5,
+        "adjudicable_as_a_correlate": true,
         "SURVIVES_prereg": false
       },
       "A2b_n_cases": {
@@ -683,6 +687,8 @@
         "spearman_rho_without_AirfRANS": 0.39999999999999997,
         "exact_perm_p_without_AirfRANS": 0.75,
         "sign_matches_prediction": true,
+        "n_distinct_levels": 5,
+        "adjudicable_as_a_correlate": true,
         "SURVIVES_prereg": false
       },
       "A3_area_cv": {
@@ -700,6 +706,8 @@
         "spearman_rho_without_AirfRANS": 0.5,
         "exact_perm_p_without_AirfRANS": 1.0,
         "sign_matches_prediction": true,
+        "n_distinct_levels": 3,
+        "adjudicable_as_a_correlate": false,
         "SURVIVES_prereg": false
       },
       "A4_metadata_completeness": {
@@ -717,6 +725,8 @@
         "spearman_rho_without_AirfRANS": 0.7745966692414834,
         "exact_perm_p_without_AirfRANS": 0.5,
         "sign_matches_prediction": true,
+        "n_distinct_levels": 2,
+        "adjudicable_as_a_correlate": false,
         "SURVIVES_prereg": false
       },
       "B1_label_cv": {
@@ -734,6 +744,8 @@
         "spearman_rho_without_AirfRANS": -0.6000000000000001,
         "exact_perm_p_without_AirfRANS": 0.4166666666666667,
         "sign_matches_prediction": false,
+        "n_distinct_levels": 5,
+        "adjudicable_as_a_correlate": true,
         "SURVIVES_prereg": false
       },
       "B3_dip": {
@@ -751,6 +763,8 @@
         "spearman_rho_without_AirfRANS": -0.7999999999999999,
         "exact_perm_p_without_AirfRANS": 0.3333333333333333,
         "sign_matches_prediction": true,
+        "n_distinct_levels": 5,
+        "adjudicable_as_a_correlate": true,
         "SURVIVES_prereg": false
       },
       "B3_bimodality_coef": {
@@ -768,6 +782,8 @@
         "spearman_rho_without_AirfRANS": 0.7999999999999999,
         "exact_perm_p_without_AirfRANS": 0.3333333333333333,
         "sign_matches_prediction": false,
+        "n_distinct_levels": 5,
+        "adjudicable_as_a_correlate": true,
         "SURVIVES_prereg": false
       },
       "B3_excess_kurtosis": {
@@ -785,6 +801,8 @@
         "spearman_rho_without_AirfRANS": -0.7999999999999999,
         "exact_perm_p_without_AirfRANS": 0.3333333333333333,
         "sign_matches_prediction": true,
+        "n_distinct_levels": 5,
+        "adjudicable_as_a_correlate": true,
         "SURVIVES_prereg": false
       },
       "C2_coef_instability": {
@@ -802,6 +820,8 @@
         "spearman_rho_without_AirfRANS": -1.0,
         "exact_perm_p_without_AirfRANS": 0.08333333333333333,
         "sign_matches_prediction": true,
+        "n_distinct_levels": 5,
+        "adjudicable_as_a_correlate": true,
         "SURVIVES_prereg": false
       },
       "C1_flex_r2_lower_bound": {
@@ -819,9 +839,24 @@
         "spearman_rho_without_AirfRANS": 1.0,
         "exact_perm_p_without_AirfRANS": 0.08333333333333333,
         "sign_matches_prediction": true,
+        "n_distinct_levels": 5,
+        "adjudicable_as_a_correlate": true,
         "SURVIVES_prereg": false
       }
-    }
+    },
+    "n_computed_candidates": 11,
+    "candidates_declared_but_not_computed": {
+      "A5_sampling_design_type": "NOT COMPUTED, and not computable as a correlate: this is a literature fact read from the dataset papers, not a statistic derived from data. All five benchmarks use a space-filling DoE, so the variable has no variation to order anything with. Pre-registered as predicting nothing; it predicted nothing. The space-filling-vs-curated axis is UNTESTED, not refuted.",
+      "B2_signal_to_noise": "NOT COMPUTABLE: only DrivAerNet++ publishes a per-case label uncertainty, and neither side-force channel is a valid zero-yaw symmetry probe. See B2_label_noise_floor."
+    },
+    "multiplicity": "11 candidates were computed, so a perfect ordering (p=0.0167) is p=0.184 after Bonferroni correction."
+  },
+  "sampling_design_by_benchmark": {
+    "DrivAerML": "modified extensible lattice sequence (ANSA DoE), space-filling",
+    "AirfRANS": "randomised sampling of U, alpha and NACA digits",
+    "DrivAerNet++": "parametric morph DoE over 23-26 parameters, space-filling",
+    "AhmedML": "Latin hypercube, space-filling",
+    "WindsorML": "Halton quasi-random low-discrepancy sequence, space-filling"
   },
   "n_matched_control": {
     "purpose": "every benchmark subsampled to the smallest n, 5 draws, so the ordering cannot be an artefact of differing sample size",

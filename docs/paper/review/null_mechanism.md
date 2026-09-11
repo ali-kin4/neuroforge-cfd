@@ -55,30 +55,51 @@ mixing a rank correlation with a variance ratio.
 Every candidate that was pre-registered, with the direction it predicted and what happened.
 Adjudication rule, committed in advance: a candidate SURVIVES only if it orders all five
 benchmarks perfectly *and* in the predicted direction. Exact permutation p over all 5! = 120
-orderings; |ρ| = 1 is p = 0.0167, which is p = 0.167 after correcting for the eleven
-candidates tried. **It was committed in advance that no candidate could reach corrected
-significance at n = 5.**
+orderings; |ρ| = 1 is p = 0.0167, which is p = 0.184 after Bonferroni correction for the
+eleven that were computed. **It was committed in advance that no candidate could reach
+corrected significance at n = 5.**
 
-| # | Candidate | Predicted | ρ | p (exact) | ρ w/o AirfRANS | Survives |
+Thirteen candidates were declared; **eleven were computed**. A5 was not (it is a literature
+fact with no variation to test) and B2 was not computable from what these benchmarks
+publish. A further two cannot be adjudicated as correlates for a structural rather than a
+numerical reason — a variable taking fewer than four distinct values across five benchmarks
+cannot rank them, so its Spearman is a two- or three-group contrast and its p is not an
+ordering test. These are flagged `adjudicable_as_a_correlate: false` in the JSON.
+
+| # | Candidate | Predicted | ρ | p (exact) | ρ w/o AirfRANS | Verdict |
 |---|---|---|---|---|---|---|
-| A1 | effective dimensionality `d_eff` | ρ < 0 | **+0.600** | 0.350 | +0.800 | no — **wrong sign** |
-| A2 | sampling density `log n / d_eff` | ρ > 0 | **−0.600** | 0.350 | −0.800 | no — **wrong sign** |
-| A2b | number of cases `n` | ρ > 0 | +0.600 | 0.350 | +0.800 | no |
-| A3 | scale-vs-shape (frontal-area CV) | ρ > 0 | +0.500 | 1.000 | +0.500 | no (computable on only 3 of 5) |
-| A4 | metadata completeness | ρ > 0 | +0.707 | 0.400 | +0.816 | no |
-| A5 | sampling design type | *nothing* | — | — | — | no — as predicted, all five are space-filling |
-| B1 | label dynamic range CV | ρ > 0 | **−0.600** | 0.350 | −0.400 | no — **wrong sign** |
+| A1 | effective dimensionality `d_eff` | ρ < 0 | **+0.600** | 0.350 | +0.800 | fails — **wrong sign** |
+| A2 | sampling density `log n / d_eff` | ρ > 0 | **−0.600** | 0.350 | −0.800 | fails — **wrong sign** |
+| A2b | number of cases `n` | ρ > 0 | +0.600 | 0.350 | +0.800 | fails |
+| A3 | scale-vs-shape (frontal-area CV) | ρ > 0 | +0.500 | 1.000 | +0.500 | **not adjudicable** — 3 levels, computable on 3 of 5 |
+| A4 | metadata completeness | ρ > 0 | +0.707 | 0.400 | +0.816 | **not adjudicable** — binary; see below |
+| A5 | sampling design type | *nothing* | — | — | — | **not computed** — literature fact, no variation |
+| B1 | label dynamic range CV | ρ > 0 | **−0.600** | 0.350 | −0.400 | fails — **wrong sign** |
 | B2 | signal-to-noise | ρ > 0 | — | — | — | **not computable** (see §5) |
-| B3 | dip statistic | ρ < 0 | −0.800 | 0.133 | −0.800 | no |
-| B3 | bimodality coefficient | ρ < 0 | +0.300 | 0.683 | +0.400 | no — wrong sign |
-| B3 | excess kurtosis | ρ < 0 | **−0.900** | **0.083** | −1.000 | no (one inversion) |
-| C2 | local-slope instability | ρ < 0 | −0.700 | 0.233 | −0.800 | no |
-| C1 | flexible-fit ceiling | ρ > 0 | +0.700 | 0.233 | +0.800 | no |
+| B3 | dip statistic | ρ < 0 | −0.800 | 0.133 | −0.800 | fails |
+| B3 | bimodality coefficient | ρ < 0 | +0.300 | 0.683 | +0.400 | fails — wrong sign |
+| B3 | excess kurtosis | ρ < 0 | **−0.900** | **0.083** | −1.000 | fails (one inversion) |
+| C2 | local-slope instability | ρ < 0 | −0.700 | 0.233 | −0.800 | fails |
+| C1 | flexible-fit ceiling | ρ > 0 | +0.700 | 0.233 | +0.800 | fails |
+
+**A4 is not evidence in this table, and is not a failed correlate either.** Its values are
+{1.0, 1.0, 1.0, 1.0, 0.857}: four benchmarks publish complete metadata and WindsorML does
+not. A two-level variable cannot order five benchmarks — ρ = 0.707 is a two-group contrast,
+and p = 0.400 is just the chance that a designated benchmark is the extreme one, which is
+1/5 by construction. **The WindsorML metadata argument is made in §4 on the accounting — a
+0.538 gap against a 0.705 calibration — and rests on none of this ρ.** A4 appears here only
+so that a declared candidate is not quietly dropped.
+
+**A5 was never computed**, and its dash is not a measurement. All five benchmarks use a
+space-filling DoE, read from the dataset papers rather than derived from data, so the
+variable has no variation to correlate against. Pre-registered as predicting nothing; it
+predicted nothing. The space-filling-versus-curated axis is **untested, not refuted** (§5).
 
 **Read this plainly.** The three properties a benchmark author could actually control
 before running any simulation — how many parameters to vary, how densely to sample them,
-which DoE to use — are A1, A2, A2b and A5. **All four fail, and two fail with the sign
-reversed.** In this set of five benchmarks, *higher* effective dimensionality and *sparser*
+how many cases to run — are A1, A2 and A2b. **All three fail, and two fail with the sign
+reversed.** (The fourth such lever, the DoE type A5, has no variation across these five to
+test.) In this set of five benchmarks, *higher* effective dimensionality and *sparser*
 sampling per dimension went with *stronger* nulls, not weaker. DrivAerML is the sparsest
 benchmark here (16 effective dimensions, 484 cases, `log n / d_eff` = 0.39) and has the
 strongest null; WindsorML is among the densest (5.4 effective dimensions, 355 cases, 1.08)
@@ -107,13 +128,13 @@ hypothesis for future benchmarks, not a finding.**
   AirfRANS. Null strength is a property of the triple (benchmark, target, reference-area
   convention), not of a benchmark.
 * **The unit of analysis is not the benchmark.** Null strength varies within a single
-  benchmark, with the parameter matrix, n, d_eff, DoE and solver all held fixed and only the
+  benchmark with the parameter matrix, n, d_eff, DoE and solver all held fixed and only the
   force channel changed: DrivAerML 0.960 (drag) to 0.602 (side force); AhmedML 0.684 to
   0.452 (lift); WindsorML 0.104 to 0.235 (lift). A one-way decomposition over the 14
-  (benchmark, target) pairs puts 88.3% of the spread between benchmarks — so this does *not*
-  rule out design-space explanations by itself. Those are ruled out empirically, in the
-  table above, not by this bound. (The 14 pairs share a parameter matrix within each
-  benchmark, so no 14-point correlation is reported; that was pre-registered.)
+  (benchmark, target) pairs puts 88.3% of the spread between benchmarks, so it does not by
+  itself exclude design-space explanations; those are excluded empirically, in the table
+  above. No 14-point correlation is reported — the pairs share a parameter matrix within
+  each benchmark — as pre-registered.
 
 ---
 
@@ -168,6 +189,17 @@ It reads only the geometry, and the geometry is generated from the seven paramet
 **some** function of those seven parameters reaches ≥ 0.79. The flexible ceiling from the
 published metadata is 0.252. **At least 0.538 of WindsorML's drag variance is reachable
 from the geometry but not from the published metadata.**
+
+> **Stated assumption, because the source does not state it.** This chain needs the seven
+> parameters to fully determine each variant's geometry. The WindsorML paper does **not**
+> say so — it says only that the parameters were "chosen to provide a suitable range of
+> geometries" — and neither do the DrivAerML or AhmedML papers for their own parameter sets.
+> We assume it because the DoE is a Halton sequence over exactly those seven named ranges,
+> which implies a seven-parameter generator. **If unpublished non-parametric variation
+> exists** (mesh-level or immersed-boundary differences not captured by the seven), then part
+> of the 0.538 gap is attributable to that instead of to the withheld column, and publishing
+> one column would not by itself settle the question. This is the specific reason the
+> conclusion below is "sufficient, not proven".
 
 **Finding 4 — is one withheld parameter enough to cover that?** This is what the
 pre-registered leave-one-parameter-out calibration (C3/P4) was for. P4 predicted no single
@@ -304,7 +336,7 @@ exist; both are cheap to test on the sixth.
 ### Rebuttal line
 
 > Reviewer: *you show the null varies ten-fold across benchmarks — so what determines it?*
-> → We pre-registered eleven candidate explanations with their predicted directions and an
+> → We pre-registered thirteen candidate explanations with their predicted directions and an
 > adjudication rule, then measured all of them → **None survives, and the two most intuitive
 > (dimensionality, sampling density) fail with the sign reversed; we report that as a null
 > result.** What the exercise did establish is that a single null number conflates two

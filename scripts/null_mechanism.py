@@ -765,6 +765,11 @@ def main():
         perfect = (np.isfinite(rho) and abs(abs(rho) - 1.0) < 1e-9
                    and int(ok.sum()) == len(order))
         signed_ok = np.isfinite(rho) and (np.sign(rho) == direction)
+        # A candidate taking only two distinct values across the five benchmarks
+        # cannot order them: its Spearman is a two-group contrast, not a ranking,
+        # and its permutation p is just "is this benchmark the extreme one".
+        n_levels = len(np.unique(np.round(v[ok], 12)))
+        adjudicable = bool(int(ok.sum()) == len(order) and n_levels >= 4)
         res[nm] = {
             "values_in_order": {b: (None if not np.isfinite(v[i]) else float(v[i]))
                                 for i, b in enumerate(order)},
@@ -775,6 +780,8 @@ def main():
             "spearman_rho_without_AirfRANS": rho4,
             "exact_perm_p_without_AirfRANS": p4,
             "sign_matches_prediction": bool(signed_ok),
+            "n_distinct_levels": int(n_levels),
+            "adjudicable_as_a_correlate": adjudicable,
             "SURVIVES_prereg": bool(perfect and signed_ok),
         }
     out["candidate_vs_drag_null"] = {
@@ -786,7 +793,25 @@ def main():
                          "correcting for the ~10 candidates tried, so no candidate "
                          "can reach corrected significance at n=5."),
         "candidates": res,
+        "n_computed_candidates": len(res),
+        "candidates_declared_but_not_computed": {
+            "A5_sampling_design_type": (
+                "NOT COMPUTED, and not computable as a correlate: this is a literature "
+                "fact read from the dataset papers, not a statistic derived from data. "
+                "All five benchmarks use a space-filling DoE, so the variable has no "
+                "variation to order anything with. Pre-registered as predicting nothing; "
+                "it predicted nothing. The space-filling-vs-curated axis is UNTESTED, "
+                "not refuted."),
+            "B2_signal_to_noise": (
+                "NOT COMPUTABLE: only DrivAerNet++ publishes a per-case label "
+                "uncertainty, and neither side-force channel is a valid zero-yaw "
+                "symmetry probe. See B2_label_noise_floor."),
+        },
+        "multiplicity": ("%d candidates were computed, so a perfect ordering "
+                         "(p=0.0167) is p=%.3f after Bonferroni correction."
+                         % (len(res), min(1.0, 0.0167 * len(res)))),
     }
+    out["sampling_design_by_benchmark"] = SAMPLING_DESIGN
 
     # --- n-matched control: is the ordering an artefact of sample size? - #
     nmatch = {}
