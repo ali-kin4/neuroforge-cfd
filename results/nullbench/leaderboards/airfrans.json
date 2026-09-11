@@ -1,0 +1,322 @@
+{
+  "benchmark": "AirfRANS",
+  "description": "2-D RANS airfoils, official `full` task. Parameters: inlet speed U, angle of attack alpha (+ alpha^2), and the NACA digits parsed from the case file name -- exactly the geometry a surrogate is given as input.",
+  "verified_in": "docs/paper/review/published_baselines_verified.md",
+  "targets": {
+    "cl": {
+      "metric": "spearman",
+      "protocol": "official_split",
+      "n_fit": 800,
+      "n_score": 200,
+      "out_of_sample": 0.982140553513838,
+      "in_sample": 0.9869300342656786,
+      "in_sample_inflation": 0.004789480751840602,
+      "ci95": [
+        0.9736963564528004,
+        0.9865537582913887
+      ],
+      "n_boot_finite": 10000,
+      "feature_names": [
+        "U",
+        "alpha",
+        "alpha2",
+        "naca_0",
+        "naca_1",
+        "naca_2",
+        "naca_3"
+      ],
+      "source": "D:\\Codes\\Github\\neuroforge-cfd\\src\\neuroforge\\nullbench\\data\\airfrans\\airfrans_full_800_200.csv",
+      "comparisons": [
+        {
+          "model": "MLP",
+          "published": 0.913,
+          "published_std": 0.018,
+          "published_source": "NeurIPS 2022 D&B Table 3",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "BELOW THE NULL",
+          "covariate_null_fraction": {
+            "metric": "spearman",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.982140553513838,
+            "null_ci95": [
+              0.9736963564528004,
+              0.9865537582913887
+            ],
+            "published": 0.913,
+            "published_std": 0.018,
+            "covariate_null_fraction": 1.0757289742758356,
+            "covariate_null_fraction_ci95": [
+              1.066480127549617,
+              1.0805627144483994
+            ],
+            "flags": [
+              "null_exceeds_published"
+            ]
+          }
+        },
+        {
+          "model": "GraphSAGE",
+          "published": 0.965,
+          "published_std": 0.011,
+          "published_source": "NeurIPS 2022 D&B Table 3",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "BELOW THE NULL",
+          "covariate_null_fraction": {
+            "metric": "spearman",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.982140553513838,
+            "null_ci95": [
+              0.9736963564528004,
+              0.9865537582913887
+            ],
+            "published": 0.965,
+            "published_std": 0.011,
+            "covariate_null_fraction": 1.0177622316205575,
+            "covariate_null_fraction_ci95": [
+              1.009011768344871,
+              1.0223355008200918
+            ],
+            "flags": [
+              "null_exceeds_published"
+            ]
+          }
+        },
+        {
+          "model": "PointNet",
+          "published": 0.938,
+          "published_std": 0.023,
+          "published_source": "NeurIPS 2022 D&B Table 3",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "BELOW THE NULL",
+          "covariate_null_fraction": {
+            "metric": "spearman",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.982140553513838,
+            "null_ci95": [
+              0.9736963564528004,
+              0.9865537582913887
+            ],
+            "published": 0.938,
+            "published_std": 0.023,
+            "covariate_null_fraction": 1.0470581593964159,
+            "covariate_null_fraction_ci95": [
+              1.0380558171138599,
+              1.0517630685409263
+            ],
+            "flags": [
+              "null_exceeds_published"
+            ]
+          }
+        },
+        {
+          "model": "Graph U-Net",
+          "published": 0.967,
+          "published_std": 0.019,
+          "published_source": "NeurIPS 2022 D&B Table 3",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "BELOW THE NULL",
+          "covariate_null_fraction": {
+            "metric": "spearman",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.982140553513838,
+            "null_ci95": [
+              0.9736963564528004,
+              0.9865537582913887
+            ],
+            "published": 0.967,
+            "published_std": 0.019,
+            "covariate_null_fraction": 1.0156572425168955,
+            "covariate_null_fraction_ci95": [
+              1.0069248774072392,
+              1.020221053041767
+            ],
+            "flags": [
+              "null_exceeds_published"
+            ]
+          }
+        },
+        {
+          "model": "Transolver",
+          "published": 0.9978,
+          "published_std": null,
+          "published_source": "Wu et al. ICML 2024, arXiv 2402.02366",
+          "published_note": "no drag column reported; lift only",
+          "is_bound": false,
+          "verdict": "clears",
+          "covariate_null_fraction": {
+            "metric": "spearman",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.982140553513838,
+            "null_ci95": [
+              0.9736963564528004,
+              0.9865537582913887
+            ],
+            "published": 0.9978,
+            "published_std": null,
+            "covariate_null_fraction": 0.984306026772738,
+            "covariate_null_fraction_ci95": [
+              0.9758432115181402,
+              0.9887289620078058
+            ],
+            "flags": []
+          }
+        }
+      ],
+      "target_note": ""
+    },
+    "cd": {
+      "metric": "spearman",
+      "protocol": "official_split",
+      "n_fit": 800,
+      "n_score": 200,
+      "out_of_sample": 0.9317797944948625,
+      "in_sample": 0.9328751060548534,
+      "in_sample_inflation": 0.0010953115599908747,
+      "ci95": [
+        0.8980931736755087,
+        0.9531027487175117
+      ],
+      "n_boot_finite": 10000,
+      "feature_names": [
+        "U",
+        "alpha",
+        "alpha2",
+        "naca_0",
+        "naca_1",
+        "naca_2",
+        "naca_3"
+      ],
+      "source": "D:\\Codes\\Github\\neuroforge-cfd\\src\\neuroforge\\nullbench\\data\\airfrans\\airfrans_full_800_200.csv",
+      "comparisons": [
+        {
+          "model": "MLP",
+          "published": -0.117,
+          "published_std": 0.256,
+          "published_source": "NeurIPS 2022 D&B Table 3",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "BELOW THE NULL",
+          "covariate_null_fraction": {
+            "metric": "spearman",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.9317797944948625,
+            "null_ci95": [
+              0.8980931736755087,
+              0.9531027487175117
+            ],
+            "published": -0.117,
+            "published_std": 0.256,
+            "covariate_null_fraction": null,
+            "covariate_null_fraction_ci95": null,
+            "flags": [
+              "published_at_or_below_floor"
+            ]
+          }
+        },
+        {
+          "model": "GraphSAGE",
+          "published": -0.303,
+          "published_std": 0.124,
+          "published_source": "NeurIPS 2022 D&B Table 3",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "BELOW THE NULL",
+          "covariate_null_fraction": {
+            "metric": "spearman",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.9317797944948625,
+            "null_ci95": [
+              0.8980931736755087,
+              0.9531027487175117
+            ],
+            "published": -0.303,
+            "published_std": 0.124,
+            "covariate_null_fraction": null,
+            "covariate_null_fraction_ci95": null,
+            "flags": [
+              "published_at_or_below_floor"
+            ]
+          }
+        },
+        {
+          "model": "PointNet",
+          "published": -0.022,
+          "published_std": 0.097,
+          "published_source": "NeurIPS 2022 D&B Table 3",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "BELOW THE NULL",
+          "covariate_null_fraction": {
+            "metric": "spearman",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.9317797944948625,
+            "null_ci95": [
+              0.8980931736755087,
+              0.9531027487175117
+            ],
+            "published": -0.022,
+            "published_std": 0.097,
+            "covariate_null_fraction": null,
+            "covariate_null_fraction_ci95": null,
+            "flags": [
+              "published_at_or_below_floor"
+            ]
+          }
+        },
+        {
+          "model": "Graph U-Net",
+          "published": -0.138,
+          "published_std": 0.258,
+          "published_source": "NeurIPS 2022 D&B Table 3",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "BELOW THE NULL",
+          "covariate_null_fraction": {
+            "metric": "spearman",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.9317797944948625,
+            "null_ci95": [
+              0.8980931736755087,
+              0.9531027487175117
+            ],
+            "published": -0.138,
+            "published_std": 0.258,
+            "covariate_null_fraction": null,
+            "covariate_null_fraction_ci95": null,
+            "flags": [
+              "published_at_or_below_floor"
+            ]
+          }
+        }
+      ],
+      "target_note": "Every published rho_D is negative; three of four 95% intervals span zero. The covariate-null fraction is undefined for all four rows -- see stats.py's floor convention -- because the published metric never exceeds its own floor."
+    }
+  },
+  "headline": {
+    "target": "cd",
+    "metric": "spearman",
+    "protocol": "official_split",
+    "null_point": 0.9317797944948625,
+    "null_ci95": [
+      0.8980931736755087,
+      0.9531027487175117
+    ],
+    "best_published_model": null,
+    "best_published_value": null,
+    "covariate_null_fraction": null,
+    "note": "every verified published entry for this target is at or below the metric's own floor (0.0) -- no fraction is defined for any of them; see stats.py's floor convention. The published entries themselves not clearing the floor is the more important fact here."
+  }
+}

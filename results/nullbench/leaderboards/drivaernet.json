@@ -1,0 +1,230 @@
+{
+  "benchmark": "DrivAerNet++",
+  "description": "8121 car designs; category tokens (rear/underbody/wheel/mirror family, one-hot, levels fit on TRAIN only) + the 23 published design parameters where they exist (zero-filled for the ~half of designs -- the DrivAerNet-v1 fastbacks -- whose 50-parameter table is unpublished). This is a LOWER bound on what published metadata supports: it is strictly weaker than a null with every design's parameters.",
+  "verified_in": "docs/paper/review/null_travels.md#22-drivaernet--the-null-beats-what-the-field-cites-not-what-the-fields-best-is",
+  "targets": {
+    "cd": {
+      "metric": "r2",
+      "protocol": "official_split",
+      "n_fit": 5819,
+      "n_score": 1154,
+      "out_of_sample": 0.7364711158772645,
+      "in_sample": 0.7539071693285867,
+      "in_sample_inflation": 0.017436053451322153,
+      "ci95": [
+        0.7049980903603935,
+        0.764277085568821
+      ],
+      "n_boot_finite": 10000,
+      "feature_names": [
+        "cat_0",
+        "cat_1",
+        "cat_2",
+        "cat_3",
+        "cat_4",
+        "cat_5",
+        "cat_6",
+        "B_Ramp_Angle",
+        "B_Diffusor_Angle",
+        "B_Trunklid_Angle",
+        "C_Side_Mirrors_Rotation",
+        "D_Rear_Window_Inclination",
+        "D_Winscreen_Inclination",
+        "C_Side_Mirrors_Translate_X",
+        "C_Side_Mirrors_Translate_Z",
+        "D_Winscreen_Length",
+        "D_Rear_Window_Length",
+        "E_A_B_C_Pillar_Thickness",
+        "G_Trunklid_Curvature",
+        "G_Trunklid_Length",
+        "H_Front_Bumper_Curvature",
+        "H_Front_Bumper_Length",
+        "F_Door_Handles_Thickness",
+        "F_Door_Handles_Z_Position",
+        "E_Fenders_Arch_Offset",
+        "A_Car_Length",
+        "F_Door_Handles_X_Position",
+        "A_Car_Width",
+        "A_Car_Roof_Height",
+        "A_Car_Green_House_Angle"
+      ],
+      "source": "D:\\Codes\\Github\\neuroforge-cfd\\src\\neuroforge\\nullbench\\data\\drivaernet\\drivaernet_pp_5819_1154.csv",
+      "comparisons": [
+        {
+          "model": "PointNet",
+          "published": 0.643,
+          "published_std": null,
+          "published_source": "NeurIPS 2024 D&B Table 4",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "BELOW THE NULL",
+          "covariate_null_fraction": {
+            "metric": "r2",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.7364711158772645,
+            "null_ci95": [
+              0.7049980903603935,
+              0.764277085568821
+            ],
+            "published": 0.643,
+            "published_std": null,
+            "covariate_null_fraction": 1.1453672097624643,
+            "covariate_null_fraction_ci95": [
+              1.0964200472167862,
+              1.1886113305891461
+            ],
+            "flags": [
+              "null_exceeds_published"
+            ]
+          }
+        },
+        {
+          "model": "GCNN",
+          "published": 0.596,
+          "published_std": null,
+          "published_source": "NeurIPS 2024 D&B Table 4",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "BELOW THE NULL",
+          "covariate_null_fraction": {
+            "metric": "r2",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.7364711158772645,
+            "null_ci95": [
+              0.7049980903603935,
+              0.764277085568821
+            ],
+            "published": 0.596,
+            "published_std": null,
+            "covariate_null_fraction": 1.2356897917403769,
+            "covariate_null_fraction_ci95": [
+              1.182882701946969,
+              1.282344103303391
+            ],
+            "flags": [
+              "null_exceeds_published"
+            ]
+          }
+        },
+        {
+          "model": "RegDGCNN",
+          "published": 0.641,
+          "published_std": null,
+          "published_source": "NeurIPS 2024 D&B Table 4",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "BELOW THE NULL",
+          "covariate_null_fraction": {
+            "metric": "r2",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.7364711158772645,
+            "null_ci95": [
+              0.7049980903603935,
+              0.764277085568821
+            ],
+            "published": 0.641,
+            "published_std": null,
+            "covariate_null_fraction": 1.148940898404469,
+            "covariate_null_fraction_ci95": [
+              1.099841014602798,
+              1.192319946285212
+            ],
+            "flags": [
+              "null_exceeds_published"
+            ]
+          }
+        },
+        {
+          "model": "TripNet",
+          "published": 0.957,
+          "published_std": null,
+          "published_source": "arXiv 2503.17400 Table 5 (current SOTA)",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "clears",
+          "covariate_null_fraction": {
+            "metric": "r2",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.7364711158772645,
+            "null_ci95": [
+              0.7049980903603935,
+              0.764277085568821
+            ],
+            "published": 0.957,
+            "published_std": null,
+            "covariate_null_fraction": 0.7695622945425962,
+            "covariate_null_fraction_ci95": [
+              0.7366751205437759,
+              0.7986176442725402
+            ],
+            "flags": []
+          }
+        },
+        {
+          "model": "PointNet2D+BiLSTM",
+          "published": 0.9528,
+          "published_std": null,
+          "published_source": "arXiv 2601.02112 Table 1 (preprint)",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "clears",
+          "covariate_null_fraction": {
+            "metric": "r2",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.7364711158772645,
+            "null_ci95": [
+              0.7049980903603935,
+              0.764277085568821
+            ],
+            "published": 0.9528,
+            "published_std": null,
+            "covariate_null_fraction": 0.7729545716595976,
+            "covariate_null_fraction_ci95": [
+              0.739922429009649,
+              0.8021379991276459
+            ],
+            "flags": []
+          }
+        }
+      ],
+      "target_note": "The dataset paper's own NeurIPS checklist answers \"[No]\" to error bars, so these rows carry no seed spread."
+    }
+  },
+  "headline": {
+    "target": "cd",
+    "metric": "r2",
+    "protocol": "official_split",
+    "null_point": 0.7364711158772645,
+    "null_ci95": [
+      0.7049980903603935,
+      0.764277085568821
+    ],
+    "best_published_model": "TripNet",
+    "best_published_value": 0.957,
+    "covariate_null_fraction": {
+      "metric": "r2",
+      "floor": 0.0,
+      "ceiling": 1.0,
+      "null_point": 0.7364711158772645,
+      "null_ci95": [
+        0.7049980903603935,
+        0.764277085568821
+      ],
+      "published": 0.957,
+      "published_std": null,
+      "covariate_null_fraction": 0.7695622945425962,
+      "covariate_null_fraction_ci95": [
+        0.7366751205437759,
+        0.7986176442725402
+      ],
+      "flags": []
+    },
+    "verdict": "clears",
+    "note": ""
+  }
+}

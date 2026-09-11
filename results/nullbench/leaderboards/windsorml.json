@@ -1,0 +1,58 @@
+{
+  "benchmark": "WindsorML",
+  "description": "355 Windsor-body variants, 6 published shape parameters PLUS a derived frontal_area column (7 CSV columns total; ordinary covariates here because force_mom_all.csv uses a CONSTANT reference area). The WindsorML paper (arXiv 2407.19320) itself describes SEVEN design parameters; the published geo_parameters_all.csv is missing `ratio_length_front_rear`, and the frontal_area column it ships instead is 97.1% explained by `clearance` alone -- see docs/paper/review/null_mechanism.md Sec 4, which argues this metadata gap, not the body's physics, most likely explains why this is the one benchmark where the null decisively fails (Sec 4 Finding 4: a single withheld parameter is empirically worth up to R2 0.71 elsewhere). No published split id lists here -> 10-fold out-of-sample.",
+  "verified_in": "docs/paper/review/null_travels.md#24-windsorml--the-null-does-not-travel-and-i-am-reporting-that-plainly",
+  "targets": {
+    "cd": {
+      "metric": "r2",
+      "protocol": "kfold_oos_k10",
+      "n_fit": 355,
+      "n_score": 355,
+      "out_of_sample": 0.10449352113588983,
+      "in_sample": 0.25606542536657684,
+      "in_sample_inflation": 0.151571904230687,
+      "ci95": [
+        -0.14274841268390373,
+        0.26676857071045296
+      ],
+      "n_boot_finite": 10000,
+      "feature_names": [
+        "ratio_length_back_fast",
+        "ratio_height_nose_windshield",
+        "ratio_height_fast_back",
+        "side_taper",
+        "clearance",
+        "bottom_taper_angle",
+        "frontal_area"
+      ],
+      "source": "D:\\Codes\\Github\\neuroforge-cfd\\src\\neuroforge\\nullbench\\data\\windsorml\\windsorml_355.csv",
+      "comparisons": [
+        {
+          "model": "MeshGraphNet (direct KPI head)",
+          "published": 0.7916019454858654,
+          "published_std": null,
+          "published_source": "WindsorML arXiv 2407.19320 SI D.2 (MSE bound, converted to implied R2)",
+          "published_note": "SI D.2 verbatim: 'MSE of less than 0.00028 for the drag coefficient' on a 60/20/20 split (no id lists published). Implied R2 floor uses the label's population variance (1.344e-03) as the SST proxy: 1 - 0.00028/1.344e-03 = 0.7916.",
+          "is_bound": true,
+          "verdict": "clears (published bound beats the null outright)",
+          "covariate_null_fraction": null
+        }
+      ],
+      "target_note": "The one published number here is a BOUND, not a point estimate -- see `windsor_implied_r2_floor`. This is the benchmark where the null decisively fails: R2 0.104 [-0.143, 0.267], while the published bound implies the MeshGraphNet attains R2 >= 0.79."
+    }
+  },
+  "headline": {
+    "target": "cd",
+    "metric": "r2",
+    "protocol": "kfold_oos_k10",
+    "null_point": 0.10449352113588983,
+    "null_ci95": [
+      -0.14274841268390373,
+      0.26676857071045296
+    ],
+    "best_published_model": null,
+    "best_published_value": null,
+    "covariate_null_fraction": null,
+    "note": "no verified published point-estimate baseline for this target (a published BOUND exists -- MeshGraphNet (direct KPI head): clears (published bound beats the null outright) -- see the target's own comparisons; a bound never yields a covariate-null fraction)"
+  }
+}

@@ -1,0 +1,279 @@
+{
+  "benchmark": "DrivAerML",
+  "description": "Automotive aerodynamics, DrivAer variants. 16 published morph parameters (arXiv 2408.11969 geo_parameters_all.csv), scored on PhysicsNeMo-CFD's own drag-force label and 436/48 split -- an exact head-to-head, same target, same split, as the published models.",
+  "verified_in": "docs/paper/review/null_travels.md#21-drivaerml--the-clean-kill",
+  "targets": {
+    "drag_force_N": {
+      "metric": "r2",
+      "protocol": "official_split",
+      "n_fit": 436,
+      "n_score": 48,
+      "out_of_sample": 0.9730580198150222,
+      "in_sample": 0.9594429280801596,
+      "in_sample_inflation": -0.013615091734862528,
+      "ci95": [
+        0.9580772227747316,
+        0.9826207956902174
+      ],
+      "n_boot_finite": 10000,
+      "feature_names": [
+        "Vehicle_Length",
+        "Vehicle_Width",
+        "Vehicle_Height",
+        "Front_Overhang",
+        "Front_Planview",
+        "Hood_Angle",
+        "Approach_Angle",
+        "Windscreen_Angle",
+        "Greenhouse_Tapering",
+        "Backlight_Angle",
+        "Decklid_Height",
+        "Rearend_tapering",
+        "Rear_Overhang",
+        "Rear_Diffusor_Angle",
+        "Vehicle_Ride_Height",
+        "Vehicle_Pitch"
+      ],
+      "source": "D:\\Codes\\Github\\neuroforge-cfd\\src\\neuroforge\\nullbench\\data\\drivaerml\\drivaerml_pn_436_48.csv",
+      "comparisons": [
+        {
+          "model": "X-MeshGraphNet",
+          "published": 0.92,
+          "published_std": null,
+          "published_source": "arXiv 2507.10747 Table 6 (surface mesh)",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "BELOW THE NULL",
+          "covariate_null_fraction": {
+            "metric": "r2",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.9730580198150222,
+            "null_ci95": [
+              0.9580772227747316,
+              0.9826207956902174
+            ],
+            "published": 0.92,
+            "published_std": null,
+            "covariate_null_fraction": 1.0576717606685022,
+            "covariate_null_fraction_ci95": [
+              1.0413882856247083,
+              1.0680660822719754
+            ],
+            "flags": [
+              "null_exceeds_published"
+            ]
+          }
+        },
+        {
+          "model": "FIGConvNet",
+          "published": 0.97,
+          "published_std": null,
+          "published_source": "arXiv 2507.10747 Table 6 (surface mesh)",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "straddles",
+          "covariate_null_fraction": {
+            "metric": "r2",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.9730580198150222,
+            "null_ci95": [
+              0.9580772227747316,
+              0.9826207956902174
+            ],
+            "published": 0.97,
+            "published_std": null,
+            "covariate_null_fraction": 1.0031525977474456,
+            "covariate_null_fraction_ci95": [
+              0.9877084770873522,
+              1.0130111295775437
+            ],
+            "flags": [
+              "null_exceeds_published"
+            ]
+          }
+        },
+        {
+          "model": "DoMINO",
+          "published": 0.98,
+          "published_std": null,
+          "published_source": "arXiv 2507.10747 Table 6 (surface mesh)",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "straddles",
+          "covariate_null_fraction": {
+            "metric": "r2",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.9730580198150222,
+            "null_ci95": [
+              0.9580772227747316,
+              0.9826207956902174
+            ],
+            "published": 0.98,
+            "published_std": null,
+            "covariate_null_fraction": 0.9929163467500226,
+            "covariate_null_fraction_ci95": [
+              0.9776298191578894,
+              1.0026742813165483
+            ],
+            "flags": []
+          }
+        }
+      ],
+      "target_note": "PhysicsNeMo's validation set is built by sorting on drag and taking the top/bottom deciles, which RAISES its variance relative to a random 10% and inflates R2 for every model scored on it equally -- including the null. The head-to-head is unaffected; the absolute R2 is not comparable to a random-split R2. Published values are given to 2 decimals."
+    },
+    "drag_force_N_rank": {
+      "metric": "spearman",
+      "protocol": "official_split",
+      "n_fit": 436,
+      "n_score": 48,
+      "out_of_sample": 0.9836083369518019,
+      "in_sample": 0.9817798005873936,
+      "in_sample_inflation": -0.001828536364408384,
+      "ci95": [
+        0.9563845986512944,
+        0.9908710536325601
+      ],
+      "n_boot_finite": 10000,
+      "feature_names": [
+        "Vehicle_Length",
+        "Vehicle_Width",
+        "Vehicle_Height",
+        "Front_Overhang",
+        "Front_Planview",
+        "Hood_Angle",
+        "Approach_Angle",
+        "Windscreen_Angle",
+        "Greenhouse_Tapering",
+        "Backlight_Angle",
+        "Decklid_Height",
+        "Rearend_tapering",
+        "Rear_Overhang",
+        "Rear_Diffusor_Angle",
+        "Vehicle_Ride_Height",
+        "Vehicle_Pitch"
+      ],
+      "source": "D:\\Codes\\Github\\neuroforge-cfd\\src\\neuroforge\\nullbench\\data\\drivaerml\\drivaerml_pn_436_48.csv",
+      "comparisons": [
+        {
+          "model": "X-MeshGraphNet",
+          "published": 0.96,
+          "published_std": null,
+          "published_source": "arXiv 2507.10747 Table 4",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "straddles",
+          "covariate_null_fraction": {
+            "metric": "spearman",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.9836083369518019,
+            "null_ci95": [
+              0.9563845986512944,
+              0.9908710536325601
+            ],
+            "published": 0.96,
+            "published_std": null,
+            "covariate_null_fraction": 1.0245920176581271,
+            "covariate_null_fraction_ci95": [
+              0.9962339569284318,
+              1.0321573475339167
+            ],
+            "flags": [
+              "null_exceeds_published"
+            ]
+          }
+        },
+        {
+          "model": "FIGConvNet",
+          "published": 0.99,
+          "published_std": null,
+          "published_source": "arXiv 2507.10747 Table 4",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "straddles",
+          "covariate_null_fraction": {
+            "metric": "spearman",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.9836083369518019,
+            "null_ci95": [
+              0.9563845986512944,
+              0.9908710536325601
+            ],
+            "published": 0.99,
+            "published_std": null,
+            "covariate_null_fraction": 0.9935437746987898,
+            "covariate_null_fraction_ci95": [
+              0.9660450491427217,
+              1.0008798521541011
+            ],
+            "flags": []
+          }
+        },
+        {
+          "model": "DoMINO",
+          "published": 0.99,
+          "published_std": null,
+          "published_source": "arXiv 2507.10747 Table 4",
+          "published_note": "",
+          "is_bound": false,
+          "verdict": "straddles",
+          "covariate_null_fraction": {
+            "metric": "spearman",
+            "floor": 0.0,
+            "ceiling": 1.0,
+            "null_point": 0.9836083369518019,
+            "null_ci95": [
+              0.9563845986512944,
+              0.9908710536325601
+            ],
+            "published": 0.99,
+            "published_std": null,
+            "covariate_null_fraction": 0.9935437746987898,
+            "covariate_null_fraction_ci95": [
+              0.9660450491427217,
+              1.0008798521541011
+            ],
+            "flags": []
+          }
+        }
+      ],
+      "target_note": "same split and label as drag_force_N, scored in Spearman (Table 4)."
+    }
+  },
+  "headline": {
+    "target": "drag_force_N",
+    "metric": "r2",
+    "protocol": "official_split",
+    "null_point": 0.9730580198150222,
+    "null_ci95": [
+      0.9580772227747316,
+      0.9826207956902174
+    ],
+    "best_published_model": "DoMINO",
+    "best_published_value": 0.98,
+    "covariate_null_fraction": {
+      "metric": "r2",
+      "floor": 0.0,
+      "ceiling": 1.0,
+      "null_point": 0.9730580198150222,
+      "null_ci95": [
+        0.9580772227747316,
+        0.9826207956902174
+      ],
+      "published": 0.98,
+      "published_std": null,
+      "covariate_null_fraction": 0.9929163467500226,
+      "covariate_null_fraction_ci95": [
+        0.9776298191578894,
+        1.0026742813165483
+      ],
+      "flags": []
+    },
+    "verdict": "straddles",
+    "note": ""
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "benchmark": "AhmedML",
+  "description": "500 Ahmed-body variants, 8 published shape parameters (geo_parameters_all.csv), force_mom_all.csv (CONSTANT reference area 0.112 m^2, so no area term enters the label). No published split -> 10-fold out-of-sample.",
+  "verified_in": "docs/paper/review/null_travels.md#23-ahmedml--a-bar-nobody-has-cleared",
+  "targets": {
+    "cd": {
+      "metric": "r2",
+      "protocol": "kfold_oos_k10",
+      "n_fit": 499,
+      "n_score": 499,
+      "out_of_sample": 0.6842016571598261,
+      "in_sample": 0.6995995841192351,
+      "in_sample_inflation": 0.015397926959409003,
+      "ci95": [
+        0.6376971739918247,
+        0.727253250122702
+      ],
+      "n_boot_finite": 10000,
+      "feature_names": [
+        "body-length",
+        "body-height",
+        "body-width",
+        "front-arc-diameter",
+        "slant-angle-length",
+        "slant-angle-height",
+        "slant-surface-length",
+        "slant-angle-degrees"
+      ],
+      "source": "D:\\Codes\\Github\\neuroforge-cfd\\src\\neuroforge\\nullbench\\data\\ahmedml\\ahmedml_500.csv",
+      "comparisons": [],
+      "target_note": "No published ML drag baseline found: searched the dataset paper (arXiv 2407.20801, which reports no ML results), NeuralCFD/GP-UPT (arXiv 2502.09692, whose drag result is on DrivAerML not AhmedML), PhysicsNeMo-CFD (DrivAerML only), and FIGConvNet (its \"Ahmed body\" is a different dataset). Not adjudicable: a benchmark cannot be said to be beaten by a model whose number was never published. R2 0.684 [0.638, 0.727] (const-area) is reported here as the bar any future AhmedML drag surrogate must clear."
+    },
+    "cl": {
+      "metric": "r2",
+      "protocol": "kfold_oos_k10",
+      "n_fit": 499,
+      "n_score": 499,
+      "out_of_sample": 0.4515489994954991,
+      "in_sample": 0.48342321875764016,
+      "in_sample_inflation": 0.03187421926214107,
+      "ci95": [
+        0.4039491854457114,
+        0.4933637941434809
+      ],
+      "n_boot_finite": 10000,
+      "feature_names": [
+        "body-length",
+        "body-height",
+        "body-width",
+        "front-arc-diameter",
+        "slant-angle-length",
+        "slant-angle-height",
+        "slant-surface-length",
+        "slant-angle-degrees"
+      ],
+      "source": "D:\\Codes\\Github\\neuroforge-cfd\\src\\neuroforge\\nullbench\\data\\ahmedml\\ahmedml_500.csv",
+      "comparisons": [],
+      "target_note": "no published ML lift baseline found."
+    }
+  },
+  "headline": {
+    "target": "cd",
+    "metric": "r2",
+    "protocol": "kfold_oos_k10",
+    "null_point": 0.6842016571598261,
+    "null_ci95": [
+      0.6376971739918247,
+      0.727253250122702
+    ],
+    "best_published_model": null,
+    "best_published_value": null,
+    "covariate_null_fraction": null,
+    "note": "no verified published point-estimate baseline for this target"
+  }
+}
