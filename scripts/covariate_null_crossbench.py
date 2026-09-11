@@ -132,6 +132,13 @@ SOURCES = {
     "drivaerml_geo.csv": HF % ("drivaerml", "geo_parameters_all.csv"),
     "drivaerml_force.csv": HF % ("drivaerml", "force_mom_all.csv"),
     "drivaerml_force_constref.csv": HF % ("drivaerml", "force_mom_constref_all.csv"),
+    # Both normalisations for the two bluff-body sets too. WindsorML's SI says only "the
+    # drag coefficient" without naming a file, and frontal_area is one of its seven
+    # published design parameters, so a variable-reference-area Cd would put a published
+    # covariate in the label's denominator. The counterexample has to be bracketed by
+    # running both rather than asserting one reading.
+    "ahmedml_force_varref.csv": HF % ("ahmedml", "force_mom_varref_all.csv"),
+    "windsorml_force_varref.csv": HF % ("windsorml", "force_mom_varref_all.csv"),
     # The DrivAerML paper publishes no split. NVIDIA's PhysicsNeMo-CFD benchmarking
     # framework (arXiv 2507.10747) proposes one and ships it, together with the drag
     # FORCE label its published R-squared table is computed on. Using their files makes
@@ -780,9 +787,18 @@ def run_drivaerml_official(n_boot, seed):
                   "and the quantity the published R-squared table is computed on",
         "n_train": len(ytr), "n_val": len(yva), "n_params": len(pcols),
         "split_source": ("NVIDIA PhysicsNeMo-CFD workflows/benchmarking/drivaer_ml_files/. "
-                         "Their README states the validation set deliberately includes the "
-                         "extremes of the drag distribution, so it is partly "
-                         "out-of-distribution and therefore HARDER than a random 10%."),
+                         "Their README states the validation set is built by sorting on "
+                         "drag force and taking the top and bottom deciles plus a random "
+                         "remainder. Two consequences, in opposite directions, and both "
+                         "apply equally to every model scored on this split: the "
+                         "validation target VARIANCE is raised, which inflates R-squared "
+                         "relative to a random 10% (see label_spread), while the validation "
+                         "range extends beyond the training range, which is extrapolation. "
+                         "The head-to-head against DoMINO / FIGConvNet / X-MeshGraphNet is "
+                         "unaffected because they ran this same split; only the absolute "
+                         "R-squared is not comparable to a random-split R-squared. The "
+                         "K-fold constant-reference-area number elsewhere in this file is "
+                         "the split-free reference point."),
         "targets": {"drag_force": {}},
     }
     sets = {
@@ -875,15 +891,37 @@ def main():
     out["benchmarks"]["DrivAerML_constref"] = run_ashton(
         "DrivAerML", args.boot, args.seed, args.folds,
         force_override="drivaerml_force_constref.csv")
+    for nm, f in (("AhmedML", "ahmedml_force_varref.csv"),
+                  ("WindsorML", "windsorml_force_varref.csv")):
+        print("== %s (variable reference area robustness) ==" % nm)
+        out["benchmarks"]["%s_varref" % nm] = run_ashton(
+            nm, args.boot, args.seed, args.folds, force_override=f)
     print("== DrivAerML (PhysicsNeMo-CFD benchmark split, exact head-to-head) ==")
     out["benchmarks"]["DrivAerML_benchmark_split"] = run_drivaerml_official(
         args.boot, args.seed)
 
-    # WindsorML published bound
+    # WindsorML published bound. Expressed in R-squared currency too, so the counterexample
+    # reads in the same units as every other benchmark in the table: an MSE bound divided
+    # by the target's own variance (the intercept-only MSE) gives the implied R-squared
+    # floor the published model attains.
     w = out["benchmarks"]["WindsorML"]["targets"]["cd"]["params_linear"]
+    implied = {}
+    for tag in ("WindsorML", "WindsorML_varref"):
+        sst = out["benchmarks"][tag]["targets"]["cd"]["intercept_only"]["out_of_sample"]["mse"]
+        implied[tag] = {
+            "target_variance_proxy": sst,
+            "implied_published_r2_floor": 1.0 - WINDSOR_PUBLISHED_CD_MSE_BOUND / sst,
+            "null_r2": out["benchmarks"][tag]["targets"]["cd"]["params_linear"]
+                       ["out_of_sample"]["r2"],
+        }
     out["benchmarks"]["WindsorML"]["published_vs_null"] = [{
         "model": "MeshGraphNet (direct KPI head)",
         "published_cd_mse_bound": WINDSOR_PUBLISHED_CD_MSE_BOUND,
+        "implied_r2_both_normalisations": implied,
+        "normalisation_caveat": ("The WindsorML SI names only 'the drag coefficient' and "
+                                 "not which of force_mom_all.csv (constant reference area) "
+                                 "or force_mom_varref_all.csv (per-geometry area) it used. "
+                                 "Both are run; the verdict is reported for both."),
         "published_source": ("WindsorML arXiv 2407.19320 SI D.2: 'MSE of less than 0.00028 "
                              "for the drag coefficient' on the recommended 60/20/20 split"),
         "null_cd_mse": w["out_of_sample"]["mse"],
@@ -941,7 +979,8 @@ def main():
           % (nnc["test_to_train_nn_median"], nnc["train_to_train_nn_median"],
              nnc["ratio_median_test_over_train"]))
 
-    for nm in ("AhmedML", "WindsorML", "DrivAerML", "DrivAerML_constref"):
+    for nm in ("AhmedML", "AhmedML_varref", "WindsorML", "WindsorML_varref",
+               "DrivAerML", "DrivAerML_constref"):
         b = out["benchmarks"][nm]
         print("\n%s  (n=%d cases, %d params, %s)" % (nm, b["n_cases"], b["n_params"],
                                                      b["targets"] and "kfold OOS"))

@@ -17,6 +17,8 @@
     "drivaerml_geo.csv": "https://huggingface.co/datasets/neashton/drivaerml/resolve/main/geo_parameters_all.csv",
     "drivaerml_force.csv": "https://huggingface.co/datasets/neashton/drivaerml/resolve/main/force_mom_all.csv",
     "drivaerml_force_constref.csv": "https://huggingface.co/datasets/neashton/drivaerml/resolve/main/force_mom_constref_all.csv",
+    "ahmedml_force_varref.csv": "https://huggingface.co/datasets/neashton/ahmedml/resolve/main/force_mom_varref_all.csv",
+    "windsorml_force_varref.csv": "https://huggingface.co/datasets/neashton/windsorml/resolve/main/force_mom_varref_all.csv",
     "drivaerml_pn_train.csv": "https://raw.githubusercontent.com/NVIDIA/physicsnemo-cfd/main/workflows/benchmarking/drivaer_ml_files/train.csv",
     "drivaerml_pn_val.csv": "https://raw.githubusercontent.com/NVIDIA/physicsnemo-cfd/main/workflows/benchmarking/drivaer_ml_files/validation.csv"
   },
@@ -1558,6 +1560,19 @@
         {
           "model": "MeshGraphNet (direct KPI head)",
           "published_cd_mse_bound": 0.00028,
+          "implied_r2_both_normalisations": {
+            "WindsorML": {
+              "target_variance_proxy": 0.0013482013023389556,
+              "implied_published_r2_floor": 0.79231588078558,
+              "null_r2": 0.10449352113588983
+            },
+            "WindsorML_varref": {
+              "target_variance_proxy": 0.0012193349925702672,
+              "implied_published_r2_floor": 0.7703666328727425,
+              "null_r2": 0.07312513580263502
+            }
+          },
+          "normalisation_caveat": "The WindsorML SI names only 'the drag coefficient' and not which of force_mom_all.csv (constant reference area) or force_mom_varref_all.csv (per-geometry area) it used. Both are run; the verdict is reported for both.",
           "published_source": "WindsorML arXiv 2407.19320 SI D.2: 'MSE of less than 0.00028 for the drag coefficient' on the recommended 60/20/20 split",
           "null_cd_mse": 0.0012031869235369676,
           "null_cd_mse_ci95": [
@@ -2224,13 +2239,644 @@
         "note": "Computed within the single pool, since there is no published split; the test-to-train column is therefore leave-one-out and equals the train column by construction."
       }
     },
+    "AhmedML_varref": {
+      "benchmark": "AhmedML",
+      "n_cases": 499,
+      "n_params": 8,
+      "param_names": [
+        "body-length",
+        "body-height",
+        "body-width",
+        "front-arc-diameter",
+        "slant-angle-length",
+        "slant-angle-height",
+        "slant-surface-length",
+        "slant-angle-degrees"
+      ],
+      "force_note": "force_mom_all.csv: time-averaged coefficients on a CONSTANT reference area of 0.112 m^2, so no area term enters the label.",
+      "split_note": "no split published by the benchmark",
+      "force_file": "ahmedml_force_varref.csv",
+      "targets": {
+        "cd": {
+          "intercept_only": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 499,
+            "n_score": 499,
+            "out_of_sample": {
+              "r2": -0.005143696303468337,
+              "spearman": -0.04651660646091562,
+              "mse": 0.001957700945810588,
+              "mae": 0.02893020769908931,
+              "maxae": 0.20312918082516707
+            },
+            "in_sample": {
+              "r2": 1.1102230246251565e-16,
+              "spearman": NaN,
+              "mse": 0.001947682657723725,
+              "mae": 0.02887209192962683,
+              "maxae": 0.2014059336729458
+            },
+            "in_sample_inflation_r2": 0.005143696303468448,
+            "ci95": {
+              "r2": [
+                -0.016231070418043586,
+                -0.0026548490661060914,
+                10000
+              ],
+              "spearman": [
+                -0.13825362600613825,
+                0.04331920950191214,
+                10000
+              ],
+              "mse": [
+                0.0015377862177086594,
+                0.0024172902287594956,
+                10000
+              ],
+              "mae": [
+                0.026066594243996172,
+                0.03197350750880932,
+                10000
+              ],
+              "maxae": [
+                0.1677390924917777,
+                0.20312918082516707,
+                10000
+              ]
+            }
+          },
+          "params_linear": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 499,
+            "n_score": 499,
+            "out_of_sample": {
+              "r2": 0.33966086550222074,
+              "spearman": 0.6731801917087186,
+              "mse": 0.0012861310804776192,
+              "mae": 0.025929092569280287,
+              "maxae": 0.15668190223682155
+            },
+            "in_sample": {
+              "r2": 0.37201215319857894,
+              "spearman": 0.686057416036893,
+              "mse": 0.0012231210384763915,
+              "mae": 0.02524988015248032,
+              "maxae": 0.14961023313086858
+            },
+            "in_sample_inflation_r2": 0.0323512876963582,
+            "ci95": {
+              "r2": [
+                0.2773692034827004,
+                0.3854951562659788,
+                10000
+              ],
+              "spearman": [
+                0.6204732638637609,
+                0.7188468907142547,
+                10000
+              ],
+              "mse": [
+                0.0010488478506543715,
+                0.001547412097643158,
+                10000
+              ],
+              "mae": [
+                0.023780405542583195,
+                0.028161244730575016,
+                10000
+              ],
+              "maxae": [
+                0.12510199206969835,
+                0.15668190223682155,
+                10000
+              ]
+            }
+          },
+          "params_linear_squares": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 499,
+            "n_score": 499,
+            "out_of_sample": {
+              "r2": 0.3932389801952345,
+              "spearman": 0.6537748267619576,
+              "mse": 0.0011817779156565035,
+              "mae": 0.024410071604836634,
+              "maxae": 0.15533770591031637
+            },
+            "in_sample": {
+              "r2": 0.435735583008808,
+              "spearman": 0.6702215032474587,
+              "mse": 0.001099008019344333,
+              "mae": 0.023495050148706682,
+              "maxae": 0.1457886254652877
+            },
+            "in_sample_inflation_r2": 0.04249660281357348,
+            "ci95": {
+              "r2": [
+                0.32432463581639076,
+                0.444675595154479,
+                10000
+              ],
+              "spearman": [
+                0.592272635513087,
+                0.7089377313962585,
+                10000
+              ],
+              "mse": [
+                0.0009588260455032116,
+                0.0014316212498203065,
+                10000
+              ],
+              "mae": [
+                0.02232379445926028,
+                0.0265928128083167,
+                10000
+              ],
+              "maxae": [
+                0.1277575118851741,
+                0.15533770591031637,
+                10000
+              ]
+            }
+          }
+        },
+        "cl": {
+          "intercept_only": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 499,
+            "n_score": 499,
+            "out_of_sample": {
+              "r2": -0.0071877964579936116,
+              "spearman": -0.14479715886052916,
+              "mse": 0.04623396983491337,
+              "mae": 0.18099522455908224,
+              "maxae": 0.6040829671356347
+            },
+            "in_sample": {
+              "r2": 0.0,
+              "spearman": NaN,
+              "mse": 0.04590402107482408,
+              "mae": 0.18027500723288822,
+              "maxae": 0.6035086519769539
+            },
+            "in_sample_inflation_r2": 0.0071877964579936116,
+            "ci95": {
+              "r2": [
+                -0.017884535047547955,
+                -0.00446206429002059,
+                10000
+              ],
+              "spearman": [
+                -0.23497303720317325,
+                -0.053606546934240516,
+                10000
+              ],
+              "mse": [
+                0.04114634859925112,
+                0.05138689164693542,
+                10000
+              ],
+              "mae": [
+                0.1711763033976386,
+                0.19111883240299207,
+                10000
+              ],
+              "maxae": [
+                0.5146576392639197,
+                0.6040829671356347,
+                10000
+              ]
+            }
+          },
+          "params_linear": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 499,
+            "n_score": 499,
+            "out_of_sample": {
+              "r2": 0.4778869652140846,
+              "spearman": 0.8263136393268463,
+              "mse": 0.023967087752253022,
+              "mae": 0.1302415866508347,
+              "maxae": 0.4005081193271496
+            },
+            "in_sample": {
+              "r2": 0.5068097073173605,
+              "spearman": 0.8429413042953376,
+              "mse": 0.02263941758920254,
+              "mae": 0.12681676521783233,
+              "maxae": 0.3866631003873843
+            },
+            "in_sample_inflation_r2": 0.028922742103275945,
+            "ci95": {
+              "r2": [
+                0.42883615241147965,
+                0.5191038000625463,
+                10000
+              ],
+              "spearman": [
+                0.7910018212752958,
+                0.8564209849431438,
+                10000
+              ],
+              "mse": [
+                0.021620716523435824,
+                0.026424175173755064,
+                10000
+              ],
+              "mae": [
+                0.12281604926805667,
+                0.13777960315678744,
+                10000
+              ],
+              "maxae": [
+                0.35844061074532,
+                0.4005081193271496,
+                10000
+              ]
+            }
+          },
+          "params_linear_squares": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 499,
+            "n_score": 499,
+            "out_of_sample": {
+              "r2": 0.6514046874498316,
+              "spearman": 0.8638331120071467,
+              "mse": 0.016001926573887822,
+              "mae": 0.10019916734745671,
+              "maxae": 0.375191113958544
+            },
+            "in_sample": {
+              "r2": 0.6794884657065695,
+              "spearman": 0.8750868483955861,
+              "mse": 0.014712768224929835,
+              "mae": 0.09632957845645795,
+              "maxae": 0.3511336902240181
+            },
+            "in_sample_inflation_r2": 0.028083778256737912,
+            "ci95": {
+              "r2": [
+                0.6055879659728227,
+                0.6903096120743009,
+                10000
+              ],
+              "spearman": [
+                0.8397244530950133,
+                0.8828815508576229,
+                10000
+              ],
+              "mse": [
+                0.014156936588495646,
+                0.01789849991917602,
+                10000
+              ],
+              "mae": [
+                0.0933790267813501,
+                0.10707754411541506,
+                10000
+              ],
+              "maxae": [
+                0.3061240603770082,
+                0.375191113958544,
+                10000
+              ]
+            }
+          }
+        }
+      },
+      "near_duplicate_check": {
+        "test_to_train_nn_median": 0.0,
+        "test_to_train_nn_min": 0.0,
+        "test_to_train_nn_p05": 0.0,
+        "train_to_train_nn_median": 1.1151853151525288,
+        "train_to_train_nn_min": 0.3730661400939951,
+        "ratio_median_test_over_train": 0.0,
+        "reading": "A ratio near 1 means test designs are no closer to the train set than train designs are to each other, i.e. the split does not leak by near-duplication. A ratio well below 1 would indicate leakage.",
+        "note": "Computed within the single pool, since there is no published split; the test-to-train column is therefore leave-one-out and equals the train column by construction."
+      }
+    },
+    "WindsorML_varref": {
+      "benchmark": "WindsorML",
+      "n_cases": 355,
+      "n_params": 7,
+      "param_names": [
+        "ratio_length_back_fast",
+        "ratio_height_nose_windshield",
+        "ratio_height_fast_back",
+        "side_taper",
+        "clearance",
+        "bottom_taper_angle",
+        "frontal_area"
+      ],
+      "force_note": "force_mom_all.csv: CONSTANT reference area, so the published frontal_area design parameter is an ordinary covariate here.",
+      "split_note": "60/20/20 recommended, but no id lists are published, so K-fold is used",
+      "force_file": "windsorml_force_varref.csv",
+      "targets": {
+        "cd": {
+          "intercept_only": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 355,
+            "n_score": 355,
+            "out_of_sample": {
+              "r2": -0.0032896633453129986,
+              "spearman": -0.09469171383213547,
+              "mse": 0.0012193349925702672,
+              "mae": 0.02452809369947968,
+              "maxae": 0.18461606407018188
+            },
+            "in_sample": {
+              "r2": 0.0,
+              "spearman": NaN,
+              "mse": 0.0012153369431760958,
+              "mae": 0.024482733292627602,
+              "maxae": 0.1837418466095999
+            },
+            "in_sample_inflation_r2": 0.0032896633453129986,
+            "ci95": {
+              "r2": [
+                -0.018255033287784078,
+                -0.0011818168317226881,
+                10000
+              ],
+              "spearman": [
+                -0.19475668466804275,
+                0.00711093140326979,
+                10000
+              ],
+              "mse": [
+                0.0009263812087305143,
+                0.001552734485175954,
+                10000
+              ],
+              "mae": [
+                0.022072342691036723,
+                0.02715403802274478,
+                10000
+              ],
+              "maxae": [
+                0.13569939520820695,
+                0.18461606407018188,
+                10000
+              ]
+            }
+          },
+          "params_linear": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 355,
+            "n_score": 355,
+            "out_of_sample": {
+              "r2": 0.07312513580263502,
+              "spearman": 0.5479615010853934,
+              "mse": 0.0011264652641603844,
+              "mae": 0.02185092907569124,
+              "maxae": 0.19568868830609829
+            },
+            "in_sample": {
+              "r2": 0.2306486687707877,
+              "spearman": 0.581862497515584,
+              "mse": 0.0009350210951245708,
+              "mae": 0.020778540328926263,
+              "maxae": 0.16732501488611717
+            },
+            "in_sample_inflation_r2": 0.1575235329681527,
+            "ci95": {
+              "r2": [
+                -0.1813006968031088,
+                0.23938306128137757,
+                10000
+              ],
+              "spearman": [
+                0.4661173517019308,
+                0.6218569179846815,
+                10000
+              ],
+              "mse": [
+                0.0008021254070531068,
+                0.001513084216014518,
+                10000
+              ],
+              "mae": [
+                0.01932308585522175,
+                0.024581741440328195,
+                10000
+              ],
+              "maxae": [
+                0.13457063155704585,
+                0.19568868830609829,
+                10000
+              ]
+            }
+          },
+          "params_linear_squares": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 355,
+            "n_score": 355,
+            "out_of_sample": {
+              "r2": -0.310252701975408,
+              "spearman": 0.5680137567395166,
+              "mse": 0.0015923985136070125,
+              "mae": 0.02307742159208105,
+              "maxae": 0.34614113593613316
+            },
+            "in_sample": {
+              "r2": 0.27520868762059225,
+              "spearman": 0.6077254520870695,
+              "mse": 0.0008808656580277801,
+              "mae": 0.020238503493647943,
+              "maxae": 0.1690932020277659
+            },
+            "in_sample_inflation_r2": 0.5854613895960002,
+            "ci95": {
+              "r2": [
+                -1.0940643662646445,
+                0.19143317214200098,
+                10000
+              ],
+              "spearman": [
+                0.48821411125179676,
+                0.6405308648167236,
+                10000
+              ],
+              "mse": [
+                0.0009175041897273667,
+                0.002525507629346631,
+                10000
+              ],
+              "mae": [
+                0.019923198205363573,
+                0.026654291750194077,
+                10000
+              ],
+              "maxae": [
+                0.17781830778383656,
+                0.34614113593613316,
+                10000
+              ]
+            }
+          }
+        },
+        "cl": {
+          "intercept_only": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 355,
+            "n_score": 355,
+            "out_of_sample": {
+              "r2": -0.004206724528134753,
+              "spearman": -0.11889144495776882,
+              "mse": 0.08553327397809894,
+              "mae": 0.2317315044923962,
+              "maxae": 0.8311729665570282
+            },
+            "in_sample": {
+              "r2": 0.0,
+              "spearman": NaN,
+              "mse": 0.08517496635793795,
+              "mae": 0.23114695367936927,
+              "maxae": 0.8298495990011916
+            },
+            "in_sample_inflation_r2": 0.004206724528134753,
+            "ci95": {
+              "r2": [
+                -0.01951418300683099,
+                -0.0018408272461959087,
+                10000
+              ],
+              "spearman": [
+                -0.22263347434081004,
+                -0.015098315955873746,
+                10000
+              ],
+              "mse": [
+                0.07314555188306246,
+                0.09845246803109439,
+                10000
+              ],
+              "mae": [
+                0.2134245814413652,
+                0.2500107390607222,
+                10000
+              ],
+              "maxae": [
+                0.7458431166450282,
+                0.8311729665570282,
+                10000
+              ]
+            }
+          },
+          "params_linear": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 355,
+            "n_score": 355,
+            "out_of_sample": {
+              "r2": 0.2335022275668177,
+              "spearman": 0.4383478769564847,
+              "mse": 0.06528642198043068,
+              "mae": 0.20975719267557386,
+              "maxae": 0.6890275952773405
+            },
+            "in_sample": {
+              "r2": 0.2591051299131656,
+              "spearman": 0.4584595445158953,
+              "mse": 0.06310569563441493,
+              "mae": 0.20593534430783708,
+              "maxae": 0.6562638806974311
+            },
+            "in_sample_inflation_r2": 0.025602902346347878,
+            "ci95": {
+              "r2": [
+                0.14558439531418388,
+                0.30206742901603095,
+                10000
+              ],
+              "spearman": [
+                0.3460394729336301,
+                0.5201072532893557,
+                10000
+              ],
+              "mse": [
+                0.05707101507387494,
+                0.07384219741185034,
+                10000
+              ],
+              "mae": [
+                0.1943867634494401,
+                0.2251263320310595,
+                10000
+              ],
+              "maxae": [
+                0.6228706711804856,
+                0.6890275952773405,
+                10000
+              ]
+            }
+          },
+          "params_linear_squares": {
+            "protocol": "kfold_oos_k10",
+            "n_fit": 355,
+            "n_score": 355,
+            "out_of_sample": {
+              "r2": 0.27188909542859696,
+              "spearman": 0.5857418401168172,
+              "mse": 0.062016821801717026,
+              "mae": 0.19569534486837303,
+              "maxae": 1.3326739648504788
+            },
+            "in_sample": {
+              "r2": 0.3795940606783016,
+              "spearman": 0.6214006510901302,
+              "mse": 0.05284305500999056,
+              "mae": 0.1848113962983798,
+              "maxae": 0.7005848428374801
+            },
+            "in_sample_inflation_r2": 0.10770496524970463,
+            "ci95": {
+              "r2": [
+                0.10472485694040844,
+                0.38261415500544876,
+                10000
+              ],
+              "spearman": [
+                0.5106998466783398,
+                0.6505947663220232,
+                10000
+              ],
+              "mse": [
+                0.05078869796764478,
+                0.07624024188614996,
+                10000
+              ],
+              "mae": [
+                0.18007239878721804,
+                0.21246076761125274,
+                10000
+              ],
+              "maxae": [
+                0.6727894609175377,
+                1.3326739648504788,
+                10000
+              ]
+            }
+          }
+        }
+      },
+      "near_duplicate_check": {
+        "test_to_train_nn_median": 0.0,
+        "test_to_train_nn_min": 0.0,
+        "test_to_train_nn_p05": 0.0,
+        "train_to_train_nn_median": 1.1839184588164582,
+        "train_to_train_nn_min": 0.632670387521932,
+        "ratio_median_test_over_train": 0.0,
+        "reading": "A ratio near 1 means test designs are no closer to the train set than train designs are to each other, i.e. the split does not leak by near-duplication. A ratio well below 1 would indicate leakage.",
+        "note": "Computed within the single pool, since there is no published split; the test-to-train column is therefore leave-one-out and equals the train column by construction."
+      }
+    },
     "DrivAerML_benchmark_split": {
       "benchmark": "DrivAerML (PhysicsNeMo-CFD benchmark split)",
       "target": "drag FORCE in newtons -- the exact label shipped in the split files, and the quantity the published R-squared table is computed on",
       "n_train": 436,
       "n_val": 48,
       "n_params": 16,
-      "split_source": "NVIDIA PhysicsNeMo-CFD workflows/benchmarking/drivaer_ml_files/. Their README states the validation set deliberately includes the extremes of the drag distribution, so it is partly out-of-distribution and therefore HARDER than a random 10%.",
+      "split_source": "NVIDIA PhysicsNeMo-CFD workflows/benchmarking/drivaer_ml_files/. Their README states the validation set is built by sorting on drag force and taking the top and bottom deciles plus a random remainder. Two consequences, in opposite directions, and both apply equally to every model scored on this split: the validation target VARIANCE is raised, which inflates R-squared relative to a random 10% (see label_spread), while the validation range extends beyond the training range, which is extrapolation. The head-to-head against DoMINO / FIGConvNet / X-MeshGraphNet is unaffected because they ran this same split; only the absolute R-squared is not comparable to a random-split R-squared. The K-fold constant-reference-area number elsewhere in this file is the split-free reference point.",
       "targets": {
         "drag_force": {
           "intercept_only": {
@@ -2518,5 +3164,5 @@
       ]
     }
   },
-  "wall_clock_seconds": 115.1
+  "wall_clock_seconds": 152.4
 }
