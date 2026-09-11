@@ -50,9 +50,16 @@ that narrower claim and must not be quoted for the wider one.
 rung must return ``mse_u = 0.7816026775816814``, ``mse_v = 0.03361523305371703``,
 ``mse_p = 75.03145038384078``, ``surface_mse_p = 10988.622207526085`` and the
 published band table (``se_share_u = 0.9238``, ``r2_u = 0.83952``,
-``cell_frac = 0.0051`` in ``0-0.02c``) to 1e-9 relative. If it does not, the run
-ABORTS: every 256/512 number would be unanchored. This is the first row of the
-report.
+``cell_frac = 0.0051`` in ``0-0.02c``) to 1e-9 relative on the aggregates, and to
+the precision each band figure is PUBLISHED to (``cell_frac`` is quoted to two
+significant figures, the rest to five). If it does not, the run ABORTS: every
+256/512 number would be unanchored. This is the first row of the report.
+[Amended after the first 128-only dry run, which is in the git log: the four
+aggregate metrics and the band ``R^2``/SE shares matched at relative error
+``0.00e+00``--``5e-06``, but the ``cell_frac`` check was written against the
+two-significant-figure printout ``0.0051`` at a five-figure tolerance and failed
+on the reproduced ``0.00506991``, which rounds to ``0.0051``. The tolerance, not
+the protocol, was wrong; no threshold in the decision rule was touched.]
 
 **One permitted optimisation, and why it is exact.** ``make_predict_fn`` rebuilds
 each case's ``(sdf, mask)`` with ``signed_distance``/``solid_mask`` from
@@ -213,8 +220,11 @@ GATE_METRICS = {
     "mse_p": 75.03145038384078,
     "surface_mse_p": 10988.622207526085,
 }
-GATE_BAND_0_002 = {"cell_frac": 0.0051, "r2_u": 0.83952, "se_share_u": 0.9238,
-                   "se_share_v": 0.8979}
+# Each is compared at the precision it is PUBLISHED to: ``cell_frac`` is quoted
+# to two significant figures (0.0051 in interp_band_control_full.json's printout,
+# 0.005 in tab:interp_bands), the rest to five.
+GATE_BAND_0_002 = {"cell_frac": (0.0051, 1e-2), "r2_u": (0.83952, 1e-4),
+                   "se_share_u": (0.9238, 1e-4), "se_share_v": (0.8979, 1e-4)}
 GATE_F_BAND_099 = 0.995
 
 # Cumulative-region edges for the finer domain-fraction curve (chord units).
@@ -350,12 +360,11 @@ def check_gate(agg: dict, bands: dict, f099: float, rtol: float) -> dict:
                      "pass": bool(rel <= rtol)})
         ok &= rel <= rtol
     b = bands["0-0.02c"]
-    for k, want in GATE_BAND_0_002.items():
+    for k, (want, tol) in GATE_BAND_0_002.items():
         got = float(b[k])
         rel = abs(got - want) / abs(want)
-        # The paper prints these rounded to 4-5 figures; compare at print precision.
-        good = bool(rel <= 1e-4)
-        rows.append({"key": f"band_0-0.02c.{k}", "published": want,
+        good = bool(rel <= tol)
+        rows.append({"key": f"band_0-0.02c.{k}", "published": want, "tol": tol,
                      "reproduced": got, "rel": rel, "pass": good})
         ok &= good
     rel_f = abs(f099 - GATE_F_BAND_099) / GATE_F_BAND_099
