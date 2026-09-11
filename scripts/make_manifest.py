@@ -107,6 +107,17 @@ HEADLINE: list[dict] = [
                "0.05c; 50 training cases already beat Transolver's mse_p; permuted "
                "parameters collapse to the freestream floor; (U,alpha) alone gives "
                "mse_p 9491 vs 75 with the shape digits"},
+    {"path": "results/interpolation/interp_resolution_ladder.json",
+     "script": "scripts/interpolation_resolution_ladder.py", "tier": "cpu",
+     "claims": "resolution ladder on the interpolation finding, 128/256/512 on the "
+               "same 800/200 split with the estimator frozen (weight matrix hash "
+               "identical at every rung): the domain fraction reproduced without "
+               "learning is 0.9949/0.9949/0.9950 and the outer-region (>0.05c) MSE is "
+               "flat within 1.5%, but the 0-0.02c SE share erodes 0.924/0.901/0.879 "
+               "on u and 0.898/0.855/0.842 on v, so the PRE-REGISTERED verdict is "
+               "PARTIAL, not HOLDS. Surface-pressure MSE standardised by the sampled "
+               "truth's own variance rises 0.0029/0.0085/0.0055. The 128 rung "
+               "reproduces the published row at relative error 0.00e+00"},
     # --- per-cell vs per-case trust scope ---
     {"path": "results/control/percell_residual_error.json",
      "script": "scripts/control_percell_residual_error.py", "tier": "cpu",
