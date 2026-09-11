@@ -1,0 +1,215 @@
+{
+  "artifact": "covariate_null",
+  "question": "How well does a model that sees only the AirfRANS case name rank the official force coefficients? This is the null the benchmark's headline Spearman metric must clear.",
+  "n_cases": 200,
+  "split": "full test (the split the published numbers are reported on)",
+  "protocol": {
+    "out_of_sample": "10-fold CV; every prediction from a fold excluding its case",
+    "bootstrap": "10000 case-level resamples, percentile CI at 95%",
+    "naca_digit_width": 4
+  },
+  "prereg": "BELOW THE NULL iff published mean < null OOS point estimate AND the null's 95% CI excludes that mean.",
+  "targets": {
+    "cl": {
+      "alpha": {
+        "spearman_out_of_sample": 0.9320648016200406,
+        "spearman_in_sample": 0.933543838595965,
+        "in_sample_inflation": 0.0014790369759244415,
+        "ci95": [
+          0.9103909539032566,
+          0.9467514570857698
+        ],
+        "n_boot_finite": 10000
+      },
+      "U_alpha": {
+        "spearman_out_of_sample": 0.9318397959949001,
+        "spearman_in_sample": 0.9342578564464113,
+        "in_sample_inflation": 0.0024180604515112725,
+        "ci95": [
+          0.9100666611506761,
+          0.9468649521102998
+        ],
+        "n_boot_finite": 10000
+      },
+      "U_alpha_alpha2": {
+        "spearman_out_of_sample": 0.9308347708692719,
+        "spearman_in_sample": 0.9342578564464113,
+        "in_sample_inflation": 0.0034230855771394397,
+        "ci95": [
+          0.9087892822245066,
+          0.9459930560562225
+        ],
+        "n_boot_finite": 10000
+      },
+      "U_alpha_alpha2_naca": {
+        "spearman_out_of_sample": 0.9814820370509264,
+        "spearman_in_sample": 0.9831815795394886,
+        "in_sample_inflation": 0.001699542488562189,
+        "ci95": [
+          0.9733688769008694,
+          0.9855669133028282
+        ],
+        "n_boot_finite": 10000
+      }
+    },
+    "cd": {
+      "alpha": {
+        "spearman_out_of_sample": 0.7992529813245333,
+        "spearman_in_sample": 0.8001020025500639,
+        "in_sample_inflation": 0.0008490212255306551,
+        "ci95": [
+          0.7212694233073863,
+          0.8561175621934806
+        ],
+        "n_boot_finite": 10000
+      },
+      "U_alpha": {
+        "spearman_out_of_sample": 0.8261831545788646,
+        "spearman_in_sample": 0.8296647416185405,
+        "in_sample_inflation": 0.0034815870396759374,
+        "ci95": [
+          0.7571911517539125,
+          0.8742286112314082
+        ],
+        "n_boot_finite": 10000
+      },
+      "U_alpha_alpha2": {
+        "spearman_out_of_sample": 0.8731913297832447,
+        "spearman_in_sample": 0.8741618540463513,
+        "in_sample_inflation": 0.0009705242631066202,
+        "ci95": [
+          0.8229605630113803,
+          0.9073494287306089
+        ],
+        "n_boot_finite": 10000
+      },
+      "U_alpha_alpha2_naca": {
+        "spearman_out_of_sample": 0.9436435910897775,
+        "spearman_in_sample": 0.9456521413035328,
+        "in_sample_inflation": 0.0020085502137553446,
+        "ci95": [
+          0.9135908402339624,
+          0.9616274167072699
+        ],
+        "n_boot_finite": 10000
+      }
+    }
+  },
+  "leaderboard_vs_null": [
+    {
+      "model": "MLP",
+      "cl": {
+        "published": 0.913,
+        "published_std": 0.018,
+        "null_oos": 0.9318397959949001,
+        "null_ci95": [
+          0.9100666611506761,
+          0.9468649521102998
+        ],
+        "verdict": "straddles"
+      },
+      "cd": {
+        "published": -0.117,
+        "published_std": null,
+        "null_oos": 0.8731913297832447,
+        "null_ci95": [
+          0.8229605630113803,
+          0.9073494287306089
+        ],
+        "verdict": "BELOW THE NULL"
+      }
+    },
+    {
+      "model": "GraphSAGE",
+      "cl": {
+        "published": 0.965,
+        "published_std": null,
+        "null_oos": 0.9318397959949001,
+        "null_ci95": [
+          0.9100666611506761,
+          0.9468649521102998
+        ],
+        "verdict": "clears"
+      },
+      "cd": {
+        "published": -0.303,
+        "published_std": null,
+        "null_oos": 0.8731913297832447,
+        "null_ci95": [
+          0.8229605630113803,
+          0.9073494287306089
+        ],
+        "verdict": "BELOW THE NULL"
+      }
+    },
+    {
+      "model": "PointNet",
+      "cl": {
+        "published": 0.938,
+        "published_std": 0.023,
+        "null_oos": 0.9318397959949001,
+        "null_ci95": [
+          0.9100666611506761,
+          0.9468649521102998
+        ],
+        "verdict": "straddles"
+      },
+      "cd": {
+        "published": -0.022,
+        "published_std": null,
+        "null_oos": 0.8731913297832447,
+        "null_ci95": [
+          0.8229605630113803,
+          0.9073494287306089
+        ],
+        "verdict": "BELOW THE NULL"
+      }
+    },
+    {
+      "model": "Graph U-Net",
+      "cl": {
+        "published": 0.967,
+        "published_std": null,
+        "null_oos": 0.9318397959949001,
+        "null_ci95": [
+          0.9100666611506761,
+          0.9468649521102998
+        ],
+        "verdict": "clears"
+      },
+      "cd": {
+        "published": -0.138,
+        "published_std": null,
+        "null_oos": 0.8731913297832447,
+        "null_ci95": [
+          0.8229605630113803,
+          0.9073494287306089
+        ],
+        "verdict": "BELOW THE NULL"
+      }
+    },
+    {
+      "model": "Transolver",
+      "cl": {
+        "published": 0.9978,
+        "published_std": null,
+        "null_oos": 0.9318397959949001,
+        "null_ci95": [
+          0.9100666611506761,
+          0.9468649521102998
+        ],
+        "verdict": "clears"
+      },
+      "cd": {
+        "published": null,
+        "published_std": null,
+        "null_oos": 0.8731913297832447,
+        "null_ci95": [
+          0.8229605630113803,
+          0.9073494287306089
+        ],
+        "verdict": "not reported"
+      }
+    }
+  ]
+}
