@@ -1,4 +1,4 @@
-\begin{thebibliography}{44}
+\begin{thebibliography}{31}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 \providecommand{\url}[1]{\texttt{#1}}
 \providecommand{\href}[2]{#2}
@@ -181,35 +181,6 @@
   \bibinfo{volume}{378} (\bibinfo{year}{2019}) \bibinfo{pages}{686--707}.
   \DOIprefix\doi{10.1016/j.jcp.2018.10.045}.
 %Type = Article
-\bibitem[{Roy et~al.(2025)Roy, Nayak, and Goswami}]{roy2025anchor}
-\bibinfo{author}{R.~Roy}, \bibinfo{author}{D.~Nayak},
-  \bibinfo{author}{S.~Goswami},
-\newblock \bibinfo{title}{{ANCHOR}: Error-controlled adaptive numerical
-  correction for neural operator time marching},
-\newblock \bibinfo{journal}{arXiv preprint arXiv:2512.19643}
-  (\bibinfo{year}{2025}). \DOIprefix\doi{10.48550/arXiv.2512.19643}.
-%Type = Article
-\bibitem[{Song et~al.(2026)Song, Li, Deng, Li, Pan, Lai, and
-  Wang}]{song2026structureaware}
-\bibinfo{author}{H.~Song}, \bibinfo{author}{Z.~Li}, \bibinfo{author}{M.~Deng},
-  \bibinfo{author}{X.~Li}, \bibinfo{author}{D.~Pan}, \bibinfo{author}{Z.~Lai},
-  \bibinfo{author}{W.~Wang},
-\newblock \bibinfo{title}{Structure-aware epistemic uncertainty quantification
-  for neural operator {PDE} surrogates},
-\newblock \bibinfo{journal}{arXiv preprint arXiv:2603.11052}
-  (\bibinfo{year}{2026}). \DOIprefix\doi{10.48550/arXiv.2603.11052}.
-%Type = Inproceedings
-\bibitem[{Gopakumar et~al.(2025)Gopakumar, Gray, Zanisi, Nunn, Giles, Kusner,
-  Pamela, and Deisenroth}]{gopakumar2025pre}
-\bibinfo{author}{V.~Gopakumar}, \bibinfo{author}{A.~Gray},
-  \bibinfo{author}{L.~Zanisi}, \bibinfo{author}{T.~Nunn},
-  \bibinfo{author}{D.~Giles}, \bibinfo{author}{M.~J. Kusner},
-  \bibinfo{author}{S.~Pamela}, \bibinfo{author}{M.~P. Deisenroth},
-\newblock \bibinfo{title}{Calibrated physics-informed uncertainty
-  quantification},
-\newblock in: \bibinfo{booktitle}{International Conference on Machine Learning
-  (ICML)}, \bibinfo{year}{2025}. \bibinfo{note}{ArXiv:2502.04406}.
-%Type = Article
 \bibitem[{Becker and Rannacher(2001)}]{beckerrannacher2001dwr}
 \bibinfo{author}{R.~Becker}, \bibinfo{author}{R.~Rannacher},
 \newblock \bibinfo{title}{An optimal control approach to a posteriori error
@@ -234,57 +205,6 @@
   solvers: From empirical residuals to solution guarantees},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2603.19165}
   (\bibinfo{year}{2026}). \DOIprefix\doi{10.48550/arXiv.2603.19165}.
-%Type = Inproceedings
-\bibitem[{Lakshminarayanan et~al.(2017)Lakshminarayanan, Pritzel, and
-  Blundell}]{lakshminarayanan2017ensembles}
-\bibinfo{author}{B.~Lakshminarayanan}, \bibinfo{author}{A.~Pritzel},
-  \bibinfo{author}{C.~Blundell},
-\newblock \bibinfo{title}{Simple and scalable predictive uncertainty estimation
-  using deep ensembles},
-\newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
-  Systems (NeurIPS)}, \bibinfo{year}{2017}. \bibinfo{note}{ArXiv:1612.01474}.
-%Type = Inproceedings
-\bibitem[{Gal and Ghahramani(2016)}]{gal2016dropout}
-\bibinfo{author}{Y.~Gal}, \bibinfo{author}{Z.~Ghahramani},
-\newblock \bibinfo{title}{Dropout as a bayesian approximation: Representing
-  model uncertainty in deep learning},
-\newblock in: \bibinfo{booktitle}{International Conference on Machine Learning
-  (ICML)}, \bibinfo{year}{2016}. \bibinfo{note}{ArXiv:1506.02142}.
-%Type = Article
-\bibitem[{Ma et~al.(2024)Ma, Pitt, Azizzadenesheli, and
-  Anandkumar}]{ma2024uqno}
-\bibinfo{author}{Z.~Ma}, \bibinfo{author}{D.~Pitt},
-  \bibinfo{author}{K.~Azizzadenesheli}, \bibinfo{author}{A.~Anandkumar},
-\newblock \bibinfo{title}{Calibrated uncertainty quantification for operator
-  learning via conformal prediction},
-\newblock \bibinfo{journal}{Transactions on Machine Learning Research (TMLR)}
-  (\bibinfo{year}{2024}). \bibinfo{note}{ArXiv:2402.01960}.
-%Type = Article
-\bibitem[{Yu et~al.(2026)Yu, Ho, and Wang}]{yu2026conformalpinn}
-\bibinfo{author}{Y.~Yu}, \bibinfo{author}{C.~H. Ho}, \bibinfo{author}{Y.~Wang},
-\newblock \bibinfo{title}{A conformal prediction framework for uncertainty
-  quantification in physics-informed neural networks},
-\newblock \bibinfo{journal}{Journal of Computational Physics}
-  \bibinfo{volume}{561} (\bibinfo{year}{2026}) \bibinfo{pages}{114979}.
-  \DOIprefix\doi{10.1016/j.jcp.2026.114979}.
-%Type = Article
-\bibitem[{Garg and Chakraborty(2025)}]{garg2025dfuq}
-\bibinfo{author}{S.~Garg}, \bibinfo{author}{S.~Chakraborty},
-\newblock \bibinfo{title}{Distribution free uncertainty quantification for
-  neuroscience-inspired deep neural operators},
-\newblock \bibinfo{journal}{Journal of Computational Physics}
-  \bibinfo{volume}{534} (\bibinfo{year}{2025}) \bibinfo{pages}{114012}.
-  \DOIprefix\doi{10.1016/j.jcp.2025.114012}.
-%Type = Article
-\bibitem[{Jia et~al.(2026)Jia, Xia, Vdovin, Jia, Sebben, and
-  Yang}]{jia2026multigranularity}
-\bibinfo{author}{C.~Jia}, \bibinfo{author}{C.~Xia},
-  \bibinfo{author}{A.~Vdovin}, \bibinfo{author}{Q.~Jia},
-  \bibinfo{author}{S.~Sebben}, \bibinfo{author}{Z.~Yang},
-\newblock \bibinfo{title}{Multi-granularity conformal prediction for reliable
-  neural-operator automotive aerodynamic surrogates},
-\newblock \bibinfo{journal}{arXiv preprint arXiv:2607.17297}
-  (\bibinfo{year}{2026}). \DOIprefix\doi{10.48550/arXiv.2607.17297}.
 %Type = Article
 \bibitem[{McGreivy and Hakim(2024)}]{mcgreivy2024weak}
 \bibinfo{author}{N.~McGreivy}, \bibinfo{author}{A.~Hakim},
@@ -397,38 +317,6 @@
 \newblock \bibinfo{journal}{Journal of Advances in Modeling Earth Systems}
   \bibinfo{volume}{16} (\bibinfo{year}{2024}) \bibinfo{pages}{e2023MS004019}.
   \DOIprefix\doi{10.1029/2023MS004019}.
-%Type = Inproceedings
-\bibitem[{Bai et~al.(2019)Bai, Kolter, and Koltun}]{bai2019deq}
-\bibinfo{author}{S.~Bai}, \bibinfo{author}{J.~Z. Kolter},
-  \bibinfo{author}{V.~Koltun},
-\newblock \bibinfo{title}{Deep equilibrium models},
-\newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
-  Systems (NeurIPS)}, \bibinfo{year}{2019}. \bibinfo{note}{ArXiv:1909.01377}.
-%Type = Inproceedings
-\bibitem[{Winston and Kolter(2020)}]{winston2020monotone}
-\bibinfo{author}{E.~Winston}, \bibinfo{author}{J.~Z. Kolter},
-\newblock \bibinfo{title}{Monotone operator equilibrium networks},
-\newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
-  Systems (NeurIPS)}, \bibinfo{year}{2020}. \bibinfo{note}{ArXiv:2006.08591}.
-%Type = Inproceedings
-\bibitem[{Fung et~al.(2022)Fung, Heaton, Li, McKenzie, Osher, and
-  Yin}]{fung2022jfb}
-\bibinfo{author}{S.~W. Fung}, \bibinfo{author}{H.~Heaton},
-  \bibinfo{author}{Q.~Li}, \bibinfo{author}{D.~McKenzie},
-  \bibinfo{author}{S.~Osher}, \bibinfo{author}{W.~Yin},
-\newblock \bibinfo{title}{{JFB}: Jacobian-free backpropagation for implicit
-  networks},
-\newblock in: \bibinfo{booktitle}{AAAI Conference on Artificial Intelligence},
-  \bibinfo{year}{2022}. \bibinfo{note}{ArXiv:2103.12803}.
-%Type = Article
-\bibitem[{Ribeiro et~al.(2020)Ribeiro, Rehman, Ahmed, and
-  Dengel}]{ribeiro2020deepcfd}
-\bibinfo{author}{M.~D. Ribeiro}, \bibinfo{author}{A.~Rehman},
-  \bibinfo{author}{S.~Ahmed}, \bibinfo{author}{A.~Dengel},
-\newblock \bibinfo{title}{{DeepCFD}: Efficient steady-state laminar flow
-  approximation with deep convolutional neural networks},
-\newblock \bibinfo{journal}{arXiv preprint arXiv:2004.08826}
-  (\bibinfo{year}{2020}). \DOIprefix\doi{10.48550/arXiv.2004.08826}.
 %Type = Article
 \bibitem[{Zhang et~al.(2026)Zhang, Mallon, Luo, Thiyagalingam, Tzeferacos,
   Bingham, and Gregori}]{zhang2026phymgn}

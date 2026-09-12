@@ -1,0 +1,298 @@
+% =============================================================================
+% REMOVED FROM body.tex BY THE 2026-09-12 JOCS REBUILD. NOT \input BY EITHER
+% BUILD. DO NOT COMPILE.
+%
+% WHY THIS FILE EXISTS, AND WHY THE MATERIAL MUST NOT BE PUBLISHED HERE.
+% This is the spine of the second paper -- the metadata null across five
+% benchmarks plus the NullBench harness -- aimed at the NeurIPS Evaluations &
+% Datasets track, next intake ~May 2027 (docs/paper/review/journal_shortlist.md
+% Sec. 9, docs/paper/review/null_travels.md, docs/paper/review/nullbench_release.md).
+% NeurIPS does not accept work already published in a journal. If any of the
+% material below ships inside the JOCS manuscript it is journal-published and
+% ED 2027 is closed to it. The split is therefore a publication decision, not a
+% length decision, and it is taken deliberately here.
+%
+% Provenance: every block below is copied verbatim out of docs/paper/body.tex as
+% it stood at commit 47dc59d ("Amendment 2: pre-register the least-squares lower
+% bound before running it"), with the original line ranges recorded above each
+% block.
+%
+% Labels DEFINED below, which no longer exist in body.tex:
+%   sec:splits  sec:covariate  tab:covariate
+%
+% Labels REFERENCED below that DO still exist in body.tex:
+%   sec:interp  sec:limitations  tab:airfrans-sota
+% The blocks also reference sec:v2, which the 2026-09-12 rebuild renamed to
+% sec:forces; re-point those on reassembly.
+%
+% One item is deliberately assigned rather than left to land in both papers.
+% journal_shortlist.md Sec. 8 flagged the `reynolds`-split finding as genuinely
+% ambiguous: it is AirfRANS-specific (so it belongs with the measurement paper)
+% but it is also a benchmark-protocol defect (so it strengthens NullBench).
+% DECISION: the `reynolds` split goes to PAPER 2, with the null. It is a claim
+% about what a published split tests, which is NullBench's subject, and the JOCS
+% paper is about measure dependence and representation limits, full stop. The
+% BLOCK 3 and BLOCK 5 text below is therefore reserved for paper 2 and is not to
+% be reinstated here.
+% =============================================================================
+
+
+% -----------------------------------------------------------------------------
+% BLOCK 1 -- Introduction, "The benchmark's force metrics do not measure that
+% difference." Original body.tex lines 93-113.
+% -----------------------------------------------------------------------------
+
+\paragraph{The benchmark's force metrics do not measure that difference.} AirfRANS
+declares the Spearman rank correlation of the force coefficients its primary metric.
+Ordinary least squares on the case name, fit on the official $800$ train cases and
+scored on the $200$ test cases, ranks the official lift at $\mathbf{0.9821}$
+$[0.9737,0.9866]$ and the official drag at $\mathbf{0.9318}$ $[0.8981,0.9531]$. Under the
+pre-registered rule---the published mean below the null's point estimate and outside the
+null's $95\%$ interval---\textbf{all four AirfRANS-paper lift entries fall below that null}
+($0.913$, $0.938$, $0.965$, $0.967$; Transolver's $0.9978$ clears). Measured instead
+against each model's \emph{own} published seed spread the separation is decisive only
+twice: $3.8$ and $1.9$ seed standard deviations for MLP and PointNet, but $1.6$ and $0.8$
+for GraphSAGE and Graph U-Net. We report both readings and rest nothing on the last two.
+\textbf{Drag is where the result is not in doubt}: every
+AirfRANS-paper entry falls below the null, three of the four published intervals spanning zero
+($-0.117$, $-0.022$, $-0.303$, $-0.138$, at published seed standard deviations of
+$0.256$, $0.097$, $0.124$, $0.258$). Transolver reports no drag column at all, stating in
+its Appendix B.1 that the deep models fail at drag. The reading was fixed in the script's
+docstring before any number existed, the in-sample optimism of such a fit is
+$0.0008$--$0.0035$, and the two-parameter version of the null is \emph{not}
+sufficient---$(U,\alpha)$ alone gives $0.9344$ on lift, which one published entry
+straddles. The result needs the digits, and the digits are fair, because they are the
+geometry the surrogate is given as an input channel (\autoref{sec:covariate}).
+
+
+% -----------------------------------------------------------------------------
+% BLOCK 2 -- Introduction, "One of the extrapolation splits does not extrapolate."
+% Original body.tex lines 115-122.
+% -----------------------------------------------------------------------------
+
+\paragraph{One of the extrapolation splits does not extrapolate.} On the
+\texttt{reynolds} split, $0$ of $200$ test cases have an inlet velocity inside the
+training range---outside on both sides---yet a \emph{nondimensional} parameter
+interpolator degrades by $3\%$ on $\texttt{mse\_u}$ and not at all on $\texttt{mse\_p}$,
+while the same interpolator on dimensional fields degrades $5.2\times$ and $10.1\times$.
+The split's entire difficulty is absorbed by dimensional analysis. The \texttt{aoa}
+split, by contrast, bites exactly where it should: $C_l$ relative error rises from
+$1.18\%$ to $23.1\%$ (\autoref{sec:splits}).
+
+
+% -----------------------------------------------------------------------------
+% BLOCK 3 -- Introduction, contributions 2 and 3 of six.
+% Original body.tex lines 177-186.
+% -----------------------------------------------------------------------------
+
+\item \textbf{The benchmark's primary metric is a covariate property of the case index
+(\autoref{sec:covariate}).} In-sample optimism for such a fit is $0.0008$--$0.0035$, and
+the $(U,\alpha)$ null alone ($0.9344$) is \emph{not} sufficient---the digits are, and they
+are fair, being the geometry the surrogate receives as input. We make no leakage
+accusation: the claim is that a force-rank number is uninterpretable without this
+baseline.
+
+\item \textbf{The \texttt{reynolds} split does not test Reynolds generalisation
+(\autoref{sec:splits}).} The difficulty is dimensional scaling, not physics; the
+\texttt{aoa} split does bite, and on lift specifically.
+
+
+% -----------------------------------------------------------------------------
+% BLOCK 4 -- sec:splits, in full. Original body.tex lines 1010-1040.
+% -----------------------------------------------------------------------------
+
+\subsection{The \texttt{reynolds} split does not test Reynolds generalisation}
+\label{sec:splits}
+
+The same estimator, re-selected by cross-validation inside each split's own train set,
+separates the benchmark's two extrapolation tasks cleanly. The script proves
+disjointness rather than asserting it: on \texttt{reynolds}, \textbf{$0$ of $200$} test
+cases have an inlet velocity inside the training range---$U\in[46.8,78.0]$ train
+against $[31.5,93.4]$ test, outside on both sides---and on \texttt{aoa},
+$0$ of $196$ have an in-range incidence.
+
+Yet the nondimensional interpolator barely notices \texttt{reynolds}: $\texttt{mse\_u}$
+degrades by $3\%$ ($0.782\to0.808$) and $\texttt{mse\_p}$ by $-1\%$ ($75.0\to74.1$),
+and it is \emph{better} than in-distribution on $\texttt{mse\_v}$ and on surface
+pressure. The control that explains why is in the same run: the \texttt{raw}
+cell-wise interpolator, identical except that it does not nondimensionalise, degrades
+$5.2\times$ on $\texttt{mse\_u}$ ($0.808\to4.194$) and $10.1\times$ on
+$\texttt{mse\_p}$ ($74.1\to751.1$) on that split. \textbf{The split's entire difficulty
+is absorbed by dimensional analysis, not by learning.} Physically this is unsurprising
+---$Re$ spans $2.0$--$6.0\times10^6$, all fully turbulent---but the consequence for
+evaluation is sharp: a ``Reynolds OOD'' result on this split is not evidence of learned
+extrapolation unless the method is shown not to be exploiting $u/U$ and $p/U^2$.
+
+The \texttt{aoa} split does bite, and only where it should. Lift is the quantity that
+depends on incidence, and the $C_l$ relative error rises from $1.18\%$ to
+$\mathbf{23.1\%}$; $\texttt{mse\_u}$ degrades $2.1\times$ and $\texttt{mse\_p}$
+$1.7\times$, while drag is barely touched ($2.39\%\to2.71\%$). That is the expected
+signature of extrapolating past the stall-approach end of the $\alpha$ range. One
+caveat is load-bearing: no matched \emph{surrogate} row exists on either split in our
+results, so these numbers report the interpolator's own in-distribution-to-OOD
+degradation and must not be read as ``interpolation generalises better than a
+surrogate''.
+
+
+% -----------------------------------------------------------------------------
+% BLOCK 5 -- sec:covariate, in full, including tab:covariate.
+% Original body.tex lines 1042-1136.
+% -----------------------------------------------------------------------------
+
+\subsection{The benchmark's force metrics do not measure that difference}
+\label{sec:covariate}
+
+\autoref{sec:interp} locates the surrogate's advantage in the first cell off the wall.
+The benchmark's declared primary metric cannot see it. \citet{bonnet2022airfrans} name
+the Spearman rank correlation of the force coefficients as ``the main metrics to
+maximize the recovery of the best airfoils''---and that rank is a covariate property of
+the case index.
+
+We fit ordinary least squares on the case name---inlet velocity, incidence, incidence
+squared, and the four NACA digits---on the official $800$ train cases, and score
+Spearman against the official labels on the $200$ test cases: the exact protocol the
+published entries were produced under. The reading was fixed in the script's docstring
+before any number existed (\textsc{below the null} iff the published mean is below the
+null's point estimate \emph{and} the null's $95\%$ bootstrap interval excludes it).
+The null ranks official lift at $\mathbf{0.9821}$ $[0.9737,0.9866]$ and official drag
+at $\mathbf{0.9318}$ $[0.8981,0.9531]$ (\autoref{tab:covariate};
+\texttt{scripts/covariate\_null\_trainfit.py},
+\texttt{results/review/covariate\_null\_trainfit.json}).
+
+\begin{table}[t]
+\centering
+\small
+\caption{The case-name null against the published AirfRANS \texttt{full} field.
+Nulls are OLS fit on the official $800$ train cases and scored on the $200$ test
+cases; intervals are $95\%$ percentile bootstrap over $10^4$ case-level resamples.
+Published rows are from \citet{bonnet2022airfrans} Table 3 and
+\citet{wu2024transolver}, quoted with their own seed standard deviations where reported;
+Transolver reports no drag column.}
+\label{tab:covariate}
+\begin{tabular}{l r r}
+\toprule
+ & $\rho_{C_l}$ vs official & $\rho_{C_d}$ vs official \\
+\midrule
+null: $\alpha$ & $0.9335$ $[0.9114,0.9483]$ & $0.8001$ $[0.7249,0.8563]$ \\
+null: $(U,\alpha)$ & $0.9344$ $[0.9123,0.9492]$ & $0.8276$ $[0.7601,0.8768]$ \\
+null: $(U,\alpha,\alpha^2)$ & $0.9344$ $[0.9123,0.9492]$ & $0.8752$ $[0.8278,0.9083]$ \\
+\textbf{null: $(U,\alpha,\alpha^2,\text{NACA})$} & $\mathbf{0.9821}$ $[0.9737,0.9866]$ & $\mathbf{0.9318}$ $[0.8981,0.9531]$ \\
+\midrule
+MLP & $0.913{\pm}0.018$ & $-0.117{\pm}0.256$ \\
+GraphSAGE & $0.965{\pm}0.011$ & $-0.303{\pm}0.124$ \\
+PointNet & $0.938{\pm}0.023$ & $-0.022{\pm}0.097$ \\
+Graph U-Net & $0.967{\pm}0.019$ & $-0.138{\pm}0.258$ \\
+Transolver & $0.9978$ & not reported \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Every baseline in the AirfRANS paper sits below the full null on both
+coefficients}, on the metric that paper declares primary---four of the five
+published entries once Transolver is included, which clears on lift ($0.9978$) and
+reports no drag column at all, stating in its Appendix B.1 that ``all the deep models fail
+in drag coefficient estimation''. The drag column is worse than the gap alone suggests:
+\textbf{three of the four published drag intervals span zero} at one published seed
+standard deviation ($-0.117{\pm}0.256$, $-0.022{\pm}0.097$, $-0.138{\pm}0.258$; only
+GraphSAGE's $-0.303{\pm}0.124$ excludes it, and on the wrong side). Four qualifications
+belong with this, and we state them before a reviewer does.
+
+\emph{On lift the margin is decisive for two entries, not four.} The rule above compares a
+published mean against the null's point estimate and its interval, and all four
+AirfRANS-paper lift entries fall below it on that rule. A reader who compares instead
+against each model's own published spread will not see four clean results: the gap is
+$3.8$ published seed standard deviations for MLP ($0.913{\pm}0.018$) and $1.9$ for
+PointNet ($0.938{\pm}0.023$), but only $1.6$ for GraphSAGE ($0.965{\pm}0.011$) and $0.8$
+for Graph U-Net ($0.967{\pm}0.019$). The two intervals are not commensurable in any case:
+ours is a case-level bootstrap over the $200$ test cases, theirs a spread over five
+training seeds, and neither carries the other's variance source. The summary we stand
+behind is therefore that the null's point estimate exceeds all four lift entries and
+separates decisively from two of them. None of this qualification applies to drag, where
+the null clears every entry by a wide margin and three of the four intervals span zero.
+
+\emph{The digits are fair.} The NACA digits are the geometry the surrogate is handed as
+an input channel, so a null that uses them is not exploiting information the models
+lack; it is asking whether the models extract anything from that geometry beyond what a
+seven-coefficient regression already extracts. Restricting the null to
+$(U,\alpha)$---the reading an earlier version of this control used---gives $0.9344$ on
+lift, which PointNet straddles and MLP sits just below at $1.2$ seed standard
+deviations. \textbf{The two-parameter null is not sufficient to support this claim; the
+digits are what make it decisive.}
+
+\emph{The fit is honest.} The numbers above avoid in-sample optimism by construction,
+being fit on train and scored on test. A companion run that fits and scores entirely
+within the $200$ test cases bounds the optimism directly: the gap between the in-sample
+and the 10-fold cross-validated Spearman is $0.0017$ on lift and $0.0020$ on drag at
+the full feature set, and $0.0008$--$0.0035$ across all four feature sets
+(\texttt{scripts/covariate\_null.py}, \texttt{results/review/covariate\_null.json}).
+Covariate regressions of this form carry negligible optimism at this sample size.
+
+\emph{This is a statement about the metric, not an accusation.} We do not claim label
+leakage. A drag \emph{rank} metric cannot distinguish a better integrator from a head
+that has learned the covariate dependence, and conditioning a surrogate on its inlet
+state is necessary rather than suspect. The defensible claim is the measurement gap: no
+paper in this line reports the null, so its force-rank numbers are uninterpretable as
+evidence about integration quality. The claim is also narrower than ``nobody publishes
+parameter-space baselines'', which is false as stated (\autoref{sec:interp}).
+
+
+% -----------------------------------------------------------------------------
+% BLOCK 6 -- the covariate half of the drag-integrator paragraph. Original
+% body.tex lines 1200-1211, inside "What these force correlations measure".
+% The rebuilt manuscript KEEPS that paragraph but stops at the integrator's own
+% limits; the three sentences below, which make the covariate argument, moved
+% here with the null.
+% -----------------------------------------------------------------------------
+
+Nor is it limited only by
+the measurement: a three-parameter OLS on $(U,\alpha,\alpha^2)$ that never touches a flow
+field ranks the official drag at $\rho=0.874$---above every integrator arm we tried on
+ground-truth fields ($0.611$--$0.839$) and on predicted fields
+($0.828$--$0.845$); $\alpha$ alone gives $0.800$
+(\texttt{results/control/drag\_covariate\_control.json}). The parameter interpolator makes
+the same point from the other direction: scored through this integrator it ranks the
+official drag at $\rho=0.8389$, \emph{indistinguishable from the same integrator applied
+to the exact ground-truth field} ($0.8394$), and matching it on lift to four significant
+figures ($0.8758$ vs $0.8757$). \textbf{A drag rank correlation reported on this benchmark
+is uninterpretable without its covariate baseline}, and the conventional near-field number
+sits below that baseline.
+
+
+% -----------------------------------------------------------------------------
+% BLOCK 7 -- the covariate and split limitations bullets.
+% Original body.tex lines 1854-1859 and 1864-1869.
+% -----------------------------------------------------------------------------
+
+\item \textbf{No matched surrogate row on the extrapolation splits.} The degradations in
+\autoref{sec:splits} are the interpolator's own in-distribution-to-OOD changes, so they
+must not be read as ``interpolation generalises better than a surrogate''. Two scope notes:
+the \texttt{reynolds} test split is the first $200$ of $496$ cases (the $r128$ cache
+limit), an unbiased subsample whose $U$/$\alpha$ ranges match the full set but a subsample
+nonetheless; and \texttt{aoa} has $196$ test cases, not $200$.
+
+\item \textbf{The covariate null is one benchmark, one metric family.} We compute it for
+AirfRANS lift and drag only. Extending it to DrivAerNet++, DrivAerML and AhmedML is
+straightforward---all three publish their design parameters---and is not done here. We also
+do not refit the null inside the \texttt{scarce}, \texttt{reynolds} and \texttt{aoa}
+splits, which would be required before comparing published per-split force numbers against
+it.
+
+
+% -----------------------------------------------------------------------------
+% BLOCK 8 -- the covariate sentences of the Conclusion.
+% Original body.tex lines 1971-1978.
+% -----------------------------------------------------------------------------
+
+Meanwhile a regression on the case name outranks every published drag
+entry, three of which span zero, and outranks all four published lift entries as
+well---though on lift the separation is $3.8$ and $1.9$ of each model's own published seed
+standard deviations for two of them and only $1.6$ and $0.8$ for the other two. We do not
+read this as evidence that those results are wrong; we read it as evidence that both a
+field metric and a force-rank metric on this benchmark are uninterpretable without their
+non-learned reference point---and, for the field metric, without the weighting it is
+computed under.
+
+% and, from the closing recommendation paragraph (original line 2000-2001):
+
+Anyone reporting a force-rank metric should report
+it against a regression on the case name, which takes seconds.

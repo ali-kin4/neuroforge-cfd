@@ -1,6 +1,7 @@
 % ---------------------------------------------------------------------------
-% Elsevier build (Computers & Fluids).  Content is SHARED with the TMLR build:
-%   abstract.tex  -- the 250-word abstract (Computers & Fluids limit)
+% Elsevier build (Journal of Computational Science).  Content is SHARED with the
+% TMLR build:
+%   abstract.tex  -- the 250-word abstract (JOCS limit; C&F used the same cap)
 %   body.tex      -- Introduction .. back-matter
 % Only the class, front matter and bibliography style differ, so the science
 % cannot drift between the two.  Build:  latexmk -pdf neuroforge_cfd_elsevier
@@ -31,14 +32,14 @@
 \makeatother
 
 
-\journal{Computers \& Fluids}
+\journal{Journal of Computational Science}
 
 \begin{document}
 
 \begin{frontmatter}
 
-\title{Neural CFD surrogates earn their keep in the first cell off the wall:
-       a parameter-interpolation baseline and a covariate null for AirfRANS}
+\title{What a neural flow surrogate buys is near-wall representation,
+       and the scoring measure decides the ranking}
 
 \author[urmia]{Ali Jabbary\corref{cor1}}
 \ead{st\_a.jabbary@urmia.ac.ir}
@@ -60,12 +61,12 @@
 \input{abstract}
 \end{abstract}
 
-% Computers & Fluids allows 1-7 keywords; multi-word keywords joined by "and"
-% or "of" are discouraged, so none are used here.
+% 1-7 keywords; multi-word keywords joined by "and" or "of" are discouraged, so
+% none are used here.
 \begin{keyword}
-surrogate CFD \sep aerodynamic benchmarks \sep baselines \sep
-neural operators \sep physics residuals \sep error estimation \sep
-RANS
+surrogate models \sep discretisation error \sep evaluation metrics \sep
+neural operators \sep solution verification \sep benchmarking \sep
+computational fluid dynamics
 \end{keyword}
 
 \end{frontmatter}

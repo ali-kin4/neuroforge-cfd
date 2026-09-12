@@ -51,16 +51,19 @@
 % do NOT load it again.
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue,
-  pdftitle={Neural CFD surrogates earn their keep in the first cell off the wall: a parameter-interpolation baseline and a covariate null for AirfRANS},
+  pdftitle={What a neural flow surrogate buys is near-wall representation, and the scoring measure decides the ranking},
   pdfauthor={Ali Jabbary, Kasra Ghanavati}}
 
 % \autoref names for amsthm environments (hyperref does not define these by default).
 \providecommand{\propositionautorefname}{Proposition}
 \providecommand{\theoremautorefname}{Theorem}
 
-% Theorem-like environments. We formalize ONLY the genuinely formal statements
-% (the Banach contraction and the conformal coverage guarantee under exchangeability).
-% Empirical findings (e.g. OOD coverage) stay in prose, with their caveats intact.
+% Theorem-like environments. The 2026-09-12 JOCS rebuild removed the trust layer,
+% so the manuscript currently declares no theorem or proposition (the Banach
+% contraction and the conformal coverage guarantee went with it, and are
+% preserved in sections/trust_layer_removed.tex). The environments are kept
+% declared because both removal files use them and because declaring an unused
+% amsthm environment is a no-op in the build.
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
 \newtheorem{proposition}{Proposition}

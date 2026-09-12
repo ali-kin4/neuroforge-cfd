@@ -1,29 +1,43 @@
 % Shared abstract prose. Included by BOTH neuroforge_cfd.tex (TMLR) and
 % neuroforge_cfd_elsevier.tex (elsarticle) so the two cannot drift.
-% Kept to the 250-word limit of the Computers & Fluids guide; the
+% Kept to the 250-word limit of the Journal of Computational Science guide; the
 % Keywords line is a separate Editorial Manager field and is not counted.
 % Hand count under scripts/check_submission.py's strip_tex semantics after the
-% 2026-09-12 measure-dependence revision: 246 words, four under the cap. Bare
-% numerals count as words; a bare "%" does not; "128^2" and "name---no" are one
-% token each; "$5.2$--$10.1\times$" is one token.
-Machine-learning CFD surrogates are far faster than solvers, but their gains are reported
-only against other learned models. Kernel interpolation over seven scalars from the
-AirfRANS case name---no network, no flow-field learning---gives $8.4\times$ lower
-volume-pressure error than a matched-budget Transolver on an area-uniform $128^2$ raster,
-and \textbf{no advantage on any channel} under the dataset's own node measure, which
-places $64\%$ of its mesh inside $0.05$ chord of the wall against $1.2\%$ of the raster's
-area. Re-weighting the identical predictions takes the pressure ratio to
-$\mathbf{0.44\times}$ and the streamwise-velocity ratio from $6.2\times$ against the
-interpolator to $86\times$; the ranking is a property of the weighting, which no published
-AirfRANS comparison states. The raster's own round-trip error at those nodes exceeds the
-surrogate's by $413\times$: the protocol cannot adjudicate near-wall skill at all. What it
-does resolve is where each method's error lives: outward from the wall the
-interpolation-to-Transolver error ratio on $u$ falls monotonically from $906\times$ to
-$0.31\times$, while $71.9\%$ of Transolver's own error lies beyond $0.5$ chord. A surrogate
-buys the first cell and the closure. The benchmark's primary metric cannot see that: a
-train-fit regression on the case name ranks official lift at $0.9821$ and drag at
-$0.9318$, above all four published lift entries---decisively for only two---and above every
-drag entry, three of four intervals spanning zero. Nor does the \texttt{reynolds} split
-test Reynolds generalisation: no test case has an in-range inlet velocity, yet a
-nondimensional interpolator degrades $3\%$ where a dimensional one degrades
-$5.2$--$10.1\times$.
+% 2026-09-12 JOCS rebuild: ~245 words. Bare numerals count as words; a bare "%"
+% does not; "128^2" and "channel---144" are one token each. VERIFY with
+% scripts/check_submission.py before filing -- the hand count is an estimate,
+% the script is the authority, and the margin here is only a few words.
+%
+% The covariate-null and `reynolds`-split sentences were removed rather than
+% shortened: that material is the spine of a separate paper and must not be
+% journal-published (docs/paper/sections/covariate_null_removed.tex).
+%
+% TWO SCOPE POINTS ARE DELIBERATE AND MUST NOT BE COMPRESSED AWAY.
+% (1) The 344x oracle is 200 cases; the 21x least-squares family bound is a
+%     THREE-CASE probe (results/interpolation/point_space_oracle_ls.json,
+%     meta.n_ls = 3). The sentence names the probe so the smaller number cannot
+%     inherit the sample size of the 200-case figures beside it.
+% (2) The band separation is monotone on the GRID ladder (D2 CONFIRMED, 0
+%     inversions) and NOT monotone at the native nodes (P2 PARTIAL, 2
+%     inversions, the far-field u entry reversing). The abstract therefore
+%     claims agreement in SIZE and names the one disagreement, and the word
+%     "monotonically" is not used.
+Machine-learning surrogates for simulation are almost universally scored by resampling
+their predictions onto a uniform grid. We measure what that resampling costs. On a standard
+external-aerodynamics benchmark, kernel interpolation over seven scalars parsed from the
+case name---no network, no flow-field learning---gives $8.4\times$ lower volume-pressure
+error than a matched-budget Transolver on an area-uniform $128^2$ raster. Re-weighting the
+identical predictions by the dataset's own node measure takes that ratio to $0.44\times$,
+and scoring per node on the native cloud with no rasterisation anywhere takes it to
+$0.21\times$: one pair of predictions, three defensible measures, and the ranking reverses.
+At native resolution the interpolator loses on \textbf{every} channel---$144\times$ on
+streamwise velocity, $134\times$ on cross-stream velocity, $4.9\times$ on pressure---and an
+oracle shown the test answer, allowed the single best of all $800$ training fields, is
+$344\times$ worse inside the first $0.005$ chord, where a three-case probe of the exact
+least-squares bound over the whole family still gives $21\times$. The gap at the wall is
+representational, not a tuning deficit. The raster cannot adjudicate it for anyone: its own
+round-trip error at those nodes exceeds the surrogate's by $413\times$ pooled and
+$495\times$ near the wall. What both measures do resolve is where each method's error
+lives: three orders of magnitude of separation from the wall outward, agreeing in size and
+differing only in the far-field sign on one channel. A neural surrogate earns the boundary
+layer, and the protocol that reports it cannot see there.

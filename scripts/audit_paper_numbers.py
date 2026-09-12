@@ -716,6 +716,135 @@ def ma_sens_worst(root, chan, which):
     return float(min(vals) if which == "min" else max(vals))
 
 
+# ---- the native-resolution head-to-head (scripts/point_space_headtohead.py) --
+# Rules P1-P4 were committed in a54cb75 before any number existed; amendment 1
+# (4ba4dba) raised a GATE tolerance only and amendment 2 added the least-squares
+# stage as a supplementary diagnostic with no threshold of its own.
+#
+# ARM DISCIPLINE, stated here because it is the one place this file could silently
+# drift. P1 selects the better of the two in-body conventions per channel on the
+# POOLED value, and chose "nearfill" on all four. Every native-resolution number
+# in the manuscript -- the aggregate, the band ladder and the wall row -- is read
+# off that same arm. docs/paper/review/point_space_headtohead.md Sec.4 prints a
+# wall row computed from the OTHER arm ("bridge": 4052x on u, 2823x on v); the
+# manuscript quotes the nearfill values (4060x, 2834x) that its own P1 selection
+# implies, and the rows below check the manuscript against the arm it declares.
+PS_BANDS8 = ["wall", "0-0.005c", "0.005-0.01c", "0.01-0.02c", "0.02-0.05c",
+             "0.05-0.15c", "0.15-0.5c", ">0.5c"]
+PS_BANDS7 = PS_BANDS8[1:]
+
+
+def ps(root):
+    return load(os.path.join(
+        root, "results/interpolation/point_space_headtohead.json"))
+
+
+def ps_ls(root):
+    return load(os.path.join(
+        root, "results/interpolation/point_space_oracle_ls.json"))
+
+
+def ps_ratio(root, chan):
+    """P1: per-node MSE ratio interp/Transolver on the native cloud."""
+    d = ps(root)
+    return None if d is None else float(d["P1"]["R_per_channel"][chan])
+
+
+def ps_std_ratio(root):
+    d = ps(root)
+    if d is None:
+        return None
+    return float(d["P1"]["standardised_mean_uvp"]["ratio_interp_over_transolver"])
+
+
+def ps_pooled(root, arm, chan):
+    """Pooled per-node MSE over all 35.8M native nodes, full cloud."""
+    d = ps(root)
+    return None if d is None else float(d["tables"][arm]["full"][chan]["pooled"])
+
+
+def ps_memo(root, which, chan):
+    """The two memo rows of tab:native, in-crop pooled (clamp-free region)."""
+    d = ps(root)
+    return None if d is None else float(d["r128_resample"][which][chan]["pooled"])
+
+
+def ps_memo_cost(root, chan):
+    """What the grid protocol cost the INTERPOLATOR: r128-resampled / native."""
+    a = ps_memo(root, "interp_r128_resample", chan)
+    d = ps(root)
+    if a is None or d is None:
+        return None
+    b = float(d["tables"]["interp_nearfill"]["in_crop"][chan]["pooled"])
+    return float(a / b)
+
+
+def ps_band_u(root, band):
+    """P2: the native-node band ratio on u, over BANDS7 (no wall row)."""
+    d = ps(root)
+    return None if d is None else float(d["P2"]["r_b_u"][PS_BANDS7.index(band)])
+
+
+def ps_wall_ratio(root, chan):
+    """The wall row (sdf = 0), which the seven-band grid cannot represent."""
+    d = ps(root)
+    if d is None:
+        return None
+    i = PS_BANDS8.index("wall")
+    num = d["tables"]["interp_nearfill"]["full"][chan]["band"][i]
+    den = d["tables"]["transolver_mean"]["full"][chan]["band"][i]
+    return float(num / den)
+
+
+def ps_band_ratio(root, chan, band):
+    """Native-node band ratio on any channel, same arm as P1 selected."""
+    d = ps(root)
+    if d is None:
+        return None
+    i = PS_BANDS8.index(band)
+    num = d["tables"]["interp_nearfill"]["full"][chan]["band"][i]
+    den = d["tables"]["transolver_mean"]["full"][chan]["band"][i]
+    return float(num / den)
+
+
+def ps_wins(root, chan):
+    d = ps(root)
+    return None if d is None else float(d["paired_sign_test"][chan]
+                                        ["transolver_better_cases"])
+
+
+def ps_oracle_Q(root):
+    """P3: best SINGLE training field, chosen knowing the answer, over the
+    surrogate, on u inside 0.005c. 200 cases."""
+    d = ps(root)
+    return None if d is None else float(d["P3"]["Q_0_0.005c"])
+
+
+def ps_ls_ratio(root):
+    """Amendment 2: the unconstrained least-squares projection of the TRUE field
+    onto the span of all 800 transferred training fields -- a genuine lower bound
+    for ANY weighting of that family -- over the surrogate, on u inside 0.005c.
+
+    SCOPE, and the manuscript states it inline: n_ls = 3 cases, channel u, the one
+    band whose node count (73-82k) far exceeds the 800 free parameters of the
+    projection. It does NOT inherit the 200-case sample size of ps_oracle_Q.
+    """
+    d = ps_ls(root)
+    return None if d is None else float(d["P3_LS"]["ratio"])
+
+
+def ps_ls_ncases(root):
+    d = ps_ls(root)
+    return None if d is None else float(d["meta"]["n_ls"])
+
+
+def ps_geom_mismatch(root, key, band="0-0.005c"):
+    d = ps(root)
+    if d is None:
+        return None
+    return float(d["diagnostics"][key][PS_BANDS8.index(band)])
+
+
 # ---- the claim table --------------------------------------------------------
 # (label, reader, manuscript value, absolute tolerance)
 CLAIMS = [
@@ -739,52 +868,135 @@ CLAIMS = [
     ("residual-chosen iterate worse, perturbed",
      lambda r: descent_selection_worse(r, "perturbed_residual"), 24, 0.5),
     ("perturbed cases where descent helped", descent_perturbed_helped, 18, 0.5),
-    ("audit cost, median ms", audit_cost_median, 1.13, 0.02),
-    ("deployed solve, median ms", deployed_solve_median, 3822.0, 2.0),
     # sec:residual states this as the range 3.5-4.8%; the reader returns the mean
     # over cases and rungs, which must sit inside it.
     ("omitted term as % of floor (paper: 3.5-4.8)",
      decomp_omitted_fraction, 4.2, 1.0),
     ("largest shift from repairing the operator (%)", decomp_repaired_shift,
      0.18, 0.05),
-    # --- the concessions. These are the rows a referee checks, and the ones
-    # most likely to drift, because they came from a separate analysis pass.
-    ("C1 residual AUROC on field error",
-     lambda r: c1(r, "residual/auroc"), 0.871, 0.001),
-    ("C1 physics-free sigma AUROC",
-     lambda r: c1(r, "sigma_vel/auroc"), 0.894, 0.001),
-    ("C1 fused AUROC",
-     lambda r: c1(r, "fused/auroc"), 0.905, 0.001),
-    ("C1 sigma minus residual, delta AUROC",
-     lambda r: c1(r, "sigma_vel_minus_residual/delta_auroc"), 0.023, 0.001),
-    ("C2 raw rank correlation",
-     lambda r: c2(r, "rho_raw"), 0.610, 0.001),
-    ("C2 partial correlation given the floor",
-     lambda r: c2(r, "rho_partial_given_normtruth"), 0.561, 0.001),
-    ("C2 fraction of the association surviving (%)",
-     lambda r: 100 * c2(r, "fraction_of_rho_surviving"), 92.0, 0.5),
-    ("C3 ungated raises residual, DEPLOYED path (%)",
-     lambda r: c3_ungated(r, "deployed"), 1.0, 0.1),
-    ("C3 ungated raises residual, ensemble path (%)",
-     lambda r: c3_ungated(r, "ensemble"), 8.8, 0.1),
-    ("C3 ungated half-step median error improvement, DEPLOYED (%)",
-     lambda r: -100.0 * review(r, "control3_fixed_step.json")["pooled"]
-     ["deployed_backbone_DEQ"]["policies"]["fixed_0.5"]["median_err_rel_change"], 6.2, 0.1),
-    ("C3 gate median error improvement, DEPLOYED (%)",
-     lambda r: -100.0 * review(r, "control3_fixed_step.json")["pooled"]
-     ["deployed_backbone_DEQ"]["policies"]["gate"]["median_err_rel_change"], 5.8, 0.1),
-    ("C4 residual AUROC on drag error",
-     c4_drag_auroc, 0.952, 0.001),
-    # The 86% floor-share of a typical score and the 2.5-7.0% Transolver inversion
-    # rate were quoted only by the Related Work paragraph and the theorem section
-    # that the 2026-09-11 compaction pass removed. Rows deleted rather than dangling.
-    ("conformal bound width, min (x the error)",
-     lambda r: bound_over_error(r, "min"), 6.5, 0.05),
-    ("conformal bound width, max (x the error)",
-     lambda r: bound_over_error(r, "max"), 7.9, 0.05),
-    ("conformal coverage at a 0.90 target",
-     conformal_coverage, 0.90, 0.005),
-    # --- sec:interp, the headline. Every cell of tab:interp that the prose
+    # ------------------------------------------------------------------------
+    # REMOVED 2026-09-12 by the JOCS rebuild, rather than left dangling:
+    #
+    #   audit cost / deployed solve (1.13 ms, 3822 ms)   -- sec:cost
+    #   C1 x4, C2 x3, C3 x4, C4  (AUROCs, the gate)      -- sec:selective
+    #   conformal bound width min/max, coverage           -- sec:conformal
+    #
+    # All of that material moved to docs/paper/sections/trust_layer_removed.tex
+    # for the companion trust-layer paper, which should reinstate these rows.
+    # The readers (audit_cost_median, deployed_solve_median, c1, c2, c3_ungated,
+    # c4_drag_auroc, bound_over_error, conformal_coverage) are RETAINED and
+    # unreferenced, on the same convention as the 2026-09-11 pass, so that paper
+    # does not have to re-derive the key paths.
+    #
+    #   case-name null x6, two-parameter null, in-sample optimism x2,
+    #   entries below the lift/drag null, published entries carrying a lift
+    #   number, drag intervals spanning zero                -- sec:covariate
+    #   reynolds containment / mse_u / mse_p / nd-vs-raw x2,
+    #   aoa C_l and C_d relative error                      -- sec:splits
+    #
+    # That block is the spine of the five-benchmark NullBench paper and must not
+    # be journal-published here; it is preserved in
+    # docs/paper/sections/covariate_null_removed.tex. Its readers are likewise
+    # retained unreferenced.
+    # ------------------------------------------------------------------------
+    # --- tab:native. The head-to-head at native resolution, no raster in the
+    # comparison path. Rules P1-P4 committed in a54cb75 before any number
+    # existed. This is the manuscript's lead result, so every cell of the table
+    # and every ratio the prose quotes is checked, including the two memo rows
+    # that answer "you crippled the baseline".
+    ("native: interp/Transolver on mse_u (per node)",
+     lambda r: ps_ratio(r, "u"), 144.2, 0.1),
+    ("native: interp/Transolver on mse_v (per node)",
+     lambda r: ps_ratio(r, "v"), 133.9, 0.1),
+    ("native: interp/Transolver on mse_p (per node)",
+     lambda r: ps_ratio(r, "p"), 4.85, 0.01),
+    ("native: interp/Transolver on mse_nut (per node)",
+     lambda r: ps_ratio(r, "nut"), 18.3, 0.05),
+    ("native: standardised mean over u,v,p (x against interp)",
+     ps_std_ratio, 24.7, 0.05),
+    ("native: interp mse_u", lambda r: ps_pooled(r, "interp_nearfill", "u"),
+     93.11, 0.01),
+    ("native: interp mse_v", lambda r: ps_pooled(r, "interp_nearfill", "v"),
+     66.52, 0.01),
+    ("native: interp mse_p", lambda r: ps_pooled(r, "interp_nearfill", "p"),
+     41740.0, 2.0),
+    ("native: Transolver mse_u", lambda r: ps_pooled(r, "transolver_mean", "u"),
+     0.6458, 0.0002),
+    ("native: Transolver mse_v", lambda r: ps_pooled(r, "transolver_mean", "v"),
+     0.4968, 0.0002),
+    ("native: Transolver mse_p", lambda r: ps_pooled(r, "transolver_mean", "p"),
+     8605.0, 1.0),
+    # The in-body convention P1 chose (nearfill) beats the alternative (bridge)
+    # on mse_p by 41740 vs 58020, which the manuscript reports as a 28% gift to
+    # the interpolator that does not change the verdict.
+    ("native: the in-body convention NOT chosen, on mse_p",
+     lambda r: ps_pooled(r, "interp_bridge", "p"), 58020.0, 5.0),
+    ("native: Transolver wins on u (of 200 cases)",
+     lambda r: ps_wins(r, "u"), 200, 0.5),
+    ("native: Transolver wins on v (of 200 cases)",
+     lambda r: ps_wins(r, "v"), 200, 0.5),
+    ("native: Transolver wins on p (of 200 cases)",
+     lambda r: ps_wins(r, "p"), 142, 0.5),
+    ("native: Transolver wins on nu_t (of 200 cases)",
+     lambda r: ps_wins(r, "nut"), 200, 0.5),
+    # tab:native memo rows -- the control that kills "you crippled the baseline".
+    ("memo: published r128 interp resampled at the nodes, u",
+     lambda r: ps_memo(r, "interp_r128_resample", "u"), 400.2, 0.2),
+    ("memo: published r128 interp resampled at the nodes, v",
+     lambda r: ps_memo(r, "interp_r128_resample", "v"), 189.7, 0.2),
+    ("memo: published r128 interp resampled at the nodes, p",
+     lambda r: ps_memo(r, "interp_r128_resample", "p"), 3.058e6, 2000.0),
+    ("memo: the r128 raster's own round-trip error at the nodes, u",
+     lambda r: ps_memo(r, "r128_ceiling", "u"), 281.5, 0.2),
+    ("memo: the r128 raster's own round-trip error at the nodes, v",
+     lambda r: ps_memo(r, "r128_ceiling", "v"), 272.6, 0.2),
+    ("memo: the r128 raster's own round-trip error at the nodes, p",
+     lambda r: ps_memo(r, "r128_ceiling", "p"), 3.012e6, 2000.0),
+    ("what the grid protocol cost the INTERPOLATOR on u (x)",
+     lambda r: ps_memo_cost(r, "u"), 4.1, 0.05),
+    ("what the grid protocol cost the INTERPOLATOR on p (x)",
+     lambda r: ps_memo_cost(r, "p"), 69.9, 0.5),
+    # --- P2: the native band ladder, and the far-field u entry that DISAGREES
+    # with the grid ladder. The manuscript reports both verdicts by name.
+    ("P2 native: band ratio on u, 0-0.005c",
+     lambda r: ps_band_u(r, "0-0.005c"), 173.0, 0.1),
+    ("P2 native: band ratio on u, >0.5c (grid says 0.312; they disagree)",
+     lambda r: ps_band_u(r, ">0.5c"), 3.79, 0.01),
+    ("P2 native: span S on u", lambda r: ps(r)["P2"]["S"], 45.6, 0.1),
+    ("P2 native: inversions (2 -> PARTIAL, against CONFIRMED on the grid)",
+     lambda r: ps(r)["P2"]["n_inversions"], 2, 0.5),
+    ("native: band ratio on v, 0-0.005c",
+     lambda r: ps_band_ratio(r, "v", "0-0.005c"), 167.2, 0.2),
+    ("native: band ratio on p, 0-0.005c",
+     lambda r: ps_band_ratio(r, "p", "0-0.005c"), 5.42, 0.01),
+    ("native: interp wins v beyond 0.5c by (x)",
+     lambda r: 1.0 / ps_band_ratio(r, "v", ">0.5c"), 17.7, 0.1),
+    ("native: interp wins p beyond 0.5c by (x)",
+     lambda r: 1.0 / ps_band_ratio(r, "p", ">0.5c"), 265.0, 1.0),
+    # The wall row (sdf = 0), which the seven-band grid cannot represent at all.
+    # Read on the SAME arm P1 selected -- see the ARM DISCIPLINE note above.
+    ("native wall row: u", lambda r: ps_wall_ratio(r, "u"), 4060.0, 3.0),
+    ("native wall row: v", lambda r: ps_wall_ratio(r, "v"), 2834.0, 3.0),
+    ("native wall row: p", lambda r: ps_wall_ratio(r, "p"), 1.51, 0.01),
+    ("native wall row: nu_t", lambda r: ps_wall_ratio(r, "nut"), 382.0, 1.0),
+    # --- P3 and amendment 2: the two bounds that close the "then re-tune it"
+    # escape. NOTE the sample sizes differ and the manuscript says so inline.
+    ("P3 oracle: best SINGLE training field over Transolver, u, 0-0.005c (200 cases)",
+     ps_oracle_Q, 343.6, 0.2),
+    ("P3-LS: least-squares bound over the span of all 800 fields (3 cases)",
+     ps_ls_ratio, 21.3, 0.05),
+    ("P3-LS: the sample size that bound is computed on",
+     ps_ls_ncases, 3, 0.5),
+    # The mechanism, measured rather than argued (sec:interp).
+    ("geometry mismatch inside 0.005c (x further than d_t)",
+     lambda r: ps_geom_mismatch(r, "geom_mismatch_over_dt"), 7.8, 0.05),
+    ("weight mass landing INSIDE a training body, inside 0.005c",
+     lambda r: ps_geom_mismatch(r, "w_frac_inside_body"), 0.354, 0.002),
+    ("largest weight mass outside any training hull, any band",
+     lambda r: max(ps(r)["diagnostics"]["w_frac_outside_hull"]), 0.00094, 0.00002),
+    ("node fraction inside 0.005c, full cloud",
+     lambda r: ps_geom_mismatch(r, "node_frac_per_band"), 0.4096, 0.0005),
+    # --- sec:interp, the grid comparison. Every cell of tab:interp that the prose
     # quotes, plus the two standardised means that must always travel together.
     ("interp mse_u", lambda r: interp_metric(r, "mse_u"), 0.782, 0.001),
     ("interp mse_v", lambda r: interp_metric(r, "mse_v"), 0.0336, 0.0001),
@@ -985,51 +1197,12 @@ CLAIMS = [
      lambda r: interp_forces(r, "interp_cd_vs_official"), 0.8389, 0.0005),
     ("exact-truth-field rho_Cd vs official labels",
      lambda r: interp_forces(r, "gt_field_cd_vs_official"), 0.8394, 0.0005),
-    # --- sec:splits.
-    ("reynolds: frac of test U inside train range",
-     lambda r: interp_containment(r, "reynolds"), 0.0, 1e-9),
-    ("reynolds mse_u, nondimensional",
-     lambda r: interp_metric(r, "mse_u", "reynolds"), 0.808, 0.002),
-    ("reynolds mse_p, nondimensional",
-     lambda r: interp_metric(r, "mse_p", "reynolds"), 74.1, 0.1),
-    ("reynolds: dimensional/nondimensional on mse_u",
-     lambda r: interp_ood_ratio(r, "reynolds", "mse_u"), 5.2, 0.05),
-    ("reynolds: dimensional/nondimensional on mse_p",
-     lambda r: interp_ood_ratio(r, "reynolds", "mse_p"), 10.1, 0.05),
-    ("aoa C_l rel err (%)",
-     lambda r: 100 * interp_metric(r, "cl_rel_err_mean", "aoa"), 23.06, 0.02),
-    ("aoa C_d rel err (%)",
-     lambda r: 100 * interp_metric(r, "cd_rel_err_mean", "aoa"), 2.71, 0.02),
-    # --- sec:covariate, the case-name null.
-    ("case-name null, official lift",
-     lambda r: covariate_trainfit(r, "cl"), 0.9821, 0.0002),
-    ("case-name null, official lift, CI lo",
-     lambda r: covariate_trainfit(r, "cl", "lo"), 0.9737, 0.0002),
-    ("case-name null, official lift, CI hi",
-     lambda r: covariate_trainfit(r, "cl", "hi"), 0.9866, 0.0002),
-    ("case-name null, official drag",
-     lambda r: covariate_trainfit(r, "cd"), 0.9318, 0.0002),
-    ("case-name null, official drag, CI lo",
-     lambda r: covariate_trainfit(r, "cd", "lo"), 0.8981, 0.0002),
-    ("case-name null, official drag, CI hi",
-     lambda r: covariate_trainfit(r, "cd", "hi"), 0.9531, 0.0002),
-    ("two-parameter null on lift (NOT sufficient)",
-     lambda r: covariate_trainfit_2param(r, "cl"), 0.9344, 0.0002),
-    ("in-sample optimism, min", lambda r: covariate_inflation(r, "min"),
-     0.0008, 0.0001),
-    ("in-sample optimism, max", lambda r: covariate_inflation(r, "max"),
-     0.0035, 0.0001),
-    ("AirfRANS-paper entries below the lift null",
-     lambda r: covariate_below_null(r, "cl"), 4, 0.5),
-    ("AirfRANS-paper entries below the drag null",
-     lambda r: covariate_below_null(r, "cd"), 4, 0.5),
-    # The denominator of "four of five" on lift: the four AirfRANS-paper baselines
-    # plus Transolver, which clears at 0.9978. Transolver reports no drag column,
-    # so the manuscript says "every AirfRANS-paper entry" on drag, not "four of five".
-    ("published entries carrying a lift number",
-     lambda r: covariate_entries_scored(r, "cl"), 5, 0.5),
-    ("published drag intervals that span zero at +-1 seed std",
-     covariate_drag_spans_zero, 3, 0.5),
+    # The sec:splits and sec:covariate rows that stood here were removed by the
+    # 2026-09-12 JOCS rebuild together with the sections that quoted them; see the
+    # block comment above for the full list and where the text is preserved. The
+    # two rows immediately above are KEPT: sec:forces still quotes 0.8389/0.8394
+    # as a representation statement (the interpolated field and the exact field
+    # are indistinguishable to this integrator), which is not a covariate claim.
 ]
 
 

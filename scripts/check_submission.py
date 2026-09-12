@@ -1,19 +1,26 @@
-"""Verify the mechanical submission requirements Computers & Fluids imposes.
+"""Verify the mechanical submission requirements the target journal imposes.
 
-Every rule below was read off the journal's own Guide for Authors and open-access
-page on 2026-09-07 (fetched in-browser; ScienceDirect returns 403 to plain HTTP
-clients, which is why an earlier check had to work from search extraction).
+TARGET VENUE, changed 2026-09-12: the Journal of Computational Science
+(Elsevier, IF 4.0, hybrid with a free subscription route, single anonymized).
+Computers & Fluids was withdrawn on an editorial conflict -- an author of the
+benchmark this paper audits is editorially active there -- which is recorded in
+docs/paper/review/journal_shortlist.md Sec. 4.
 
     abstract    <= 250 words
     keywords    1-7, and the guide discourages multi-word keywords joined by
                 "and" or "of"
     highlights  3-5 bullets, each <= 85 characters INCLUDING spaces, in a
                 separate file with "highlights" in its name
+    manuscript  <= 12,000 words for a full-length article
 
-Notably absent from that guide: any manuscript length or page limit. That was
-the open question when the venue was chosen -- the manuscript is ~14,700 words,
-which would have been disqualifying at a venue with a 13,000-word cap -- and
-there is no such cap here.
+THE LENGTH RULE IS NEW AND IT BINDS. Computers & Fluids set no length limit, so
+this script never measured the body; JOCS caps a full-length article at 12,000
+words, and the pre-rebuild manuscript was ~14,700. The body count below is
+therefore a go/no-go, not a diagnostic. It is measured with the same strip_tex
+semantics as the abstract, over abstract.tex + body.tex, which is the prose the
+journal counts; LaTeX scaffolding (tabular rules, \\begin/\\end) contributes
+almost nothing under those semantics, but table CELLS and captions do count,
+which is the conservative direction.
 
 Usage
 -----
@@ -31,6 +38,7 @@ ABSTRACT_MAX_WORDS = 250
 KEYWORDS_MIN, KEYWORDS_MAX = 1, 7
 HIGHLIGHT_MAX_CHARS = 85
 HIGHLIGHTS_MIN, HIGHLIGHTS_MAX = 3, 5
+MANUSCRIPT_MAX_WORDS = 12000
 
 
 def strip_tex(text: str) -> str:
@@ -54,6 +62,26 @@ def check_abstract(root: str, fails: list[str]) -> None:
           f"{'OK' if ok else 'OVER'}")
     if not ok:
         fails.append(f"abstract is {n} words, limit {ABSTRACT_MAX_WORDS}")
+
+
+def check_manuscript_length(root: str, fails: list[str]) -> None:
+    """Count the prose the journal counts: the abstract plus the shared body.
+
+    Both build wrappers \\input the same two files, so this is venue-independent
+    and cannot drift between the TMLR and the Elsevier build.
+    """
+    total = 0
+    for name in ("abstract.tex", "body.tex"):
+        path = os.path.join(root, "docs", "paper", name)
+        n = count_words(open(path, encoding="utf-8").read())
+        print(f"    {name:<14} {n:>6} words")
+        total += n
+    ok = total <= MANUSCRIPT_MAX_WORDS
+    print(f"  manuscript  {total:>6} words  (limit {MANUSCRIPT_MAX_WORDS})  "
+          f"{'OK' if ok else 'OVER'}")
+    if not ok:
+        fails.append(f"manuscript is {total} words, limit "
+                     f"{MANUSCRIPT_MAX_WORDS} -- this is a go/no-go for JOCS")
 
 
 def check_keywords(root: str, fails: list[str]) -> None:
@@ -103,14 +131,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--root", default=".")
     args = ap.parse_args(argv)
 
-    print("Computers & Fluids submission requirements "
-          "(guide read 2026-09-07)\n")
+    print("Journal of Computational Science submission requirements\n")
     fails: list[str] = []
     check_abstract(args.root, fails)
+    check_manuscript_length(args.root, fails)
     check_keywords(args.root, fails)
     check_highlights(args.root, fails)
 
-    print("\nno manuscript length or page limit is set by this journal's guide.")
+    print("\nthe 12,000-word cap is the binding constraint at this venue; the "
+          "count above\nis measured, not estimated.")
     if fails:
         print(f"\n{len(fails)} problem(s):")
         for f in fails:

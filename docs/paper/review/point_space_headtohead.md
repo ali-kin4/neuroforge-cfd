@@ -332,6 +332,24 @@ surface nodes, where lift and drag are integrated — Transolver is **4052x** be
 $\mathrm{Var}_{\text{train}}(p) = 135\,590$, which is worth saying plainly next to any
 force-coefficient claim made by either method.
 
+> **Correction to this row, recorded rather than silently applied (2026-09-12).**
+> **The `u` and `v` entries above are the `bridge` arm; every other number in this
+> document, including §0's headline and §4's seven-band table, is the `nearfill` arm that
+> **P1** selected.** Checked against `point_space_headtohead.json`:
+> `interp_bridge.full.u.band[0] = 670.123` over
+> `transolver_mean.full.u.band[0] = 0.1653776` gives **4052.1**; the `nearfill` value is
+> `671.454 / 0.1653776 =` **4060.1**. On `v`: bridge `712.788 / 0.252526 =` **2822.8**;
+> nearfill `715.598 / 0.252526 =` **2833.9**. The `p` entry (1.50x, 149 200 against
+> 99 227) and the `nut` entry (382x) were already `nearfill`, so this row mixes arms.
+>
+> **The manuscript quotes the `nearfill` values — 4060x, 2834x, 1.51x, 382x** — because
+> that is the arm `P1` selects on the pooled value for all four channels, the arm `P2`'s
+> band ladder uses, and the arm the paper declares it uses. `scripts/audit_paper_numbers.py`
+> carries an explicit ARM DISCIPLINE note and four `native wall row` claim rows so the
+> choice cannot drift back. **No verdict changes**: the wall band is not read by `P1`,
+> `P2` or `P3`, and both arms give the same conclusion at the surface by three orders of
+> magnitude.
+
 ---
 
 ## 5. Verdict against each pre-registered rule

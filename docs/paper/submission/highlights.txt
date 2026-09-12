@@ -1,12 +1,16 @@
 Highlights
 
-Computers & Fluids requires 3-5 bullets, each at most 85 characters including
-spaces, submitted as a separate editable file with "highlights" in the filename.
-All five below are within the limit; character counts are verified by
-scripts/check_submission.py.
+The Journal of Computational Science encourages 3-5 bullets, each at most 85
+characters including spaces, submitted as a separate editable file with
+"highlights" in the filename. All five below are within the limit; character
+counts are verified by scripts/check_submission.py.
 
+The 2026-09-12 rebuild replaced bullet 5 (the case-name force-rank null), which
+moved to the companion NullBench paper, with the native-resolution result that is
+now the manuscript's lead claim.
+
+- At native resolution a surrogate beats parameter interpolation 144x on velocity
+- An oracle over all 800 training fields is still 21x worse in the first 0.005c
 - The AirfRANS field ranking flips with the cell weighting: 8.4x to 0.44x on pressure
 - 64% of AirfRANS nodes sit inside 0.05 chord, which is 1.2% of the raster's area
 - The raster's own round-trip error exceeds the surrogate's per-node error 413x
-- Interpolation-to-Transolver error on u falls 906x to 0.31x from wall to far field
-- Every published AirfRANS drag rank falls below a regression on the case name
