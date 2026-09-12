@@ -418,7 +418,8 @@ def run_chunk(args: tuple) -> dict:
     from scipy.interpolate import LinearNDInterpolator
     from scipy.spatial import Delaunay, cKDTree
 
-    (scratch, test_names, train_names, Wsub, return_pred, kd_workers, tag) = args
+    (scratch, test_names, train_names, Wsub, return_pred, kd_workers, tag,
+     ckpt_path, ckpt_every) = args
 
     nt = len(test_names)
     T = [load_test_case(scratch, nm) for nm in test_names]
@@ -435,8 +436,43 @@ def run_chunk(args: tuple) -> dict:
     gm_sum = [np.zeros(NB) for _ in T]     # |W|-weighted sum of |d_j - d_t|
     gm_dt = [np.zeros(NB) for _ in T]      # |W|-weighted sum of d_t
 
+    # ---- resume from checkpoint if one exists (the run is long; the box loses
+    # ---- power without warning and the harness can stop a background job) ----
+    j0 = 0
+    if ckpt_path and os.path.exists(ckpt_path):
+        z = np.load(ckpt_path, allow_pickle=False)
+        j0 = int(z["j_done"])
+        off = np.cumsum([0] + [t[0].shape[0] for t in T])
+        A, Anf = z["accum"], z["accum_nf"]
+        for ti in range(nt):
+            accum[ti][:] = A[off[ti]:off[ti + 1]]
+            accum_nf[ti][:] = Anf[off[ti]:off[ti + 1]]
+            ora_se[ti][:] = z["ora_se"][ti]
+            ora_arg[ti][:] = z["ora_arg"][ti]
+            w_out[ti][:] = z["w_out"][ti]
+            w_in[ti][:] = z["w_in"][ti]
+            w_tot[ti][:] = z["w_tot"][ti]
+            gm_sum[ti][:] = z["gm_sum"][ti]
+            gm_dt[ti][:] = z["gm_dt"][ti]
+        log(f"[{tag}] resumed from {ckpt_path} at train {j0}/{len(train_names)}")
+
+    def _save_ckpt(j_done: int) -> None:
+        if not ckpt_path:
+            return
+        os.makedirs(os.path.dirname(ckpt_path), exist_ok=True)
+        tmp = ckpt_path + ".tmp.npz"
+        np.savez(tmp, j_done=np.int64(j_done),
+                 accum=np.concatenate(accum, axis=0),
+                 accum_nf=np.concatenate(accum_nf, axis=0),
+                 ora_se=np.stack(ora_se), ora_arg=np.stack(ora_arg),
+                 w_out=np.stack(w_out), w_in=np.stack(w_in), w_tot=np.stack(w_tot),
+                 gm_sum=np.stack(gm_sum), gm_dt=np.stack(gm_dt))
+        os.replace(tmp, ckpt_path)
+
     t_start = time.time()
     for jj, jname in enumerate(train_names):
+        if jj < j0:
+            continue
         pos_j, yhat_j, apos_j, anrm_j = load_train_case(scratch, jname)
         tri = Delaunay(pos_j)
         lin = LinearNDInterpolator(tri, yhat_j, fill_value=np.nan)
@@ -493,8 +529,12 @@ def run_chunk(args: tuple) -> dict:
 
         if (jj + 1) % 25 == 0:
             el = time.time() - t_start
+            done = jj + 1 - j0
             log(f"[{tag}] train {jj+1}/{len(train_names)}  {el:.0f}s "
-                f"({el/(jj+1):.2f}s/train, {el/(jj+1)/max(nt,1):.3f}s/train/test)")
+                f"({el/max(done,1):.2f}s/train, {el/max(done,1)/max(nt,1):.3f}s/train/test)")
+        if ckpt_every and (jj + 1) % ckpt_every == 0:
+            _save_ckpt(jj + 1)
+            log(f"[{tag}] checkpoint at train {jj+1}")
 
     # ---- finalise ---------------------------------------------------------
     out: dict = {"test_names": list(test_names), "per_case": [], "acc": {}}
@@ -631,7 +671,7 @@ def stage_pilot(a) -> dict:
     bounds = np.linspace(0, ntr, a.n_proc + 1).astype(int)
     chunks = [(a.scratch, pte, names_tr[bounds[k]:bounds[k + 1]],
                W[np.ix_(idx, np.arange(bounds[k], bounds[k + 1]))],
-               True, a.kd_workers, f"pilot{k}")
+               True, a.kd_workers, f"pilot{k}", None, 0)
               for k in range(a.n_proc) if bounds[k + 1] > bounds[k]]
     t0 = time.time()
     outs = _dispatch(chunks, a.n_proc, "pilot")
@@ -710,7 +750,9 @@ def stage_interp(a) -> dict:
     off = 0
     for k, p in enumerate(parts):
         idx = np.arange(off, off + len(p))
-        chunks.append((a.scratch, p, names_tr, W[idx, :], False, a.kd_workers, f"w{k}"))
+        chunks.append((a.scratch, p, names_tr, W[idx, :], False, a.kd_workers, f"w{k}",
+                       os.path.join(a.scratch, "ckpt", f"w{k}_{a.n_proc}.npz"),
+                       a.ckpt_every))
         off += len(p)
     t0 = time.time()
     outs = _dispatch(chunks, a.n_proc, "interp")
@@ -1076,6 +1118,8 @@ def main(argv=None) -> int:
     p.add_argument("--n-pilot", type=int, default=3)
     p.add_argument("--n-proc", type=int, default=8)
     p.add_argument("--kd-workers", type=int, default=2)
+    p.add_argument("--ckpt-every", type=int, default=25,
+                   help="checkpoint each worker every N train cases (0 disables)")
     p.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
     p.add_argument("--device", default="auto")
     p.add_argument("--data-root", default=os.path.join("data", "Dataset"))
