@@ -35,17 +35,25 @@ moved; the rule was committed before the number existed and it fires against us.
 
 "Weight by node count" admits more than one discretisation, so §4b re-derives the same
 ratio under four of them rather than quoting only the pre-registered one. The range on
-`mse_p` is **[0.43, 1.61]** against **8.39** area-uniform. **The result that is robust to
-the construction, and the one the paper should quote, is this:** under every node-measure
-construction the interpolator's aggregate advantage disappears — at best it keeps a
-$1.6\times$ edge on `p` while being $85\times$ worse on `u` and $6\times$ worse on `v`.
+`mse_p` is **[0.43, 1.61]** against **8.39** area-uniform — but the endpoints are not
+equally credible. The two faithful cell-level estimators ("sample the grid error field at
+each node, average over nodes", pooled or per-case) give **0.431** and **0.440**. The
+largest value any construction gives is **1.61**, and it comes from the one construction
+§4b documents as internally inconsistent (it pairs node masses with cell MSEs drawn from
+a different spatial set); the coarse but consistent band-level construction gives
+**1.10**. **No construction leaves the interpolator an aggregate win**: even at 1.61 on
+`p` it is $85\times$ worse on `u` and $6\times$ worse on `v`.
 
-**Every channel flips or widens against the interpolator**, on every seed:
+**Every channel the interpolator was winning flips, and the channel it was losing stays
+lost**, on every seed:
 
 | ratio (Transolver MSE / interpolation MSE; `>1` = interpolator better) | `u` | `v` | `p` | `nut` |
 |---|---:|---:|---:|---:|
 | area-uniform | 0.162 | **2.971** | **8.391** | 0.070 |
 | node-weighted | 0.012 | 0.066 | **0.440** | 0.108 |
+
+(`nut` is the one entry that neither flips nor widens: Transolver's lead narrows from
+$14.4\times$ to $9.2\times$. It was never a channel the interpolator won.)
 
 Under AirfRANS's own node measure the parameter interpolator **wins nothing**. The
 paper's standardised three-channel summary reverses with it: "the interpolator is
@@ -56,14 +64,15 @@ divisors, §4).
 per-band ratio of interpolation error to Transolver error on `u` runs **906x → 0.31x**
 monotonically from the first band to the far field — a span of **2905x** (D2:
 `CONFIRMED ON BOTH ARMS`). The two methods are accurate in different places, by three
-orders of magnitude, and *which one wins is decided entirely by where you look*. That
-is a larger and more publishable finding than "interpolation beats Transolver". It is
-also the one the manuscript can defend.
+orders of magnitude, and which one an aggregate field-MSE table declares the winner is
+decided by where you look.
 
 **What must change:** the abstract's lead number, the `mse_v`/`mse_p` win claims, and
-the standardised-mean claim. **What survives and strengthens:** the localisation thesis,
-the far-field claim, the data-efficiency ladder, the `reynolds` finding, the covariate
-null — and a new headline that is about the benchmark rather than about our baseline.
+the standardised-mean claim. **What this audit does not touch:** the localisation thesis
+(now measured on both arms instead of one), the far-field claim, the data-efficiency
+ladder, the `reynolds` finding and the covariate null — none of them is a cross-method
+aggregate field-MSE comparison. §7 proposes what should replace the headline; that is a
+recommendation, not a measurement.
 
 ---
 
@@ -190,6 +199,11 @@ On `u` the ratio is **monotone across all seven bands**, spanning `S = 2905x` fr
 innermost to the outermost (D2 rule: `S >= 10` with at most one inversion →
 **`CONFIRMED ON BOTH ARMS`**). The crossover is between 0.02–0.05c and 0.05–0.15c.
 
+Neither endpoint is a small sample. The `0-0.005c` band holds **4489 fluid cells per case
+× 200 cases = 897 800 cell-samples**; `>0.5c` holds **2 595 931**. The 906x is an average
+over nearly a million cell-samples, not over a handful of wall cells (`n_cells` is in the
+artifact for every band).
+
 > **The thesis "a learned surrogate earns its keep in the first cell off the wall" is
 > now measured on the surrogate, not inferred from the baseline.** Transolver is
 > **906x** more accurate than parameter interpolation inside 0.005c and **3.2x less**
@@ -294,6 +308,10 @@ Per-node squared error against the native AirfRANS targets, by band, over the in
 nodes. `r128 ceiling` is the *rasterised ground truth* resampled at those same nodes —
 i.e. the error the scoring representation itself commits, independent of any model.
 
+Read from the artifact's `D_node_space.mse_in_crop` block, **not** `mse_full`: outside the
+crop `_bilinear_sample` clamps query points to the domain boundary, so the outer bands of
+`mse_full` are clamp-contaminated and must not be quoted.
+
 | band | node frac | Transolver `u` @nodes | r128 ceiling `u` | ratio |
 |---|---:|---:|---:|---:|
 | 0–0.005c | 0.4322 | 1.158 | **572.8** | 0.0020 |
@@ -349,9 +367,10 @@ Proposed:
 > raster---and no advantage at all on any channel when the identical predictions are
 > re-weighted by AirfRANS's own node measure, which places $64\%$ of its mesh inside
 > $0.05$ chord of the wall against $1.2\%$ of the raster's area. Re-weighting alone takes
-> the pressure ratio from $8.4\times$ in the interpolator's favour to between
-> $0.43\times$ and $1.6\times$, and the streamwise-velocity ratio from $6\times$ against
-> it to $85$--$560\times$ against it. The benchmark's field-MSE ranking is
+> the pressure ratio from $8.4\times$ in the interpolator's favour to $0.44\times$
+> (at most $1.6\times$ under a coarser discretisation of that measure), and the
+> streamwise-velocity ratio from $6\times$ against it to $85$--$560\times$ against it.
+> The benchmark's field-MSE ranking is
 > not a property of the methods; it is a property of the weighting, and no published
 > AirfRANS comparison states which one it uses.
 
