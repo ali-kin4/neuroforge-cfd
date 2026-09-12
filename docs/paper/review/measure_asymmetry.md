@@ -199,10 +199,17 @@ On `u` the ratio is **monotone across all seven bands**, spanning `S = 2905x` fr
 innermost to the outermost (D2 rule: `S >= 10` with at most one inversion →
 **`CONFIRMED ON BOTH ARMS`**). The crossover is between 0.02–0.05c and 0.05–0.15c.
 
-Neither endpoint is a small sample. The `0-0.005c` band holds **4489 fluid cells per case
-× 200 cases = 897 800 cell-samples**; `>0.5c` holds **2 595 931**. The 906x is an average
-over nearly a million cell-samples, not over a handful of wall cells (`n_cells` is in the
-artifact for every band).
+The two endpoint bands are very different sample sizes, and the smaller one carries the
+906x, so state it rather than let a reviewer find it. Pooled over the 200 cases, the
+`0-0.005c` band holds **4489 fluid cells** (22.4 per case) against **2 595 931** beyond
+0.5c (12 980 per case) — the 906x is a paired ratio over 4489 cell-samples, both arms
+evaluated on exactly the same cells. Two things make it hold up anyway: the ratio is
+monotone across all seven bands, so the innermost value sits on a trend rather than
+alone, and `0.005-0.01c` (3824 cells) and `0.01-0.02c` (8143 cells) independently give
+74x and 30x. It is also the band `interpolation_resolution_ladder.md` already refined:
+at $512^2$, where it is 3.4 cells across instead of sub-cell, the interpolator's own
+near-wall error *falls* 45% while the far field moves 0.6%, so a finer grid would narrow
+this ratio rather than inflate it. `n_cells` is in the artifact for every band.
 
 > **The thesis "a learned surrogate earns its keep in the first cell off the wall" is
 > now measured on the surrogate, not inferred from the baseline.** Transolver is
