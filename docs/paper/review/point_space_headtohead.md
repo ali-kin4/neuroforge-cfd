@@ -73,7 +73,7 @@ resolution Transolver is better in **every one of the eight bands** (§4), and (
 |---|---|---|
 | **Transolver** | the three deployed `checkpoints/v2_transolver/seed{m}.pt`, loaded with their own `point_norm`, inferred on the native cloud | `point_space_transolver.json` |
 | **interpolation, `bridge`** | the published weight matrix applied to each train case's field **on that train case's own native cloud**, Delaunay-linear, in-body queries left to the Delaunay bridge | `point_space_interp.json` |
-| **interpolation, `nearfill`** | identical, except in-body queries take train case $j$'s nearest cloud-node value | same |
+| **interpolation, `nearfill`** | identical, except in-body queries take train case $j$'s nearest cloud-node value. **Note what that is:** the native cloud has no interior nodes, so the nearest node to an in-body query is a *wall* node — this convention extends the no-slip state ($u=v=0$) and the wall pressure inward. It is **not** the point analogue of the published `--fill nearest`, which propagates the nearest *fluid* cell from $\approx0.023c$ out; it is a third convention and is labelled one. | same |
 | **interpolation, `r128_resample`** | the published r128 grid prediction bilinearly sampled at the native nodes — the *control*, not the comparison | `point_space_r128resample.json` |
 | **oracle** | per case and band, the single best of the 800 training fields, chosen knowing the test answer | `point_space_headtohead.json` §`P3` |
 
@@ -146,6 +146,15 @@ that matters most:
    favour.** P1 reads the better of `bridge` and `nearfill` per channel. It chose `nearfill`
    on all four; on `p` that mattered — 41 740 against `bridge`'s 58 020, a 28% gift to the
    interpolator that changes `R_p` from 6.74 to 4.85 and does not change the verdict.
+   `nearfill` is not the analogue of the published raster fill (see §1's table); it is the
+   convention that happens to help `p`, whose wall-normal gradient is small, and to be
+   neutral on `u` and `v`.
+
+**And the verdict does not depend on including the surface nodes**, where that convention is
+at its most arbitrary. Dropping the `wall` band entirely — all 201 444 nodes with $sdf = 0$ —
+leaves `R_u` **138.5**, `R_v` **126.1**, `R_p` **5.08**, `R_nut` **18.2**, against
+144.2 / 133.9 / 4.85 / 18.3 with them. `p`, the headline channel, gets *worse* for the
+interpolator without the wall row.
 
 ### 2.2 G3 — the construction is faithful (the check that could have killed it)
 
@@ -298,12 +307,23 @@ at most one inversion. It returns $S = 45.6$ (≥ 10) but **two** inversions, be
 the ratio bottoms out at $1.83$ in $0.05$–$0.15c$ and then *rises* again — **the interpolator
 never beats Transolver on `u` in any band at native resolution**, including the far field.
 `measure_asymmetry.md` §3b reported the opposite from the grid ($r_b = 0.312$ beyond $0.5c$,
-"Transolver is a factor of three *less* accurate beyond $0.5c$"). Block D of that same
-document already contained the explanation: the r128 raster's own far-field round-trip error
-on `u` is $0.156$ against Transolver's $0.110$, so **the grid's far-field `u` comparison was
-itself raster-limited**. At the nodes, Transolver wins the far field on `u` by **3.2x**
-(in-crop) / **3.8x** (full cloud). §7.5's sentence must be corrected; the `v` and `p`
-far-field claims stand and get *larger*.
+"Transolver is a factor of three *less* accurate beyond $0.5c$"). At the nodes, Transolver
+wins the far field on `u` by **3.2x** (in-crop) / **3.8x** (full cloud). That sentence must
+be corrected.
+
+**What we can and cannot say about why it flips.** The obvious explanation — the raster — is
+measured, and it is *not* sufficient. In `>0.5c` in-crop on `u`, the published r128
+prediction resampled at those same nodes scores $0.4516$ against the native construction's
+$0.3560$: the raster costs the interpolator **1.27x** there, not the $\approx10\times$ the
+swing from $0.312$ to $3.225$ requires. Two other things change simultaneously and this run
+does not decompose them: **which points are sampled inside the band** (area-uniform cells are
+spread over the band's volume; native nodes are not distributed the same way inside it), and
+**what the reference is** (the grid metric compares a rasterised prediction to a *rasterised*
+truth, so the raster's error partly cancels; the node metric compares to the native truth,
+where it does not). Both are measure/representation effects rather than method effects, which
+is the same lesson the rest of this document teaches — but the sub-band decomposition that
+would apportion them has not been run, and this document does not claim it. The `v` and `p`
+far-field claims are unaffected and get *larger*.
 
 **(c) The wall row is new and it is the one the force claims sit on.** At $sdf = 0$ — the
 surface nodes, where lift and drag are integrated — Transolver is **4052x** better on `u`,
@@ -407,10 +427,16 @@ with:
 > Band by band at the native nodes, the ratio of interpolation error to Transolver error runs
 > $173\times \to 3.8\times$ on $u$, $167\times \to 0.057\times$ on $v$ and $5.4\times \to
 > 0.0038\times$ on $p$, from $0$–$0.005c$ outward. On the two channels where the interpolator
-> owns the far field it owns it by $18\times$ and $265\times$; on $u$ it is behind in every
-> band, because the $128^2$ raster's own far-field round-trip error ($0.156$) exceeds
-> Transolver's ($0.110$) and the grid comparison there was raster-limited. The two methods
-> are accurate in different places and the metric decides which one wins.
+> owns the far field it owns it by $18\times$ and $265\times$. On $u$ it is behind in every
+> band, including the far field, where the grid measure had put it $3.2\times$ ahead: the two
+> disagree because they sample the band differently and because the grid metric scores a
+> rasterised prediction against a rasterised truth. The two methods are accurate in different
+> places and the metric decides which one wins.
+
+(Do **not** carry over `measure_asymmetry.md` §7.5's clause *"and a factor of three less
+accurate beyond $0.5c$"* on $u$. §4b of this document shows the raster accounts for only
+$1.27\times$ of that flip, so neither the old claim nor a simple "it was the raster"
+replacement is supported.)
 
 ### 6.6 `interpolation_baseline.md` §6 and `interpolation_resolution_ladder.md:13`
 
