@@ -124,7 +124,13 @@
     "median_abs_diff_c": 0.00013427182952352457,
     "p99_abs_diff_c": 0.010914871410110832,
     "max_abs_diff_c": 0.04230686165716925,
-    "band7_assignment_agreement": 0.8707468775453144
+    "band7_assignment_agreement": 0.8707468775453144,
+    "threshold_agreement_0.02c": 0.9951255761821661,
+    "threshold_agreement_0.05c": 0.9989726953452055,
+    "node_frac_crop_inside_0.02c_by_GRID_sdf": 0.5545860954000478,
+    "node_frac_crop_inside_0.02c_by_CLOUD_sdf": 0.5579413429082086,
+    "node_frac_crop_inside_0.05c_by_GRID_sdf": 0.6454368935220008,
+    "node_frac_crop_inside_0.05c_by_CLOUD_sdf": 0.645779152874313
   },
   "per_case": [
     {
@@ -1946,5 +1952,5 @@
   },
   "D1_verdict": "LARGE",
   "D1_rule": "g = node_frac(A2)/area_frac(A1) inside 0.05c; >=10 LARGE, >=2 MODERATE, <2 DISSOLVES",
-  "wallclock_sec": 22.296231031417847
+  "wallclock_sec": 7.298157691955566
 }

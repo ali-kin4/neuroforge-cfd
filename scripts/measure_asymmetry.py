@@ -116,6 +116,15 @@ G6  Cloud sdf (AirfRANS column 4) against the grid ``signed_distance`` sampled
     at the same node positions: the distribution and the fraction of nodes whose
     BAND ASSIGNMENT agrees are reported. Not a pass/fail gate, a disclosure.
 
+AMENDMENT (recorded, threshold untouched). G6 originally reported only the
+seven-band assignment agreement. That statistic is dominated by disagreements
+at the 0.005c/0.01c interior edges, which D1 never uses: D1 is read on the
+CUMULATIVE fractions inside 0.02c and inside 0.05c. The two cumulative
+agreements are therefore added, plus the node fractions inside those two
+thresholds computed from the GRID sdf instead of the cloud sdf -- i.e. D1's
+headline numbers recomputed under the other distance function. No rule and no
+threshold is changed; a diagnostic is added that makes D1 harder to attack.
+
 WHAT THIS CANNOT DO, STATED UP FRONT
 ------------------------------------
 It does not score either arm at the native nodes. Sampling the interpolator's
@@ -307,6 +316,9 @@ def stage_nodes(a) -> dict:
     sdf_absdiff = []
     band_agree = 0
     band_total = 0
+    thr_agree = {0.02: 0, 0.05: 0}
+    thr_grid_in = {0.02: 0, 0.05: 0}
+    thr_cloud_in = {0.02: 0, 0.05: 0}
     per_case = []
 
     for case, ref in test_pairs:
@@ -344,6 +356,10 @@ def stage_nodes(a) -> dict:
         bc = band_index(sc, np.ones(sc.shape, bool), BANDS7)
         band_agree += int((bg == bc).sum())
         band_total += int(bg.size)
+        for e in (0.02, 0.05):
+            thr_agree[e] += int(((gs <= e) == (sc <= e)).sum())
+            thr_grid_in[e] += int((gs <= e).sum())
+            thr_cloud_in[e] += int((sc <= e).sum())
 
         per_case.append({
             "name": case.name, "n_nodes": int(s.size), "n_nodes_crop": int(inside.sum()),
@@ -379,6 +395,12 @@ def stage_nodes(a) -> dict:
             "p99_abs_diff_c": float(np.percentile(diffs, 99)),
             "max_abs_diff_c": float(diffs.max()),
             "band7_assignment_agreement": float(band_agree / max(band_total, 1)),
+            "threshold_agreement_0.02c": float(thr_agree[0.02] / max(band_total, 1)),
+            "threshold_agreement_0.05c": float(thr_agree[0.05] / max(band_total, 1)),
+            "node_frac_crop_inside_0.02c_by_GRID_sdf": float(thr_grid_in[0.02] / max(band_total, 1)),
+            "node_frac_crop_inside_0.02c_by_CLOUD_sdf": float(thr_cloud_in[0.02] / max(band_total, 1)),
+            "node_frac_crop_inside_0.05c_by_GRID_sdf": float(thr_grid_in[0.05] / max(band_total, 1)),
+            "node_frac_crop_inside_0.05c_by_CLOUD_sdf": float(thr_cloud_in[0.05] / max(band_total, 1)),
         },
         "per_case": per_case,
     }
