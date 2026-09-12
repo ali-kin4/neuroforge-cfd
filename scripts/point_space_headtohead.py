@@ -67,8 +67,16 @@ Why this is the fairest construction, stated as four properties:
         ``bridge``  -- the Delaunay triangulation spans the body (the "Delaunay
                        bridge" ``interpolation_baseline.md`` section 6(b) already
                        studies), giving a smooth linear extension;
-        ``nearfill`` -- the value at train case j's nearest cloud node, the point
-                       analogue of the published ``--fill nearest``.
+        ``nearfill`` -- the value at train case j's nearest cloud node. Note what
+                       that is: the native cloud has NO interior nodes, so the
+                       nearest node to an in-body query is a WALL node, i.e. this
+                       convention extends the no-slip wall state (u = v = 0) and
+                       the wall pressure inward. It is therefore NOT the point
+                       analogue of the published ``--fill nearest``, which
+                       propagates the nearest *fluid* cell about 0.023c out from
+                       the wall; it is a third convention, and it is reported as
+                       one. (It is the one that helps ``p``, where the wall-normal
+                       gradient is small, and is neutral on ``u``/``v``.)
       P1 reads the BETTER of the two per channel (see the pre-registration).
 
 WHAT THIS CONSTRUCTION COSTS THE INTERPOLATOR, STATED IN ADVANCE
@@ -157,6 +165,33 @@ P4 -- INCONCLUSIVE TRIGGERS, declared before the run. A band is flagged
       than 20% of the nodes is INCONCLUSIVE, the overall verdict is INCONCLUSIVE
       and the blocking quantity is named.
 
+AMENDMENT 2 (recorded; a SUPPLEMENTARY diagnostic, added after P3 returned its
+pre-registered verdict, with no threshold of its own and no effect on P1-P4).
+``--stage oracle_ls``. P3's oracle is a minimum over the 800 training fields taken
+ONE AT A TIME, which is not a formal lower bound on linear combinations of them --
+and the measured numbers show why that matters: inside ``0.005c`` the fitted KRR
+combination (200.3 on ``u``) beats the best single field (397.7). So P3 alone
+cannot close the rebuttal "then re-tune the estimator on the node measure".
+
+This stage closes it. Because the published weights sum to one, redimensionalising
+commutes with the combination, and the KRR prediction lies in the SPAN of the 800
+redimensionalised single-field predictions at the test nodes. The unconstrained
+least-squares projection of the TRUE field onto that span, computed per band per
+case with the test answer in hand, is therefore a genuine LOWER BOUND on what ANY
+weighting of those 800 fields -- any kernel, any bandwidth, any ridge, any
+cross-validation measure, convex or not -- can achieve at those nodes.
+
+    Rule, stated before the stage was run:
+      LS residual MSE inside 0.005c on ``u`` > 10 x Transolver's band MSE
+                -> FAMILY-BOUND-CLOSED: no weighting of these 800 training fields
+                   reaches Transolver near the wall, and the "re-tune it" escape
+                   is shut for the whole family, not just for this estimator.
+      <= 1 x    -> FAMILY-BOUND-OPEN: a better weighting could close the gap and
+                   P3's reading must be scoped to the published estimator.
+      otherwise -> PARTIAL.
+    Read only on bands with ``n_b >> 800`` (800 free parameters); the ``wall`` band
+    has ~1000 nodes per case and is NOT read, it is reported with its n.
+
 GATES -- the run aborts if any fails
 ------------------------------------
 G1  The weight matrix is the PUBLISHED one. ``build_weights`` is called with the
@@ -210,6 +245,7 @@ RUN
     .venv/Scripts/python.exe scripts/point_space_headtohead.py --stage interp
     .venv/Scripts/python.exe scripts/point_space_headtohead.py --stage transolver
     .venv/Scripts/python.exe scripts/point_space_headtohead.py --stage r128resample
+    .venv/Scripts/python.exe scripts/point_space_headtohead.py --stage oracle_ls
     .venv/Scripts/python.exe scripts/point_space_headtohead.py --stage reduce
 """
 
@@ -844,6 +880,144 @@ def stage_transolver(a) -> dict:
     return out
 
 
+def ls_chunk(args: tuple) -> str:
+    """Amendment 2 worker: write this train chunk's PHYSICAL single-field
+    predictions at each test case's nodes, one ``.npy`` per (case, channel)."""
+    import neuroforge  # noqa: F401
+    import numpy as np
+    from scipy.interpolate import LinearNDInterpolator
+    from scipy.spatial import Delaunay, cKDTree
+
+    (scratch, test_names, train_names, kd_workers, tag, outdir, chans) = args
+    os.makedirs(outdir, exist_ok=True)
+    T = [load_test_case(scratch, nm) for nm in test_names]
+    buf = {(ti, c): np.zeros((len(train_names), T[ti][0].shape[0]), np.float32)
+           for ti in range(len(T)) for c in chans}
+    t0 = time.time()
+    for jj, jname in enumerate(train_names):
+        pos_j, yhat_j, apos_j, anrm_j = load_train_case(scratch, jname)
+        lin = LinearNDInterpolator(Delaunay(pos_j), yhat_j, fill_value=np.nan)
+        kt_pos = cKDTree(pos_j)
+        kt_surf = cKDTree(apos_j)
+        for ti, nm in enumerate(test_names):
+            pos_t = T[ti][0]
+            vals = np.asarray(lin(pos_t), np.float64)
+            out = np.isnan(vals[:, 0])
+            if out.any():
+                _d, idx = kt_pos.query(pos_t[out], k=1, workers=kd_workers)
+                vals[out] = yhat_j[idx]
+            # P1 read the `nearfill` arm on every channel, so bound that arm
+            _dj, isurf = kt_surf.query(pos_t, k=1, workers=kd_workers)
+            inbody = np.einsum("ij,ij->i", pos_t - apos_j[isurf], anrm_j[isurf]) > 0.0
+            if inbody.any():
+                _d2, idx2 = kt_pos.query(pos_t[inbody], k=1, workers=kd_workers)
+                vals[inbody] = yhat_j[idx2]
+            U_t, al_t = case_U_alpha(nm)
+            phys = redim_nodes(vals, U_t, al_t)
+            for c in chans:
+                buf[(ti, c)][jj] = phys[:, CHANS.index(c)].astype(np.float32)
+        if (jj + 1) % 25 == 0:
+            log(f"[{tag}] ls train {jj+1}/{len(train_names)} ({time.time()-t0:.0f}s)")
+    for ti, nm in enumerate(test_names):
+        for c in chans:
+            np.save(os.path.join(outdir, f"c{ti}_{c}_{tag}.npy"), buf[(ti, c)])
+    return tag
+
+
+def stage_oracle_ls(a) -> dict:
+    """AMENDMENT 2: the unconstrained least-squares lower bound over the span of
+    the 800 transferred training fields. Rule is in the module docstring."""
+    names_tr, names_te, cfg, W, base = setup(a)
+    pte = names_te[:a.n_ls]
+    chans = tuple(a.ls_chans)
+    outdir = os.path.join(a.scratch, "ls")
+    ntr = len(names_tr)
+    bounds = np.linspace(0, ntr, a.n_proc + 1).astype(int)
+    tags, chunks = [], []
+    for k in range(a.n_proc):
+        if bounds[k + 1] <= bounds[k]:
+            continue
+        tags.append(f"ls{k}")
+        chunks.append((a.scratch, pte, names_tr[bounds[k]:bounds[k + 1]],
+                       a.kd_workers, f"ls{k}", outdir, chans))
+    t0 = time.time()
+    if a.n_proc <= 1:
+        for c in chunks:
+            ls_chunk(c)
+    else:
+        from concurrent.futures import ProcessPoolExecutor
+        with ProcessPoolExecutor(max_workers=a.n_proc) as ex:
+            for r in ex.map(ls_chunk, chunks):
+                log(f"ls chunk {r} done")
+    log(f"ls transfers done ({time.time()-t0:.0f}s)")
+
+    Tr = json.load(open(os.path.join(a.out_dir, "point_space_transolver.json"),
+                        encoding="utf-8"))
+    seeds = Tr["meta"]["seeds"]
+    tso_band = {}
+    for c in CHANS:
+        bs = []
+        for s in seeds:
+            n = np.asarray(Tr["acc"][f"seed{s}"]["n"], np.float64)
+            se = np.asarray(Tr["acc"][f"seed{s}"]["se"][c], np.float64)
+            bs.append(se / np.maximum(n, 1e-30))
+        tso_band[c] = np.mean(bs, axis=0)
+
+    rows = []
+    for ti, nm in enumerate(pte):
+        pos, tgt, sdf, incrop = load_test_case(a.scratch, nm)
+        b = band_index8(sdf)
+        row = {"name": nm, "bands": NAMES8,
+               "n_band": [int((b == bi).sum()) for bi in range(NB)], "channels": {}}
+        Wrow = W[names_te.index(nm)]
+        for c in chans:
+            A = np.concatenate([np.load(os.path.join(outdir, f"c{ti}_{c}_{t}.npy"))
+                                for t in tags], axis=0)
+            assert A.shape[0] == ntr, f"ls matrix has {A.shape[0]} rows, expected {ntr}"
+            y = tgt[:, CHANS.index(c)]
+            ent = {"ls_mse": [], "ls_mse_ridge": [], "krr_mse": [],
+                   "best_single_mse": [], "transolver_mse": tso_band[c].tolist()}
+            for bi in range(NB):
+                m = b == bi
+                nb = int(m.sum())
+                if nb == 0:
+                    for k in ("ls_mse", "ls_mse_ridge", "krr_mse", "best_single_mse"):
+                        ent[k].append(float("nan"))
+                    continue
+                Ab = np.asarray(A[:, m], np.float64).T
+                yb = np.asarray(y[m], np.float64)
+                G = Ab.T @ Ab
+                rhs = Ab.T @ yb
+                tr = float(np.trace(G)) / ntr
+                for lam, key in ((1e-10 * tr, "ls_mse"), (1e-6 * tr, "ls_mse_ridge")):
+                    w = np.linalg.solve(G + lam * np.eye(ntr), rhs)
+                    ent[key].append(float(np.mean((Ab @ w - yb) ** 2)))
+                ent["krr_mse"].append(float(np.mean((Ab @ Wrow - yb) ** 2)))
+                ent["best_single_mse"].append(
+                    float(np.min(np.mean((Ab - yb[:, None]) ** 2, axis=0))))
+            row["channels"][c] = ent
+            log(f"[ls] {nm} {c}: n_b {row['n_band']}")
+            log(f"[ls] {nm} {c}: LS " + " ".join(f"{v:.4g}" for v in ent["ls_mse"]))
+            log(f"[ls] {nm} {c}: KRR " + " ".join(f"{v:.4g}" for v in ent["krr_mse"]))
+        rows.append(row)
+
+    ls1 = float(np.mean([r["channels"]["u"]["ls_mse"][1] for r in rows]))
+    q = ls1 / float(tso_band["u"][1])
+    verdict = ("FAMILY-BOUND-CLOSED" if q > 10 else
+               "FAMILY-BOUND-OPEN" if q <= 1 else "PARTIAL")
+    out = {"meta": {"stage": "oracle_ls", "n_ls": len(pte), "n_train": ntr,
+                    "channels": list(chans), "wallclock_sec": time.time() - t0,
+                    "amendment": 2},
+           "rows": rows,
+           "P3_LS": {"band": NAMES8[1], "ls_mse_u_casemean": ls1,
+                     "transolver_band_mse_u": float(tso_band["u"][1]),
+                     "ratio": q, "verdict": verdict}}
+    write_json(os.path.join(a.out_dir, "point_space_oracle_ls.json"), out)
+    log(f"P3-LS: LS residual {ls1:.5g} vs Transolver {tso_band['u'][1]:.5g} "
+        f"-> {q:.4g}  {verdict}")
+    return out
+
+
 def stage_r128resample(a) -> dict:
     """Arm ``r128_resample``: what the GRID protocol costs the interpolator.
 
@@ -1109,13 +1283,15 @@ def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--stage", required=True,
                    choices=("cache", "pilot", "interp", "transolver",
-                            "r128resample", "reduce"))
+                            "r128resample", "oracle_ls", "reduce"))
     p.add_argument("--task", default="full")
     p.add_argument("--rep", default="nd")
     p.add_argument("--fill", default="nearest")
     p.add_argument("--n-train", type=int, default=800)
     p.add_argument("--n-test", type=int, default=200)
     p.add_argument("--n-pilot", type=int, default=3)
+    p.add_argument("--n-ls", type=int, default=3)
+    p.add_argument("--ls-chans", nargs="+", default=["u", "p"])
     p.add_argument("--n-proc", type=int, default=8)
     p.add_argument("--kd-workers", type=int, default=2)
     p.add_argument("--ckpt-every", type=int, default=25,
@@ -1140,6 +1316,8 @@ def main(argv=None) -> int:
         stage_transolver(a)
     elif a.stage == "r128resample":
         stage_r128resample(a)
+    elif a.stage == "oracle_ls":
+        stage_oracle_ls(a)
     elif a.stage == "reduce":
         stage_reduce(a)
     log(f"stage {a.stage} total {time.time()-t0:.0f}s")
