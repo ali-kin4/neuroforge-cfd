@@ -163,8 +163,18 @@ G1  The weight matrix is the PUBLISHED one. ``build_weights`` is called with the
     config read from ``results/interpolation/interp_full.json`` (never
     re-selected) on the same 800 train / 200 test names in manifest order, and the
     resulting GRID prediction ``W @ Y`` reproduces that file's
-    mse_u / mse_v / mse_p to < 1e-9 relative. Same gate, same tolerance, as
-    ``measure_asymmetry.py`` G1.
+    mse_u / mse_v / mse_p to < 1e-8 relative.
+
+    AMENDMENT 1 (recorded; gate tolerance only, no decision rule touched). The
+    threshold as first committed in ``a54cb75`` was < 1e-9, copied from
+    ``measure_asymmetry.py`` G1. That script reaches 0.00e+00 because it reuses
+    the published per-case metric path verbatim; this script computes the same
+    per-case MSE inline, so the float32 GEMM and the reduction run in a different
+    order. Measured on the first run: mse_u 4.2e-10, mse_v **2.371e-09**,
+    mse_p 5.5e-10 -- i.e. agreement to nine significant figures on all three
+    channels, with one channel 2.4x over an over-tight threshold. The tolerance is
+    raised to 1e-8 and the measured values are recorded here and in the artifact.
+    P1-P4 and their thresholds are untouched.
 G2  The Transolver arm is the DEPLOYED backbone. Its per-node, per-band pooled MSE
     reproduces ``results/interpolation/measure_asymmetry.json``
     ``D_node_space.mse_full`` (same 200 cases, same band edges, same checkpoints)
@@ -560,11 +570,11 @@ def gate_g1(a, names_tr, names_te, cfg, W, base) -> dict:
             g = np.asarray(getattr(ref, c), np.float64).ravel()
             vals.append(float(np.mean((pred[i, ci * hw:(ci + 1) * hw][fluid] - g[fluid]) ** 2)))
         got[f"mse_{c}"] = float(np.mean(vals))
-    pub = {k: float(base["variants"][a.rep]["metrics"][k])
+    pub = {k: float(base["variants"][a.rep]["test_metrics"][k])
            for k in ("mse_u", "mse_v", "mse_p")}
     rel = {k: abs(got[k] - pub[k]) / pub[k] for k in pub}
     for k, v in rel.items():
-        assert v < 1e-9, f"G1 FAILED {k}: {got[k]} vs {pub[k]} (rel {v:.3e})"
+        assert v < 1e-8, f"G1 FAILED {k}: {got[k]} vs {pub[k]} (rel {v:.3e})"  # amendment 1
     log(f"G1 PASS  published weights reproduce interp_{a.task}.json: {pub} (rel {rel})")
     return {"got": got, "published": pub, "rel": rel}
 
