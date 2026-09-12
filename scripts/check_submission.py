@@ -11,12 +11,14 @@ docs/paper/review/journal_shortlist.md Sec. 4.
                 "and" or "of"
     highlights  3-5 bullets, each <= 85 characters INCLUDING spaces, in a
                 separate file with "highlights" in its name
-    manuscript  <= 12,000 words for a full-length article
+    manuscript  word count reported as a diagnostic (this venue sets no cap)
 
-THE LENGTH RULE IS NEW AND IT BINDS. Computers & Fluids set no length limit, so
-this script never measured the body; JOCS caps a full-length article at 12,000
-words, and the pre-rebuild manuscript was ~14,700. The body count below is
-therefore a go/no-go, not a diagnostic. It is measured with the same strip_tex
+THERE IS NO LENGTH RULE AT THIS VENUE. Verified at source 2026-09-12 by reading
+the guide for authors in a browser: the Journal of Computational Science states
+length limits for Communications (6 double-spaced pages) and Correspondence (4),
+and none for regular articles. An earlier revision of this script enforced a
+12,000-word cap taken from a secondary summary; it does not exist, and enforcing
+it would have cost real evidence. The count below is a diagnostic. It is measured with the same strip_tex
 semantics as the abstract, over abstract.tex + body.tex, which is the prose the
 journal counts; LaTeX scaffolding (tabular rules, \\begin/\\end) contributes
 almost nothing under those semantics, but table CELLS and captions do count,
@@ -38,7 +40,9 @@ ABSTRACT_MAX_WORDS = 250
 KEYWORDS_MIN, KEYWORDS_MAX = 1, 7
 HIGHLIGHT_MAX_CHARS = 85
 HIGHLIGHTS_MIN, HIGHLIGHTS_MAX = 3, 5
-MANUSCRIPT_MAX_WORDS = 12000
+# No cap at this venue -- see the module docstring. Kept as a reporting
+# threshold only: above this, length is worth a deliberate look, not a cut.
+MANUSCRIPT_NOTABLE_WORDS = 15000
 
 
 def strip_tex(text: str) -> str:
@@ -76,12 +80,10 @@ def check_manuscript_length(root: str, fails: list[str]) -> None:
         n = count_words(open(path, encoding="utf-8").read())
         print(f"    {name:<14} {n:>6} words")
         total += n
-    ok = total <= MANUSCRIPT_MAX_WORDS
-    print(f"  manuscript  {total:>6} words  (limit {MANUSCRIPT_MAX_WORDS})  "
-          f"{'OK' if ok else 'OVER'}")
-    if not ok:
-        fails.append(f"manuscript is {total} words, limit "
-                     f"{MANUSCRIPT_MAX_WORDS} -- this is a go/no-go for JOCS")
+    print(f"  manuscript  {total:>6} words  (no cap at this venue)")
+    if total > MANUSCRIPT_NOTABLE_WORDS:
+        print(f"    note: above {MANUSCRIPT_NOTABLE_WORDS}, worth a deliberate "
+              "look at length -- not a rule")
 
 
 def check_keywords(root: str, fails: list[str]) -> None:
@@ -138,8 +140,8 @@ def main(argv: list[str] | None = None) -> int:
     check_keywords(args.root, fails)
     check_highlights(args.root, fails)
 
-    print("\nthe 12,000-word cap is the binding constraint at this venue; the "
-          "count above\nis measured, not estimated.")
+    print("\nthis venue sets no length limit on regular articles; the count "
+          "above is a\ndiagnostic, verified against the guide on 2026-09-12.")
     if fails:
         print(f"\n{len(fails)} problem(s):")
         for f in fails:
