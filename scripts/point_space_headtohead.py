@@ -209,6 +209,7 @@ RUN
     .venv/Scripts/python.exe scripts/point_space_headtohead.py --stage pilot
     .venv/Scripts/python.exe scripts/point_space_headtohead.py --stage interp
     .venv/Scripts/python.exe scripts/point_space_headtohead.py --stage transolver
+    .venv/Scripts/python.exe scripts/point_space_headtohead.py --stage r128resample
     .venv/Scripts/python.exe scripts/point_space_headtohead.py --stage reduce
 """
 
@@ -801,6 +802,57 @@ def stage_transolver(a) -> dict:
     return out
 
 
+def stage_r128resample(a) -> dict:
+    """Arm ``r128_resample``: what the GRID protocol costs the interpolator.
+
+    The published r128 interpolator prediction, bilinearly sampled at the native
+    nodes and scored per node. This is the arm construction point (3) of the
+    docstring declines to use as primary, because it hands the interpolator the
+    raster's own round-trip error as a floor. It is run to put a number on that
+    floor, and it is directly comparable to Block D's ``r128 ceiling`` row.
+
+    Restricted to IN-CROP nodes: ``_bilinear_sample`` clamps queries outside the
+    domain to the boundary, exactly the contamination ``measure_asymmetry.md`` 5
+    warns against quoting.
+    """
+    from neuroforge.physics.metrics import _bilinear_sample
+    from parameter_interpolation_baseline import build_stack, load_pairs, redimensionalise
+
+    names_tr, names_te, cfg, W, base = setup(a)
+    tr = load_pairs(a.cache_dir, a.task, True, 128, a.n_train)
+    te = load_pairs(a.cache_dir, a.task, False, 128, a.n_test)
+    H, Wd = te[0][1].u.shape
+    hw = H * Wd
+    Y, _M, _ = build_stack(tr, a.rep, a.fill)
+    pred = redimensionalise(W @ Y, names_te, a.rep, hw)
+    del Y
+
+    acc = NodeAcc()
+    ceil = NodeAcc()
+    t0 = time.time()
+    for i, (case, ref) in enumerate(te):
+        nm = case.name
+        pos, tgt, sdf, incrop = load_test_case(a.scratch, nm)
+        b = band_index8(sdf)
+        b = np.where(incrop, b, -1)                 # in-crop only (clamp contamination)
+        gi = np.stack([_bilinear_sample(
+            np.asarray(pred[i, j * hw:(j + 1) * hw].reshape(H, Wd), np.float64),
+            case.domain, pos) for j in range(4)], axis=1)
+        gc = np.stack([_bilinear_sample(
+            np.asarray(getattr(ref, c), np.float64), case.domain, pos)
+            for c in CHANS], axis=1)
+        acc.add(b, incrop, gi, tgt)
+        ceil.add(b, incrop, gc, tgt)
+        if (i + 1) % 50 == 0:
+            log(f"r128_resample {i+1}/{len(te)} ({time.time()-t0:.0f}s)")
+    out = {"meta": {"stage": "r128resample", "n_test": len(te),
+                    "wallclock_sec": time.time() - t0},
+           "bands": NAMES8,
+           "acc": {"interp_r128_resample": acc.to_dict(), "r128_ceiling": ceil.to_dict()}}
+    write_json(os.path.join(a.out_dir, "point_space_r128resample.json"), out)
+    return out
+
+
 # --------------------------------------------------------------------------- #
 # Reduce: apply P1-P4 exactly as pre-registered.
 # --------------------------------------------------------------------------- #
@@ -977,6 +1029,27 @@ def stage_reduce(a) -> dict:
         signs[c] = {"transolver_better_cases": wins, "n": tot}
     res["paired_sign_test"] = signs
 
+    # --- arm r128_resample: what the GRID protocol costs (optional) ---------
+    rp = os.path.join(a.out_dir, "point_space_r128resample.json")
+    if os.path.exists(rp):
+        R128 = json.load(open(rp, encoding="utf-8"))
+        blk = {}
+        for k in ("interp_r128_resample", "r128_ceiling"):
+            blk[k] = {}
+            for c in CHANS:
+                band, pooled, n = _mse(R128["acc"][k], c, crop=True)
+                blk[k][c] = {"band": band.tolist(), "pooled": pooled}
+            blk[k]["n"] = n.tolist()
+        blk["interp_native_in_crop"] = {
+            c: {"band": [min(tab["interp_bridge"]["in_crop"][c]["band"][i],
+                             tab["interp_nearfill"]["in_crop"][c]["band"][i])
+                         for i in range(NB)],
+                "pooled": min(tab["interp_bridge"]["in_crop"][c]["pooled"],
+                              tab["interp_nearfill"]["in_crop"][c]["pooled"])}
+            for c in CHANS}
+        blk["transolver_in_crop"] = {c: tso["in_crop"][c] for c in CHANS}
+        res["r128_resample"] = blk
+
     write_json(os.path.join(a.out_dir, "point_space_headtohead.json"), res)
     log(json.dumps({"P1": res["P1"]["verdict"], "R": R, "P2": p2, "S": S,
                     "P3": p3, "Q_wall": q1}, indent=2))
@@ -993,7 +1066,8 @@ def write_json(path: str, obj) -> None:
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--stage", required=True,
-                   choices=("cache", "pilot", "interp", "transolver", "reduce"))
+                   choices=("cache", "pilot", "interp", "transolver",
+                            "r128resample", "reduce"))
     p.add_argument("--task", default="full")
     p.add_argument("--rep", default="nd")
     p.add_argument("--fill", default="nearest")
@@ -1020,6 +1094,8 @@ def main(argv=None) -> int:
         stage_interp(a)
     elif a.stage == "transolver":
         stage_transolver(a)
+    elif a.stage == "r128resample":
+        stage_r128resample(a)
     elif a.stage == "reduce":
         stage_reduce(a)
     log(f"stage {a.stage} total {time.time()-t0:.0f}s")
