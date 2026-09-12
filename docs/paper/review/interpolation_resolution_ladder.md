@@ -66,10 +66,21 @@ and the two that move:
 
 ## 1. What this can and cannot settle
 
-There is **no Transolver row at $256^2$ or $512^2$**. The point-space head-to-head
-still needs Transolver inference with a `PointNormalizer` fitted on 800 train
-clouds, which the checkpoints do not store. **Nothing here may be quoted as
+There is **no Transolver row at $256^2$ or $512^2$**. **Nothing here may be quoted as
 "the interpolation advantage survives at native resolution."**
+
+> **CORRECTION (2026-09-12).** This section, and §8.1 below, previously said the
+> point-space head-to-head "needs Transolver inference with a `PointNormalizer`
+> fitted on 800 train clouds, which the checkpoints do not store." **That is false.**
+> `checkpoints/v2_transolver/seed{m}.pt` carries both `point_norm` (`mean_in`,
+> `std_in`, `mean_out`, `std_out`, `eps`) and `grid_norm`, and
+> `scripts/recompute_force_vs_official.py:134-158` has loaded them since June. The
+> obstacle is not a missing normaliser. What is genuinely open is that scoring the
+> interpolator at native nodes changes the *measure* and the *representation* at
+> once; `docs/paper/review/measure_asymmetry.md` separates the two and measures the
+> first, and `docs/paper/review/headline_withdrawal.md` records the manuscript
+> wording that replaced the false sentence. The proposed text in §8.1 below is
+> superseded and must not be pasted into `body.tex`.
 
 What it does settle is the separable, and separately attackable, half: the claim
 that the *localisation* — 92% of the $u$ error inside a band of $0.02c$ holding
@@ -514,9 +525,7 @@ Proposed:
 > that genuinely degrades under refinement ($1.9\times$ once standardised by the
 > sampled truth's own variance), and it is the channel the surrogate wins. What the
 > ladder cannot settle is the \emph{advantage}: there is no Transolver row at
-> $256^2$ or $512^2$, because that needs Transolver inference with the
-> \texttt{PointNormalizer} fitted on the $800$ train point clouds and the checkpoints
-> do not store the normaliser. The point-space head-to-head remains the single most
+> $256^2$ or $512^2$. The point-space head-to-head remains the single most
 > valuable follow-up in the paper
 > (\texttt{scripts/interpolation\_resolution\_ladder.py},
 > \texttt{results/interpolation/interp\_resolution\_ladder.json}).

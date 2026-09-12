@@ -5,8 +5,8 @@ spaces, submitted as a separate editable file with "highlights" in the filename.
 All five below are within the limit; character counts are verified by
 scripts/check_submission.py.
 
-- Parameter interpolation beats a matched Transolver on AirfRANS pressure by 8.4x
-- It loses on eddy viscosity, so loses 6.4x on the four-channel training objective
-- At 128x128, 92% of velocity error sits within 0.02 chord of the wall: 0.5% of cells
+- The AirfRANS field ranking flips with the cell weighting: 8.4x to 0.44x on pressure
+- 64% of AirfRANS nodes sit inside 0.05 chord, which is 1.2% of the raster's area
+- The raster's own round-trip error exceeds the surrogate's per-node error 413x
+- Interpolation-to-Transolver error on u falls 906x to 0.31x from wall to far field
 - Every published AirfRANS drag rank falls below a regression on the case name
-- The reynolds split measures dimensional scaling, not learned generalisation

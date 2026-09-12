@@ -44,7 +44,7 @@ JCP upload plan.
 | Manuscript source (LaTeX) | `neuroforge_cfd_elsevier.tex` + `preamble.tex`, `abstract.tex`, `body.tex`, `sections/residual_floor_theorem.tex`, `refs.bib`, `.bbl` | ready |
 | Manuscript PDF (built from the above) | `docs/paper/neuroforge_cfd_elsevier.pdf` | ready — **elsarticle build, not the TMLR one** |
 | Figures, as separate files | `results/figures/*.pdf` | ready (vector PDF; the guide accepts EPS/PDF for vector art) |
-| **Highlights** [V] | `docs/paper/submission/highlights.txt` | ready — **3–5 bullets, ≤85 chars each incl. spaces**; ours are 5 at 76–79. Filename must contain "highlights". |
+| **Highlights** [V] | `docs/paper/submission/highlights.txt` | ready — **3–5 bullets, ≤85 chars each incl. spaces**; ours are 5 at 76–83 (rewritten 2026-09-12 for the measure-dependence headline). Filename must contain "highlights". |
 | Cover letter | `docs/paper/submission/cover_letter.md` | ready |
 | Suggested reviewers | `docs/paper/submission/suggested_reviewers.md` | ready — **verify board membership at C&F first** |
 | **Declaration of competing interests** [V] | — | **AUTHOR STEP, cannot be generated from here.** The guide requires the declarations tool's output uploaded as a **.doc/.docx** at the "attach/upload files" step. Author signatures are not required. Select "I have nothing to declare". |
@@ -55,9 +55,9 @@ JCP upload plan.
 | Item | Value | Ours |
 |---|---|---|
 | **Manuscript length limit** | **None.** No word, page or figure cap anywhere in the guide. | ~14,700 words — **not a problem**, and this was the open risk that ruled out RESS (13,000 cap). |
-| Abstract | ≤ **250 words** | 241 |
+| Abstract | ≤ **250 words** | 246 (hand count after the 2026-09-12 revision; confirm with `check_submission.py`) |
 | Keywords | **1–7**; multi-word keywords joined by "and"/"of" discouraged | 7, none joined that way |
-| Highlights | **Required**, 3–5 bullets, ≤85 chars | 5, at 76–79 |
+| Highlights | **Required**, 3–5 bullets, ≤85 chars | 5, at 76–83 |
 | Peer review | **Single anonymized** | No anonymisation work. Preprint, system name, GitHub and Zenodo links all stay. |
 | Article type | Original research paper | Yes |
 | Section numbering | Numbered 1, 1.1, 1.1.1; cross-reference by number, not "the text" | elsarticle handles it |

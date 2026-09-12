@@ -535,6 +535,187 @@ def band_outer_cell_frac(root):
                              for b in outer))
 
 
+# ---- tab:measure, tab:bandratio and the measure-asymmetry paragraphs ---------
+# Producer: scripts/measure_asymmetry.py (rules D1-D3 pre-registered in cdf08f5).
+# These readers back the claim that the field-MSE ranking in sec:interp is a
+# property of the cell weighting, and the r128 representation ceiling that bounds
+# every field number in that section.
+
+MA_BANDS = ["0-0.005c", "0.005-0.01c", "0.01-0.02c", "0.02-0.05c",
+            "0.05-0.15c", "0.15-0.5c", ">0.5c"]
+
+
+def ma(root):
+    return load(os.path.join(root,
+                             "results/interpolation/measure_asymmetry.json"))
+
+
+def ma_nodes(root):
+    return load(os.path.join(root,
+                             "results/interpolation/measure_asymmetry_nodes.json"))
+
+
+def ma_sens(root):
+    return load(os.path.join(
+        root, "results/interpolation/measure_asymmetry_sensitivity.json"))
+
+
+def ma_ratio(root, chan, which):
+    """R = Transolver MSE / interpolation MSE; R>1 means the interpolator wins."""
+    d = ma(root)
+    if d is None:
+        return None
+    return float(d["verdicts"]["D3"]["ratios"][chan][which])
+
+
+def ma_ratio_inv(root, chan, which):
+    """The same comparison stated the way the manuscript states a loss."""
+    r = ma_ratio(root, chan, which)
+    return None if not r else float(1.0 / r)
+
+
+def ma_cell(root, weighting, arm, chan):
+    """One cell of tab:measure; Transolver is the mean over the three seeds."""
+    d = ma(root)
+    if d is None:
+        return None
+    block = d[f"C_case_mean_{weighting}"]
+    if arm == "interp":
+        return float(block["interp"][chan])
+    seeds = sorted(k for k in block if k.startswith("transolver_seed"))
+    return float(np.mean([block[k][chan] for k in seeds]))
+
+
+def ma_std_mean(root, weighting, channels):
+    """Standardised-mean ratio on tab:measure's own rows.
+
+    CONVENTION: returns interp / Transolver, so a value ABOVE 1 means Transolver is
+    better by that factor. Callers that quote the interpolator's advantage (the
+    area-uniform u,v,p mean, 1.99x) must take the reciprocal; the other three rows
+    in the claim table quote Transolver's advantage and do not. The four rows share
+    this reader, so the label is the only thing that distinguishes them -- do not
+    edit one without re-reading this.
+
+    The train-set variances are read from interp_full.json's var_train block --
+    the same divisors tab:interp_std uses -- rather than hard-coded here. They are
+    common to both arms, so the ratio is like-for-like.
+    """
+    d = interp(root)
+    if d is None or ma(root) is None:
+        return None
+    var = d["variants"]["nd"]["standardised_metrics"]["var_train"]
+    means = {}
+    for arm in ("interp", "transolver"):
+        means[arm] = float(np.mean(
+            [ma_cell(root, weighting, arm, f"mse_{c}") / var[c] for c in channels]))
+    return float(means["interp"] / means["transolver"])
+
+
+def ma_band_ratio(root, chan, band):
+    d = ma(root)
+    if d is None:
+        return None
+    return float(d["verdicts"]["D2"]["r_band_interp_over_transolver"][chan]
+                 [MA_BANDS.index(band)])
+
+
+def ma_band_span(root):
+    d = ma(root)
+    return None if d is None else float(d["verdicts"]["D2"]["S_u_inner_over_outer"])
+
+
+def ma_band_inversions(root):
+    d = ma(root)
+    return None if d is None else float(d["verdicts"]["D2"]["n_inversions_u"])
+
+
+def ma_transolver_se_share(root, chan, band=">0.5c"):
+    """Transolver's own share of squared error in a band, seed-mean, in percent."""
+    d = ma(root)
+    if d is None:
+        return None
+    blk = d["B_band_decomposition_7"]
+    seeds = sorted(k for k in blk if k.startswith("transolver_seed"))
+    return float(100.0 * np.mean([blk[k][band][f"se_share_{chan}"] for k in seeds]))
+
+
+def ma_gap(root, threshold, key):
+    """D1: node fraction, area fraction, or their ratio, inside a wall distance."""
+    d = ma_nodes(root)
+    if d is None:
+        return None
+    return float(d["D1_gap"][f"inside_{threshold}"][key])
+
+
+def ma_band_mass(root, measure, band):
+    d = ma_sens(root)
+    if d is None:
+        return None
+    return float(d["band_masses"][measure][MA_BANDS.index(band)])
+
+
+def ma_band_mass_gap(root, band):
+    a = ma_band_mass(root, "area_uniform", band)
+    n = ma_band_mass(root, "band_true_node_crop", band)
+    return None if not a or n is None else float(n / a)
+
+
+def ma_ceiling(root, band=None):
+    """The r128 round-trip error at the native nodes, over Transolver's own, on u.
+
+    band=None pools over the scored crop with the in-crop node counts as weights.
+    Read from mse_in_crop and never from mse_full: outside the crop the bilinear
+    sampler clamps query points to the domain boundary, so the outer bands of the
+    full-cloud block are contaminated.
+    """
+    d = ma(root)
+    if d is None:
+        return None
+    blk = d["D_node_space"]
+    n = np.asarray(blk["n_nodes_in_crop"], dtype=float)
+    ceil = np.asarray(blk["mse_in_crop"]["r128_ceiling"]["u"], dtype=float)
+    seeds = sorted(k for k in blk["mse_in_crop"] if k.startswith("transolver_seed"))
+    model = np.mean([np.asarray(blk["mse_in_crop"][k]["u"], dtype=float)
+                     for k in seeds], axis=0)
+    if band is None:
+        return float(float(ceil @ n) / float(model @ n))
+    i = MA_BANDS.index(band)
+    return float(ceil[i] / model[i])
+
+
+def ma_node_mse_u_inner(root):
+    """Transolver's own per-node u error in the innermost band, seed-mean."""
+    d = ma(root)
+    if d is None:
+        return None
+    blk = d["D_node_space"]["mse_in_crop"]
+    seeds = sorted(k for k in blk if k.startswith("transolver_seed"))
+    return float(np.mean([blk[k]["u"][0] for k in seeds]))
+
+
+def ma_ceiling_abs(root, band="0-0.005c"):
+    """The r128 round-trip u error at the native nodes inside one band."""
+    d = ma(root)
+    if d is None:
+        return None
+    return float(d["D_node_space"]["mse_in_crop"]["r128_ceiling"]["u"]
+                 [MA_BANDS.index(band)])
+
+
+def ma_sens_p(root, which):
+    d = ma_sens(root)
+    return None if d is None else float(d["p_node_measure_range"][which])
+
+
+def ma_sens_worst(root, chan, which):
+    """Extreme of 1/R on u or v over the five node-measure constructions."""
+    d = ma_sens(root)
+    if d is None:
+        return None
+    vals = [1.0 / d["R"][chan][k] for k in d["p_node_measure_range"]["constructions"]]
+    return float(min(vals) if which == "min" else max(vals))
+
+
 # ---- the claim table --------------------------------------------------------
 # (label, reader, manuscript value, absolute tolerance)
 CLAIMS = [
@@ -630,17 +811,145 @@ CLAIMS = [
      lambda r: interp_std_ratio(r, "mean_std_mse_uvp"), 1.9, 0.05),
     ("TRANSOLVER better on the 4-channel std mean by",
      lambda r: 1.0 / interp_std_ratio(r, "mean_std_mse_uvpnut"), 6.4, 0.05),
-    # --- the same three results as the percentages the abstract bolds. Each is
-    # recomputed from the artifact, not from the ratio beside it, so the two forms
-    # cannot drift apart in the manuscript.
-    ("interp mse_p lower than Transolver by (%)",
-     lambda r: interp_pct_lower(r, "mse_p"), 88.0, 0.5),
-    ("interp mse_v lower than Transolver by (%)",
-     lambda r: interp_pct_lower(r, "mse_v"), 62.0, 0.5),
+    # The "88% lower on mse_p" and "62% lower on mse_v" percentages were withdrawn
+    # from the abstract, introduction, sec:interp and the conclusion on 2026-09-12:
+    # both are area-uniform statements whose SIGN reverses under the dataset's own
+    # node measure (tab:measure), and the manuscript now quotes the two weightings
+    # as a pair of ratios instead of a single percentage. Rows removed rather than
+    # left dangling; interp_pct_lower() is retained because nothing else computes
+    # a percentage form and a future claim may need it.
     ("interp C_l error lower than Transolver by",
      lambda r: interp_force_ratio(r, "cl_rel_err_mean"), 4.9, 0.05),
     ("interp C_d error lower than Transolver by",
      lambda r: interp_force_ratio(r, "cd_rel_err_mean"), 3.8, 0.05),
+    # --- tab:measure. The ranking is the weighting: the SAME predictions on the
+    # SAME cells, re-weighted from area-uniform to native node count. Every cell
+    # and every ratio the manuscript quotes from that table is checked here.
+    # Convention: R = Transolver / interp, so R > 1 means the interpolator wins.
+    ("measure: R_p area-uniform",
+     lambda r: ma_ratio(r, "p", "R_area"), 8.39, 0.02),
+    ("measure: R_p node-weighted (the pre-registered D3 estimator)",
+     lambda r: ma_ratio(r, "p", "R_node"), 0.440, 0.002),
+    ("measure: R_v area-uniform", lambda r: ma_ratio(r, "v", "R_area"), 2.97, 0.02),
+    ("measure: R_v node-weighted", lambda r: ma_ratio(r, "v", "R_node"), 0.0663, 0.001),
+    ("measure: interp worse on mse_u, area-uniform (x)",
+     lambda r: ma_ratio_inv(r, "u", "R_area"), 6.2, 0.05),
+    ("measure: interp worse on mse_u, node-weighted (x)",
+     lambda r: ma_ratio_inv(r, "u", "R_node"), 86.0, 0.5),
+    ("measure: interp worse on nu_t, area-uniform (x)",
+     lambda r: ma_ratio_inv(r, "nut", "R_area"), 14.4, 0.1),
+    ("measure: interp worse on nu_t, node-weighted (x)",
+     lambda r: ma_ratio_inv(r, "nut", "R_node"), 9.2, 0.1),
+    ("measure: Transolver mse_p, area-uniform (629.6 here vs 628.5 in tab:interp)",
+     lambda r: ma_cell(r, "area_uniform", "transolver", "mse_p"), 629.6, 0.2),
+    ("measure: Transolver mse_u, area-uniform",
+     lambda r: ma_cell(r, "area_uniform", "transolver", "mse_u"), 0.127, 0.001),
+    ("measure: Transolver mse_v, area-uniform",
+     lambda r: ma_cell(r, "area_uniform", "transolver", "mse_v"), 0.0999, 0.0005),
+    ("measure: interp mse_u, node-weighted",
+     lambda r: ma_cell(r, "node_weighted", "interp", "mse_u"), 30.7, 0.05),
+    ("measure: interp mse_v, node-weighted",
+     lambda r: ma_cell(r, "node_weighted", "interp", "mse_v"), 4.26, 0.01),
+    ("measure: interp mse_p, node-weighted",
+     lambda r: ma_cell(r, "node_weighted", "interp", "mse_p"), 6012.0, 2.0),
+    ("measure: Transolver mse_u, node-weighted",
+     lambda r: ma_cell(r, "node_weighted", "transolver", "mse_u"), 0.358, 0.001),
+    ("measure: Transolver mse_v, node-weighted",
+     lambda r: ma_cell(r, "node_weighted", "transolver", "mse_v"), 0.282, 0.001),
+    ("measure: Transolver mse_p, node-weighted",
+     lambda r: ma_cell(r, "node_weighted", "transolver", "mse_p"), 2646.0, 2.0),
+    # The two standardised means recomputed on tab:measure's own rows, against the
+    # same var_train divisors tab:interp_std uses. The area-uniform pair differs
+    # from tab:interp_std's 1.9x/6.4x only in the provenance of the Transolver row,
+    # and the manuscript says so rather than letting a reader find it.
+    ("measure: std mean over u,v,p, area-uniform (interp better by)",
+     lambda r: 1.0 / ma_std_mean(r, "area_uniform", ("u", "v", "p")), 1.99, 0.02),
+    ("measure: std mean over all four, area-uniform (Transolver better by)",
+     lambda r: ma_std_mean(r, "area_uniform", ("u", "v", "p", "nut")), 6.1, 0.05),
+    ("measure: std mean over u,v,p, node-weighted (Transolver better by)",
+     lambda r: ma_std_mean(r, "node_weighted", ("u", "v", "p")), 8.30, 0.02),
+    ("measure: std mean over all four, node-weighted (Transolver better by)",
+     lambda r: ma_std_mean(r, "node_weighted", ("u", "v", "p", "nut")), 8.85, 0.02),
+    # --- the node/area asymmetry that drives the reversal (rule D1).
+    ("D1: node fraction inside 0.05c",
+     lambda r: ma_gap(r, "0.05c", "node_frac_crop_A2"), 0.6437, 0.0005),
+    ("D1: area fraction inside 0.05c",
+     lambda r: ma_gap(r, "0.05c", "area_frac_crop_A1"), 0.01249, 0.00005),
+    ("D1: node/area gap inside 0.05c",
+     lambda r: ma_gap(r, "0.05c", "g_A2_over_A1"), 51.5, 0.1),
+    ("D1: node fraction inside 0.02c",
+     lambda r: ma_gap(r, "0.02c", "node_frac_crop_A2"), 0.5553, 0.0005),
+    ("D1: area fraction inside 0.02c",
+     lambda r: ma_gap(r, "0.02c", "area_frac_crop_A1"), 0.00507, 0.00005),
+    ("D1: node/area gap inside 0.02c",
+     lambda r: ma_gap(r, "0.02c", "g_A2_over_A1"), 109.5, 0.1),
+    ("node fraction inside 0.005c",
+     lambda r: ma_band_mass(r, "band_true_node_crop", "0-0.005c"), 0.4322, 0.0005),
+    ("area fraction inside 0.005c",
+     lambda r: ma_band_mass(r, "area_uniform", "0-0.005c"), 0.00138, 0.00002),
+    ("node/area gap inside 0.005c",
+     lambda r: ma_band_mass_gap(r, "0-0.005c"), 312.0, 1.0),
+    ("node/area gap beyond 0.5c (it inverts)",
+     lambda r: ma_band_mass_gap(r, ">0.5c"), 0.14, 0.005),
+    ("grid-binned node weight in 0-0.005c (vs the true 0.432)",
+     lambda r: ma_band_mass(r, "band_grid_binned_node", "0-0.005c"), 0.098, 0.001),
+    # --- 4b: "weight by node count" under five discretisations. None of them
+    # leaves the interpolator an aggregate win.
+    ("4b: lowest R_p over the five node constructions",
+     lambda r: ma_sens_p(r, "min"), 0.431, 0.002),
+    ("4b: highest R_p over the five node constructions",
+     lambda r: ma_sens_p(r, "max"), 1.61, 0.01),
+    ("4b: least adverse node construction on mse_u (x against interp)",
+     lambda r: ma_sens_worst(r, "u", "min"), 86.0, 0.5),
+    ("4b: most adverse node construction on mse_u (x against interp)",
+     lambda r: ma_sens_worst(r, "u", "max"), 551.0, 1.0),
+    ("4b: least adverse node construction on mse_v (x against interp)",
+     lambda r: ma_sens_worst(r, "v", "min"), 6.3, 0.05),
+    ("4b: most adverse node construction on mse_v (x against interp)",
+     lambda r: ma_sens_worst(r, "v", "max"), 24.0, 0.6),
+    # --- tab:bandratio (rule D2). The localisation thesis, measured on BOTH arms.
+    ("D2: band ratio on u, 0-0.005c",
+     lambda r: ma_band_ratio(r, "u", "0-0.005c"), 906.2, 0.5),
+    ("D2: band ratio on u, 0.005-0.01c",
+     lambda r: ma_band_ratio(r, "u", "0.005-0.01c"), 74.1, 0.1),
+    ("D2: band ratio on u, 0.01-0.02c",
+     lambda r: ma_band_ratio(r, "u", "0.01-0.02c"), 30.4, 0.1),
+    ("D2: band ratio on u, 0.02-0.05c",
+     lambda r: ma_band_ratio(r, "u", "0.02-0.05c"), 5.33, 0.01),
+    ("D2: band ratio on u, >0.5c",
+     lambda r: ma_band_ratio(r, "u", ">0.5c"), 0.312, 0.002),
+    ("D2: span of the u band ratio",
+     ma_band_span, 2905.0, 3.0),
+    ("D2: inversions in the u band ratio", ma_band_inversions, 0.0, 0.5),
+    ("D2: band ratio on p, 0-0.005c (Transolver wins the first band)",
+     lambda r: ma_band_ratio(r, "p", "0-0.005c"), 0.589, 0.002),
+    ("D2: interp wins p in 0.15-0.5c by (x)",
+     lambda r: 1.0 / ma_band_ratio(r, "p", "0.15-0.5c"), 32.0, 0.5),
+    ("D2: interp wins p beyond 0.5c by (x)",
+     lambda r: 1.0 / ma_band_ratio(r, "p", ">0.5c"), 237.0, 1.0),
+    # Seed-mean shares. The tolerance is 0.3 percentage points rather than 0.1
+    # because the manuscript quotes one decimal and the three seeds are averaged.
+    ("Transolver's own u error share beyond 0.5c (%)",
+     lambda r: ma_transolver_se_share(r, "u"), 71.9, 0.3),
+    ("Transolver's own p error share beyond 0.5c (%)",
+     lambda r: ma_transolver_se_share(r, "p"), 62.8, 0.3),
+    # --- Block D: the representation ceiling. This bounds every field number in
+    # sec:interp, for BOTH arms, and is the half of the objection that no
+    # re-weighting can reach.
+    # NOTE the manuscript quotes 413x pooled, not the 418x that
+    # docs/paper/review/measure_asymmetry.md Sec.5 prints. 418 = 277.3/0.664, but
+    # 0.664 does not reconstruct from that table's own inputs: node-weighting the
+    # seed-mean in-crop band MSEs by n_nodes_in_crop gives 0.6708, hence
+    # 277.335/0.6708 = 413.4. This reader recomputes both sides from the artifact,
+    # so the manuscript tracks the artifact and not the prose summary.
+    ("r128 round-trip error over Transolver's, pooled over the crop (x)",
+     ma_ceiling, 413.4, 1.0),
+    ("r128 round-trip error over Transolver's, inside 0.005c (x)",
+     lambda r: ma_ceiling(r, "0-0.005c"), 495.0, 2.0),
+    ("Transolver's per-node u error inside 0.005c",
+     ma_node_mse_u_inner, 1.16, 0.01),
+    ("r128 round-trip u error at the nodes inside 0.005c",
+     ma_ceiling_abs, 572.8, 0.2),
     # --- the wall-band decomposition: the boundary claim.
     ("u error share inside 0.02c", lambda r: band(r, "se_share_u"), 0.924, 0.002),
     ("v error share inside 0.02c", lambda r: band(r, "se_share_v"), 0.898, 0.002),
