@@ -1,4 +1,4 @@
-\begin{thebibliography}{35}
+\begin{thebibliography}{44}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 \providecommand{\url}[1]{\texttt{#1}}
 \providecommand{\href}[2]{#2}
@@ -294,6 +294,109 @@
 \newblock \bibinfo{journal}{Nature Machine Intelligence} \bibinfo{volume}{6}
   (\bibinfo{year}{2024}) \bibinfo{pages}{1256--1269}.
   \DOIprefix\doi{10.1038/s42256-024-00897-5}.
+%Type = Inproceedings
+\bibitem[{Poliak et~al.(2018)Poliak, Naradowsky, Haldar, Rudinger, and
+  Van~Durme}]{poliak2018hypothesis}
+\bibinfo{author}{A.~Poliak}, \bibinfo{author}{J.~Naradowsky},
+  \bibinfo{author}{A.~Haldar}, \bibinfo{author}{R.~Rudinger},
+  \bibinfo{author}{B.~Van~Durme},
+\newblock \bibinfo{title}{Hypothesis only baselines in natural language
+  inference},
+\newblock in: \bibinfo{booktitle}{Proceedings of the Seventh Joint Conference
+  on Lexical and Computational Semantics ({*SEM})}, \bibinfo{year}{2018}, pp.
+  \bibinfo{pages}{180--191}. \DOIprefix\doi{10.18653/v1/S18-2023},
+  \bibinfo{note}{arXiv:1805.01042}.
+%Type = Inproceedings
+\bibitem[{Gururangan et~al.(2018)Gururangan, Swayamdipta, Levy, Schwartz,
+  Bowman, and Smith}]{gururangan2018artifacts}
+\bibinfo{author}{S.~Gururangan}, \bibinfo{author}{S.~Swayamdipta},
+  \bibinfo{author}{O.~Levy}, \bibinfo{author}{R.~Schwartz},
+  \bibinfo{author}{S.~R. Bowman}, \bibinfo{author}{N.~A. Smith},
+\newblock \bibinfo{title}{Annotation artifacts in natural language inference
+  data},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 2018 Conference of the
+  North American Chapter of the Association for Computational Linguistics
+  ({NAACL})}, \bibinfo{year}{2018}, pp. \bibinfo{pages}{107--112}.
+  \DOIprefix\doi{10.18653/v1/N18-2017}, \bibinfo{note}{arXiv:1803.02324}.
+%Type = Inproceedings
+\bibitem[{Errica et~al.(2020)Errica, Podda, Bacciu, and
+  Micheli}]{errica2020fair}
+\bibinfo{author}{F.~Errica}, \bibinfo{author}{M.~Podda},
+  \bibinfo{author}{D.~Bacciu}, \bibinfo{author}{A.~Micheli},
+\newblock \bibinfo{title}{A fair comparison of graph neural networks for graph
+  classification},
+\newblock in: \bibinfo{booktitle}{International Conference on Learning
+  Representations (ICLR)}, \bibinfo{year}{2020}.
+  \bibinfo{note}{ArXiv:1912.09893}.
+%Type = Inproceedings
+\bibitem[{Ferrari~Dacrema et~al.(2019)Ferrari~Dacrema, Cremonesi, and
+  Jannach}]{dacrema2019progress}
+\bibinfo{author}{M.~Ferrari~Dacrema}, \bibinfo{author}{P.~Cremonesi},
+  \bibinfo{author}{D.~Jannach},
+\newblock \bibinfo{title}{Are we really making much progress? {A} worrying
+  analysis of recent neural recommendation approaches},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 13th ACM Conference on
+  Recommender Systems (RecSys)}, \bibinfo{year}{2019}. \bibinfo{note}{Best Long
+  Paper; arXiv:1907.06902}.
+%Type = Article
+\bibitem[{Ahlmann-Eltze et~al.(2025)Ahlmann-Eltze, Huber, and
+  Anders}]{ahlmanneltze2025deep}
+\bibinfo{author}{C.~Ahlmann-Eltze}, \bibinfo{author}{W.~Huber},
+  \bibinfo{author}{S.~Anders},
+\newblock \bibinfo{title}{Deep-learning-based gene perturbation effect
+  prediction does not yet outperform simple linear baselines},
+\newblock \bibinfo{journal}{Nature Methods} \bibinfo{volume}{22}
+  (\bibinfo{year}{2025}) \bibinfo{pages}{1657--1661}.
+  \DOIprefix\doi{10.1038/s41592-025-02772-6}.
+%Type = Inproceedings
+\bibitem[{Feng et~al.(2019)Feng, Wallace, and Boyd-Graber}]{feng2019misleading}
+\bibinfo{author}{S.~Feng}, \bibinfo{author}{E.~Wallace},
+  \bibinfo{author}{J.~Boyd-Graber},
+\newblock \bibinfo{title}{Misleading failures of partial-input baselines},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 57th Annual Meeting of the
+  Association for Computational Linguistics ({ACL})}, \bibinfo{year}{2019}, pp.
+  \bibinfo{pages}{5533--5538}. \DOIprefix\doi{10.18653/v1/P19-1554},
+  \bibinfo{note}{arXiv:1905.05778}.
+%Type = Inproceedings
+\bibitem[{Ethayarajh et~al.(2022)Ethayarajh, Choi, and
+  Swayamdipta}]{ethayarajh2022vusable}
+\bibinfo{author}{K.~Ethayarajh}, \bibinfo{author}{Y.~Choi},
+  \bibinfo{author}{S.~Swayamdipta},
+\newblock \bibinfo{title}{Understanding dataset difficulty with
+  {$\mathcal{V}$}-usable information},
+\newblock in: \bibinfo{booktitle}{International Conference on Machine Learning
+  (ICML)}, volume \bibinfo{volume}{162} of \textit{\bibinfo{series}{Proceedings
+  of Machine Learning Research}}, \bibinfo{year}{2022}, pp.
+  \bibinfo{pages}{5988--6008}. \bibinfo{note}{Outstanding Paper;
+  arXiv:2110.08420}.
+%Type = Article
+\bibitem[{Queipo et~al.(2005)Queipo, Haftka, Shyy, Goel, Vaidyanathan, and
+  Tucker}]{queipo2005surrogate}
+\bibinfo{author}{N.~V. Queipo}, \bibinfo{author}{R.~T. Haftka},
+  \bibinfo{author}{W.~Shyy}, \bibinfo{author}{T.~Goel},
+  \bibinfo{author}{R.~Vaidyanathan}, \bibinfo{author}{P.~K. Tucker},
+\newblock \bibinfo{title}{Surrogate-based analysis and optimization},
+\newblock \bibinfo{journal}{Progress in Aerospace Sciences}
+  \bibinfo{volume}{41} (\bibinfo{year}{2005}) \bibinfo{pages}{1--28}.
+  \DOIprefix\doi{10.1016/j.paerosci.2005.02.001}.
+%Type = Article
+\bibitem[{Rasp et~al.(2024)Rasp, Hoyer, Merose, Langmore, Battaglia, Russel,
+  Sanchez-Gonzalez, Yang, Carver, Agrawal, Chantry, Ben~Bouallegue, Dueben,
+  Bromberg, Sisk, Barrington, Bell, and Sha}]{rasp2024weatherbench2}
+\bibinfo{author}{S.~Rasp}, \bibinfo{author}{S.~Hoyer},
+  \bibinfo{author}{A.~Merose}, \bibinfo{author}{I.~Langmore},
+  \bibinfo{author}{P.~Battaglia}, \bibinfo{author}{T.~Russel},
+  \bibinfo{author}{A.~Sanchez-Gonzalez}, \bibinfo{author}{V.~Yang},
+  \bibinfo{author}{R.~Carver}, \bibinfo{author}{S.~Agrawal},
+  \bibinfo{author}{M.~Chantry}, \bibinfo{author}{Z.~Ben~Bouallegue},
+  \bibinfo{author}{P.~Dueben}, \bibinfo{author}{C.~Bromberg},
+  \bibinfo{author}{J.~Sisk}, \bibinfo{author}{L.~Barrington},
+  \bibinfo{author}{A.~Bell}, \bibinfo{author}{F.~Sha},
+\newblock \bibinfo{title}{{WeatherBench 2}: A benchmark for the next generation
+  of data-driven global weather models},
+\newblock \bibinfo{journal}{Journal of Advances in Modeling Earth Systems}
+  \bibinfo{volume}{16} (\bibinfo{year}{2024}) \bibinfo{pages}{e2023MS004019}.
+  \DOIprefix\doi{10.1029/2023MS004019}.
 %Type = Inproceedings
 \bibitem[{Bai et~al.(2019)Bai, Kolter, and Koltun}]{bai2019deq}
 \bibinfo{author}{S.~Bai}, \bibinfo{author}{J.~Z. Kolter},

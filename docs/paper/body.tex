@@ -35,9 +35,13 @@ network, no geometry encoder and no flow-field learning, scored through the iden
 \texttt{evaluate\_cases} protocol on the identical $800/200$ split, gives
 \textbf{$88\%$ lower} volume-pressure error than a matched-budget Transolver
 ($75.0$ against $628.5$, $8.4\times$), $62\%$ lower cross-flow-velocity error
-($2.6\times$), and force-coefficient errors \textbf{$4.9\times$ lower on lift} and
-$3.8\times$ lower on drag ($C_l$ $1.18\%$ against $5.81\%$; $C_d$ $2.39\%$ against
-$8.99\%$). It loses on streamwise velocity ($6.5\times$) and on eddy viscosity
+($2.6\times$), and \textbf{$4.9\times$/$3.8\times$ closer agreement} on lift and drag with
+the forces integrated from the rasterised ground-truth field through the same grid
+integrator ($C_l$ $1.18\%$ against $5.81\%$; $C_d$ $2.39\%$ against $8.99\%$, at $128^2$).
+That last pair is a \emph{field-fidelity proxy}, not agreement with AirfRANS's official
+force labels: the same integrator carries an ${\approx}11\times$ absolute drag bias on
+\emph{exact} fields and cannot represent the viscous component at all
+(\autoref{sec:v2}). It loses on streamwise velocity ($6.5\times$) and on eddy viscosity
 ($15\times$), and therefore loses $6.4\times$ on the four-channel standardised objective
 the surrogate is actually trained on; interpolation cannot represent the turbulence
 closure at all. That counterweight travels with the result everywhere it appears here.
@@ -45,7 +49,11 @@ What makes the pair informative rather than merely mixed is where the difference
 \textbf{$92\%$ of the interpolator's $u$ error and $90\%$ of its $v$ error lie within
 $0.02$ chord of the wall}---$0.5\%$ of cells, thinner than one grid spacing---while
 \textbf{$98.7\%$ of the domain}, everything beyond $0.05$ chord, is reproduced at
-$R^2\ge0.9996$ with no learning at all (\autoref{sec:interp}). The far field is $80\%$ of
+$R^2\ge0.9996$ with no learning at all (\autoref{sec:interp}). These are $128^2$ figures.
+A frozen ladder to $256^2$ and $512^2$ leaves the domain fraction, the $R^2$ floor and the
+outer-region error unmoved, but eases the near-wall shares to $88\%$/$84\%$ because the
+near-wall error itself falls $45\%$; our pre-registered rule reads that easing as
+\textsc{partial} and we report it as such. The far field is $80\%$ of
 the domain and carries $3.6\%$ of the $u$ error, which disposes of the objection that the
 win is on easy cells. Whatever a surrogate buys on AirfRANS, it buys inside the first grid
 cell and in the closure; the pressure field and the force coefficients that early-design
@@ -55,10 +63,15 @@ ranking actually consumes are recoverable from seven numbers in a file name.
 declares the Spearman rank correlation of the force coefficients its primary metric.
 Ordinary least squares on the case name, fit on the official $800$ train cases and
 scored on the $200$ test cases, ranks the official lift at $\mathbf{0.9821}$
-$[0.9737,0.9866]$ and the official drag at $\mathbf{0.9318}$ $[0.8981,0.9531]$.
-\textbf{Four of the five published baselines fall below that null on lift} ($0.913$,
-$0.938$, $0.965$, $0.967$; only Transolver's $0.9978$ clears), and on drag every
-AirfRANS-paper entry falls below it, three of the four published intervals spanning zero
+$[0.9737,0.9866]$ and the official drag at $\mathbf{0.9318}$ $[0.8981,0.9531]$. Under the
+pre-registered rule---the published mean below the null's point estimate and outside the
+null's $95\%$ interval---\textbf{all four AirfRANS-paper lift entries fall below that null}
+($0.913$, $0.938$, $0.965$, $0.967$; Transolver's $0.9978$ clears). Measured instead
+against each model's \emph{own} published seed spread the separation is decisive only
+twice: $3.8$ and $1.9$ seed standard deviations for MLP and PointNet, but $1.6$ and $0.8$
+for GraphSAGE and Graph U-Net. We report both readings and rest nothing on the last two.
+\textbf{Drag is where the result is not in doubt}: every
+AirfRANS-paper entry falls below the null, three of the four published intervals spanning zero
 ($-0.117$, $-0.022$, $-0.303$, $-0.138$, at published seed standard deviations of
 $0.256$, $0.097$, $0.124$, $0.258$). Transolver reports no drag column at all, stating in
 its Appendix B.1 that the deep models fail at drag. The reading was fixed in the script's
@@ -243,6 +256,49 @@ fifteen minutes of CPU time, and a null any author can compute for their own for
 numbers. We do not claim published AirfRANS results are wrong, and we specifically do not
 claim label leakage---conditioning a surrogate on its inlet state is necessary, not
 suspect. We claim these numbers have been read against a missing reference point.
+
+\paragraph{Simple-baseline audits: the lineage both of our reference points belong to.}
+Neither control is a new kind of instrument. In natural-language inference,
+\emph{partial-input} baselines that discard the premise recover much of the label and
+revised what those benchmarks were taken to measure
+\citep{poliak2018hypothesis,gururangan2018artifacts}. In graph classification,
+\citet{errica2020fair} showed by comparison against \emph{structure-agnostic} baselines
+that on several benchmarks structural information was not yet being exploited---substitute
+\emph{geometry} for \emph{structure} and that is the sentence we are testing here. In
+recommendation, \citet{dacrema2019progress} found most reproducible neural methods matched
+by nearest-neighbour or linear models. The genre has since reached the natural sciences:
+\citet{ahlmanneltze2025deep} report that no tested deep or foundation model for
+gene-perturbation effects \emph{yet} outperforms deliberately simple linear baselines.
+\citet{feng2019misleading} supply the standing caveat on the instrument and we honour its
+direction: a cheap baseline that succeeds shows a benchmark is cheatable, while a cheap
+baseline that fails licenses nothing about how hard the benchmark is. One structural
+difference separates our controls from the partial-input line and is worth stating
+precisely. A partial-input baseline consumes a subset of what the model consumes; the
+design vector we read off the case name is, for the most part, not an input to any AirfRANS
+surrogate---it is the low-dimensional code that \emph{generated} the geometry, published in
+the file name. AirfRANS is a hybrid case and we flag it as such: $U$ and $Re$ are literally
+input channels, while the NACA digits enter the surrogate only through the \texttt{sdf}
+they generate. Framed generally, the question is how much usable information a benchmark's
+own published metadata carries about its headline label
+\citep{ethayarajh2022vusable}; we answer it in the benchmark's own currency---volume MSE
+and Spearman rank---rather than as an information-theoretic quantity.
+
+\paragraph{The estimator is decades old, and we say so first.} Gaussian kernel ridge
+regression over a handful of design variables is Kriging in all but name, and fitting
+response surfaces over design variables has been standard practice in aerodynamic design
+since long before this benchmark existed \citep{queipo2005surrogate}. We therefore claim no
+novelty for the estimator; an aerodynamicist should read \autoref{sec:interp} as
+response-surface methodology used as a benchmark control, not as a new method.
+What is new is the measurement---what the omission of that estimator from this benchmark's
+reporting conceals, and where the surviving gap lives. That is also the cleanest statement
+of how this work extends the closest prior art in our own subfield:
+\citet{mcgreivy2024weak} showed that the field compares against weak \emph{numerical}
+solvers; we show that it does not compare against a trivial \emph{statistical} baseline at
+all, and we measure how much that conceals. The protocol we recommend is likewise not an
+invention but an import. Data-driven weather forecasting already mandates trivial controls
+of exactly this kind, reporting persistence and climatology alongside every model in its
+headline scorecard \citep{rasp2024weatherbench2}; external-aerodynamics benchmarking does
+not.
 
 \subsection{Positioning}
 
@@ -440,7 +496,10 @@ $(\hat u,\hat v,\hat p,\hat\nu_t)=((u-U\cos\alpha)/U,\,(v-U\sin\alpha)/U,\,p/U^2
 \nu_t/(Uc))$ across training cases with Gaussian kernel ridge regression,
 redimensionalising with the test case's own $(U,\alpha)$. There is no network, no
 geometry encoder and no flow-field learning; fitting is one $800\times800$ Cholesky
-solve and prediction is one GEMM. Hyperparameters come from 5-fold cross-validation
+solve and prediction is one GEMM. The estimator is deliberately old---this is
+response-surface methodology, and Gaussian kernel ridge over design variables is Kriging
+in all but name \citep{queipo2005surrogate}---so the claim we make is for the measurement,
+not for the method. Hyperparameters come from 5-fold cross-validation
 \emph{inside} the train split on a scalar registered before any number existed, applied
 to test once. Scoring is byte-identical to the surrogates': the same cached rasterised
 pairs at $128^2$, the same \texttt{evaluate\_cases}, the same mask, surface sampler and
@@ -458,8 +517,13 @@ grid backbone's gap to Transolver in the same comparison.
 \small
 \caption{Parameter interpolation against learned surrogates on AirfRANS \texttt{full}
 ($800$ train / $200$ test, $r128$, identical \texttt{evaluate\_cases}, 3 seeds where
-seeded). Force columns are mean relative error; $\rho_{C_l},\rho_{C_d}$ are the
-field-to-field self-consistency correlations defined in \autoref{sec:experiments}. The
+seeded). The force columns are mean relative error against the force integrated from the
+rasterised \emph{ground-truth field} through the same grid integrator---a field-to-field
+consistency measure, not agreement with the official AirfRANS labels---and
+$\rho_{C_l},\rho_{C_d}$ are the corresponding self-consistency correlations defined in
+\autoref{sec:experiments}. That integrator carries an ${\approx}11\times$ absolute drag
+bias even on exact fields and cannot see viscous drag (\autoref{sec:v2}), so these four
+columns rank arms against one another; they do not measure force accuracy. The
 last block is the floor ladder and the negative control; ``permuted'' predicts each test
 case from another case's parameters under a fixed derangement, everything else identical.
 The interpolator's $0$ parameters are not free: it carries the $800$ training fields
@@ -489,12 +553,24 @@ our grid backbone $+$ DEQ & --- & $3.457$ & $0.880$ & $3832.7$ & $361681$ & $0.9
 \paragraph{Result, with its counterweight.} The interpolator beats a matched-budget
 Transolver on cross-flow velocity ($\texttt{mse\_v}$ $0.0336$ against $0.088$, $62\%$
 lower, $2.6\times$), on volume pressure ($\texttt{mse\_p}$ $75.0$ against $628.5$,
-\textbf{$88\%$ lower}, $\mathbf{8.4\times}$), and on both force magnitudes ($C_l$
+\textbf{$88\%$ lower}, $\mathbf{8.4\times}$), and on both force columns ($C_l$
 relative error $1.18\%$ against $5.81\%$, $4.9\times$ lower; $C_d$ $2.39\%$ against
-$8.99\%$, $3.8\times$ lower). It loses on the streamwise channel ($\texttt{mse\_u}$
+$8.99\%$, $3.8\times$ lower). Those two columns need their name said out loud, because it
+is not the name a reader supplies: they measure agreement with the force integrated from
+the rasterised \emph{ground-truth field} through the same grid integrator, so the
+$4.9\times$ and $3.8\times$ are field-to-field consistency ratios and not $4.9\times$ and
+$3.8\times$ better lift and drag. On the official OpenFOAM labels the same integrator is
+${\approx}11\times$ biased on absolute drag even when fed exact fields and cannot see the
+viscous component at all (\autoref{sec:v2}), and against those labels the interpolator's
+own drag rank ($0.8389$) is indistinguishable from the exact truth field's ($0.8394$). It
+loses on the streamwise channel ($\texttt{mse\_u}$
 $0.782$ against $0.120$, $6.5\times$), marginally on surface pressure ($10989$ against
 $9110$, $1.21\times$), and heavily on the turbulence variable ($\texttt{mse\_nut}$
-$8.8{\times}10^{-8}$ against $5.7{\times}10^{-9}$, $15\times$). Because
+$8.8{\times}10^{-8}$ against $5.7{\times}10^{-9}$, $15\times$). One tension between those
+two readings we record without resolving: the interpolator is $1.21\times$ \emph{worse} on
+surface-pressure MSE yet $4.9\times$ better on the lift column, which is an integral of
+that same surface pressure, so the two statistics must weight the body differently and we
+have not decomposed which cells drive each. Because
 \texttt{run\_baselines.py} trains on per-channel \emph{standardised} MSE over all four
 output channels, we report that metric too, so the comparison cannot be dismissed as
 scoring a model on something it was never trained for (\autoref{tab:interp_std}). Both of
@@ -578,6 +654,55 @@ $>0.5c$ & $0.800$ & $0.9965$ & $0.9999$ & $1.0000$ & $0.036$ & $0.014$ & $0.022$
 \end{adjustbox}
 \end{table}
 
+\paragraph{Under refinement the localisation holds and the share statistic dilutes: a
+pre-registered \textup{\textsc{partial}}.} Those shares are $128^2$ numbers, and the obvious attack
+is that the $0.02c$ band is thinner than the $0.0234c$ cells it is measured on. We re-ran
+the whole decomposition at $128^2$, $256^2$ and $512^2$ on the same $800/200$ split with
+the estimator frozen---the kernel weight matrix is a function of the case \emph{names}
+alone and hashes bit-identically at every rung---and with every band edge fixed in chord
+units (\texttt{scripts/interpolation\_resolution\_ladder.py},
+\texttt{results/interpolation/interp\_resolution\_ladder.json}; the $128^2$ rung reproduces
+\autoref{tab:interp} at relative error $0.00\mathrm{e}{+}00$, which gates the run before any
+finer number is written). \textbf{The pre-registered verdict is \textsc{partial}} and we
+report it as such. The rule required the near-wall squared-error share to stay at or above
+$0.85$ on \emph{both} $u$ and $v$ at every rung; the shares go $0.924/0.898$ at $128^2$ to
+$0.901/0.855$ at $256^2$ to $\mathbf{0.879}/\mathbf{0.842}$ at $512^2$, so $v$ misses the
+floor at the finest rung. That $0.85$ was written before any number existed and was not
+moved, and no clause of the \textsc{dissolves} branch fires.
+
+The share erodes because its numerator shrank, not because the far field got worse---and
+that reading is a stronger result than the deployed-resolution table could show. Inside
+$0.005c$, which is $0.15\%$ of the domain, the absolute $u$ error \emph{falls $45\%$} under
+refinement ($466.7\to257.7$) while its $R^2$ rises $0.507\to0.723$; beyond $0.5c$, which is
+$80\%$ of the domain, the absolute $u$ error moves $0.6\%$ ($0.0356\to0.0354$). A share is a
+ratio, so when the dominant term halves and the rest holds, every other band's share rises
+without any of them degrading. What survives unqualified is everything the objection
+asserts. At $512^2$, where the band is $3.4$ cells across rather than sub-cell,
+$\mathbf{72\%}$ of the $u$ error lies inside $0.005c$: the localisation is \emph{tighter}
+at fine resolution, not looser. The fraction of the domain reproduced without learning is
+$0.9949/0.9949/0.9950$; every channel still clears $R^2\ge0.9996$ beyond $0.05c$ at all
+three rungs, though we note that the binding entry---$p$ in $0.05$--$0.15c$---clears it at
+$0.99961$ at every rung, so that claim rests on a fourth-decimal margin at any resolution;
+and absolute MSE beyond $0.05c$ is flat within $1.5\%$ across a $16\times$ increase in cell
+count. Two scope notes travel with the ladder. At $512^2$ the raster spacing is only
+$1.28\times$ the source cloud's far-field nearest-neighbour spacing, so the outer-MSE arm of
+the rule was pre-declared to be read on the $128\!\to\!256$ pair, clear of that limit. And
+there is no Transolver row at $256^2$ or $512^2$: the ladder settles whether the
+\emph{localisation} is an artifact of the deployed grid, and settles nothing about whether
+the \emph{advantage} survives at native resolution (\autoref{sec:limitations}).
+
+The ladder also re-scores the force columns, and they turn out to be ill-conditioned in a
+way a reader should be told about. By $512^2$ the interpolator's $C_d$ relative error rises
+$2.4\times$ on the median and $2.6\times$ on a $90\%$-trimmed mean while its \emph{absolute}
+drag error \emph{falls} ($0.0085\to0.0060$); the untrimmed mean reaches $1.84$, but that is
+one case, because \texttt{coefficient\_metrics} divides by a rasterised reference drag that
+collapses and changes sign on that case under refinement ($+0.146$ to
+$-1.7\times10^{-4}$; the case is named in the artifact). $\rho_{C_l}$ is unmoved at
+$0.9998$ and $\rho_{C_d}$ slips $0.9991\to0.9811$, most of it recoverable by dropping that
+one case. With no Transolver row at those rungs, and with the rasterised reference integral
+itself moving under refinement, the $128^2$ force ratios cannot be re-evaluated here---only
+the interpolator's own trend, and only with the metric's ill-conditioning stated.
+
 \paragraph{How we tried to break it.} Five checks could have killed the result and did
 not. \emph{Leakage}: train/test case-name overlap is $0$ on all three splits, asserted
 in the script and verified independently against \texttt{manifest.json}.
@@ -593,7 +718,15 @@ integrations, so the script asserts $n=200/200$ (and $196/196$ on \texttt{aoa}) 
 every scored variant. \emph{Self-serving solid fill}: filling pressure inside
 neighbours' solids by nearest-fluid propagation instead of leaving the Delaunay bridge
 makes surface pressure $14\times$ \emph{worse} ($10989\to153174$), so the one channel
-the surrogate wins is not flattered by our treatment. Selection never saw test: the
+the surrogate wins is not flattered by our treatment. Run along the same resolution
+ladder, that control localises its own sensitivity to the coarse grid: the two defensible
+fills disagree by $13.7\times$ at $128^2$, $5.8\times$ at $256^2$ and $1.7\times$ at
+$512^2$, because at $h=0.0234c$ the bilinear surface stencil straddles the body while at
+$h=0.0059c$ it sits in real fluid. We therefore make no claim about surface pressure and
+grid resolution---the apparent $1.9\times$ degradation under \texttt{nearest} reverses to
+$4.2\times$ the other way under \texttt{nearest\_all}---and we read our $r128$
+surface-pressure number as what it is, a number about the sampler and the solid fill as
+much as about the flow. Selection never saw test: the
 cross-validated ranking inside train and the test ranking agree, with kernel ridge and
 local linear filling the CV top ten and every $k$-NN configuration $33\times$ behind.
 
@@ -707,14 +840,27 @@ Transolver & $0.9978$ & not reported \\
 \end{table}
 
 \textbf{Every baseline in the AirfRANS paper sits below the full null on both
-coefficients}, on the metric that paper declares primary---\textbf{four of the five
-published entries} once Transolver is included, which clears on lift ($0.9978$) and
+coefficients}, on the metric that paper declares primary---four of the five
+published entries once Transolver is included, which clears on lift ($0.9978$) and
 reports no drag column at all, stating in its Appendix B.1 that ``all the deep models fail
 in drag coefficient estimation''. The drag column is worse than the gap alone suggests:
 \textbf{three of the four published drag intervals span zero} at one published seed
 standard deviation ($-0.117{\pm}0.256$, $-0.022{\pm}0.097$, $-0.138{\pm}0.258$; only
-GraphSAGE's $-0.303{\pm}0.124$ excludes it, and on the wrong side). Three qualifications
+GraphSAGE's $-0.303{\pm}0.124$ excludes it, and on the wrong side). Four qualifications
 belong with this, and we state them before a reviewer does.
+
+\emph{On lift the margin is decisive for two entries, not four.} The rule above compares a
+published mean against the null's point estimate and its interval, and all four
+AirfRANS-paper lift entries fall below it on that rule. A reader who compares instead
+against each model's own published spread will not see four clean results: the gap is
+$3.8$ published seed standard deviations for MLP ($0.913{\pm}0.018$) and $1.9$ for
+PointNet ($0.938{\pm}0.023$), but only $1.6$ for GraphSAGE ($0.965{\pm}0.011$) and $0.8$
+for Graph U-Net ($0.967{\pm}0.019$). The two intervals are not commensurable in any case:
+ours is a case-level bootstrap over the $200$ test cases, theirs a spread over five
+training seeds, and neither carries the other's variance source. The summary we stand
+behind is therefore that the null's point estimate exceeds all four lift entries and
+separates decisively from two of them. None of this qualification applies to drag, where
+the null clears every entry by a wide margin and three of the four intervals span zero.
 
 \emph{The digits are fair.} The NACA digits are the geometry the surrogate is handed as
 an input channel, so a null that uses them is not exploiting information the models
@@ -760,7 +906,9 @@ tolerances).
 vs.\ with the DEQ correction loop. 5 seeds, mean $\pm$ std (population std,
 \texttt{ddof=0}). Lower MSE is better;
 $\rho$ closer to 1 is better;
-resid$\leftrightarrow$err $\rho > 0$ supports the trust signal.
+resid$\leftrightarrow$err $\rho > 0$ supports the trust signal. The $C_l$/$C_d$ columns
+are relative error against the ground-truth field's own integrated forces, not against the
+official labels; the paragraph after next states what that integrator can and cannot see.
 Source: \texttt{results/control/w1\_capture.json} (5-seed extension of
 \texttt{results/v2/v2\_results.json}).}
 \label{tab:v2}
@@ -1431,11 +1579,19 @@ completeness that had it been registered it would be \emph{falsified}
 \autoref{sec:interp}.} Every number there is scored on the $r128$ rasterised crop, because
 that is the protocol our Transolver row uses. The native AirfRANS point clouds resolve the
 boundary layer far better than $0.0234c$ cells, and our own decomposition says the entire
-remaining gap lives inside the first cell. A reviewer is entitled to ask whether the
-interpolation advantage survives at native resolution, and we cannot answer from these
-runs: doing so needs Transolver inference with the \texttt{PointNormalizer} fitted on the
-$800$ train point clouds, and the checkpoints do not store the normaliser. This is the
-single most valuable follow-up in the paper. Relatedly, \autoref{tab:interp_std} divides by
+remaining gap lives inside the first cell. We can now answer half of that. A frozen
+$128^2$/$256^2$/$512^2$ ladder (\autoref{sec:interp}) shows the \emph{localisation} is not
+an artifact of the deployed grid: the domain fraction reproduced without learning, the
+$R^2$ floor beyond $0.05c$ and the absolute outer-region MSE are all flat across a
+$16\times$ increase in cell count, and at $512^2$ the error is \emph{more} tightly
+localised than the $128^2$ table can show. The near-wall \emph{share} nonetheless eases
+from $0.92/0.90$ to $0.88/0.84$ and misses a pre-declared $0.85$ floor on $v$ at the finest
+rung, so the registered verdict is \textsc{partial} and we report it as \textsc{partial}.
+What the ladder cannot settle is the \emph{advantage}: there is no Transolver row at
+$256^2$ or $512^2$, because producing one needs Transolver inference with the
+\texttt{PointNormalizer} fitted on the $800$ train point clouds, and the checkpoints do not
+store the normaliser. The point-space head-to-head remains the single most valuable
+follow-up in the paper. Relatedly, \autoref{tab:interp_std} divides by
 variances computed on the $r128$ raster rather than in point space, so it is faithful in
 spirit but not byte-identical to the training normaliser; the ratios between rows are
 unaffected, since the divisor is shared.
@@ -1542,13 +1698,19 @@ and bear on no quantitative claim.
 
 \textbf{Learning earns its keep in the first cell off the wall, and the benchmark's
 primary metric cannot see it.} Interpolating seven scalars read off the AirfRANS case name
-gives $88\%$ lower volume pressure error and $4.9\times$/$3.8\times$ lower lift and drag
-errors than a matched-budget Transolver, loses on streamwise velocity and heavily on the
+gives $88\%$ lower volume pressure error than a matched-budget Transolver, and
+$4.9\times$/$3.8\times$ closer agreement with the lift and drag integrated from the
+ground-truth field through the same grid integrator---a field-fidelity proxy, not the
+official labels. It loses on streamwise velocity and heavily on the
 closure, and concentrates $92\%$/$90\%$ of its velocity error inside $0.5\%$ of the cells
-while reproducing the other $98.7\%$ of the domain at $R^2\ge0.9996$. That is precisely
+while reproducing the other $98.7\%$ of the domain at $R^2\ge0.9996$. Both shares are
+$128^2$ figures; a frozen $128^2$/$256^2$/$512^2$ ladder holds the structure and eases
+the shares to $88\%$/$84\%$, which our pre-registered rule reads as \textsc{partial}. That is precisely
 where the benchmark's own authors located their models' failure, without quantifying it.
-Meanwhile a regression on the case name outranks four of the five published lift entries
-and every published drag entry, three of which span zero. We do not read this as evidence
+Meanwhile a regression on the case name outranks every published drag entry, three of
+which span zero, and outranks all four published lift entries as well---though on lift the
+separation is $3.8$ and $1.9$ of each model's own published seed standard deviations for
+two of them and only $1.6$ and $0.8$ for the other two. We do not read this as evidence
 that those results are wrong; we read it as evidence that both a field metric and a
 force-rank metric on this benchmark are uninterpretable without their non-learned
 reference point.

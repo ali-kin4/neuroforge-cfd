@@ -7,6 +7,6 @@ scripts/check_submission.py.
 
 - Parameter interpolation beats a matched Transolver on AirfRANS pressure by 8.4x
 - It loses on eddy viscosity, so loses 6.4x on the four-channel training objective
-- 92% of its velocity error sits within 0.02 chord of the wall, 0.5% of the cells
-- Four of five published AirfRANS lift ranks fall below a case-name regression
+- At 128x128, 92% of velocity error sits within 0.02 chord of the wall: 0.5% of cells
+- Every published AirfRANS drag rank falls below a regression on the case name
 - The reynolds split measures dimensional scaling, not learned generalisation
