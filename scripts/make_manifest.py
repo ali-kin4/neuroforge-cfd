@@ -155,6 +155,81 @@ HEADLINE: list[dict] = [
                "from 2.9705 to [0.0018, 0.159]. No construction leaves the "
                "interpolator an aggregate win, and D3's verdict is read on the "
                "pre-registered cell-level estimator"},
+    {"path": "results/interpolation/point_space_headtohead.json",
+     "script": "scripts/point_space_headtohead.py --stage reduce", "tier": "cpu",
+     "claims": "THE POINT-SPACE HEAD-TO-HEAD: Transolver against parameter "
+               "interpolation at the native AirfRANS cloud nodes, 200 full test "
+               "cases, 35,849,332 nodes, scored per node with NO rasterisation "
+               "anywhere in the comparison path. Per-node MSE interp/Transolver: "
+               "u 144.2x, v 133.9x, p 4.85x, nut 18.3x -- all four channels "
+               "against the interpolator, 24.7x worse over u,v,p in standardised "
+               "units. The 8.4x pressure win does not merely vanish at native "
+               "resolution, it inverts: the same two predictions on the same 200 "
+               "cases rank 8.39x one way on the area-uniform raster, 0.44x under "
+               "node re-weighting and 0.21x per node. PRE-REGISTERED P1 verdict "
+               "NOT-COMPETITIVE-AT-NATIVE (rule: R>2 on all of u,v,p). P2 PARTIAL "
+               "(S=45.6 on u but two inversions -- at native nodes the "
+               "interpolator loses on u in EVERY band, so the grid's far-field u "
+               "win was raster-limited). P3 NO-PARAMETER-COMBINATION: an oracle "
+               "shown the test answer and allowed to pick the single best of the "
+               "800 training fields is still 343.6x worse than Transolver inside "
+               "0.005c. Mechanism, measured: inside 0.005c (41% of every cloud's "
+               "nodes) a query sits 7.8x further from the training case's wall "
+               "than from its own, and 35% of the weight mass lands inside the "
+               "training airfoil. Per seed R_u 141-147, R_p 4.2-5.3; Transolver "
+               "wins 200/200 cases on u, v and nut and 142/200 on p. Gates: G1 "
+               "the weight matrix reproduces interp_full.json at rel <=1.6e-8, G2 "
+               "the backbone reproduces measure_asymmetry D_node_space at rel "
+               "0.00e+00, G3 the construction rasterised back to r128 scores "
+               "1.07x/0.77x/1.00x of the published grid arm, G4 2.0e-16, G5 pass"},
+    {"path": "results/interpolation/point_space_interp.json",
+     "script": "scripts/point_space_headtohead.py --stage interp", "tier": "cpu",
+     "claims": "the interpolator arm of the point-space head-to-head: per-case, "
+               "per-band per-node squared error under both in-body conventions "
+               "(Delaunay bridge and nearest-node fill; P1 reads the better per "
+               "channel and chose nearfill on all four), the per-case-per-band "
+               "oracle minimum over all 800 training fields with its argmin, and "
+               "the geometry diagnostics (|W|-weighted wall-distance mismatch "
+               "|d_j-d_t| against d_t, in-body mass and outside-hull mass per "
+               "band). Outside-hull mass is zero in every band but the outermost "
+               "(0.09%), so no P4 trigger fires and no band is INCONCLUSIVE. "
+               "800 train x 200 test = 160,000 cloud-to-cloud transfers, 7350 s "
+               "on 14 CPU workers"},
+    {"path": "results/interpolation/point_space_transolver.json",
+     "script": "scripts/point_space_headtohead.py --stage transolver", "tier": "gpu",
+     "claims": "the Transolver arm of the point-space head-to-head: the three "
+               "deployed v2 backbones loaded with their own point_norm (which the "
+               "manuscript wrongly states the checkpoints do not carry) and "
+               "inferred on the native clouds, per-node per-band squared error "
+               "plus an explicit wall row for the 201,444 surface nodes the "
+               "seven-band grid drops. Reproduces measure_asymmetry's "
+               "D_node_space.mse_full at relative error 0.00e+00 on all three "
+               "seeds, all four channels and all seven bands. At the wall "
+               "Transolver is 4052x better than the interpolator on u and within "
+               "1.5x on p. 263 s on one GPU"},
+    {"path": "results/interpolation/point_space_r128resample.json",
+     "script": "scripts/point_space_headtohead.py --stage r128resample", "tier": "cpu",
+     "claims": "the representation control that answers 'you crippled the "
+               "baseline by evaluating a grid method at points'. The PUBLISHED "
+               "r128 interpolator prediction bilinearly sampled at the same "
+               "native nodes scores 400.2 on u and 3.06e6 on p in-crop, against "
+               "97.6 and 43,777 for the native construction -- the grid "
+               "representation was costing the interpolator 4.1x on u, 2.7x on v, "
+               "69.9x on p and 3.9x on nut. On p its r128 output at the nodes is "
+               "indistinguishable from the raster's own round-trip error "
+               "(3.058e6 against 3.012e6), i.e. entirely representation. The "
+               "native construction favours the interpolator and it still loses"},
+    {"path": "results/interpolation/point_space_pilot.json",
+     "script": "scripts/point_space_headtohead.py --stage pilot", "tier": "cpu",
+     "claims": "gates G1 and G3 for the point-space head-to-head, run before the "
+               "full sweep. G1: the rebuilt weight matrix reproduces "
+               "interp_full.json at relative error 1.8e-10 / 2.4e-9 / 1.6e-8 on "
+               "u/v/p (amendment 1 raised the tolerance from 1e-9 to 1e-7 for "
+               "float32 GEMM reassociation; no decision rule touched). G3: the "
+               "point-space prediction rasterised back to r128 by the identical "
+               "rasterize_point_cloud call scores 1.074x / 0.769x / 0.996x of the "
+               "published grid arm, so the construction reproduces the published "
+               "estimator's behaviour on the published measure"},
     {"path": "results/interpolation/interp_resolution_ladder.json",
      "script": "scripts/interpolation_resolution_ladder.py", "tier": "cpu",
      "claims": "resolution ladder on the interpolation finding, 128/256/512 on the "
