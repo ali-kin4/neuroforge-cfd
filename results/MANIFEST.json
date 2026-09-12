@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-12T06:27:35.870327+00:00",
-  "git_head": "c42e7673d5244f7b38102132ec204fbde97411dd",
-  "git_head_short": "c42e767",
+  "generated_utc": "2026-09-12T06:30:47.685000+00:00",
+  "git_head": "42557414f78395e87fa52f7abd8f9c566fc3c895",
+  "git_head_short": "4255741",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -12,7 +12,7 @@
     "cuda_toolkit": "12.4",
     "gpu": "NVIDIA GeForce RTX 4070 Ti"
   },
-  "n_files": 84,
+  "n_files": 85,
   "n_missing": 0,
   "missing": [],
   "files": [
@@ -155,6 +155,16 @@
       "bytes": 364287,
       "git_tracked": true,
       "last_commit": "406ede2"
+    },
+    {
+      "path": "results/interpolation/measure_asymmetry_sensitivity.json",
+      "script": "scripts/measure_asymmetry.py --stage sensitivity",
+      "tier": "cpu",
+      "claims": "sensitivity of the node-measure re-scoring to how the node measure is discretised, derived from the two artifacts above with no new inference. Four constructions: cell-level node counts (the pre-registered and finest one, case-mean 0.4401 and pooled 0.4313 on p), band-level with grid-binned node mass (1.1017), band-level with the true node mass per band (1.6102 crop, 1.6133 full cloud). R_p therefore falls from 8.3906 area-uniform to the range [0.431, 1.613]; R_u falls from 0.1621 to [0.0018, 0.0117] and R_v from 2.9705 to [0.0018, 0.159]. No construction leaves the interpolator an aggregate win, and D3's verdict is read on the pre-registered cell-level estimator",
+      "sha256": "db806e996dd9c0471bdf9c8c0e36696929a88a40e1b2eaee2cfd68e4efc83979",
+      "bytes": 3426,
+      "git_tracked": false,
+      "last_commit": ""
     },
     {
       "path": "results/interpolation/interp_resolution_ladder.json",

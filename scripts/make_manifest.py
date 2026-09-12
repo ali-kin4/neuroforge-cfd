@@ -142,6 +142,19 @@ HEADLINE: list[dict] = [
                "interp_full.json and v2_results.json backbone_per_seed at relative "
                "error 0.00e+00; the band accumulator reproduces "
                "interp_band_control_full.json over 95 entries at max rel 6.9e-08"},
+    {"path": "results/interpolation/measure_asymmetry_sensitivity.json",
+     "script": "scripts/measure_asymmetry.py --stage sensitivity", "tier": "cpu",
+     "claims": "sensitivity of the node-measure re-scoring to how the node measure "
+               "is discretised, derived from the two artifacts above with no new "
+               "inference. Four constructions: cell-level node counts (the "
+               "pre-registered and finest one, case-mean 0.4401 and pooled 0.4313 "
+               "on p), band-level with grid-binned node mass (1.1017), band-level "
+               "with the true node mass per band (1.6102 crop, 1.6133 full cloud). "
+               "R_p therefore falls from 8.3906 area-uniform to the range "
+               "[0.431, 1.613]; R_u falls from 0.1621 to [0.0018, 0.0117] and R_v "
+               "from 2.9705 to [0.0018, 0.159]. No construction leaves the "
+               "interpolator an aggregate win, and D3's verdict is read on the "
+               "pre-registered cell-level estimator"},
     {"path": "results/interpolation/interp_resolution_ladder.json",
      "script": "scripts/interpolation_resolution_ladder.py", "tier": "cpu",
      "claims": "resolution ladder on the interpolation finding, 128/256/512 on the "

@@ -5,9 +5,9 @@ the headline is a *measure choice* and the paper cannot distinguish it from a fi
 
 Producer: `scripts/measure_asymmetry.py` (decision rules **D1–D3** and gates **G1–G6**
 pre-registered in the docstring, committed in **`cdf08f5`** before any number existed;
-one recorded amendment in `5746f58`, a diagnostic only, no threshold touched).
+two recorded amendments, `5746f58` and the §4b sensitivity block, both diagnostics only, no threshold touched).
 Artifacts: `results/interpolation/measure_asymmetry_nodes.json`,
-`results/interpolation/measure_asymmetry.json`.
+`results/interpolation/measure_asymmetry.json`, `results/interpolation/measure_asymmetry_sensitivity.json`.
 Zero training. One inference pass over the committed `checkpoints/v2_transolver`
 backbones, 200 test cases, 10.7 min on one GPU + 22 s of numpy.
 
@@ -26,9 +26,19 @@ the number of native AirfRANS cloud nodes each cell contains:
 | area-uniform (the paper's measure) | 75.03 | 629.6 | **8.39x in the interpolator's favour** |
 | node-weighted (the dataset's own measure) | 6012 | 2646 | **0.44x — 2.3x in Transolver's favour** |
 
+(and 0.43x–1.61x across four discretisations of the node measure, §4b — in none of them
+does the interpolator keep a meaningful aggregate advantage.)
+
 The pre-registered rule (D3) reads `R_p_node <= 1.0` as **ARTIFACT: the 8.4x is a
 measure choice; say so plainly and withdraw it.** It returns **0.440**. No threshold was
-moved; the rule was committed six hours before the number existed and it fires against us.
+moved; the rule was committed before the number existed and it fires against us.
+
+"Weight by node count" admits more than one discretisation, so §4b re-derives the same
+ratio under four of them rather than quoting only the pre-registered one. The range on
+`mse_p` is **[0.43, 1.61]** against **8.39** area-uniform. **The result that is robust to
+the construction, and the one the paper should quote, is this:** under every node-measure
+construction the interpolator's aggregate advantage disappears — at best it keeps a
+$1.6\times$ edge on `p` while being $85\times$ worse on `u` and $6\times$ worse on `v`.
 
 **Every channel flips or widens against the interpolator**, on every seed:
 
@@ -239,6 +249,35 @@ p 135590, nut 1.3199e-6 — a common divisor, so ratios are unaffected):
    are dropped, because the metric scores fluid cells only. Those are the nodes nearest
    the wall. Dropping them also favours the interpolator.
 
+### 4b. Sensitivity to the discretisation of the node measure
+
+`results/interpolation/measure_asymmetry_sensitivity.json` (amendment 2; D3's rule and
+threshold untouched, verdict still read on the pre-registered estimator). Four
+constructions of "weight by node count", all from committed numbers, no new inference:
+
+| construction | `R_u` | `R_v` | `R_p` | `R_nut` |
+|---|---:|---:|---:|---:|
+| area-uniform (the paper's) | 0.162 | **2.97** | **8.38** | 0.070 |
+| **cell-level node counts, case-mean** (pre-registered, finest) | 0.0117 | 0.0663 | **0.440** | 0.108 |
+| cell-level node counts, pooled | 0.0115 | 0.0649 | 0.431 | 0.103 |
+| band-level, grid-binned node mass | 0.0061 | 0.159 | 1.102 | 0.042 |
+| band-level, true node mass (crop) | 0.0018 | 0.041 | 1.610 | 0.018 |
+| band-level, true node mass (full cloud) | 0.0018 | 0.041 | 1.613 | 0.019 |
+
+The cell-level estimator is the finest and the most faithful — it is exactly "sample the
+grid error field at each node, then average over nodes". The band-level rows are coarser:
+they assume the error is uniform inside a band, which washes out the fact that within
+each near-wall band the node mass concentrates on the cells closest to the wall, where
+Transolver's advantage is largest. The last two rows are coarser still and internally
+inconsistent (they pair node masses with cell MSEs drawn from a different spatial set);
+they are reported because they are what a reader would compute by hand from §2 and §3a,
+and they are the *least* favourable to this audit's conclusion.
+
+Across all five node-measure rows: `mse_p` falls from $8.4\times$ to between $0.43\times$
+and $1.61\times$; `mse_u` from $6.2\times$ against the interpolator to $85$–$560\times$
+against it; `mse_v` from $3.0\times$ in its favour to $6$–$24\times$ against it. **No
+construction leaves the interpolator with an aggregate win.**
+
 ### What this block is not
 
 It is **not** a native point-space head-to-head. Scoring the interpolator at the native
@@ -283,7 +322,7 @@ measurement of far-field skill, in which a 7-scalar interpolator is excellent.
 |---|---|---|---|
 | **D1** node/area gap inside 0.05c | `>=10` LARGE, `>=2` MODERATE, `<2` DISSOLVES | **51.5** | **LARGE** |
 | **D2** span of `r_b` on `u` | `>=10` + monotone → CONFIRMED; `<3` → INTERPOLATOR-ONLY | **2905**, 0 inversions | **CONFIRMED ON BOTH ARMS** |
-| **D3** `R_p` node-weighted | `>=4` SURVIVES; `>=1.5` SCOPED; `>1` WITHDRAW; `<=1` ARTIFACT | **0.440** | **ARTIFACT** |
+| **D3** `R_p` node-weighted | `>=4` SURVIVES; `>=1.5` SCOPED; `>1` WITHDRAW; `<=1` ARTIFACT | **0.440** (range 0.43–1.61 over four constructions, §4b) | **ARTIFACT** on the pre-registered estimator; **WITHDRAW** on the least favourable one. The headline goes either way. |
 | **D4** representation ceiling | diagnostic, no threshold | 418x pooled | reported |
 
 ---
@@ -307,9 +346,12 @@ Proposed:
 > Kernel interpolation over seven scalars parsed from the AirfRANS case name---no
 > network, no flow-field learning---gives $8.4\times$ lower volume-pressure error than a
 > Transolver trained on the same data when both are scored on an area-uniform $128^2$
-> raster, and $2.3\times$ \emph{higher} error when the identical predictions are scored
-> under AirfRANS's own node measure, which places $64\%$ of its mesh inside $0.05$ chord
-> of the wall against $1.2\%$ of the raster's area. The benchmark's field-MSE ranking is
+> raster---and no advantage at all on any channel when the identical predictions are
+> re-weighted by AirfRANS's own node measure, which places $64\%$ of its mesh inside
+> $0.05$ chord of the wall against $1.2\%$ of the raster's area. Re-weighting alone takes
+> the pressure ratio from $8.4\times$ in the interpolator's favour to between
+> $0.43\times$ and $1.6\times$, and the streamwise-velocity ratio from $6\times$ against
+> it to $85$--$560\times$ against it. The benchmark's field-MSE ranking is
 > not a property of the methods; it is a property of the weighting, and no published
 > AirfRANS comparison states which one it uses.
 
@@ -436,6 +478,7 @@ than Transolver on $u$ and $250\times$ better on $p$.
 | step | wall clock |
 |---|---|
 | block A (`--stage nodes`, CPU, numpy only) | **22 s** (7 s warm) |
+| §4b sensitivity (`--stage sensitivity`, reads the artifacts) | **< 1 s** |
 | blocks B/C/D (`--stage full`, 1 GPU, inference only, 3 seeds × 200 cases) | **645 s** (3.13 s/case) |
 | **total scientific compute** | **under 12 minutes** |
 
@@ -445,6 +488,7 @@ No training, no dataset download, no write to `results/mgn`, `checkpoints/mgn` o
 ```
 .venv/Scripts/python.exe scripts/measure_asymmetry.py --stage nodes
 .venv/Scripts/python.exe scripts/measure_asymmetry.py --stage full --device auto
+.venv/Scripts/python.exe scripts/measure_asymmetry.py --stage sensitivity
 ```
 
 Per-case rows for both blocks are in the artifacts (`per_case`,

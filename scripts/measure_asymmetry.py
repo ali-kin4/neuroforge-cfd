@@ -116,7 +116,25 @@ G6  Cloud sdf (AirfRANS column 4) against the grid ``signed_distance`` sampled
     at the same node positions: the distribution and the fraction of nodes whose
     BAND ASSIGNMENT agrees are reported. Not a pass/fail gate, a disclosure.
 
-AMENDMENT (recorded, threshold untouched). G6 originally reported only the
+AMENDMENT 2 (recorded, D3's rule and threshold untouched). ``--stage sensitivity``
+reads the two committed artifacts and re-derives the headline ratio under FOUR
+discretisations of the node measure, because "weight by node count" admits more
+than one construction and reporting only the one that was pre-registered would
+leave a discoverable:
+  (i)   cell-level node counts, per-case then case-mean  -- the PRE-REGISTERED
+        estimator D3 is read on, and the finest one available: it is exactly
+        "sample the grid error field at each node, average over nodes";
+  (ii)  the same, pooled over all cells and cases;
+  (iii) band-level, using the grid-binned node mass per band -- coarser: it
+        assumes the error is uniform within a band;
+  (iv)  band-level, using the TRUE node mass per band from block A -- coarser
+        still, and internally inconsistent (it pairs node masses with cell MSEs
+        drawn from a different spatial set), reported because it is the
+        construction a reader would try by hand from the two tables.
+The verdict stays on (i). The range across all four is the number the paper
+should quote.
+
+AMENDMENT 1 (recorded, threshold untouched). G6 originally reported only the
 seven-band assignment agreement. That statistic is dominated by disagreements
 at the 0.005c/0.01c interior edges, which D1 never uses: D1 is read on the
 CUMULATIVE fractions inside 0.02c and inside 0.05c. The two cumulative
@@ -728,9 +746,51 @@ def verdicts(full: dict) -> dict:
     return out
 
 
+def stage_sensitivity(a) -> dict:
+    """Amendment 2: the headline ratio under four discretisations of the node measure."""
+    d = json.load(open(os.path.join(a.out_dir, "measure_asymmetry.json"), encoding="utf-8"))
+    n = json.load(open(os.path.join(a.out_dir, "measure_asymmetry_nodes.json"), encoding="utf-8"))
+    t = d["B_band_decomposition_7"]
+    arms = [k for k in t if k.startswith("transolver")]
+    masses = {
+        "area_uniform": np.array(n["A1_area_frac_crop_7"]),
+        "band_grid_binned_node": np.array([t["interp"][b]["node_weight_frac"] for b in NAMES7]),
+        "band_true_node_crop": np.array(n["A2_node_frac_crop_7"]),
+        "band_true_node_full_cloud": np.array(n["A3_node_frac_full_7"]),
+    }
+    out = {"bands": NAMES7, "band_masses": {k: v.tolist() for k, v in masses.items()},
+           "R_convention": "R = MSE(Transolver, seed-mean) / MSE(interpolation); "
+                           "R>1 means the interpolator is better by that factor",
+           "R": {}}
+    for c in CHANS:
+        mi = np.array([t["interp"][b][f"mse_{c}"] for b in NAMES7])
+        mt = np.array([np.mean([t[arm][b][f"mse_{c}"] for arm in arms]) for b in NAMES7])
+        row = {k: float((mt @ w) / (mi @ w)) for k, w in masses.items()}
+        row["cell_level_node_case_mean_PREREGISTERED"] = float(
+            np.mean([d["C_case_mean_node_weighted"][arm][f"mse_{c}"] for arm in arms])
+            / d["C_case_mean_node_weighted"]["interp"][f"mse_{c}"])
+        row["cell_level_node_pooled"] = float(
+            np.mean([d["C_pooled"][arm][f"mse_node_{c}"] for arm in arms])
+            / d["C_pooled"]["interp"][f"mse_node_{c}"])
+        row["cell_level_area_case_mean"] = float(
+            np.mean([d["C_case_mean_area_uniform"][arm][f"mse_{c}"] for arm in arms])
+            / d["C_case_mean_area_uniform"]["interp"][f"mse_{c}"])
+        out["R"][c] = row
+    node_keys = [k for k in out["R"]["p"] if k != "area_uniform" and "area" not in k]
+    vals = [out["R"]["p"][k] for k in node_keys]
+    out["p_node_measure_range"] = {"min": float(min(vals)), "max": float(max(vals)),
+                                   "constructions": node_keys}
+    out["verdict_note"] = (
+        "D3 is read on cell_level_node_case_mean_PREREGISTERED and returns ARTIFACT. "
+        "The coarser band-level constructions land higher; across every construction "
+        "the p ratio falls from 8.4x to within a factor of ~2 of parity, and u and v "
+        "are catastrophic for the interpolator under all of them.")
+    return out
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--stage", default="full", choices=["nodes", "full"])
+    ap.add_argument("--stage", default="full", choices=["nodes", "full", "sensitivity"])
     ap.add_argument("--task", default="full")
     ap.add_argument("--resolution", type=int, default=128)
     ap.add_argument("--n-train", type=int, default=800)
@@ -755,6 +815,14 @@ def main(argv=None) -> int:
             f"node(crop) {out['D1_gap']['inside_0.05c']['node_frac_crop_A2']:.4f} "
             f"node(full) {out['D1_gap']['inside_0.05c']['node_frac_full_A3']:.4f} "
             f"g={out['D1_gap']['inside_0.05c']['g_A2_over_A1']:.2f}")
+    elif a.stage == "sensitivity":
+        out = stage_sensitivity(a)
+        name = a.out_name or "measure_asymmetry_sensitivity.json"
+        for c in CHANS:
+            log(f"R_{c}: " + "  ".join(f"{k}={v:.4f}" for k, v in out["R"][c].items()))
+        log(f"p under node-measure constructions: "
+            f"[{out['p_node_measure_range']['min']:.3f}, {out['p_node_measure_range']['max']:.3f}] "
+            f"against 8.39 area-uniform")
     else:
         out = stage_full(a)
         out["verdicts"] = verdicts(out)

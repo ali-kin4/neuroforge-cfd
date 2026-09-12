@@ -1,0 +1,101 @@
+{
+  "bands": [
+    "0-0.005c",
+    "0.005-0.01c",
+    "0.01-0.02c",
+    "0.02-0.05c",
+    "0.05-0.15c",
+    "0.15-0.5c",
+    ">0.5c"
+  ],
+  "band_masses": {
+    "area_uniform": [
+      0.0013830108105293674,
+      0.0011781317307784141,
+      0.002508767438213553,
+      0.007424324908027778,
+      0.029416938786136125,
+      0.1583114513233494,
+      0.7997773750029653
+    ],
+    "band_grid_binned_node": [
+      0.09826765943123411,
+      0.19753748372233743,
+      0.19316226017261856,
+      0.09906385789352284,
+      0.1299795932128177,
+      0.15112373131522974,
+      0.13086541425223963
+    ],
+    "band_true_node_crop": [
+      0.43215881631431824,
+      0.06124333388257416,
+      0.061918549891220594,
+      0.08835853616912678,
+      0.11177529456313091,
+      0.13113033908503935,
+      0.11341513009458998
+    ],
+    "band_true_node_full_cloud": [
+      0.41194190803112934,
+      0.058378297193931936,
+      0.05902192578701998,
+      0.08422501776262313,
+      0.10654631208446345,
+      0.12499590438569601,
+      0.15489063475513612
+    ]
+  },
+  "R_convention": "R = MSE(Transolver, seed-mean) / MSE(interpolation); R>1 means the interpolator is better by that factor",
+  "R": {
+    "u": {
+      "area_uniform": 0.1619172652702871,
+      "band_grid_binned_node": 0.006091357555976429,
+      "band_true_node_crop": 0.00181428270548429,
+      "band_true_node_full_cloud": 0.00184158559494376,
+      "cell_level_node_case_mean_PREREGISTERED": 0.011658467634738372,
+      "cell_level_node_pooled": 0.011519888196377987,
+      "cell_level_area_case_mean": 0.1620953906119234
+    },
+    "v": {
+      "area_uniform": 2.9655614107625734,
+      "band_grid_binned_node": 0.15930856278194502,
+      "band_true_node_crop": 0.0408437481796066,
+      "band_true_node_full_cloud": 0.041316884939075975,
+      "cell_level_node_case_mean_PREREGISTERED": 0.06625243514704612,
+      "cell_level_node_pooled": 0.06494457569538009,
+      "cell_level_area_case_mean": 2.970513386660178
+    },
+    "p": {
+      "area_uniform": 8.377734697975724,
+      "band_grid_binned_node": 1.101732130464702,
+      "band_true_node_crop": 1.6102378643309678,
+      "band_true_node_full_cloud": 1.613286036498977,
+      "cell_level_node_case_mean_PREREGISTERED": 0.4400710147947059,
+      "cell_level_node_pooled": 0.4313230155917786,
+      "cell_level_area_case_mean": 8.390556372785788
+    },
+    "nut": {
+      "area_uniform": 0.06961867990377987,
+      "band_grid_binned_node": 0.0416782114491843,
+      "band_true_node_crop": 0.018388763763801556,
+      "band_true_node_full_cloud": 0.01855098072035926,
+      "cell_level_node_case_mean_PREREGISTERED": 0.10840595236109936,
+      "cell_level_node_pooled": 0.10336443021159841,
+      "cell_level_area_case_mean": 0.06950690960375062
+    }
+  },
+  "p_node_measure_range": {
+    "min": 0.4313230155917786,
+    "max": 1.613286036498977,
+    "constructions": [
+      "band_grid_binned_node",
+      "band_true_node_crop",
+      "band_true_node_full_cloud",
+      "cell_level_node_case_mean_PREREGISTERED",
+      "cell_level_node_pooled"
+    ]
+  },
+  "verdict_note": "D3 is read on cell_level_node_case_mean_PREREGISTERED and returns ARTIFACT. The coarser band-level constructions land higher; across every construction the p ratio falls from 8.4x to within a factor of ~2 of parity, and u and v are catastrophic for the interpolator under all of them.",
+  "wallclock_sec": 0.005845785140991211
+}
