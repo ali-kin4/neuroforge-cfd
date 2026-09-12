@@ -107,6 +107,41 @@ HEADLINE: list[dict] = [
                "0.05c; 50 training cases already beat Transolver's mse_p; permuted "
                "parameters collapse to the freestream floor; (U,alpha) alone gives "
                "mse_p 9491 vs 75 with the shape digits"},
+    {"path": "results/interpolation/measure_asymmetry_nodes.json",
+     "script": "scripts/measure_asymmetry.py --stage nodes", "tier": "cpu",
+     "claims": "the node-measure asymmetry the r2 round-2 review calls fatal, "
+               "quantified over 35.85M native AirfRANS nodes on the same 200 test "
+               "cases: 55.5% of in-crop nodes lie inside 0.02c (0.51% of the r128 "
+               "crop's cells, g=110x) and 64.4% inside 0.05c (1.25% of cells, "
+               "g=52x); 43.2% of nodes are inside 0.005c, which is 0.14% of the "
+               "area (g=312x), while the >0.5c far field is 80% of the area and "
+               "11% of the nodes (g=0.14). Pre-registered D1 verdict LARGE. "
+               "Robust to the distance function: band assignment agrees on 99.51% "
+               "of nodes at 0.02c and 99.90% at 0.05c between the grid "
+               "signed_distance and AirfRANS's own sdf column"},
+    {"path": "results/interpolation/measure_asymmetry.json",
+     "script": "scripts/measure_asymmetry.py --stage full", "tier": "gpu",
+     "claims": "the headline re-scored under the dataset's own node measure, and "
+               "the band decomposition of BOTH arms. Changing only the cell "
+               "weights (area-uniform -> native node count per fluid cell) on the "
+               "identical grid errors of the identical published rows sends mse_p "
+               "from 8.39x in the interpolator's favour to 0.44x, i.e. 2.3x in "
+               "Transolver's favour, and flips every other channel too (u 0.162 -> "
+               "0.012, v 2.971 -> 0.066); over u,v,p in standardised units the "
+               "interpolator goes from 1.99x better to 8.30x worse. "
+               "PRE-REGISTERED D3 verdict ARTIFACT (rule: R_p_node <= 1.0 -> the "
+               "headline is a measure choice, withdraw it). D2 returns CONFIRMED "
+               "ON BOTH ARMS: the per-band ratio of interpolation error to "
+               "Transolver error on u runs 906x/74x/30x/5.3x/0.57x/0.56x/0.31x "
+               "from 0-0.005c outward, monotone, span 2905x, so the localisation "
+               "thesis is now measured on the surrogate rather than inferred from "
+               "the baseline; Transolver's own error is far-field spread (71.9% of "
+               "its u squared error beyond 0.5c). The r128 raster's own round-trip "
+               "error at the native nodes exceeds Transolver's per-node error by "
+               "418x pooled and 495x inside 0.005c. Gates: both arms reproduce "
+               "interp_full.json and v2_results.json backbone_per_seed at relative "
+               "error 0.00e+00; the band accumulator reproduces "
+               "interp_band_control_full.json over 95 entries at max rel 6.9e-08"},
     {"path": "results/interpolation/interp_resolution_ladder.json",
      "script": "scripts/interpolation_resolution_ladder.py", "tier": "cpu",
      "claims": "resolution ladder on the interpolation finding, 128/256/512 on the "
