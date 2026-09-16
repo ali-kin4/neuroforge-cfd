@@ -59,9 +59,9 @@ and allowed to pick the single best of all $800$ training fields is still $344\t
 worse than the surrogate inside the first $0.005$ chord; and because a minimum over single
 fields bounds no combination of them, we compute the unconstrained least-squares
 projection of the true field onto the span of all $800$---the exact lower bound for
-\emph{any} weighting of that family, convex or not---which is still $\mathbf{21\times}$
-worse there (\textsc{family-bound-closed}; three cases, $u$, the band holding $41\%$ of
-every cloud's nodes). The gap at the wall is representational. The mechanism is measured
+\emph{any} weighting of that family, convex or not---which is still $\mathbf{25\times}$
+worse there (\textsc{family-bound-closed}; all $200$ cases, $u$, the band holding $41\%$ of
+every cloud's nodes, with $161/200$ cases clearing the threshold on their own). The gap at the wall is representational. The mechanism is measured
 rather than argued: inside $0.005c$ a query sits on average $7.8$ times further from the
 training case's wall than from its own, and $35\%$ of the weight mass lands \emph{inside}
 the training airfoil.
@@ -171,11 +171,11 @@ surrogate arm reproduces the deployed backbone at relative error exactly $0.00\m
 \textsc{not-competitive-at-native} on all three of $u,v,p$ at once. The oracle and
 least-squares controls then close the standing escape---``re-select its
 hyperparameters on the node measure''---by bounding what \emph{any} weighting of the $800$
-training fields can achieve at the wall, with no free parameters at all. Two scope limits
-travel with that bound and we carry them in every statement of it: it is a three-case
-probe, and it holds \emph{in physical coordinates}, the coordinate system in which the
-mechanism we measure exists. A body-fitted interpolator is a different method and
-\autoref{sec:limitations} names it as untested.
+training fields can achieve at the wall, with no free parameters at all. One scope limit
+travels with that bound and we carry it in every statement of it: it holds \emph{in
+physical coordinates}, the coordinate system in which the mechanism we measure exists. A
+body-fitted interpolator is a different method; \autoref{sec:limitations} says what we do
+and do not claim about it.
 
 \item \textbf{The aggregate field ranking is a property of the measure, not of the methods
 (\autoref{sec:interp}).} It is not a stable quantity in either direction: across five
@@ -565,15 +565,27 @@ The unconstrained least-squares projection of the true field onto that span, com
 band per case with the test answer in hand, is therefore a genuine lower bound on what
 \emph{any} weighting of those fields---any kernel, any bandwidth, any ridge, any selection
 measure, convex or not---can achieve at those nodes. Inside $0$--$0.005c$ on $u$ it is
-still $\mathbf{21.3\times}$ Transolver's band error, returning the pre-registered
-\textsc{family-bound-closed}. \textbf{Scope, stated inline because it is narrower than the
-rest of the table}: this arm is $n=3$ test cases, one channel, and the single band whose
-node count ($73$--$82$k) far exceeds the $800$ free parameters of the projection, which is
-the only band where the quantity is a bound rather than an interpolation
-(\texttt{results/interpolation/point\_space\_oracle\_ls.json}; amendment 2, registered
-before the stage was run and carrying no threshold of its own). The $343.6$ is the
-$200$-case number; the $21.3$ is the three-case one, and neither inherits the other's
-sample size.
+still $\mathbf{25.0\times}$ Transolver's band error, returning the pre-registered
+\textsc{family-bound-closed}. It ran first on three cases ($21.3\times$) and then, under
+amendment 3, on all $200$ ($25.0\times$); we report both because the estimator rising
+slightly when the sample grew by $67\times$ is a stronger statement than either number
+alone. Neither threshold nor rule moved between the two runs, and the $n=200$
+implementation was required to reproduce the frozen $n=3$ artifact before it was allowed
+to compute anything---it did, to a worst relative difference of exactly
+$0.00\mathrm{e}{+}00$ (gate \textbf{G7}).
+
+The verdict is not carried by a tail. Across the $200$ cases the ratio of means is
+$25.00$, the mean of ratios $25.00$, the node-weighted pooled ratio $25.04$ and the median
+$19.8$; $161$ cases clear the threshold of $10$ on their own and exactly one falls at or
+below $1$ ($p_{5}$ $4.7$, $p_{95}$ $62.6$). These four estimators were named in the
+amendment before the run precisely so that a verdict resting on a handful of cases would
+be visible rather than averaged away; it does not.
+\textbf{Scope, stated inline}: one channel, and the single band whose node count
+($73$--$82$k) far exceeds the $800$ free parameters of the projection, which is the only
+band where the quantity is a bound rather than an interpolation
+(\texttt{results/interpolation/point\_space\_oracle\_ls\_n200.json}). The $343.6$ oracle
+is a $200$-case number too, and remains a minimum over \emph{single} fields rather than a
+bound on their combinations.
 
 \paragraph{The mechanism, measured rather than argued.} Parameter interpolation combines
 fields in \emph{physical} coordinates, and a test node at wall distance $d_t$ sits at some

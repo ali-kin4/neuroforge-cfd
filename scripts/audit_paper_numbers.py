@@ -870,6 +870,20 @@ def nmv_competence(root, chan, dom="full"):
     return float(nmv(root)["claim2_competence_vs_published"]["ours"][dom][chan])
 
 
+
+def ls_n200(root):
+    return load(os.path.join(
+        root, "results/interpolation/point_space_oracle_ls_n200.json"))
+
+
+def ls_n200_ratio(root):
+    return float(ls_n200(root)["P3_LS"]["ratio"])
+
+
+def ls_n200_diag(root, key):
+    return float(ls_n200(root)["diagnostics"][key])
+
+
 # ---- the claim table --------------------------------------------------------
 # (label, reader, manuscript value, absolute tolerance)
 CLAIMS = [
@@ -1237,6 +1251,13 @@ CLAIMS = [
      lambda r: nmv_competence(r, "u"), 0.0734, 0.0005),
     ("our Transolver, AirfRANS convention, p (x1e-2)",
      lambda r: nmv_competence(r, "p"), 0.0991, 0.0005),
+    ("LS family bound, n=200, u inside 0.005c", ls_n200_ratio, 25.0, 0.05),
+    ("LS bound n=200, median of per-case ratios",
+     lambda r: ls_n200_diag(r, "median_of_ratios"), 19.8, 0.05),
+    ("LS bound n=200, node-weighted pooled ratio",
+     lambda r: ls_n200_diag(r, "pooled_node_weighted_ratio"), 25.04, 0.05),
+    ("LS bound n=200, cases individually above 10",
+     lambda r: ls_n200_diag(r, "n_cases_above_10"), 161, 0.5),
 ]
 
 

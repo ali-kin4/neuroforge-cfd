@@ -13,10 +13,14 @@
 % journal-published (docs/paper/sections/covariate_null_removed.tex).
 %
 % TWO SCOPE POINTS ARE DELIBERATE AND MUST NOT BE COMPRESSED AWAY.
-% (1) The 344x oracle is 200 cases; the 21x least-squares family bound is a
-%     THREE-CASE probe (results/interpolation/point_space_oracle_ls.json,
-%     meta.n_ls = 3). The sentence names the probe so the smaller number cannot
-%     inherit the sample size of the 200-case figures beside it.
+% (1) RETIRED 2026-09-16 by amendment 3. Both numbers are now 200 cases: the
+%     oracle is 344x and the least-squares family bound is 25x
+%     (results/interpolation/point_space_oracle_ls_n200.json, meta.n_ls = 200).
+%     The three-case probe returned 21.3x and is kept in sec:interp only to show
+%     the estimator did not drift when the sample grew 67x. What has NOT gone
+%     away: the oracle is a minimum over SINGLE fields and is not a bound on
+%     their combinations -- only the 25x is a bound -- so do not let the larger
+%     number be described as one.
 % (2) The band separation is monotone on the GRID ladder (D2 CONFIRMED, 0
 %     inversions) and NOT monotone at the native nodes (P2 PARTIAL, 2
 %     inversions, the far-field u entry reversing). The abstract therefore
@@ -41,8 +45,8 @@ $0.21\times$: one pair of predictions, three measures in current use, and the ra
 At native resolution the interpolator loses on \textbf{every} channel---$144\times$ on
 streamwise velocity, $134\times$ on cross-stream velocity, $4.9\times$ on pressure---and an
 oracle shown the test answer, allowed the single best of all $800$ training fields, is
-$344\times$ worse inside the first $0.005$ chord, where a three-case probe of the exact
-least-squares bound over the whole family in physical coordinates still gives $21\times$. The gap at the wall is
+$344\times$ worse inside the first $0.005$ chord, where the exact least-squares bound over
+the whole family in physical coordinates, on all $200$ cases, still gives $25\times$. The gap at the wall is
 representational, not a tuning deficit. The raster cannot adjudicate it: its own round-trip
 error at those nodes exceeds the surrogate's by $413\times$ pooled, $495\times$ near the
 wall. What both measures do resolve is where each method's error
