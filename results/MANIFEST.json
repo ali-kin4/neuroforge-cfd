@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-12T10:26:58.559298+00:00",
-  "git_head": "cea1fff9496ab5edf6682471d176ba7ef7673cda",
-  "git_head_short": "cea1fff",
+  "generated_utc": "2026-09-16T13:21:18.064112+00:00",
+  "git_head": "2d35a9681ef1cde512fc5783928d530fb7d2533b",
+  "git_head_short": "2d35a96",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
