@@ -192,8 +192,40 @@ cross-validation measure, convex or not -- can achieve at those nodes.
     Read only on bands with ``n_b >> 800`` (800 free parameters); the ``wall`` band
     has ~1000 nodes per case and is NOT read, it is reported with its n.
 
+AMENDMENT 3 (recorded BEFORE the run it governs). ``--stage oracle_ls_n200``.
+The least-squares bound above ran on THREE test cases. It is the paper's only valid
+closure of the "then re-tune the estimator" escape -- the oracle of AMENDMENT 2 is a
+minimum over single fields and is NOT a bound, as stated there -- so it carries more
+weight than any other control in the paper and n=3 is too few to carry it.
+
+    THE RULE DOES NOT CHANGE. Same band (``0-0.005c``), same channel (``u``), same
+    estimator (case-mean LS residual MSE over Transolver's band MSE), same
+    thresholds (>10 CLOSED, <=1 OPEN, otherwise PARTIAL), same three verdict
+    strings. Only the number of test cases changes, 3 -> 200, and only in the
+    direction that can make the verdict harder to hold.
+
+    Written to a SEPARATE artifact, ``point_space_oracle_ls_n200.json``. The n=3
+    file is frozen and still cited.
+
+    Diagnostics, with no thresholds of their own and no power to change the verdict:
+    the mean and median of the per-case ratios, the node-weighted pooled ratio, the
+    per-case distribution, and the count of cases on each side of 10 individually.
+    At n=3 a ratio of means and a mean of ratios are nearly the same statistic; at
+    n=200 over heavy-tailed MSEs they need not be, and the committed estimator sits
+    at 21.3 against a threshold of 10. The pooled figure also fixes a mismatch in
+    the n=3 run, where the numerator covered 3 cases and the denominator already
+    covered all 200.
+
 GATES -- the run aborts if any fails
 ------------------------------------
+G7  (AMENDMENT 3 only) The new memory-bounded implementation reproduces the frozen
+    n=3 artifact. The original ``oracle_ls`` worker buffers every test case at once,
+    which at n=200 needs ~29 GB per worker and ~114 GB of spill; this stage holds one
+    test case at a time and rebuilds each training field's triangulation per case.
+    Before any n=200 number is computed, the first three test cases are run through
+    the NEW code and every band of every channel is compared against
+    ``point_space_oracle_ls.json``. Any relative difference above 1e-9 aborts.
+
 G1  The weight matrix is the PUBLISHED one. ``build_weights`` is called with the
     config read from ``results/interpolation/interp_full.json`` (never
     re-selected) on the same 800 train / 200 test names in manifest order, and the
@@ -252,6 +284,7 @@ RUN
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import os
 import pickle
@@ -924,6 +957,224 @@ def ls_chunk(args: tuple) -> str:
     return tag
 
 
+def ls_case_worker(args: tuple) -> str:
+    """AMENDMENT 3 worker: the whole least-squares bound for ONE test case.
+
+    Holds one A matrix (800 x n_nodes x n_chans, float32 ~ 1.2 GB) and rebuilds every
+    training field's triangulation for this case. That is 4x the transfer work of the
+    AMENDMENT 2 worker -- measured 0.80 s to build against 0.20 s to evaluate -- and it
+    is what lets the stage run at n=200 at all: the original buffers every test case
+    simultaneously and needs ~114 GB of spill.
+
+    Writes its own result file and returns the path, so a power cut costs one case.
+    """
+    import neuroforge  # noqa: F401  -- caps BLAS threads before numpy; see CLAUDE.md
+    import numpy as np
+    from scipy.interpolate import LinearNDInterpolator
+    from scipy.spatial import Delaunay, cKDTree
+
+    (scratch, tname, train_names, kd_workers, chans, outdir, Wrow) = args
+    os.makedirs(outdir, exist_ok=True)
+    dest = os.path.join(outdir, tname + ".json")
+    if os.path.exists(dest):
+        return dest
+
+    ntr = len(train_names)
+    pos_t, tgt, sdf, _incrop = load_test_case(scratch, tname)
+    b = band_index8(sdf)
+    U_t, al_t = case_U_alpha(tname)
+    ci = [CHANS.index(c) for c in chans]
+
+    A = np.zeros((len(chans), ntr, pos_t.shape[0]), np.float32)
+    t0 = time.time()
+    for jj, jname in enumerate(train_names):
+        pos_j, yhat_j, apos_j, anrm_j = load_train_case(scratch, jname)
+        lin = LinearNDInterpolator(Delaunay(pos_j), yhat_j, fill_value=np.nan)
+        kt_pos = cKDTree(pos_j)
+        kt_surf = cKDTree(apos_j)
+        vals = np.asarray(lin(pos_t), np.float64)
+        out = np.isnan(vals[:, 0])
+        if out.any():
+            _d, idx = kt_pos.query(pos_t[out], k=1, workers=kd_workers)
+            vals[out] = yhat_j[idx]
+        # P1 read the `nearfill` arm on every channel, so bound that arm
+        _dj, isurf = kt_surf.query(pos_t, k=1, workers=kd_workers)
+        inbody = np.einsum("ij,ij->i", pos_t - apos_j[isurf], anrm_j[isurf]) > 0.0
+        if inbody.any():
+            _d2, idx2 = kt_pos.query(pos_t[inbody], k=1, workers=kd_workers)
+            vals[inbody] = yhat_j[idx2]
+        phys = redim_nodes(vals, U_t, al_t)
+        for k, c in enumerate(ci):
+            A[k, jj] = phys[:, c].astype(np.float32)
+        if (jj + 1) % 200 == 0:
+            log(f"[ls200 {tname[:28]}] {jj+1}/{ntr} ({time.time()-t0:.0f}s)")
+
+    row = {"name": tname, "bands": NAMES8,
+           "n_band": [int((b == bi).sum()) for bi in range(NB)], "channels": {}}
+    for k, c in enumerate(chans):
+        y = tgt[:, CHANS.index(c)]
+        ent = {"ls_mse": [], "ls_mse_ridge": [], "krr_mse": [], "best_single_mse": []}
+        for bi in range(NB):
+            m = b == bi
+            nb = int(m.sum())
+            if nb == 0:
+                for key in ("ls_mse", "ls_mse_ridge", "krr_mse", "best_single_mse"):
+                    ent[key].append(float("nan"))
+                continue
+            Ab = np.asarray(A[k][:, m], np.float64).T
+            yb = np.asarray(y[m], np.float64)
+            G = Ab.T @ Ab
+            rhs = Ab.T @ yb
+            tr = float(np.trace(G)) / ntr
+            for lam, key in ((1e-10 * tr, "ls_mse"), (1e-6 * tr, "ls_mse_ridge")):
+                w = np.linalg.solve(G + lam * np.eye(ntr), rhs)
+                ent[key].append(float(np.mean((Ab @ w - yb) ** 2)))
+            ent["krr_mse"].append(float(np.mean((Ab @ Wrow - yb) ** 2)))
+            ent["best_single_mse"].append(
+                float(np.min(np.mean((Ab - yb[:, None]) ** 2, axis=0))))
+            del Ab, yb, G, rhs
+        row["channels"][c] = ent
+    del A
+
+    row["wallclock_sec"] = time.time() - t0
+    with io.open(dest, "w", encoding="utf-8") as fh:
+        fh.write(json.dumps(row))
+    log(f"[ls200] {tname[:36]} done ({row['wallclock_sec']:.0f}s)")
+    return dest
+
+
+def _ls_tso_band(a):
+    """Transolver per-band MSE, seed-averaged. Same read as ``stage_oracle_ls``."""
+    Tr = json.load(open(os.path.join(a.out_dir, "point_space_transolver.json"),
+                        encoding="utf-8"))
+    seeds = Tr["meta"]["seeds"]
+    tso_band = {}
+    for c in CHANS:
+        bs = []
+        for s in seeds:
+            n = np.asarray(Tr["acc"][f"seed{s}"]["n"], np.float64)
+            se = np.asarray(Tr["acc"][f"seed{s}"]["se"][c], np.float64)
+            bs.append(se / np.maximum(n, 1e-30))
+        tso_band[c] = np.mean(bs, axis=0)
+    return tso_band
+
+
+def stage_oracle_ls_n200(a) -> dict:
+    """AMENDMENT 3. The rule is unchanged; only n changes, 3 -> 200."""
+    names_tr, names_te, cfg, W, base = setup(a)
+    chans = tuple(a.ls_chans)
+    pte = names_te[:a.n_ls]
+    outdir = os.path.join(a.scratch, "ls200")
+    os.makedirs(outdir, exist_ok=True)
+
+    def _run(namelist, tag):
+        chunks = [(a.scratch, nm, names_tr, a.kd_workers, chans, outdir,
+                   W[names_te.index(nm)]) for nm in namelist]
+        todo = [c for c in chunks if not os.path.exists(os.path.join(outdir, c[1] + ".json"))]
+        log(f"[{tag}] {len(chunks) - len(todo)} cases already done, {len(todo)} to run")
+        if not todo:
+            return
+        if a.n_proc <= 1:
+            for c in todo:
+                ls_case_worker(c)
+        else:
+            from concurrent.futures import ProcessPoolExecutor
+            with ProcessPoolExecutor(max_workers=a.n_proc) as ex:
+                for r in ex.map(ls_case_worker, todo):
+                    log(f"[{tag}] wrote {os.path.basename(r)}")
+
+    def _load(namelist):
+        rows = []
+        for nm in namelist:
+            with io.open(os.path.join(outdir, nm + ".json"), encoding="utf-8") as fh:
+                rows.append(json.loads(fh.read()))
+        return rows
+
+    # ---- G7: the new implementation must reproduce the frozen n=3 artifact ----
+    ref_path = os.path.join(a.out_dir, "point_space_oracle_ls.json")
+    ref = json.load(open(ref_path, encoding="utf-8"))
+    g7_names = [r["name"] for r in ref["rows"]]
+    log(f"G7: reproducing {len(g7_names)} frozen cases through the AMENDMENT 3 worker")
+    _run(g7_names, "G7")
+    got = {r["name"]: r for r in _load(g7_names)}
+    worst, worst_at = 0.0, None
+    for rr in ref["rows"]:
+        gg = got[rr["name"]]
+        assert gg["n_band"] == rr["n_band"], f"G7 FAILED: band counts differ for {rr['name']}"
+        for c, ent in rr["channels"].items():
+            if c not in gg["channels"]:
+                continue
+            for key in ("ls_mse", "ls_mse_ridge", "krr_mse", "best_single_mse"):
+                for bi, (x, y) in enumerate(zip(ent[key], gg["channels"][c][key])):
+                    if not np.isfinite(x) and not np.isfinite(y):
+                        continue
+                    rel = abs(x - y) / max(abs(x), 1e-300)
+                    if rel > worst:
+                        worst, worst_at = rel, f"{rr['name'][:30]} {c} {key} band{bi}"
+    if worst > 1e-9:
+        raise SystemExit(f"G7 FAILED: worst relative difference {worst:.3e} at {worst_at} "
+                         f"-- the rewrite does not reproduce {ref_path}; n=200 not run")
+    log(f"G7 PASS  worst relative difference {worst:.3e} at {worst_at}")
+
+    # ---- the run ----
+    t0 = time.time()
+    _run(pte, "ls200")
+    rows = _load(pte)
+    dt = time.time() - t0
+
+    tso_band = _ls_tso_band(a)
+    tso_u1 = float(tso_band["u"][1])
+
+    # THE PRE-REGISTERED ESTIMATOR, unchanged: case-mean LS MSE over Transolver's band MSE
+    ls1 = float(np.mean([r["channels"]["u"]["ls_mse"][1] for r in rows]))
+    q = ls1 / tso_u1
+    verdict = ("FAMILY-BOUND-CLOSED" if q > 10 else
+               "FAMILY-BOUND-OPEN" if q <= 1 else "PARTIAL")
+
+    # DIAGNOSTICS, no thresholds, no power to change the verdict
+    per_case = [float(r["channels"]["u"]["ls_mse"][1]) for r in rows]
+    n_b1 = [int(r["n_band"][1]) for r in rows]
+    ratios = [v / tso_u1 for v in per_case]
+    pooled = float(np.sum([v * n for v, n in zip(per_case, n_b1)]) / np.sum(n_b1))
+    qs = np.sort(np.asarray(ratios, np.float64))
+    diag = {
+        "note": ("diagnostics only; the verdict above is the pre-registered "
+                 "ratio-of-means and no threshold here can change it"),
+        "n_cases": len(rows),
+        "mean_of_ratios": float(np.mean(ratios)),
+        "median_of_ratios": float(np.median(ratios)),
+        "pooled_node_weighted_ratio": pooled / tso_u1,
+        "min_ratio": float(qs[0]),
+        "max_ratio": float(qs[-1]),
+        "p05_ratio": float(np.percentile(qs, 5)),
+        "p95_ratio": float(np.percentile(qs, 95)),
+        "n_cases_above_10": int(np.sum(qs > 10)),
+        "n_cases_at_or_below_1": int(np.sum(qs <= 1)),
+        "per_case_ratio": ratios,
+        "per_case_ls_mse_u_band1": per_case,
+        "per_case_n_band1": n_b1,
+    }
+
+    out = {"meta": {"stage": "oracle_ls_n200", "n_ls": len(pte), "n_train": len(names_tr),
+                    "channels": list(chans), "wallclock_sec": dt, "n_proc": a.n_proc,
+                    "amendment": 3,
+                    "supersedes_n": int(ref["meta"]["n_ls"]),
+                    "rule": "UNCHANGED from the module docstring; only n changes, 3 -> 200"},
+           "G7": {"worst_rel_diff_vs_n3_artifact": worst, "at": worst_at,
+                  "threshold": 1e-9, "status": "PASS"},
+           "rows": rows,
+           "P3_LS": {"band": NAMES8[1], "ls_mse_u_casemean": ls1,
+                     "transolver_band_mse_u": tso_u1,
+                     "ratio": q, "verdict": verdict},
+           "diagnostics": diag}
+    write_json(os.path.join(a.out_dir, "point_space_oracle_ls_n200.json"), out)
+    log(f"P3-LS n={len(pte)}: LS {ls1:.5g} vs Transolver {tso_u1:.5g} -> {q:.4g}  {verdict}")
+    log(f"  diagnostics: mean-of-ratios {diag['mean_of_ratios']:.4g}, "
+        f"median {diag['median_of_ratios']:.4g}, pooled {diag['pooled_node_weighted_ratio']:.4g}, "
+        f"{diag['n_cases_above_10']}/{len(rows)} cases individually above 10")
+    return out
+
+
 def stage_oracle_ls(a) -> dict:
     """AMENDMENT 2: the unconstrained least-squares lower bound over the span of
     the 800 transferred training fields. Rule is in the module docstring."""
@@ -1283,7 +1534,8 @@ def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--stage", required=True,
                    choices=("cache", "pilot", "interp", "transolver",
-                            "r128resample", "oracle_ls", "reduce"))
+                            "r128resample", "oracle_ls", "oracle_ls_n200",
+                            "reduce"))
     p.add_argument("--task", default="full")
     p.add_argument("--rep", default="nd")
     p.add_argument("--fill", default="nearest")
