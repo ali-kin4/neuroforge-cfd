@@ -101,7 +101,7 @@ $u$ against the native construction's $98$, so the grid protocol was costing the
 \emph{interpolator} $4.1\times$ on $u$ and $69.9\times$ on $p$. We gave it the better
 representation and it still lost.
 
-\paragraph{Where each method's error lives is monotonically separated.} What the two arms
+\paragraph{Where each method's error lives separates by three orders of magnitude.} What the two arms
 do separate, sharply and by three orders of magnitude, is the spatial distribution of their
 error---and this is the one finding both measures agree on. On the grid, band by band
 outward from the wall, the ratio of interpolation error to Transolver error on $u$ runs
@@ -1305,7 +1305,7 @@ refined in place: resampled at the native nodes its own round-trip error exceeds
 surrogate's by $413\times$ pooled and $495\times$ near the wall, so \emph{an $r128$ field
 metric on this benchmark is a measurement of far-field skill for every method scored on
 it}. What both measures do agree on is where each method's error lives: the band ratio runs
-$906\times \to 0.31\times$ on the grid and $4052\times \to 3.8\times$ at the nodes, with
+$906\times \to 0.31\times$ on the grid and $4060\times \to 3.8\times$ at the nodes, with
 $71.9\%$ of the surrogate's own squared error beyond $0.5c$ against the interpolator's
 $3.6\%$, which reproduces $98.7\%$ of the domain at $R^2\ge0.9996$ from seven numbers in a
 file name. A surrogate earns the boundary layer---precisely where the benchmark's own
