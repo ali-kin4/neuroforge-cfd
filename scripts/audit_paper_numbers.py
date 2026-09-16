@@ -845,6 +845,31 @@ def ps_geom_mismatch(root, key, band="0-0.005c"):
     return float(d["diagnostics"][key][PS_BANDS8.index(band)])
 
 
+
+# ---- node-measure variance (scripts/node_measure_variance.py) ---------------
+# VAR_TRAIN is the AREA-UNIFORM training variance (the training pipeline rasterises,
+# so the normaliser is fitted on area-uniform samples). sec:interp's surface row and
+# the Conclusion score a per-NODE error, so their comparator is the node-measure
+# variance of the same band. These rows keep the two from drifting apart again.
+
+def nmv(root):
+    return load(os.path.join(root,
+                             "results/interpolation/node_measure_variance.json"))
+
+
+def nmv_surface_var_p(root):
+    return float(nmv(root)["claim1_surface_pressure"]["node_measure_var"])
+
+
+def nmv_surface_frac(root, arm):
+    a = nmv(root)["claim1_surface_pressure"]["arms"][arm]
+    return 100.0 * float(a["frac_of_node_measure_band_var"])
+
+
+def nmv_competence(root, chan, dom="full"):
+    return float(nmv(root)["claim2_competence_vs_published"]["ours"][dom][chan])
+
+
 # ---- the claim table --------------------------------------------------------
 # (label, reader, manuscript value, absolute tolerance)
 CLAIMS = [
@@ -1203,6 +1228,15 @@ CLAIMS = [
     # two rows immediately above are KEPT: sec:forces still quotes 0.8389/0.8394
     # as a representation statement (the interpolated field and the exact field
     # are indistinguishable to this integrator), which is not a covariate claim.
+    ("surface-band node-measure Var(p)", nmv_surface_var_p, 2.05888e7, 1e4),
+    ("surface p MSE as pct of band variance, interpolator",
+     lambda r: nmv_surface_frac(r, "interpolator"), 0.725, 0.005),
+    ("surface p MSE as pct of band variance, Transolver",
+     lambda r: nmv_surface_frac(r, "Transolver"), 0.482, 0.005),
+    ("our Transolver, AirfRANS convention, u (x1e-2)",
+     lambda r: nmv_competence(r, "u"), 0.0734, 0.0005),
+    ("our Transolver, AirfRANS convention, p (x1e-2)",
+     lambda r: nmv_competence(r, "p"), 0.0991, 0.0005),
 ]
 
 

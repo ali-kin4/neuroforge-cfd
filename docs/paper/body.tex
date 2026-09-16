@@ -825,8 +825,19 @@ outward all survive the removal of the raster; on $p$ the span is $1435\times$ o
 seven non-wall bands, and on $v$ it is $2958\times$. \textbf{The surface row is the one the
 force claims sit on}, and it is new: at $\mathrm{sdf}=0$ the surrogate is $4060\times$
 better on $u$, $2834\times$ on $v$ and $382\times$ on $\nu_t$, while the two arms are
-within $1.51\times$ on $p$ ($149\,203$ against $99\,227$) and both are poor there in
-absolute terms relative to $\mathrm{Var}_{\text{train}}(p)=135\,590$.
+within $1.51\times$ on $p$ ($149\,203$ against $99\,227$). Those two are close, and both
+are \emph{accurate}: against the node-measure variance of $p$ among the surface nodes
+themselves, $2.06\times10^{7}$
+(\texttt{scripts/node\_measure\_variance.py}), they are $0.73\%$ and $0.48\%$ of the band's
+own variance. We name the comparator because an earlier version of this sentence divided by
+$\mathrm{Var}_{\text{train}}(p)=135\,590$ and called both arms poor. That divisor is the
+\textbf{area-uniform} training variance the surrogates are normalised on---the training
+pipeline rasterises, so the normaliser is fitted on area-uniform samples---and it is
+$64\times$ smaller than the node-measure variance on $p$, for precisely the reason this
+section is about. Scoring a per-node error against it is the error the paper is documenting,
+committed by the paper. The claim that survives is narrower and is the one we make: the
+surrogate's near-wall advantage is on $u$, $v$ and $\nu_t$ and \emph{not} on $p$, so the
+force integrals do not inherit it.
 
 Two readings change and we state both. First, the far-field claim on $v$ and $p$ gets
 \emph{larger}, not smaller: beyond $0.5c$ the interpolator is $17.7\times$ better on $v$
@@ -1357,8 +1368,8 @@ numbers in a file name. A surrogate earns the boundary layer on the channels tha
 it---$4060\times$ on $u$ and $2834\times$ on $v$ at the surface, precisely where the
 benchmark's own authors located their models' failure without quantifying it. It does
 \textbf{not} earn it on pressure, where the two arms sit within $1.51\times$ of each other
-and both are poor against $\mathrm{Var}_{\text{train}}(p)$. That is the channel the forces
-integrate, and we claim nothing about forces from these numbers.
+and both resolve that band to better than $1\%$ of its own node-measure variance. That is
+the channel the forces integrate, and we claim nothing about forces from these numbers.
 
 \textbf{Fixing the metric with physics does not work, and the reason is measurable.} On
 $200/200$ AirfRANS cases the monitored residual of the exact field is substantially nonzero
