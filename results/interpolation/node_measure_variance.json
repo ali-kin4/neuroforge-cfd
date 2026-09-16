@@ -1,0 +1,167 @@
+{
+  "artifact": "node_measure_variance",
+  "question": "the node-measure variance of the AirfRANS fields, and the two claims that used an area-uniform variance against a node-measure error",
+  "n_test_cases": 200,
+  "n_train_cases": 800,
+  "bands": [
+    "wall",
+    "0-0.005c",
+    "0.005-0.01c",
+    "0.01-0.02c",
+    "0.02-0.05c",
+    "0.05-0.15c",
+    "0.15-0.5c",
+    ">0.5c"
+  ],
+  "channels": [
+    "u",
+    "v",
+    "p",
+    "nut"
+  ],
+  "n_band_test": [
+    201444.0,
+    14684859.0,
+    2081063.0,
+    2104007.0,
+    3002444.0,
+    3798151.0,
+    4455840.0,
+    5521524.0
+  ],
+  "var_per_band_test": [
+    [
+      0.0,
+      0.0,
+      20588805.314762816,
+      0.0
+    ],
+    [
+      804.29676203524,
+      1828.7125606140203,
+      16514010.727728095,
+      6.16265300125522e-07
+    ],
+    [
+      903.1009944940986,
+      1267.7696819747057,
+      5620464.375682869,
+      5.016218028139701e-06
+    ],
+    [
+      801.5179168116106,
+      930.6381586006293,
+      3666148.6995231584,
+      7.207213544077292e-06
+    ],
+    [
+      631.1087859356812,
+      549.3505044598194,
+      1980951.4888038929,
+      8.83173786051924e-06
+    ],
+    [
+      467.1444601065241,
+      259.684248431873,
+      838337.0308834951,
+      1.857843620568849e-05
+    ],
+    [
+      355.7038872465673,
+      97.23100248330137,
+      245808.94605065332,
+      2.552895717332838e-05
+    ],
+    [
+      316.9378158770728,
+      46.334038068913756,
+      43199.56615869861,
+      7.706639370177228e-06
+    ]
+  ],
+  "var_all_test": [
+    898.3202574413776,
+    990.1528637716651,
+    7942072.339647291,
+    8.223053329931368e-06
+  ],
+  "var_all_train_physical": [
+    880.1620151063828,
+    954.4977649178596,
+    8684609.630912367,
+    8.56490322388896e-06
+  ],
+  "n_nodes_test": 35849332.0,
+  "n_nodes_train": 143927010.0,
+  "var_train_area_uniform": {
+    "u": 341.88,
+    "v": 52.45,
+    "p": 135590.0,
+    "nut": 1.3199e-06
+  },
+  "claim1_surface_pressure": {
+    "band": "wall",
+    "channel": "p",
+    "node_measure_var": 20588805.314762816,
+    "area_uniform_var_used_in_text": 135590.0,
+    "ratio": 151.84604553995734,
+    "arms": {
+      "interpolator": {
+        "surface_mse_p": 149203.0,
+        "frac_of_node_measure_band_var": 0.0072468022169803505,
+        "one_minus_frac": 0.9927531977830196,
+        "one_minus_frac_with_area_divisor": -0.1003982594586621
+      },
+      "Transolver": {
+        "surface_mse_p": 99227.0,
+        "frac_of_node_measure_band_var": 0.004819463707729129,
+        "one_minus_frac": 0.9951805362922709,
+        "one_minus_frac_with_area_divisor": 0.26818349435799105
+      }
+    }
+  },
+  "claim2_competence_vs_published": {
+    "convention": "volume MSE on standardized fields, x1e-2; divisor is the NODE-measure physical train variance measured here",
+    "divisor_train_node_var": {
+      "u": 880.1620151063828,
+      "v": 954.4977649178596,
+      "p": 8684609.630912367
+    },
+    "ours": {
+      "full": {
+        "u": 0.07336996222520292,
+        "v": 0.05205299498913847,
+        "p": 0.09907812979678367
+      },
+      "in_crop": {
+        "u": 0.07587475678224191,
+        "v": 0.05404649144922567,
+        "p": 0.10351610009309807
+      }
+    },
+    "published": {
+      "MLP": [
+        0.95,
+        0.74
+      ],
+      "GraphSAGE": [
+        0.83,
+        0.66
+      ],
+      "PointNet": [
+        3.5,
+        1.15
+      ],
+      "Graph U-Net": [
+        1.52,
+        0.66
+      ]
+    },
+    "vs_best_published": {
+      "u_factor_better": 11.31253137969984,
+      "p_factor_better": 6.661409549753384,
+      "best_published_u": 0.83,
+      "best_published_p": 0.66
+    }
+  }
+}
