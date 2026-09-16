@@ -1,15 +1,23 @@
-# Computers & Fluids Submission Checklist
+# Journal of Computational Science — Submission Checklist
 
-Target: **Computers & Fluids** (Elsevier), ISSN 0045-7930. Impact factor 3.0,
-CiteScore 5.6.
+Target: **Journal of Computational Science** (Elsevier), ISSN 1877-7503.
 
-Manuscript: **"The ground truth fails its own physics check: the cost of auditing a CFD surrogate with an operator-inconsistent residual"**.
+Manuscript: **"What a neural flow surrogate buys is near-wall representation, and the scoring
+measure decides the ranking"**.
 
-> **Requirements below were read directly from the journal's own pages on 2026-09-07**
-> (`.../computers-and-fluids/publish/guide-for-authors` and `.../publish/open-access-options`).
-> Earlier versions of this file worked from search extraction because ScienceDirect
-> returns HTTP 403 to automated fetchers; it does not block a real browser. Every row
-> marked **[V]** was read in full text, not inferred.
+> **Read the verification legend before trusting any row.**
+>
+> - **[V-JOCS]** — read at source from the *Journal of Computational Science* guide for
+>   authors, in a real browser, on the date given. Trustworthy.
+> - **[V-CF]** — read at source from the **Computers & Fluids** guide on 2026-09-07, and
+>   **carried over untested**. C&F and JCP already disagreed with each other on at least one
+>   submission rule, so these are *hypotheses about JOCS*, not facts. Confirm before filing.
+> - **[GEN]** — Elsevier-wide policy, journal-independent.
+>
+> ScienceDirect returns HTTP 403 to automated fetchers and, as of **2026-09-16**, serves a
+> CAPTCHA to a real browser as well. The CAPTCHA was **not** bypassed, so the JOCS guide could
+> not be re-read on that date and the [V-CF] rows below remain open. Re-attempt later, or have
+> a human open the page once and read it.
 
 ## History — read before writing anything to the editor
 
@@ -18,24 +26,29 @@ Manuscript: **"The ground truth fails its own physics check: the cost of auditin
 | 2026-08-02 | CMAME (CMAME-D-26-03937) | Desk reject: "no new computational methodology within scope; suggest ML-oriented journal" |
 | 2026-08-25 | JCP | Submitted |
 | 2026-09-07 | JCP | Desk reject: "originality with respect to other published papers is too questionable". **Will not reconsider — do not appeal or email the editor.** |
+| 2026-09-12 | Computers & Fluids | **Withdrawn by us before filing, on conflict.** Its ML special-issue editorial is authored by Ashton, Dwight and Cinnella — authors of benchmarks this paper audits. |
+| — | **Journal of Computational Science** | Current target |
 
-Both rejections were desk screens, on the same axis, without review. The paper was
-therefore **reframed**, not merely reformatted: see `docs/paper/review/RESOLUTION.md`.
-The cover letter deliberately does **not** disclose these; see the note at the foot of
-`cover_letter.md` for the reasoning and how to reverse it.
+Both rejections were desk screens, on the same axis, without review. The paper was therefore
+**reframed and then split**, not reformatted: see `docs/paper/review/RESOLUTION.md` and
+`jocs_rebuild.md`. The cover letter deliberately does **not** disclose the rejections; see the
+notes at the foot of `cover_letter.md` for the reasoning and how to reverse it.
 
-## The one thing most likely to go wrong
+## The two things most likely to go wrong
 
-**C&F wants editable source AT SUBMISSION. JCP did not.** The JCP portal said *"If you
-have written your manuscript using LaTeX you need to upload a PDF… You do not need to
-upload your LaTeX source files until revision."* **That rule does not carry over.** The
-C&F guide says [V]:
+**1. The source-files rule is unverified and the venues disagree.** JCP said *"you do not need
+to upload your LaTeX source files until revision."* C&F said the opposite and explicitly [V-CF]:
 
-> "We ask you to provide editable source files for your entire submission (including
-> figures, tables and text graphics)." … "A PDF is not an acceptable source file."
+> "We ask you to provide editable source files for your entire submission (including figures,
+> tables and text graphics)." … "A PDF is not an acceptable source file."
 
-So upload the LaTeX sources and the figure files, not only the PDF. Do not reuse the
-JCP upload plan.
+**Which of these JOCS follows is not known.** Resolve it by reading the JOCS guide, or default
+to uploading the sources — supplying them when only a PDF was wanted is harmless; the reverse
+stalls the submission.
+
+**2. The wrong Elsevier identity.** Chrome autofills `light.knight32@gmail.com`, which would
+file the paper under a second Elsevier identity. Sign in as **st_a.jabbary@urmia.ac.ir**;
+Editorial Manager account is `AJabbary-884`.
 
 ## Required files
 
@@ -43,71 +56,80 @@ JCP upload plan.
 |---|---|---|
 | Manuscript source (LaTeX) | `neuroforge_cfd_elsevier.tex` + `preamble.tex`, `abstract.tex`, `body.tex`, `sections/residual_floor_theorem.tex`, `refs.bib`, `.bbl` | ready |
 | Manuscript PDF (built from the above) | `docs/paper/neuroforge_cfd_elsevier.pdf` | ready — **elsarticle build, not the TMLR one** |
-| Figures, as separate files | `results/figures/*.pdf` | ready (vector PDF; the guide accepts EPS/PDF for vector art) |
-| **Highlights** [V] | `docs/paper/submission/highlights.txt` | ready — **3–5 bullets, ≤85 chars each incl. spaces**; ours are 5 at 76–83 (rewritten 2026-09-12 for the measure-dependence headline). Filename must contain "highlights". |
-| Cover letter | `docs/paper/submission/cover_letter.md` | ready |
-| Suggested reviewers | `docs/paper/submission/suggested_reviewers.md` | ready — **verify board membership at C&F first** |
-| **Declaration of competing interests** [V] | — | **AUTHOR STEP, cannot be generated from here.** The guide requires the declarations tool's output uploaded as a **.doc/.docx** at the "attach/upload files" step. Author signatures are not required. Select "I have nothing to declare". |
-| Data statement [V] | — | **AUTHOR STEP** at submission. Research data is **Option C**: deposit, cite and link. Satisfied by Zenodo DOI 10.5281/zenodo.21277928, which the paper cites. |
+| Figures, as separate files | `results/figures/fig_bandratio.pdf` | ready (vector PDF) — one figure |
+| **Highlights** | `docs/paper/submission/highlights.txt` | ready — 5 bullets at 77–83 chars. Filename must contain "highlights". **Limit is [V-CF]; confirm for JOCS.** |
+| Cover letter | `docs/paper/submission/cover_letter.md` | ready — rewritten for JOCS 2026-09-16 |
+| Suggested reviewers | `docs/paper/submission/suggested_reviewers.md` | **stale — was verified against the C&F board. Re-check against the JOCS board before use.** |
+| **Declaration of competing interests** [GEN] | — | **AUTHOR STEP, cannot be generated from here.** Elsevier's declarations tool emits a .doc/.docx to upload. Select "I have nothing to declare". |
+| Data statement [GEN] | — | **AUTHOR STEP** at submission. Satisfied by Zenodo DOI 10.5281/zenodo.21277928, which the paper cites. **Which lettered option JOCS offers is [V-CF]; confirm.** |
 
-## Verified requirements [V]
+## Requirements
 
-| Item | Value | Ours |
-|---|---|---|
-| **Manuscript length limit** | **None.** No word, page or figure cap anywhere in the guide. | ~14,700 words — **not a problem**, and this was the open risk that ruled out RESS (13,000 cap). |
-| Abstract | ≤ **250 words** | 246 (hand count after the 2026-09-12 revision; confirm with `check_submission.py`) |
-| Keywords | **1–7**; multi-word keywords joined by "and"/"of" discouraged | 7, none joined that way |
-| Highlights | **Required**, 3–5 bullets, ≤85 chars | 5, at 76–83 |
-| Peer review | **Single anonymized** | No anonymisation work. Preprint, system name, GitHub and Zenodo links all stay. |
-| Article type | Original research paper | Yes |
-| Section numbering | Numbered 1, 1.1, 1.1.1; cross-reference by number, not "the text" | elsarticle handles it |
-| Appendices | Lettered A, B; equations Eq. (A.1) | n/a |
-| References | **No strict format at submission**, but must be internally consistent and complete | BibTeX, consistent |
-| Preprint references | Must be marked "preprint" or name the server, with the preprint DOI | check `refs.bib` for arXiv entries |
-| CRediT | Required | present |
-| AI-use declaration | Required, titled section before the reference list | present |
-| Funding statement | Required; use the "no specific grant" sentence if none | **check it is present** |
-| Self-archiving embargo | **24 months**; published version may not go on ResearchGate/Academia.edu | Same as JCP. arXiv preprint unaffected. |
+| Item | Value | Verified | Ours |
+|---|---|---|---|
+| **Manuscript length limit** | **None for regular articles.** Limits exist only for *Communications* (6 double-spaced pages, ≤20 refs, ≤4 figures/tables) and *Correspondence* (4 pages, ≤15 refs, ≤3). | **[V-JOCS 2026-09-12]** | 14,825 words — no rule against it, but see the note below |
+| Abstract | ≤ **250 words** | **[V-JOCS 2026-09-12]** | 241, measured by `check_submission.py` |
+| Keywords | **1–7** | **[V-JOCS 2026-09-12]** | 7 |
+| Highlights | 3–5 bullets, ≤85 chars | [V-CF] | 5, at 77–83 |
+| Article type | Original research paper (**not** Communication/Correspondence — those carry the caps above) | [V-JOCS] | Yes |
+| Peer review | Single anonymized | [V-CF] | No anonymisation work. Preprint, system name, GitHub and Zenodo links all stay. |
+| References | No strict format at submission; must be internally consistent | [V-CF] | BibTeX, consistent |
+| Preprint references | Marked "preprint" or naming the server, with the preprint DOI | [V-CF] | check `refs.bib` for arXiv entries |
+| CRediT | Required | [GEN] | present |
+| AI-use declaration | Required, titled section before the reference list | [GEN] | present |
+| Funding statement | Required; use the "no specific grant" sentence if none | [GEN] | **check it is present** |
+| Self-archiving embargo | 24 months; published version may not go on ResearchGate/Academia.edu | [V-CF] | arXiv preprint unaffected |
+
+**On length.** 14,825 words is long. There is no rule against it at this venue, but length is
+an editorial signal even where it is not a limit, and this paper has been desk-screened twice.
+That is a judgement call, not a gate — `check_submission.py` reports the count and does not
+block on it.
 
 ## Publishing route — the hard constraint
 
-**Take the SUBSCRIPTION route.** The open-access page says, verbatim [V]:
+**Take the SUBSCRIPTION route.** Under Elsevier's hybrid model the subscription route carries
+**no publication fee**, and the choice has no effect on peer review or acceptance. The
+open-access APC for *this* journal has **not** been read at source — the USD 3890 figure in
+earlier revisions of this file is **the Computers & Fluids APC** and must not be quoted for
+JOCS. Whatever the number is, do not let an acceptance flow silently flip the licence to open
+access at the licensing step: that is exactly where the fee is triggered. See
+`no-apc-venues-only`.
 
-> Subscription — **"No open access publication fee."**
+## Scope fit — why this venue
 
-The APC is **USD 3890** and applies *only* if open access is chosen. The page also
-states the choice "will have no effect on the peer review process or acceptance of your
-submission". Do not let an acceptance flow silently flip this to open access at the
-licensing step — that is exactly where the fee is triggered. See `no-apc-venues-only`.
+Unlike C&F, the case here is **not** a scope-paragraph mapping; it is the published record.
+JOCS has run this genre four times in five months (details and queries in
+`docs/paper/review/journal_shortlist.md` §2.2–2.4):
 
-## Scope fit — the editor reads against this list
+| Paper | Date | Genre |
+|---|---|---|
+| *When simpler models win: a large-scale computational benchmark…* | 2026-08-27 | simple-baseline-beats-deep-model benchmark |
+| *Accuracy vs efficiency: benchmarking GNNs on edge GPU hardware* | 2026-07-30 | head-to-head benchmark |
+| *Benchmarking atom-level explainability against pharmacophore-computed labels* | 2026-07-08 | benchmark against computed reference |
+| *Exploring the limitations of transformer models for metocean forecasting* | 2026-06-03 | limitations of a model class, in fluids |
 
-The Aims and scope paragraph names four things it wants from an ML paper. Three are now
-strengths; one is not, and the cover letter pre-empts it.
-
-| Asked for | Us |
-|---|---|
-| Comparison with traditional numerical reconstruction methods | **Weakest.** No controlled speed-up claim; OpenFOAM/SU2 backends unimplemented. Pre-empted in the cover letter, and §`sec:regime` is a direct contrast against solver-consistent correction. |
-| Training vs validation cases, with diversity | Strong |
-| Physical consistency / theoretical analysis | **Strongest** — now the spine of the paper |
-| Limitations as well as merits | Strong — seven claims withdrawn or narrowed |
+The control matters as much as the hits: the inherited critique query returns **zero** on JOCS,
+and the C&F record shows **zero** papers of this genre in seven years. The previous sweep's
+terms were measuring the old headline.
 
 ## Before you click submit
 
+- [ ] **Read the JOCS guide at source and close out every [V-CF] row above**
 - [ ] `python scripts/check_submission.py` passes
+- [ ] `python scripts/audit_paper_numbers.py` passes with no SKIP rows
 - [ ] Both PDFs rebuilt from current source; no undefined references in the log
 - [ ] `pytest -q` passes
-- [ ] Editorial board of **Computers & Fluids** checked against the suggested-reviewer list
+- [ ] Editorial board of **the Journal of Computational Science** checked against the
+      suggested-reviewer list — the current list was built for C&F and is stale
 - [ ] Funding statement present
-- [ ] Corresponding author signed in as **st_a.jabbary@urmia.ac.ir** — Chrome autofills
-      `light.knight32@gmail.com`, which would file the paper under a second Elsevier
-      identity. Editorial Manager account is `AJabbary-884`.
+- [ ] Corresponding author signed in as **st_a.jabbary@urmia.ac.ir**, not the autofilled Gmail
 - [ ] Subscription route selected at the licensing step
-- [ ] arXiv v4 posted or scheduled, so the preprint and the submission do not diverge
-      (see `docs/paper/submission/arxiv_v4/`)
+- [ ] arXiv replacement posted or scheduled, so the preprint and the submission do not diverge.
+      **`docs/paper/submission/arxiv_v4/` is stale** — built for the pre-split residual-floor
+      paper. Rebuild from current sources; do not upload it as-is.
 
 ## Fallbacks, in order
 
-EAAI → RESS (**13,000-word cap — would require cutting**) → CPC → JOCS or Engineering
-with Computers. Rationale and per-venue verification in
-`docs/paper/review/venue_plan.md`.
+Engineering with Computers → Advances in Engineering Software → CPC. ASME JVVUQ is the closest
+on subject matter but fails a gate; see `docs/paper/review/journal_shortlist.md` §3.
+RESS is out (13,000-word cap). C&F is out on the conflict recorded above.

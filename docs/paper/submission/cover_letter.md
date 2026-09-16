@@ -1,75 +1,93 @@
-# Cover Letter — Computers & Fluids
+# Cover Letter — Journal of Computational Science
 
 Dear Editors,
 
-I am pleased to submit **"The ground truth fails its own physics check: the cost of auditing a CFD surrogate with an operator-inconsistent residual"** for consideration as an original
-research paper in *Computers & Fluids*.
+I am pleased to submit **"What a neural flow surrogate buys is near-wall representation, and
+the scoring measure decides the ranking"** for consideration as an original research paper in
+the *Journal of Computational Science*.
 
-**What the paper reports.** A widely adopted proposal for trusting machine-learning CFD
-surrogates is to have the surrogate check itself against the governing equations, by
-evaluating a discrete RANS residual on its own prediction. We show that this check is built
-on an operator the ground truth itself cannot pass. On 200 of 200 real AirfRANS cases the
-monitored residual of the *exact* field is substantially nonzero (mean 0.192), while the
-physically wrong uniform-freestream field scores an exact zero — so the objective strictly
-prefers a wrong field to the truth. The natural objection is that this is a resolution
-artifact, and we test it: refining the grid from 128² to 512² makes the floor **larger**,
-in 21 of 24 cases, under a decision rule registered in the repository before the
-measurement was run. Restoring the omitted turbulent-stress term moves the floor by less
-than 0.2%, and rasterising the same reference data with a higher-order interpolant *raises*
-it. The consequence for correction is then measured directly rather than argued: starting
-from the exact ground truth, with no neural network in the loop, gradient descent on the
-residual cuts it by 84% while driving the field error from zero to the range a trained
-surrogate starts in.
+**What the paper reports.** Machine-learning surrogates for simulation are almost universally
+scored by resampling their predictions onto a uniform grid. We measure what that resampling
+costs, and the measurement changes the answer. On a standard external-aerodynamics benchmark,
+kernel interpolation over seven scalars parsed from the case file name — no network, no
+flow-field learning at all — gives 8.4x lower volume-pressure error than a matched-budget
+Transolver on an area-uniform 128^2 raster. Re-weighting the *identical* predictions by the
+dataset's own node measure takes that ratio to 0.44x, and scoring per node on the native
+point cloud with no rasterisation anywhere takes it to 0.21x. One pair of predictions, three
+defensible measures, and the ranking reverses.
 
-**Why this belongs in Computers & Fluids.** The journal's scope names "uncertainty
-quantification in fluid flow simulations, reduced-order and surrogate models for fluid
-flows", and states that machine-learning papers are welcome provided they show excellent
-scientific character. The four specific things the scope asks of such papers map onto this
-manuscript as follows.
+Run where the data actually lives, the comparison is not close: the interpolator loses on
+every channel — 144x on streamwise velocity, 134x on cross-stream, 4.9x on pressure — and the
+result is not a tuning deficit. An oracle shown the test answer and allowed the single best of
+all 800 training fields is still 344x worse inside the first 0.005 chord, and a three-case
+probe of the exact least-squares bound over the whole family, with no free parameters
+remaining, still gives 21x. What the surrogate buys is the boundary layer, and no weighting of
+the training set reaches it.
 
-- *Comparison with traditional numerical reconstruction methods.* This is the axis on which
-  we are most exposed and we would rather say so plainly than have it discovered. The paper
-  makes no controlled speed-up claim: it states in the text that the ~286× figure is not a
-  controlled measurement, and that the OpenFOAM and SU2 verification backends described in
-  the software are unimplemented. What the paper does contain is the comparison that bears
-  on its actual claim — a direct contrast against *solver-consistent* residual correction
-  (Newton–Krylov and related methods), which succeeds on steady CFD precisely because the
-  residual being driven is the solver's own. That contrast is the paper's organising result,
-  not an aside: it locates the boundary at operator consistency rather than at the problem
-  class.
-- *Clear presentation of training versus validation cases, with sufficient diversity.* Two
-  datasets (turbulent-RANS AirfRANS airfoils, laminar DeepCFD bluff bodies), three backbone
-  families, an explicit out-of-distribution regime shift, five seeds on the headline
-  backbone, and case-level bootstrap confidence intervals throughout.
-- *Physical consistency and theoretical analysis of the model.* This is now the spine of the
-  paper rather than an appendix. We show the monitored operator is an inconsistent
-  discretisation of RANS, so its floor has a nonzero continuum limit and cannot be removed
-  by refinement; and we characterise the operator's kernel, the modes it can neither detect
-  nor correct.
-- *Limitations as well as merits.* The paper withdraws or narrows seven claims made in
-  earlier versions of this work, including one of its own headline numbers. Most pointedly,
-  we report an *ungated fixed half-step control that outperforms our own acceptance gate on
-  accuracy* (95.8% of cases improved against 89.3%), and conclude that the gate's value is
-  the guarantee it provides rather than the accuracy it was credited with. We also report
-  that a physics-free uncertainty score matches the physics residual at ranking field error,
-  and that the physics wins outright only on drag.
+The protocol that reports these numbers cannot see there. The scoring raster's own round-trip
+error at the native nodes exceeds the surrogate's per-node error by 413x pooled and 495x near
+the wall. We state that symmetrically, because it is not a concession about one arm: it is a
+limit on what a 128^2 field metric can establish about *any* method on this benchmark, ours
+included, and it is why the head-to-head had to be re-run at native resolution rather than
+refined in place.
 
-**Reproducibility.** Every headline number maps to a committed script and result file
-through `docs/REPRODUCE.md`, with a manifest recording seeds, environment and SHA-256
-hashes. The package is CPU-first, runs end to end with no downloads via a synthetic data
-generator, and is permanently archived at Zenodo (DOI 10.5281/zenodo.21277928), which also
-serves as the deposited research dataset the journal's Option C data policy requires. The
-grid-refinement study's decision rule was committed before the study was run, and the commit
-is identifiable in the public history.
+**Why this belongs in the Journal of Computational Science.** The contribution is an
+evaluation result — the object of study is the measurement protocol, not a new architecture —
+and this journal has recently and repeatedly published exactly that genre:
 
-**Preprint disclosure.** A preprint of an earlier version is posted at arXiv:2607.10333,
-consistent with Elsevier's preprint policy. It carries a different title and a substantially
-different framing: that version led with a calibrated trust layer. The present manuscript is
-a substantial revision built around the grid-refinement and residual-descent measurements
-described above, which are new, and several claims in the preprint are explicitly withdrawn
-here. An updated preprint reflecting the present version will be posted. I mention this so
-that a search on the title does not suggest either a concurrent submission or an unexplained
-divergence between the two documents.
+- *When simpler models win: a large-scale computational benchmark of lexical and transformer
+  NLP pipelines for predicting medication effectiveness* (2026-08-27)
+- *Exploring the limitations of transformer models for metocean forecasting* (2026-06-03)
+- *Accuracy vs efficiency: benchmarking graph neural networks on edge GPU hardware* (2026-07-30)
+- *Benchmarking atom-level explainability against pharmacophore-computed labels in molecular
+  machine learning* (2026-07-08)
+
+Two of these are limitations-of-a-model-class papers and two are head-to-head benchmarks; one
+is in a geophysical-fluids forecasting domain. We surveyed the adjacent computational-methods
+and fluids journals for this pattern and did not find it: the venue whose scope looks closest
+on subject matter has published nothing in this genre in seven years. The fit here is to the
+journal's demonstrated interest in whether a computational result's reported number means what
+it appears to mean, which is precisely the question this paper asks of a widely used benchmark.
+
+**Where the paper is most exposed.** We would rather state this than have it found.
+
+- *The baseline estimator is not new.* The interpolator is kernel ridge regression over a
+  seven-dimensional parameter space — response-surface methodology, and decades old. The paper
+  says so in those words. It is deliberately not a contribution: its role is to be the
+  cheapest defensible thing that could occupy a leaderboard position, and the finding is that
+  on one published measure it does, which is a statement about the measure. A reader who wants
+  a novel estimator will not find one here.
+- *Scope is one benchmark, two dimensions, one learned architecture.* We do not claim the
+  ratios transfer. What we argue transfers is the diagnosis — that a wall-clustered
+  unstructured mesh scored on a uniform raster puts most of its nodes in a small fraction of
+  the scoring area — and that is a property of the discretisation, checkable anywhere, not a
+  property of this dataset. The paper states the limitation rather than hedging it.
+- *One of the paper's own headline numbers was withdrawn during preparation.* The 8.4x
+  advantage was at one stage the lead claim. We ran the measure it depended on, it reversed,
+  and it is now reported as the first term of a three-term reversal rather than as a finding.
+  Several other claims from earlier versions of this work are explicitly withdrawn in the text.
+
+**Reproducibility.** Every headline number maps to a committed script and result file through a
+per-claim reproduction map, with a manifest recording seeds, environment and SHA-256 hashes.
+The software is released as a CPU-first open-source package with a frozen I/O contract and an
+AirfRANS loader, and is permanently archived at Zenodo (DOI 10.5281/zenodo.21277928), which
+also serves as the deposited dataset the journal's data policy requires. Each decision rule in
+the paper — including the one that returned a negative verdict against our own preferred
+outcome — was registered in a script docstring and committed to a public repository before the
+run it governs, and those commits are identifiable in the history.
+
+**Preprint disclosure.** An earlier preprint of this line of work is posted at arXiv:2607.10333
+(currently v3, "NeuroForge: self-auditing neural CFD surrogates with calibrated
+physics-residual trust"). I flag the relationship explicitly because the title and framing
+differ enough that a search would otherwise raise a fair question. That version led with a
+calibrated trust layer built on a physics residual. The present manuscript is not a revision of
+it in the ordinary sense: the trust-layer and force-coefficient material has been *removed*,
+the native-resolution and measure-dependence experiments described above are new and are now
+the paper's spine, and the removed material is intended for a separate paper that will carry
+its own preprint. I will replace arXiv:2607.10333 with the present version so that the public
+record and this submission agree, and the separate material will be posted under its own
+identifier rather than silently duplicated. Neither the present manuscript nor the separate
+paper is under consideration at another journal.
 
 **Suggested reviewers** are listed separately. The manuscript is original, is not under
 consideration elsewhere, and both authors have approved this submission. We declare no
@@ -91,18 +109,40 @@ kg1111r@gre.ac.uk | ORCID 0009-0009-0888-3307
 
 ---
 
-## Note to self — not part of the letter
+## Notes to self — not part of the letter
 
-**On disclosing the two desk rejections (CMAME 2026-08-02, JCP 2026-09-07):** the letter
-above does **not** mention them. That is a deliberate decision, taken on the venue plan's
-recommendation: there is no obligation to disclose, prior rejection is not discoverable by
-the editor, and volunteering it hands them a pre-authorised reason to decline. What *is*
-disclosed is the preprint, because that is discoverable and would otherwise look like a
-concurrent submission. Reverse this only if you would rather lead with the revision history.
+**Rewritten 2026-09-16 for JOCS.** The previous letter was addressed to Computers & Fluids and
+described the pre-split paper (residual floor, trust layer, ungated control) — a manuscript
+that no longer exists. C&F was withdrawn on an editorial conflict: its ML special-issue
+editorial is authored by Ashton, Dwight and Cinnella, three authors of benchmarks this paper
+audits. The C&F letter is recoverable from git history if any of its prose is wanted.
 
-**On the numbers:** every figure in this letter is checked against the manuscript as built
-on 2026-09-07 — 0.192 floor, 21/24, <0.2%, 84%, 95.8% vs 89.3%. The earlier JCP letter
-quoted "three architecturally distinct backbones" and an audit cost of "1.13 ms against
-3.82 s — 0.03%"; the first is now qualified in the paper (the third backbone is evaluated
-off its training density) and so is not claimed here, and the second is stated in the paper
-with both its measurements. Do not reinstate either phrasing without re-checking.
+**On disclosing the two desk rejections (CMAME 2026-08-02, JCP 2026-09-07):** the letter above
+still does **not** mention them, and the reasoning carries over to this third venue unchanged —
+there is no obligation to disclose, prior rejection is not discoverable by the editor, and
+volunteering it hands them a pre-authorised reason to decline. What *is* disclosed is the
+preprint, because it is discoverable and would otherwise look like a concurrent submission.
+Reverse this only if you would rather lead with the revision history.
+
+**On the numbers:** every figure in this letter is taken from `abstract.tex` and the
+highlights file as built on 2026-09-16, both of which are checked by
+`scripts/audit_paper_numbers.py` against their source JSONs. Do not add a number to this letter
+that is not already in the abstract — the abstract is audited, free prose is not. Two scope
+points are load-bearing and must not be compressed if this letter is shortened: the 344x oracle
+is 200 cases while the 21x least-squares bound is a **three-case** probe, and the band
+separation is monotone on the grid ladder but **not** at the native nodes.
+
+**On the preprint paragraph — act before filing.** arXiv was confirmed live at v3 on
+2026-09-16 by reading the abstract page. A v4 package exists at
+`docs/paper/submission/arxiv_v4/` but was **never posted and is now stale** — it was built for
+the pre-split residual-floor paper (TMLR build, 43 pp, 10 figures). Do not upload it as-is. The
+letter promises a replacement matching the present version; rebuild the package from the
+current sources before making good on that, or soften the sentence.
+
+**STILL UNVERIFIED FOR THIS VENUE — do not inherit the C&F answers.** The following were read
+at source from the *C&F* guide on 2026-09-07 and have **not** been confirmed for JOCS:
+whether editable LaTeX source is required at submission or only at revision; whether Highlights
+are required rather than merely encouraged; the declarations-tool .doc/.docx upload step; and
+which research-data option applies. ScienceDirect served a CAPTCHA on 2026-09-16 and it was not
+bypassed, so the guide could not be re-read. Verified for JOCS as of 2026-09-12: the 250-word
+abstract cap, the 1-7 keyword rule, and the absence of any length limit on regular articles.
