@@ -45,8 +45,8 @@ field errors see whatever it adds?}
 \paragraph{What a surrogate buys is near-wall representation, and no interpolation reaches
 it.} We answer the first half at the resolution the data actually has. Gaussian
 kernel-ridge interpolation over seven scalars derived from the case name---no network, no
-geometry encoder, no flow-field learning---is evaluated against a matched-budget Transolver
-at AirfRANS's own cloud nodes, all $200$ \texttt{full} test cases, $35.8$\,M nodes, with
+geometry encoder, no flow-field learning---is evaluated against a Transolver trained on the
+same data at AirfRANS's own cloud nodes, all $200$ \texttt{full} test cases, $35.8$\,M nodes, with
 \textbf{no rasterisation anywhere in the comparison path}. Each training field is carried
 on its own native cloud, so neither arm meets a grid. \textbf{The interpolator loses on
 every channel}: $\mathbf{144\times}$ on streamwise velocity, $\mathbf{134\times}$ on
@@ -117,7 +117,8 @@ the nodes, and say in \autoref{sec:interp} why we cannot yet decompose the disag
 The interpolator's own side of the boundary is sharp under either: \textbf{$92\%$ of its
 $u$ error and $90\%$ of its $v$ error lie within $0.02$ chord of the wall}---$0.5\%$ of
 cells, thinner than one grid spacing---while \textbf{$98.7\%$ of the domain}, everything
-beyond $0.05$ chord, is reproduced at $R^2\ge0.9996$ with no learning at all. A frozen
+beyond $0.05$ chord, is reproduced at $R^2\ge0.9996$ \emph{on the $r128$ raster} with no
+learning at all. A frozen
 ladder to $256^2$ and $512^2$ leaves the domain fraction, the $R^2$ floor and the
 outer-region error unmoved but eases the near-wall shares to $88\%$/$84\%$, because the
 near-wall error itself falls $45\%$; the pre-registered rule reads that easing as
@@ -162,7 +163,7 @@ their numbers; we do not restate them here. What each adds beyond the headline n
 
 \begin{enumerate}
 \item \textbf{A head-to-head at native resolution, and a closed bound on the baseline's
-whole family (headline, \autoref{sec:interp}).} The comparison is run where the data lives,
+whole family in physical coordinates (headline, \autoref{sec:interp}).} The comparison is run where the data lives,
 with no raster in the path and both arms gated against their published rows---the
 interpolation arm reproduces its weight matrix to $1.6\times10^{-8}$ relative, the
 surrogate arm reproduces the deployed backbone at relative error exactly $0.00\mathrm{e}
@@ -170,7 +171,11 @@ surrogate arm reproduces the deployed backbone at relative error exactly $0.00\m
 \textsc{not-competitive-at-native} on all three of $u,v,p$ at once. The oracle and
 least-squares controls then close the standing escape---``re-select its
 hyperparameters on the node measure''---by bounding what \emph{any} weighting of the $800$
-training fields can achieve at the wall, with no free parameters at all.
+training fields can achieve at the wall, with no free parameters at all. Two scope limits
+travel with that bound and we carry them in every statement of it: it is a three-case
+probe, and it holds \emph{in physical coordinates}, the coordinate system in which the
+mechanism we measure exists. A body-fitted interpolator is a different method and
+\autoref{sec:limitations} names it as untested.
 
 \item \textbf{The aggregate field ranking is a property of the measure, not of the methods
 (\autoref{sec:interp}).} It is not a stable quantity in either direction: across five
@@ -180,12 +185,19 @@ aggregate win. The re-weighting is conservative---grid binning cannot place node
 inside a sub-cell band, and solid-binned wall nodes are dropped---so the true node measure
 is more adverse to it than the number we quote.
 
-\item \textbf{A representation ceiling that bounds every published $r128$ field number on
-this benchmark, ours included (\autoref{sec:interp}).} The scoring raster's own round-trip
-error at the native nodes exceeds the surrogate's per-node error by $413\times$ pooled and
-$495\times$ near the wall. This is symmetric: not a concession about one arm but a limit on
-what an $r128$ AirfRANS field metric can say about any method, and it is why the
-native-resolution head-to-head had to be run rather than refined in place.
+\item \textbf{The $r128$ scoring raster is blind near the wall, and blindness is not
+neutrality (\autoref{sec:interp}).} The raster's own round-trip error at the native nodes
+exceeds the surrogate's per-node error by $413\times$ pooled and $495\times$ near the wall.
+We are precise about what that does and does not bound. A published $r128$ metric does not
+incur that error in full---it scores a rasterised prediction against a \emph{rasterised}
+truth, so the representation error partly cancels---and we therefore do \textbf{not} claim
+it bounds those numbers, ours included. What we do show is the more awkward thing: the
+projection can \emph{invert} a ranking rather than merely blur it. The far-field $u$ entry
+runs $3.2\times$ ahead of the surrogate on the grid and $3.8\times$ behind it at the nodes,
+and the raster's own cost there accounts for $1.27\times$ of that swing---far short of it.
+This is symmetric, a limit on what an $r128$ AirfRANS field metric resolves about any
+method, and it is why the head-to-head had to be re-run at native resolution rather than
+refined in place.
 
 \item \textbf{What a surrogate-side physics residual can and cannot do
 (\autoref{sec:residual}).} The universal form of the negative is about \textbf{iterate
@@ -412,7 +424,11 @@ it is reported in the two head-to-head tables, where it matters.
 The learned arm is a Transolver ($7.35$M parameters) trained on AirfRANS \texttt{full}
 ($800$ train / $200$ test, $80$ epochs, per-point standardised MSE over a uniform
 subsample of each case's own cloud), reported as the mean over its three deployed seeds
-with per-seed values given wherever a verdict could turn on them. Both arms in every
+with per-seed values given wherever a verdict could turn on them. That training subsample is
+drawn uniformly over nodes, which is the same measure the native head-to-head scores on, so
+whatever accuracy it costs the surrogate is paid under precisely the measure it is later
+judged by: the native-resolution margins are a floor on the gap, not a point estimate of
+it. Both arms in every
 head-to-head are gated against their published rows before any new number is computed, and
 each gate is named where it is read.
 
@@ -632,9 +648,14 @@ $8.39\times$; $\texttt{mse\_v}$ $4.26$ against $0.282$, $0.066\times$ where it w
 $2.97\times$ (\autoref{tab:measure}). Before the re-weighting both arms reproduce their
 published rows to below one part in $10^{9}$, the Transolver arm exactly
 (\texttt{scripts/measure\_asymmetry.py} gates \textbf{G1}/\textbf{G2}). \textbf{One pair of
-predictions, one set of cases, three defensible measures, and the pressure ratio runs
-$8.39\times$, $0.44\times$, $0.21\times$.} That is the finding: the aggregate field ranking
-on this benchmark is not a property of the methods. The interpolator loses under
+predictions, one set of cases, three measures in current use, and the pressure ratio runs
+$8.39\times$, $0.44\times$, $0.21\times$.} The pre-registered rule \textbf{D3}, committed in
+\texttt{cdf08f5} before any of these numbers existed, reads a node-measure ratio at or below
+$1$ as \textsc{artifact}---\emph{the $8.4\times$ is a measure choice; say so plainly and
+withdraw it}. It returns $0.440$. \textbf{We withdraw it}: the $8.4\times$ is not a finding
+about the methods, we do not claim it as one, and it appears in this paper only as the first
+term of the reversal that retired it. What survives is what the rule was written to expose:
+the aggregate field ranking on this benchmark is not a property of the methods. The interpolator loses under
 \emph{every} measure on the streamwise channel ($\texttt{mse\_u}$ $0.782$ against $0.120$
 area-uniform, $30.7$ against $0.358$ node-weighted, $93.1$ against $0.646$ per node),
 marginally on surface pressure ($10989$ against $9110$, $1.21\times$), and on the closure
@@ -1306,10 +1327,10 @@ budget.
 \section{Conclusion}
 
 \textbf{What a neural flow surrogate buys on AirfRANS is near-wall representation, and no
-member of the interpolation family reaches it.} Scored per node on the dataset's own cloud,
+member of the interpolation family reaches it in physical coordinates.} Scored per node on the dataset's own cloud,
 with no rasterisation anywhere in the comparison path, a Gaussian kernel-ridge
-interpolation of seven scalars read off the case name loses to a matched-budget Transolver
-on every channel---$144\times$ on $u$, $134\times$ on $v$, $4.9\times$ on $p$, $18\times$ on
+interpolation of seven scalars read off the case name loses to a Transolver trained on the
+same data on every channel---$144\times$ on $u$, $134\times$ on $v$, $4.9\times$ on $p$, $18\times$ on
 $\nu_t$, and $200/200$ cases on three of the four. An oracle handed the test answer and
 allowed the best single training field is $344\times$ worse inside the first $0.005$ chord;
 the least-squares optimum over the span of all $800$ training fields, the exact lower bound
@@ -1331,9 +1352,13 @@ metric on this benchmark is a measurement of far-field skill for every method sc
 it}. What both measures do agree on is where each method's error lives: the band ratio runs
 $906\times \to 0.31\times$ on the grid and $4060\times \to 3.8\times$ at the nodes, with
 $71.9\%$ of the surrogate's own squared error beyond $0.5c$ against the interpolator's
-$3.6\%$, which reproduces $98.7\%$ of the domain at $R^2\ge0.9996$ from seven numbers in a
-file name. A surrogate earns the boundary layer---precisely where the benchmark's own
-authors located their models' failure without quantifying it.
+$3.6\%$, which reproduces $98.7\%$ of the domain at $R^2\ge0.9996$ on that raster from seven
+numbers in a file name. A surrogate earns the boundary layer on the channels that resolve
+it---$4060\times$ on $u$ and $2834\times$ on $v$ at the surface, precisely where the
+benchmark's own authors located their models' failure without quantifying it. It does
+\textbf{not} earn it on pressure, where the two arms sit within $1.51\times$ of each other
+and both are poor against $\mathrm{Var}_{\text{train}}(p)$. That is the channel the forces
+integrate, and we claim nothing about forces from these numbers.
 
 \textbf{Fixing the metric with physics does not work, and the reason is measurable.} On
 $200/200$ AirfRANS cases the monitored residual of the exact field is substantially nonzero
