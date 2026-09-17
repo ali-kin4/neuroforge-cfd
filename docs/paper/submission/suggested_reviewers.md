@@ -49,28 +49,46 @@ institution with **Ali Jabbary** (Urmia University) or **Kasra Ghanavati** (Univ
 Greenwich), and none appears among either author's co-authors (Ali's: Ghasabehi, Shams,
 Jafarmadar, Pourmahmoud, Rosen, Abdollahi, Ahmadi, Samanipour).
 
-> ⚠️ **What is verified here, and what is not.**
+> ✅ **BOARD SCREENED 2026-09-17.** The full JOCS editorial board was read at source (85
+> members, 25 countries). **None of the reviewers suggested below sits on it** — Ranade,
+> Nabian, Chakraborty and Goswami are all absent, so there is no sitting-editor category
+> error in this list.
 >
-> **Verified 2026-09-17** from non-Elsevier sources: Chakraborty (IIT Delhi) and Goswami
-> (Johns Hopkins) affiliations; Ranade, Nabian and Tangsali as co-authors of
-> arXiv:2507.10747 (NVIDIA PhysicsNeMo-CFD), which is also how the Ashton conflict was
-> confirmed.
+> **Editor-in-Chief is Valeria Krzhizhanovskaya (University of Amsterdam)** — *not* Peter
+> Sloot, who is Founding Editor-in-Chief. Earlier search results giving Sloot/Coveney/
+> Dongarra were 2010-2018 vintage and wrong for the current board; Dongarra is now an
+> Advisory Editor. Address nothing to Sloot.
 >
-> **NOT verified, and it must be before anything is entered in Editorial Manager:**
-> (a) the **current JOCS editorial board** — suggesting a sitting editor is a category
-> error, and this board has never been screened. Search results give the founding
-> Editor-in-Chief as **Peter M. A. Sloot** (University of Amsterdam) with **P. V.
-> Coveney** (UCL) and **J. Dongarra** (Tennessee) as associate editors, but those hits
-> date from 2010-2018 and are NOT current enough to rely on.
-> (b) **Every email address**, taken from the person's own institutional page rather
-> than from this file.
+> Affiliations verified 2026-09-17 from institutional pages: Chakraborty (IIT Delhi),
+> Goswami (Johns Hopkins). Ranade/Nabian/Tangsali from arXiv:2507.10747, which is also
+> where the Ashton conflict was confirmed.
 >
-> Both are blocked from here, not merely unchecked. On 2026-09-16 and twice on
-> 2026-09-17, every route to the journal's pages failed: ScienceDirect serves a CAPTCHA
-> to the browser (not solved, and it will not be), `journals.elsevier.com` and
-> `elsevier.com` both 301-redirect to ScienceDirect, and direct fetching returns HTTP
-> 403. **This needs a human with a browser**; it is a five-minute job for someone signed
-> in, and it is the last open item on the reviewer list.
+> ⚠️ **Still to do at entry time:** take every email from the person's own institutional
+> page. Emails were never going to come from this file.
+
+## The board is why this paper has a handling editor at all
+
+Worth knowing before writing to them: the board is not a pure complex-systems board, and
+it carries real fluids and numerical-analysis depth. Among the **Advisory Editors** are
+**Hamdi Tchelepi** (Stanford — numerical simulation, CFD) and **Hiroshi Otomo** (Tufts —
+CFD, multiphase, multiscale). On the board: **Chandan Bose** (Birmingham — unsteady
+aerodynamics, turbulent flows), **Giovanni Di Ilio** (Naples Parthenope — CFD,
+turbulence), **Bartosz Protas** (McMaster — computational mathematics, fluid mechanics),
+**Sauro Succi** (IIT Genoa), **Bruce Boghosian** (Tufts — fluid dynamics), **Abani Patra**
+(Buffalo — adaptive meshing, UQ), **Daniel Tartakovsky** (Stanford — UQ, data
+assimilation), **Ulrich Ruede** (Erlangen), **Hari Sundar** (Utah — HPC, CFD), **Dominik
+Goeddeke** (Stuttgart — scientific computing), **Allen Tesdall** (CUNY — numerical methods
+for hyperbolic problems), **Derek Groen** (Brunel — verification, validation, UQ) and
+**Maciej Paszynski** (AGH — hp-adaptive FEM, PINNs, AI).
+
+That last name matters: the board has explicit physics-informed-ML representation, so the
+paper does not have to be routed to someone who thinks ML-for-PDEs is out of scope. And
+**Groen's VVUQ and Patra's adaptive-meshing** expertise is exactly the Group 2 competence
+this list asks for — which means the editor can source that referee even though we cannot
+name one.
+
+**None of them may be suggested as a reviewer.** They are the people who will choose the
+reviewers.
 
 ---
 
@@ -99,9 +117,11 @@ Jafarmadar, Pourmahmoud, Rosen, Abdollahi, Ahmadi, Samanipour).
    it needs someone who thinks about remap error for a living rather than a
    neural-operator theorist. The mesh-to-mesh transfer / conservative-remap community
    (ALE hydrodynamics, climate model coupling) is the right pool.
-   **To fill from the JOCS board's adjacent subject editors when the board is read** —
-   this is a competence, not a person, and naming the wrong individual is worse than
-   naming the competence to the editor in the cover letter.
+   **Leave this slot to the editor and say so in the cover letter.** It is a competence,
+   not a person, and naming a plausible-sounding wrong individual is worse than telling
+   the handling editor precisely what the paper needs. The board can source it: Patra
+   (adaptive meshing), Groen (VVUQ) and Tesdall (numerical methods for hyperbolic
+   problems) all sit on it.
 
 ### Group 3 — classical parametric surrogates, to judge the baseline
 
@@ -144,7 +164,8 @@ Jafarmadar, Pourmahmoud, Rosen, Abdollahi, Ahmadi, Samanipour).
 ## Do not suggest
 
 - Everyone in the conflict table above.
-- Anyone on the **current JOCS editorial board** — unscreened; check first.
+- **Anyone on the current JOCS editorial board** — screened 2026-09-17 and listed above;
+  none of our suggestions collides with it, and none of those names may be added later.
 - **George Em Karniadakis**, **Dongbin Xiu**, **Charbel Farhat**, **George Biros** —
   JCP board members as of 2026-08-24, and Karniadakis is a plausible *handling editor*
   for this paper at any venue in scope. Their JOCS status is unchecked.
