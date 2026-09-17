@@ -67,23 +67,24 @@ Editorial Manager account is `AJabbary-884`.
 
 | Item | Value | Verified | Ours |
 |---|---|---|---|
-| **Manuscript length limit** | **None for regular articles.** Limits exist only for *Communications* (6 double-spaced pages, ≤20 refs, ≤4 figures/tables) and *Correspondence* (4 pages, ≤15 refs, ≤3). | **[V-JOCS 2026-09-12]** | 14,825 words — no rule against it, but see the note below |
-| Abstract | ≤ **250 words** | **[V-JOCS 2026-09-12]** | 241, measured by `check_submission.py` |
+| **Manuscript length limit** | **None for regular articles.** Limits exist only for *Communications* (6 double-spaced pages, ≤20 refs, ≤4 figures/tables) and *Correspondence* (4 pages, ≤15 refs, ≤3). | **[V-JOCS 2026-09-12]** | **15,476 words** — no rule against it, but see the note below |
+| Abstract | ≤ **250 words** | **[V-JOCS 2026-09-12]** | **246**, measured by `check_submission.py` |
 | Keywords | **1–7** | **[V-JOCS 2026-09-12]** | 7 |
 | Highlights | 3–5 bullets, ≤85 chars | [V-CF] | 5, at 77–83 |
 | Article type | Original research paper (**not** Communication/Correspondence — those carry the caps above) | [V-JOCS] | Yes |
 | Peer review | Single anonymized | [V-CF] | No anonymisation work. Preprint, system name, GitHub and Zenodo links all stay. |
 | References | No strict format at submission; must be internally consistent | [V-CF] | BibTeX, consistent |
-| Preprint references | Marked "preprint" or naming the server, with the preprint DOI | [V-CF] | check `refs.bib` for arXiv entries |
+| Preprint references | Marked "preprint" or naming the server, with the preprint DOI | [V-CF] | ✓ audited 2026-09-17: 52 entries, every arXiv-only preprint names the server AND carries its 10.48550 DOI; no entry lacks a venue field |
 | CRediT | Required | [GEN] | present |
 | AI-use declaration | Required, titled section before the reference list | [GEN] | present |
-| Funding statement | Required; use the "no specific grant" sentence if none | [GEN] | **check it is present** |
+| Funding statement | Required; use the "no specific grant" sentence if none | [GEN] | present — `body.tex` \section*{Funding}, "no specific grant" wording ✓ (checked 2026-09-17) |
 | Self-archiving embargo | 24 months; published version may not go on ResearchGate/Academia.edu | [V-CF] | arXiv preprint unaffected |
 
-**On length.** 14,825 words is long. There is no rule against it at this venue, but length is
-an editorial signal even where it is not a limit, and this paper has been desk-screened twice.
-That is a judgement call, not a gate — `check_submission.py` reports the count and does not
-block on it.
+**On length.** 15,476 words is long, and it grew during the September rework as controls were
+added. There is no rule against it at this venue, but length is an editorial signal even where
+it is not a limit, and this paper has been desk-screened twice. That is a judgement call, not a
+gate — `check_submission.py` reports the count and does not block on it. If it is ever cut, cut
+evidence last: the two desk rejections were about originality, never about length.
 
 ## Publishing route — the hard constraint
 
@@ -121,7 +122,8 @@ terms were measuring the old headline.
 - [ ] `pytest -q` passes
 - [ ] Editorial board of **the Journal of Computational Science** checked against the
       suggested-reviewer list — the current list was built for C&F and is stale
-- [ ] Funding statement present
+- [x] Funding statement present (2026-09-17)
+- [x] `refs.bib` preprint-DOI audit (2026-09-17)
 - [ ] Corresponding author signed in as **st_a.jabbary@urmia.ac.ir**, not the autofilled Gmail
 - [ ] Subscription route selected at the licensing step
 - [ ] arXiv replacement posted or scheduled, so the preprint and the submission do not diverge.
