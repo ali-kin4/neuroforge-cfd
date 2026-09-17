@@ -49,12 +49,28 @@ institution with **Ali Jabbary** (Urmia University) or **Kasra Ghanavati** (Univ
 Greenwich), and none appears among either author's co-authors (Ali's: Ghasabehi, Shams,
 Jafarmadar, Pourmahmoud, Rosen, Abdollahi, Ahmadi, Samanipour).
 
-> ⚠️ **Two things must be checked in a browser before entering any of this in Editorial
-> Manager.** (a) The **current JOCS editorial board** — suggesting a sitting editor is a
-> category error, and the board has never been screened for this journal; the founding
-> Editor-in-Chief is Peter Sloot. (b) **Every affiliation and email**, from the person's
-> own page, not from memory and not from this file. ScienceDirect served a CAPTCHA to
-> automated access on 2026-09-16 and 2026-09-17, so neither has been verified here.
+> ⚠️ **What is verified here, and what is not.**
+>
+> **Verified 2026-09-17** from non-Elsevier sources: Chakraborty (IIT Delhi) and Goswami
+> (Johns Hopkins) affiliations; Ranade, Nabian and Tangsali as co-authors of
+> arXiv:2507.10747 (NVIDIA PhysicsNeMo-CFD), which is also how the Ashton conflict was
+> confirmed.
+>
+> **NOT verified, and it must be before anything is entered in Editorial Manager:**
+> (a) the **current JOCS editorial board** — suggesting a sitting editor is a category
+> error, and this board has never been screened. Search results give the founding
+> Editor-in-Chief as **Peter M. A. Sloot** (University of Amsterdam) with **P. V.
+> Coveney** (UCL) and **J. Dongarra** (Tennessee) as associate editors, but those hits
+> date from 2010-2018 and are NOT current enough to rely on.
+> (b) **Every email address**, taken from the person's own institutional page rather
+> than from this file.
+>
+> Both are blocked from here, not merely unchecked. On 2026-09-16 and twice on
+> 2026-09-17, every route to the journal's pages failed: ScienceDirect serves a CAPTCHA
+> to the browser (not solved, and it will not be), `journals.elsevier.com` and
+> `elsevier.com` both 301-redirect to ScienceDirect, and direct fetching returns HTTP
+> 403. **This needs a human with a browser**; it is a five-minute job for someone signed
+> in, and it is the last open item on the reviewer list.
 
 ---
 
@@ -99,12 +115,21 @@ Jafarmadar, Pourmahmoud, Rosen, Abdollahi, Ahmadi, Samanipour).
 
 ### Group 4 — surrogate UQ and operator learning (retained, lower priority)
 
-5. **Souvik Chakraborty** (IIT Delhi) — operator-surrogate UQ; broad enough to referee
-   the head-to-head protocol and the seed reporting. Retained from the previous list
-   because he remains qualified under the new framing, unlike most of it.
+5. **Souvik Chakraborty** — Associate Professor, Department of Applied Mechanics, and
+   joint faculty at the Yardi School of AI, **IIT Delhi**; leads the Center for
+   Scientific Computing and Computational Mechanics. Operator learning and UQ; broad
+   enough to referee the head-to-head protocol and the seed reporting. Retained from the
+   previous list because he remains qualified under the new framing, unlike most of it.
+   *Affiliation verified 2026-09-17 from his group page and Scholar profile; email still
+   to be taken from his institutional page, not from here.*
 
-6. **Somdatta Goswami** (Johns Hopkins) — operator learning; mid-career, good
-   assignability, and able to judge whether the matched-budget claim is defensible.
+6. **Somdatta Goswami** — Assistant Professor, Department of **Civil and Systems
+   Engineering, Johns Hopkins University**, joint with Applied Mathematics & Statistics
+   and the Data Science and AI Institute; leads Centrum IntelliPhysics (faculty since
+   2024, previously Brown). Operator learning; good assignability, and able to judge
+   whether the matched-budget claim is defensible.
+   *Affiliation verified 2026-09-17 from the JHU faculty page and her own site; email
+   still to be taken from her institutional page.*
 
 ### Reserve
 
