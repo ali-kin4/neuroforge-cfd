@@ -1,95 +1,141 @@
-# Suggested Reviewers — Computers & Fluids
+# Suggested Reviewers — Journal of Computational Science
 
-**Rewritten 2026-09-07 for the reframed paper.** The previous list targeted JCP and a
-paper whose headline was a calibrated trust layer, so it was drawn from conformal
-prediction and neural-operator theory. The claim now needing assessment is different:
-*a monitored discrete operator is inconsistent with the one that generated its labels,
-so its residual carries a floor that does not vanish under refinement, and minimising it
-moves the field away from the truth.* That is a numerical-analysis judgment before it is
-a machine-learning one, and the list is rebalanced accordingly.
+**Rewritten 2026-09-17.** The previous list was doubly stale: it targeted *Computers &
+Fluids*, and it was built for a paper that no longer exists — one whose headline was an
+operator-inconsistent residual floor and a calibrated trust layer. Both of those
+sections have been cut. The list below is built for the claim the manuscript now makes.
 
-**Selection principle.** Assignability over fame. Aim for a mix that can actually
-adjudicate both halves: reviewers who can check the discretisation-consistency argument,
-and reviewers who can check the surrogate/UQ half. The scope paragraph of *Computers &
-Fluids* asks for physical consistency and theoretical analysis, so at least two
-reviewers should be able to referee the operator argument on its own terms.
+## What a referee has to be able to check
 
-**Conflict screen (re-affirmed 2026-09-07):** none shares an institution with **Ali
-Jabbary** (Urmia University) or **Kasra Ghanavati** (University of Greenwich), and none
-appears among either author's co-authors (Ali's: Ghasabehi, Shams, Jafarmadar,
-Pourmahmoud, Rosen, Abdollahi, Ahmadi, Samanipour). All are arms-length.
+> Machine-learning surrogates for simulation are scored by resampling onto a uniform
+> grid, and that choice decides the ranking. On AirfRANS the same pair of predictions
+> gives 8.4x, 0.44x and 0.21x under three measures in current use. At native resolution
+> the surrogate wins on every channel, and no weighting of the training set reaches the
+> near-wall region in physical coordinates. The scoring raster cannot adjudicate it: its
+> own round-trip error at the nodes is far above either arm's.
 
-> ⚠️ **Verify every affiliation and email in Editorial Manager before entry — do not
-> enter from memory.** Also check the current *Computers & Fluids* editorial board
-> before submitting: suggesting a sitting editor is a category error, and the board was
-> last checked for JCP, not for this journal.
+That is **three different referee competencies**, and the previous list had none of
+them:
+
+1. **ML-for-CFD benchmarking and metric design** — is the measure-dependence result a
+   real gap in how the field reports, or a restatement that different metrics differ?
+2. **Unstructured-mesh discretisation and interpolation error** — is the
+   representation-ceiling argument sound, and is the round-trip error the right
+   instrument?
+3. **Classical parametric surrogates (Kriging / response surfaces / ROM)** — is the
+   baseline a fair and competently-tuned member of its family, or a strawman?
+
+At least one reviewer from **each** group. A pure ML reviewer cannot check (2); a pure
+numerical-analysis reviewer cannot check (1); neither can check (3).
+
+## Conflict screen — read this before adding anyone
+
+This paper **audits published benchmarks**. Suggesting an author of an audited benchmark
+means asking the audited party to referee the audit. That is a category error and it is
+the single most likely way to get a hostile, non-arms-length report.
+
+**Excluded on that basis** (do not suggest, do not add later):
+
+| Name | Why excluded |
+|---|---|
+| Florent Bonnet, Jocelyn Ahmed Mazari, Paola Cinnella, Patrick Gallinari | Authors of **AirfRANS**, the benchmark this paper audits |
+| Haixu Wu, Mingsheng Long et al. | Authors of **Transolver**, the surrogate arm |
+| Neil Ashton | Author of **DrivAerML** and of the automotive benchmarking framework the paper cites; also co-authored the C&F ML special-issue editorial that caused us to withdraw from that venue |
+| Richard Dwight | Same C&F editorial |
+| Mohamed Elrefaie et al. | Authors of **DrivAerNet++**, cited as the counter-example to our own scope claim |
+
+**Author conflicts (re-affirmed 2026-09-17):** none of the suggested names shares an
+institution with **Ali Jabbary** (Urmia University) or **Kasra Ghanavati** (University of
+Greenwich), and none appears among either author's co-authors (Ali's: Ghasabehi, Shams,
+Jafarmadar, Pourmahmoud, Rosen, Abdollahi, Ahmadi, Samanipour).
+
+> ⚠️ **Two things must be checked in a browser before entering any of this in Editorial
+> Manager.** (a) The **current JOCS editorial board** — suggesting a sitting editor is a
+> category error, and the board has never been screened for this journal; the founding
+> Editor-in-Chief is Peter Sloot. (b) **Every affiliation and email**, from the person's
+> own page, not from memory and not from this file. ScienceDirect served a CAPTCHA to
+> automated access on 2026-09-16 and 2026-09-17, so neither has been verified here.
 
 ---
 
 ## Recommended set
 
-### Numerical analysis of the residual argument (the new core)
+### Group 1 — ML-for-CFD benchmarking and metric design
 
-1. **A specialist in a-posteriori error estimation for CFD.** The paper's central object
-   is an estimator whose calibration point — a zero residual at the exact solution — does
-   not exist. The closest classical relatives, all now cited, are defect correction
-   (Stetter), multigrid τ-correction (Brandt), data oscillation (Morin, Nochetto and
-   Siebert) and least-squares FEM norm-equivalence (Bochev and Gunzburger). A reviewer
-   from the goal-oriented/DWR error-estimation community is the right referee for
-   whether our consistency-floor theorem is correct and non-vacuous.
-   *Candidate to verify against the board:* **Rolf Rannacher** (Heidelberg) or a
-   mid-career DWR researcher; we cite Becker and Rannacher (2001). Prefer a mid-career
-   name for assignability.
+1. **Rishikesh Ranade** (NVIDIA) — co-author of the PhysicsNeMo-CFD benchmarking
+   framework (arXiv:2507.10747), which argues that *"standard metrics such as R² and
+   pointwise MSE mask deficiencies that matter for engineering."* That is this paper's
+   thesis reached independently and from the automotive side. He is arms-length from
+   AirfRANS, which makes him the best-qualified reviewer who is not a conflicted party.
+   **Strongest single recommendation.**
 
-2. **The authors of the positive-side anchor.** **Lei, Tang, Zhang and Chen**
-   (arXiv:2608.04400, Newton–Krylov correction of surrogate predictions) sit on the
-   *working* side of the boundary this paper draws, and we cite them as such.
-   *Judgment call, flagged rather than decided:* they are arms-length and are the best
-   qualified to say whether our characterisation of their regime is fair, which is a
-   point of genuine risk for us. The counter-argument is that a paper drawing a boundary
-   with someone else's result on the favourable side may not want that someone as its
-   referee. **Recommend suggesting them**; the characterisation is favourable to their
-   work and being wrong about it is the failure mode we most want caught early.
+2. **Mohammad Amin Nabian** (NVIDIA) — same framework, same competence; use as the
+   alternate if Ranade is unavailable, rather than suggesting both and spending two
+   slots on one group.
 
-### Surrogate models and UQ for fluids (the retained half)
+   > Note the shared-affiliation risk: Ranade, Nabian and Tangsali are all NVIDIA and all
+   > on the same paper. Suggest **one**.
 
-3. **Vignesh Gopakumar** — conformal prediction for PDE surrogates; uses the residual
-   *as* the conformal nonconformity score, which is the nearest prior art to the trust
-   layer we retain.
-   *Judgment call, flagged:* this is the work that most threatened our novelty claim
-   under the old framing. Under the new framing our result constrains his construction
-   rather than competing with it, so he is well placed to judge whether that
-   constraint is real. He is also the reviewer most likely to reject if it is not.
-   **Recommend suggesting**; if the argument does not survive him it does not survive.
+### Group 2 — discretisation and interpolation error on unstructured meshes
 
-4. **Souvik Chakraborty** — deep-ensemble UQ for operator surrogates. Directly qualified
-   on the physics-free-versus-physics comparison (control C1), which is the concession
-   most likely to be contested in either direction.
+3. **A specialist in interpolation and conservative remapping between unstructured
+   meshes.** The representation ceiling is a claim about what a projection destroys, and
+   it needs someone who thinks about remap error for a living rather than a
+   neural-operator theorist. The mesh-to-mesh transfer / conservative-remap community
+   (ALE hydrodynamics, climate model coupling) is the right pool.
+   **To fill from the JOCS board's adjacent subject editors when the board is read** —
+   this is a competence, not a person, and naming the wrong individual is worse than
+   naming the competence to the editor in the cover letter.
 
-5. **Paris Perdikaris** — physics-informed machine learning and operator learning; senior,
-   and able to referee the claim that a residual objective fails in this regime against
-   the broader PINN literature where residual minimisation is the method.
+### Group 3 — classical parametric surrogates, to judge the baseline
+
+4. **A Kriging / response-surface-methodology researcher in aerodynamic design.** The
+   paper's baseline is kernel ridge regression over seven design parameters, and the
+   paper concedes in its own words that this is decades-old RSM. The failure mode this
+   reviewer catches is the one that matters most to us: *"that is not how anyone would
+   actually build a parametric aerodynamic database, so the comparison is unfair."*
+   The gradient-enhanced-Kriging and cokriging-for-aerodynamic-functions community is
+   the pool; prefer a mid-career name for assignability over a founding figure.
+
+### Group 4 — surrogate UQ and operator learning (retained, lower priority)
+
+5. **Souvik Chakraborty** (IIT Delhi) — operator-surrogate UQ; broad enough to referee
+   the head-to-head protocol and the seed reporting. Retained from the previous list
+   because he remains qualified under the new framing, unlike most of it.
+
+6. **Somdatta Goswami** (Johns Hopkins) — operator learning; mid-career, good
+   assignability, and able to judge whether the matched-budget claim is defensible.
 
 ### Reserve
 
-6. **Nikola Kovachki** — neural operator theory; the right referee if the theorem's
-   functional-analytic framing is challenged.
-7. **Somdatta Goswami** — operator learning and UQ; mid-career, good assignability.
+7. **Vignesh Gopakumar** — retained from the previous list *only as reserve*. His
+   conformal-prediction-on-the-residual work was the nearest prior art to the **trust
+   layer, which has been cut from this paper**. He is no longer the most relevant
+   referee, and suggesting him would signal that we think the paper is still about
+   residual-based trust. Use only if the editor asks for more names.
 
 ---
 
 ## Do not suggest
 
-- Anyone on the current *Computers & Fluids* editorial board (**check this — the board
-  was screened for JCP in August, not for this journal**).
-- **George Em Karniadakis**, **Dongbin Xiu**, **Charbel Farhat**, **George Biros** — all
-  JCP board members as of 2026-08-24. Their status at C&F is unchecked, but Karniadakis
-  in particular is a plausible *handling editor* for this paper at any venue in scope.
+- Everyone in the conflict table above.
+- Anyone on the **current JOCS editorial board** — unscreened; check first.
+- **George Em Karniadakis**, **Dongbin Xiu**, **Charbel Farhat**, **George Biros** —
+  JCP board members as of 2026-08-24, and Karniadakis is a plausible *handling editor*
+  for this paper at any venue in scope. Their JOCS status is unchecked.
 
-## A note on what changed and why
+## What changed, and why
 
-The old list's rationale was "two candidates published this exact genre in JCP within
-the last 18 months, which reinforces the scope argument". That logic was venue-specific
-and is void here. The replacement logic is that the paper now makes a claim about
-discrete operators that a pure ML reviewer cannot check and a pure CFD reviewer can — so
-the list must contain at least one of the latter, which the previous list did not.
+The old list's core was two numerical-analysts who could referee a
+consistency-floor theorem, plus a conformal-prediction specialist. The theorem section
+and the trust layer are both gone, so that rationale is void — keeping the list would
+have told the editor we had not noticed our own paper had changed.
+
+The new list's organising idea is that **no single reviewer can referee this paper.**
+The measure-dependence claim, the representation ceiling and the fairness of the
+interpolation baseline are three separate judgments drawn from three separate
+literatures, and a panel missing any one of them will either wave the paper through or
+reject it for the wrong reason. Groups 2 and 3 are deliberately specified as
+*competencies to request* rather than named individuals, because naming a plausible-
+sounding wrong person is worse than telling the handling editor precisely what expertise
+the paper needs.

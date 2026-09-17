@@ -59,7 +59,7 @@ Editorial Manager account is `AJabbary-884`.
 | Figures, as separate files | `results/figures/fig_bandratio.pdf` | ready (vector PDF) — one figure |
 | **Highlights** | `docs/paper/submission/highlights.txt` | ready — 5 bullets at 77–83 chars. Filename must contain "highlights". **Limit is [V-CF]; confirm for JOCS.** |
 | Cover letter | `docs/paper/submission/cover_letter.md` | ready — rewritten for JOCS 2026-09-16 |
-| Suggested reviewers | `docs/paper/submission/suggested_reviewers.md` | **stale — was verified against the C&F board. Re-check against the JOCS board before use.** |
+| Suggested reviewers | `docs/paper/submission/suggested_reviewers.md` | rebuilt for JOCS and for the current paper 2026-09-17. **Two browser checks still open: the JOCS board, and every affiliation/email.** |
 | **Declaration of competing interests** [GEN] | — | **AUTHOR STEP, cannot be generated from here.** Elsevier's declarations tool emits a .doc/.docx to upload. Select "I have nothing to declare". |
 | Data statement [GEN] | — | **AUTHOR STEP** at submission. Satisfied by Zenodo DOI 10.5281/zenodo.21277928, which the paper cites. **Which lettered option JOCS offers is [V-CF]; confirm.** |
 
