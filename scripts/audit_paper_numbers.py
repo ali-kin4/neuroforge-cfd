@@ -884,6 +884,40 @@ def ls_n200_diag(root, key):
     return float(ls_n200(root)["diagnostics"][key])
 
 
+
+# ---- body-fitted bound (scripts/bodyfit_bound.py, amendment B-1) ------------
+# B1 returned BODY-FITTED-BOUND-OPEN: the near-wall gap is a coordinate artifact.
+# The innocence row is the one a referee asks for first and the one that would rot
+# silently if the scored node set ever changed, so it is checked like a claim.
+
+def bfb(root):
+    return load(os.path.join(root, "results/interpolation/bodyfit_bound.json"))
+
+
+def bfb_b1(root):
+    return float(bfb(root)["B1"]["ratio"])
+
+
+def bfb_physical_same_nodes(root):
+    return float(bfb(root)["B1_physical_same_nodes"]["ratio"])
+
+
+def bfb_b2(root):
+    return float(bfb(root)["B2_vs_physical"]["ratio_of_casemeans"])
+
+
+def bfb_cases_improved(root):
+    return float(bfb(root)["B2_vs_physical"]["n_cases_bodyfit_better"])
+
+
+def bfb_diag(root, key):
+    return float(bfb(root)["diagnostics"]["bodyfit"][key])
+
+
+def bfb_frame_undefined(root):
+    return 100.0 * float(bfb(root)["frame_undefined_fraction"]["mean_frac"])
+
+
 # ---- the claim table --------------------------------------------------------
 # (label, reader, manuscript value, absolute tolerance)
 CLAIMS = [
@@ -1258,6 +1292,14 @@ CLAIMS = [
      lambda r: ls_n200_diag(r, "pooled_node_weighted_ratio"), 25.04, 0.05),
     ("LS bound n=200, cases individually above 10",
      lambda r: ls_n200_diag(r, "n_cases_above_10"), 161, 0.5),
+    ("body-fitted bound B1, u inside 0.005c", bfb_b1, 0.0044, 0.0002),
+    ("physical arm on the SAME restricted nodes", bfb_physical_same_nodes, 25.21, 0.05),
+    ("B2 body-fitted / physical, same nodes", bfb_b2, 1.765e-4, 5e-6),
+    ("cases where body-fitted is better", bfb_cases_improved, 200, 0.5),
+    ("body-fitted cases at or below 1", lambda r: bfb_diag(r, "n_cases_at_or_below_1"), 200, 0.5),
+    ("body-fitted median of per-case ratios",
+     lambda r: bfb_diag(r, "median_of_ratios"), 0.0022, 0.0002),
+    ("near-wall nodes with no wall-normal frame (%)", bfb_frame_undefined, 4.98, 0.02),
 ]
 
 

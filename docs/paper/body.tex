@@ -61,10 +61,16 @@ fields bounds no combination of them, we compute the unconstrained least-squares
 projection of the true field onto the span of all $800$---the exact lower bound for
 \emph{any} weighting of that family, convex or not---which is still $\mathbf{25\times}$
 worse there (\textsc{family-bound-closed}; all $200$ cases, $u$, the band holding $41\%$ of
-every cloud's nodes, with $161/200$ cases clearing the threshold on their own). The gap at the wall is representational. The mechanism is measured
-rather than argued: inside $0.005c$ a query sits on average $7.8$ times further from the
-training case's wall than from its own, and $35\%$ of the weight mass lands \emph{inside}
-the training airfoil.
+every cloud's nodes, with $161/200$ cases clearing the threshold on their own).
+
+\textbf{Then we remove the mechanism, and the gap goes with it.} Inside $0.005c$ a query
+sits on average $7.8$ times further from the training case's wall than from its own, with
+$35\%$ of the weight mass \emph{inside} the training airfoil---a misalignment of
+coordinates rather than a deficit of representation. Re-posed in wall-following
+coordinates, with no retuning and the same $800$ fields, the same bound falls from
+$25\times$ to $\mathbf{0.0044\times}$, better on $\mathbf{200/200}$ cases
+(\textsc{body-fitted-bound-open}). What looked like something a surrogate represents and
+an interpolator cannot is a property of the frame the interpolator was asked in.
 
 \paragraph{The published field-MSE ranking is decided by a weighting nobody states.} That
 verdict inverts the one the benchmark's own protocol returns, and the inversion is the
@@ -162,8 +168,8 @@ The findings above are the contributions, and the paragraphs that state them car
 their numbers; we do not restate them here. What each adds beyond the headline number is:
 
 \begin{enumerate}
-\item \textbf{A head-to-head at native resolution, and a closed bound on the baseline's
-whole family in physical coordinates (headline, \autoref{sec:interp}).} The comparison is run where the data lives,
+\item \textbf{A head-to-head at native resolution, a closed bound on the baseline's whole
+family, and the removal of the mechanism behind it (headline, \autoref{sec:interp}).} The comparison is run where the data lives,
 with no raster in the path and both arms gated against their published rows---the
 interpolation arm reproduces its weight matrix to $1.6\times10^{-8}$ relative, the
 surrogate arm reproduces the deployed backbone at relative error exactly $0.00\mathrm{e}
@@ -171,11 +177,14 @@ surrogate arm reproduces the deployed backbone at relative error exactly $0.00\m
 \textsc{not-competitive-at-native} on all three of $u,v,p$ at once. The oracle and
 least-squares controls then close the standing escape---``re-select its
 hyperparameters on the node measure''---by bounding what \emph{any} weighting of the $800$
-training fields can achieve at the wall, with no free parameters at all. One scope limit
-travels with that bound and we carry it in every statement of it: it holds \emph{in
-physical coordinates}, the coordinate system in which the mechanism we measure exists. A
-body-fitted interpolator is a different method; \autoref{sec:limitations} says what we do
-and do not claim about it.
+training fields can achieve at the wall, with no free parameters at all. That bound holds
+\emph{in physical coordinates}, and the paper's own mechanism section says why: the
+misalignment it measures is a statement about coordinates. So we removed it. Re-posing the
+identical family in a wall-following frame---parameter-free, nothing retuned, both arms
+scored on the same nodes in the same run---takes the bound from $25\times$ to
+$0.0044\times$, better on every one of the $200$ cases. \textbf{The near-wall gap is an
+artifact of the frame}, and the contribution is the pair: a mechanism proposed from
+measurement, then removed, with the effect disappearing.
 
 \item \textbf{The aggregate field ranking is a property of the measure, not of the methods
 (\autoref{sec:interp}).} It is not a stable quantity in either direction: across five
@@ -338,8 +347,10 @@ path costs: a non-learned reference point for AirfRANS field metrics, run once t
 published raster and once at the dataset's own resolution, and the three quantities that
 separate the two readings---the cell weighting, the representation ceiling, and the
 wall-distance distribution of each method's error. The positive result is what survives
-all three. A learned surrogate earns the boundary layer, by two orders of magnitude, and
-no member of the interpolation family reaches it even when handed the answer. The
+all three, and it is a negative about the protocol rather than a ranking of methods: the
+near-wall separation that the published path reports is a property of the coordinate
+system the baseline is posed in, and it disappears when that is changed without touching
+the models. The
 secondary contribution is an audit of the repair a reader will reach for---score the field
 by its PDE residual instead---whose organising question is not which features a system has
 but whether the residual it drives is the \emph{same discrete operator} that produced its
@@ -597,11 +608,58 @@ sample, and $\mathbf{35\%}$ of the weight mass lands \emph{inside} the training 
 altogether. The $0.0234c$ raster hid this by averaging over it. No extrapolation is
 involved---the mass falling outside any training hull is $0$ in every band but the
 outermost, where it is $0.094\%$---so neither trigger of the pre-registered inconclusive
-rule fires and no band is \textsc{inconclusive}. What we deliberately did \emph{not} build
-is a body-fitted or wall-aligned variant of the interpolator: it would need a blend length
-scale and an arc-length correspondence with no published provenance, and a reviewer would
-reopen it by attacking the tuning. The least-squares bound does that job without free
-parameters. The honest scope of this result is therefore parameter interpolation of
+rule fires and no band is \textsc{inconclusive}.
+
+\paragraph{Removing the mechanism removes the gap.} That diagnosis is a statement about
+coordinates, so it makes a prediction: pose the same family in a wall-following frame and
+the gap should go. An earlier version of this paper declined to build that arm, on the
+grounds that it would need a blend length scale and an arc-length correspondence with no
+published provenance. We built it, and both objections turn out to be about the far field,
+which is not where the claim lives. Restricted to the near-wall strip the frame is
+parameter-free: $n$ is the wall distance the dataset already carries, and $s$ is arc length
+from the leading edge along each surface chain, split by the sign of the surface normal and
+ordered by $x$, in chord units and unrescaled against $n$. Nothing is selected or tuned, and
+the same construction runs on the training and the test section.
+
+The result is the pre-registered \textsc{body-fitted-bound-open}, and it is not close:
+the same least-squares bound over the same $800$ fields falls from $25\times$ to
+$\mathbf{0.0044\times}$ Transolver's band error, and it is \textbf{better on $200$ of $200$
+cases}, with the body-fitted bound at $\mathbf{1.8\times10^{-4}}$ of the physical one on the
+same nodes. The verdict carries no tail: mean-of-ratios $0.0044$, median $0.0022$, pooled
+$0.0045$, worst case $0.093$; zero cases clear $10$ and all $200$ fall at or below $1$
+(\texttt{results/interpolation/bodyfit\_bound.json}). Both arms are computed in one pass
+from one node array, so the coordinate map is the only difference between them, and the
+number to check first is clean: \textbf{the physical arm rescored on the restricted nodes
+gives $25.21\times$ against $25.0\times$ unrestricted}, so the restriction moved it by
+$0.8\%$ and manufactured nothing.
+
+The gain is not an artifact of the projection's $800$ degrees of freedom, because it
+appears with none. Taking the single best training field---no free parameters at all---the
+frame change moves the ratio from $346.9\times$ to $6.5\times$. Taking the \emph{published}
+weights with no refit it moves from $175\times$ to a median of $\mathbf{0.38\times}$, with
+$152/200$ cases beating Transolver near the wall. We state the weakness of that last figure
+in the same breath: its \emph{case-mean} ratio is $1.556\times$, i.e.\ worse than
+Transolver, because a minority of cases carry a heavy tail. \textbf{The coordinate-artifact
+finding therefore rests on the bound, which is unanimous, and not on the deployed
+estimator, which wins at the median only.} We do not claim the published estimator beats a
+trained surrogate at the wall; we claim no member of this family is barred from the wall by
+representation, which is what the bound establishes.
+
+\paragraph{What the frame costs, measured.} The blend the earlier objection named is real,
+and this is its size. A wall-normal coordinate does not exist wherever the
+nearest-surface projection lands on the end of a surface chain: behind a sharp trailing
+edge an entire wake fan projects onto one vertex, so distinct physical points receive
+identical $(s,n)$ and unrelated flow. Those nodes are $\mathbf{4.98\%}$ of the near-wall
+strip ($4.19$--$6.75\%$ across cases, $\approx5{,}474$ nodes per case) and they carry
+$99.99\%$ of the round-trip error of the frame. Excluded by membership rather than by
+distance---a node is dropped iff its nearest surface point is a chain endpoint, with no
+tolerance---the frame is exactly faithful: zero coordinate collisions among scored nodes
+(gate \textbf{GB2a}) and a worst round-trip of $2.1\times10^{-13}$ relative to each
+channel's spread, with not one node above $10^{-9}$ (\textbf{GB2b}). So a body-fitted
+parameter interpolator is buildable on $95\%$ of the near-wall region and undefined on the
+rest, which is a sharper statement than either refusing the arm or claiming it is free.
+
+The honest scope of the $25\times$ bound is therefore parameter interpolation of
 AirfRANS fields \emph{in physical coordinates}, which is what the published estimator does
 and what the response-surface literature does; a body-fitted parameter interpolator is a
 different method and we do not test it.
@@ -1282,14 +1340,18 @@ the divisor is shared.
 of which a reviewer is entitled to press. \emph{(i)} The interpolator's hyperparameters are
 the \textbf{grid}-cross-validated ones; re-selecting them under the node measure would
 require $800\times800$ cloud-to-cloud transfers and was not run. The least-squares oracle
-bounds what that can buy near the wall---a factor of a few against a measured $21\times$
+bounds what that can buy near the wall---a factor of a few against a measured $25\times$
 for the whole family, and $344\times$ for the published estimator---but \textbf{P1}'s scope
 is correctly ``this estimator'', not ``every parameter-space estimator''. \emph{(ii)} The
-least-squares family bound is $n=3$ cases, one channel and one band, for the reason given
-in \autoref{sec:interp}: it is a bound only where the node count far exceeds the $800$ free
-parameters of the projection. \emph{(iii)} No body-fitted or wall-aligned interpolator is
-tested, deliberately (\autoref{sec:interp}); that is a different method and our result does
-not speak to it. \emph{(iv)} The \texttt{full} split only; the head-to-head was not re-run
+least-squares family bound is one channel and one band, for the reason given in
+\autoref{sec:interp}: it is a bound only where the node count far exceeds the $800$ free
+parameters of the projection. It now runs on all $200$ cases. \emph{(iii)} The body-fitted
+arm is tested and reverses the near-wall reading (\autoref{sec:interp}), but it is a
+\emph{bound}, not a deployed estimator: the published weights in that frame win at the
+median and on $152/200$ cases while losing on the case-mean, so we claim the family is not
+barred from the wall, and not that the estimator beats the surrogate there. The frame is
+also undefined on $4.98\%$ of near-wall nodes, so a blend is genuinely required outside the
+strip we score. \emph{(iv)} The \texttt{full} split only; the head-to-head was not re-run
 at native nodes on \texttt{reynolds} or \texttt{aoa}.
 \item \textbf{The far-field $u$ entry disagrees between the two measures and we cannot yet
 say why.} On the grid the interpolator is $3.2\times$ better than the surrogate on $u$
@@ -1350,7 +1412,8 @@ budget.
 \section{Conclusion}
 
 \textbf{What a neural flow surrogate buys on AirfRANS is near-wall representation, and no
-member of the interpolation family reaches it in physical coordinates.} Scored per node on the dataset's own cloud,
+member of the interpolation family reaches it \emph{in physical coordinates}---and that
+qualifier turns out to carry the whole result.} Scored per node on the dataset's own cloud,
 with no rasterisation anywhere in the comparison path, a Gaussian kernel-ridge
 interpolation of seven scalars read off the case name loses to a Transolver trained on the
 same data on every channel---$144\times$ on $u$, $134\times$ on $v$, $4.9\times$ on $p$, $18\times$ on
@@ -1358,9 +1421,16 @@ $\nu_t$, and $200/200$ cases on three of the four. An oracle handed the test ans
 allowed the best single training field is $344\times$ worse inside the first $0.005$ chord;
 the least-squares optimum over the span of all $800$ training fields, the exact lower bound
 for any weighting of that family, is still $21\times$ worse there. The gap at the wall is
-representational, and the mechanism is measured: inside $0.005c$, where $41\%$ of every
-AirfRANS cloud lives, a query lands on average $7.8$ times further from the training case's
-wall than from its own, with $35\%$ of the weight mass inside the training airfoil.
+a property of the frame, and the mechanism is measured: inside $0.005c$, where $41\%$ of
+every AirfRANS cloud lives, a query lands on average $7.8$ times further from the training
+case's wall than from its own, with $35\%$ of the weight mass inside the training airfoil.
+\textbf{Remove that and the gap goes.} Re-posed in a parameter-free wall-following frame,
+nothing retuned, the same bound over the same $800$ fields falls from $25\times$ to
+$0.0044\times$ and is better on $200$ of $200$ cases, while the physical arm on those same
+nodes still reads $25.21\times$. The frame costs something real---it does not exist on
+$4.98\%$ of near-wall nodes, behind the trailing edge---but on the $95\%$ where it does,
+what the published path reports as a representational advantage is an artifact of the
+coordinate system its baseline was posed in.
 
 \textbf{The published protocol says the opposite, and what decides it is a convention
 nobody states.} On the area-uniform $128^2$ raster the field tables are reported on, the
@@ -1376,12 +1446,12 @@ it}. What both measures do agree on is where each method's error lives: the band
 $906\times \to 0.31\times$ on the grid and $4060\times \to 3.8\times$ at the nodes, with
 $71.9\%$ of the surrogate's own squared error beyond $0.5c$ against the interpolator's
 $3.6\%$, which reproduces $98.7\%$ of the domain at $R^2\ge0.9996$ on that raster from seven
-numbers in a file name. A surrogate earns the boundary layer on the channels that resolve
-it---$4060\times$ on $u$ and $2834\times$ on $v$ at the surface, precisely where the
-benchmark's own authors located their models' failure without quantifying it. It does
-\textbf{not} earn it on pressure, where the two arms sit within $1.51\times$ of each other
-and both resolve that band to better than $1\%$ of its own node-measure variance. That is
-the channel the forces integrate, and we claim nothing about forces from these numbers.
+numbers in a file name. In physical coordinates a surrogate appears to earn the boundary
+layer on the channels that resolve it---$4060\times$ on $u$ and $2834\times$ on $v$ at the
+surface, precisely where the benchmark's own authors located their models' failure without
+quantifying it---though never on pressure, where the two arms sit within $1.51\times$ and
+both resolve that band to better than $1\%$ of its own node-measure variance. Posed in the
+frame the flow is organised by, it does not earn it at all.
 
 \textbf{Fixing the metric with physics does not work, and the reason is measurable.} On
 $200/200$ AirfRANS cases the monitored residual of the exact field is substantially nonzero

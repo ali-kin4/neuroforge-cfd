@@ -9,8 +9,13 @@ The 2026-09-12 rebuild replaced bullet 5 (the case-name force-rank null), which
 moved to the companion NullBench paper, with the native-resolution result that is
 now the manuscript's lead claim.
 
-- At native resolution a surrogate beats parameter interpolation 144x on velocity
-- The least-squares optimum over all 800 training fields is 25x worse at the wall
+- The near-wall advantage of a neural flow surrogate is a coordinate artifact
+- Wall-following coordinates take the family bound from 25x to 0.0044x, 200/200
 - The AirfRANS field ranking flips with the cell weighting: 8.4x to 0.44x on pressure
 - 64% of AirfRANS nodes sit inside 0.05 chord, which is 1.2% of the raster's area
-- The raster's own round-trip error exceeds the surrogate's per-node error 413x
+- No wall-normal frame exists on 5.0% of near-wall nodes, behind the trailing edge
+
+The 2026-09-18 rebuild replaced bullets 1, 2 and 5 after the body-fitted arm
+returned BODY-FITTED-BOUND-OPEN. Bullet 1 is the paper's new headline; bullet 2 is
+the measurement behind it; bullet 5 is the cost of the frame, which holds whichever
+way the verdict had gone.
