@@ -1,0 +1,111 @@
+arXiv v5 REPLACE -- arXiv:2607.10333
+====================================================================
+Upload: arxiv_v5_source.tar.gz (TMLR build, 26 pp, 1 figure, builds
+clean -- scripts/build_arxiv_package.py refuses to emit a tarball that
+does not compile).
+
+v3 is what is currently live, announced 2026-08-25. THERE IS NO v4:
+a v4 package was prepared on 2026-09-07 and never posted, and it is
+now stale -- it was built for the pre-split residual-floor manuscript.
+Do not upload docs/paper/submission/arxiv_v4/. This is the replacement.
+
+**THIS REPLACEMENT CHANGES THE TITLE AND THE ABSTRACT.** Both strings
+are given in full below and must be pasted into the arXiv metadata
+form. The live record still describes a trust-layer paper that no
+longer exists.
+
+--------------------------------------------------------------------
+NEW TITLE
+--------------------------------------------------------------------
+Near the wall, AirfRANS measures the coordinate system, not the model
+
+--------------------------------------------------------------------
+NEW ABSTRACT
+--------------------------------------------------------------------
+(paste from docs/paper/abstract.tex, 237 words, stripping LaTeX
+markup -- do not retype it, and do not let the arXiv form's plain-text
+conversion drop the boldface numbers' digits)
+
+--------------------------------------------------------------------
+WHY v5 EXISTS
+--------------------------------------------------------------------
+v3 was the manuscript as submitted to JCP, which desk-rejected it on
+2026-09-07 for questionable originality (CMAME had done the same on
+2026-08-02). Since then the work was reframed, then SPLIT, and then
+its replacement headline was itself refuted by a pre-registered test.
+The public record should carry the current version rather than a paper
+that has been withdrawn twice over by its own authors.
+
+WHAT CHANGED SINCE v3
+
+1. THE PAPER WAS SPLIT. The calibrated trust layer and the
+   force-coefficient/covariate-null material are REMOVED. The latter is
+   the spine of a separate paper and will carry its own preprint under
+   its own identifier; it must not be journal-published here. See
+   docs/paper/sections/trust_layer_removed.tex and
+   covariate_null_removed.tex.
+
+2. THE MEASURE REVERSAL. One pair of predictions scored three ways in
+   current use: 8.4x area-uniform, 0.44x node-weighted, 0.21x per node
+   on the native cloud. Pre-registered rule D3 read the node-measure
+   ratio as ARTIFACT and the manuscript withdraws the 8.4x in those
+   words.
+
+3. THE FAMILY BOUND, at n=200 (was n=3): the least-squares projection
+   onto the span of all 800 transferred training fields is 25.0x
+   Transolver's band error inside 0.005c. The n=200 implementation was
+   required to reproduce the frozen n=3 artifact at a worst relative
+   difference of exactly 0.00e+00 before computing anything new.
+
+4. THE HEADLINE REVERSAL, which is new in this version and is the
+   reason for the title change. Re-posing the identical family in a
+   parameter-free wall-following frame -- nothing retuned, both arms
+   computed in one pass from one node array -- takes that bound from
+   25x to 0.0044x, better on 200 of 200 cases
+   (BODY-FITTED-BOUND-OPEN, pre-registered). The physical arm rescored
+   on the same restricted nodes still reads 25.2x, so the restriction
+   manufactured nothing. The near-wall advantage is an artifact of the
+   coordinate system the baseline is posed in.
+
+5. THE FRAME'S COST, measured: a wall-normal coordinate does not exist
+   on 4.98% of near-wall nodes (4.19-6.75%), behind the sharp trailing
+   edge, where a wake fan projects onto a single vertex. Those nodes
+   carry 99.99% of the frame's round-trip error.
+
+6. THE REPRESENTATION CEILING is restated correctly. The r128 raster's
+   round-trip error at the native nodes exceeds the surrogate's by
+   413x pooled and 495x near the wall. v3 and earlier drafts claimed
+   this BOUNDS every published r128 field number; it does not, because
+   a published metric scores a rasterised prediction against a
+   rasterised truth and the representation error partly cancels. The
+   claim is now blindness, plus a measured ranking INVERSION.
+
+7. SURROGATE COMPETENCE, new: in the AirfRANS paper's own convention
+   (standardised volume MSE, node-measure divisor) our Transolver is
+   0.073e-2 on u and 0.099e-2 on p, against a best published 0.83e-2
+   and 0.66e-2.
+
+CLAIMS WITHDRAWN IN THIS VERSION, explicitly and in the text: the
+8.4x area-uniform advantage as a finding; the near-wall
+representational claim; and the assertion that the 413x bounds
+published r128 numbers.
+
+--------------------------------------------------------------------
+CATEGORIES
+--------------------------------------------------------------------
+Keep v3's categories unless they were wrong. The paper is an
+evaluation/benchmarking result in computational fluid dynamics with a
+machine-learning object of study.
+
+--------------------------------------------------------------------
+BEFORE YOU CLICK SUBMIT
+--------------------------------------------------------------------
+* UNTICK arXiv's pre-ticked "delete .bbl" box on the Review Files
+  step. Letting arXiv re-run BibTeX is untested for this manuscript.
+* Paste the new title AND the new abstract. Leaving v3's strings in
+  place leaves the record describing a paper this is not.
+* This is a REPLACE of 2607.10333, not a new submission.
+* Journal submission is to the Journal of Computational Science;
+  Elsevier's policy states plainly that sharing a preprint does not
+  count as prior publication, and the cover letter discloses this
+  preprint.

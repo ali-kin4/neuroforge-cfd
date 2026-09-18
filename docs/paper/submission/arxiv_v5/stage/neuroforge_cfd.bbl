@@ -1,0 +1,285 @@
+\begin{thebibliography}{31}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Ahlmann-Eltze et~al.(2025)Ahlmann-Eltze, Huber, and
+  Anders]{ahlmanneltze2025deep}
+Constantin Ahlmann-Eltze, Wolfgang Huber, and Simon Anders.
+\newblock Deep-learning-based gene perturbation effect prediction does not yet
+  outperform simple linear baselines.
+\newblock \emph{Nature Methods}, 22\penalty0 (8):\penalty0 1657--1661, 2025.
+\newblock \doi{10.1038/s41592-025-02772-6}.
+
+\bibitem[Ashton et~al.(2024)Ashton, Maddix, Gundry, and
+  Shabestari]{ahmedml2024}
+Neil Ashton, Danielle~C. Maddix, Samuel Gundry, and Parisa~M. Shabestari.
+\newblock {AhmedML}: High-fidelity computational fluid dynamics dataset for
+  incompressible, low-speed bluff body aerodynamics.
+\newblock \emph{arXiv preprint arXiv:2407.20801}, 2024.
+\newblock \doi{10.48550/arXiv.2407.20801}.
+
+\bibitem[Becker \& Rannacher(2001)Becker and Rannacher]{beckerrannacher2001dwr}
+Roland Becker and Rolf Rannacher.
+\newblock An optimal control approach to a posteriori error estimation in
+  finite element methods.
+\newblock \emph{Acta Numerica}, 10:\penalty0 1--102, 2001.
+\newblock \doi{10.1017/S0962492901000010}.
+
+\bibitem[Bonnet et~al.(2022)Bonnet, Mazari, Cinnella, and
+  Gallinari]{bonnet2022airfrans}
+Florent Bonnet, Jocelyn~Ahmed Mazari, Paola Cinnella, and Patrick Gallinari.
+\newblock {AirfRANS}: High fidelity computational fluid dynamics dataset for
+  approximating reynolds-averaged navier-stokes solutions.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)
+  Datasets and Benchmarks Track}, 2022.
+\newblock arXiv:2212.07564.
+
+\bibitem[Elrefaie et~al.(2024)Elrefaie, Morar, Dai, and
+  Ahmed]{elrefaie2024drivaernet}
+Mohamed Elrefaie, Florin Morar, Angela Dai, and Faez Ahmed.
+\newblock {DrivAerNet++}: A large-scale multimodal car dataset with
+  computational fluid dynamics simulations and deep learning benchmarks.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)
+  Datasets and Benchmarks Track}, 2024.
+\newblock arXiv:2406.09624.
+
+\bibitem[Errica et~al.(2020)Errica, Podda, Bacciu, and Micheli]{errica2020fair}
+Federico Errica, Marco Podda, Davide Bacciu, and Alessio Micheli.
+\newblock A fair comparison of graph neural networks for graph classification.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2020.
+\newblock arXiv:1912.09893.
+
+\bibitem[Ethayarajh et~al.(2022)Ethayarajh, Choi, and
+  Swayamdipta]{ethayarajh2022vusable}
+Kawin Ethayarajh, Yejin Choi, and Swabha Swayamdipta.
+\newblock Understanding dataset difficulty with {$\mathcal{V}$}-usable
+  information.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, volume
+  162 of \emph{Proceedings of Machine Learning Research}, pp.\  5988--6008,
+  2022.
+\newblock Outstanding Paper; arXiv:2110.08420.
+
+\bibitem[Feng et~al.(2019)Feng, Wallace, and Boyd-Graber]{feng2019misleading}
+Shi Feng, Eric Wallace, and Jordan Boyd-Graber.
+\newblock Misleading failures of partial-input baselines.
+\newblock In \emph{Proceedings of the 57th Annual Meeting of the Association
+  for Computational Linguistics ({ACL})}, pp.\  5533--5538, 2019.
+\newblock \doi{10.18653/v1/P19-1554}.
+\newblock arXiv:1905.05778.
+
+\bibitem[Ferrari~Dacrema et~al.(2019)Ferrari~Dacrema, Cremonesi, and
+  Jannach]{dacrema2019progress}
+Maurizio Ferrari~Dacrema, Paolo Cremonesi, and Dietmar Jannach.
+\newblock Are we really making much progress? {A} worrying analysis of recent
+  neural recommendation approaches.
+\newblock In \emph{Proceedings of the 13th ACM Conference on Recommender
+  Systems (RecSys)}, 2019.
+\newblock Best Long Paper; arXiv:1907.06902.
+
+\bibitem[Gururangan et~al.(2018)Gururangan, Swayamdipta, Levy, Schwartz,
+  Bowman, and Smith]{gururangan2018artifacts}
+Suchin Gururangan, Swabha Swayamdipta, Omer Levy, Roy Schwartz, Samuel~R.
+  Bowman, and Noah~A. Smith.
+\newblock Annotation artifacts in natural language inference data.
+\newblock In \emph{Proceedings of the 2018 Conference of the North American
+  Chapter of the Association for Computational Linguistics ({NAACL})}, pp.\
+  107--112, 2018.
+\newblock \doi{10.18653/v1/N18-2017}.
+\newblock arXiv:1803.02324.
+
+\bibitem[Hillebrecht \& Unger(2025)Hillebrecht and
+  Unger]{hillebrecht2025posteriori}
+Birgit Hillebrecht and Benjamin Unger.
+\newblock Rigorous a posteriori error bounds for {PDE}-defined {PINNs}.
+\newblock \emph{IEEE Transactions on Neural Networks and Learning Systems},
+  36\penalty0 (1):\penalty0 1583--1593, 2025.
+\newblock \doi{10.1109/TNNLS.2023.3335837}.
+
+\bibitem[Hsieh et~al.(2019)Hsieh, Zhao, Eismann, Mirabella, and
+  Ermon]{hsieh2019neuralpde}
+Jun-Ting Hsieh, Shengjia Zhao, Stephan Eismann, Lucia Mirabella, and Stefano
+  Ermon.
+\newblock Learning neural {PDE} solvers with convergence guarantees.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2019.
+\newblock arXiv:1906.01200.
+
+\bibitem[Huang \& Perdikaris(2025)Huang and
+  Perdikaris]{huang2025physicscorrect}
+Xinquan Huang and Paris Perdikaris.
+\newblock {PhysicsCorrect}: A training-free approach for stable neural {PDE}
+  simulations.
+\newblock \emph{arXiv preprint arXiv:2507.02227}, 2025.
+\newblock \doi{10.48550/arXiv.2507.02227}.
+\newblock AAAI 2026.
+
+\bibitem[Jha(2024)]{learned2023residualcorrection}
+Prashant~K. Jha.
+\newblock Residual-based error corrector operator to enhance accuracy and
+  reliability of neural operator surrogates of nonlinear variational
+  boundary-value problems.
+\newblock \emph{Computer Methods in Applied Mechanics and Engineering},
+  419:\penalty0 116595, 2024.
+\newblock \doi{10.1016/j.cma.2023.116595}.
+\newblock arXiv:2306.12047.
+
+\bibitem[Lei et~al.(2026)Lei, Tang, Zhang, and Chen]{lei2026newtonkrylov}
+Mingcheng Lei, Weishao Tang, Yufei Zhang, and Haixin Chen.
+\newblock Reliable and efficient steady {CFD} from surrogate predictions
+  through {Newton--Krylov} correction.
+\newblock \emph{arXiv preprint arXiv:2608.04400}, 2026.
+\newblock \doi{10.48550/arXiv.2608.04400}.
+\newblock Submitted 5 August 2026.
+
+\bibitem[Li et~al.(2021)Li, Kovachki, Azizzadenesheli, Liu, Bhattacharya,
+  Stuart, and Anandkumar]{li2021fno}
+Zongyi Li, Nikola Kovachki, Kamyar Azizzadenesheli, Burigede Liu, Kaushik
+  Bhattacharya, Andrew Stuart, and Anima Anandkumar.
+\newblock Fourier neural operator for parametric partial differential
+  equations.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2021.
+\newblock arXiv:2010.08895.
+
+\bibitem[Li et~al.(2023)Li, Huang, Liu, and Anandkumar]{li2022geofno}
+Zongyi Li, Daniel~Zhengyu Huang, Burigede Liu, and Anima Anandkumar.
+\newblock Fourier neural operator with learned deformations for pdes on general
+  geometries.
+\newblock \emph{Journal of Machine Learning Research}, 24\penalty0
+  (388):\penalty0 1--26, 2023.
+\newblock arXiv:2207.05209.
+
+\bibitem[Lippe et~al.(2023)Lippe, Veeling, Perdikaris, Turner, and
+  Brandstetter]{lippe2023pderefiner}
+Phillip Lippe, Bastiaan~S. Veeling, Paris Perdikaris, Richard~E. Turner, and
+  Johannes Brandstetter.
+\newblock {PDE}-refiner: Achieving accurate long rollouts with neural {PDE}
+  solvers.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, 2023.
+\newblock arXiv:2308.05732.
+
+\bibitem[Luo et~al.(2025)Luo, Wu, Zhou, Xing, Di, Wang, and
+  Long]{luo2025transolverpp}
+Huakun Luo, Haixu Wu, Hang Zhou, Lanxiang Xing, Yichen Di, Jianmin Wang, and
+  Mingsheng Long.
+\newblock Transolver++: An accurate neural solver for {PDE}s on million-scale
+  geometries.
+\newblock \emph{arXiv preprint arXiv:2502.02414}, 2025.
+\newblock \doi{10.48550/arXiv.2502.02414}.
+
+\bibitem[Marwah et~al.(2023)Marwah, Pokle, Kolter, Lipton, Lu, and
+  Risteski]{marwah2023fnodeq}
+Tanya Marwah, Ashwini Pokle, J.~Zico Kolter, Zachary~C. Lipton, Jianfeng Lu,
+  and Andrej Risteski.
+\newblock Deep equilibrium based neural operators for steady-state {PDE}s.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, 2023.
+\newblock arXiv:2312.00234.
+
+\bibitem[McGreivy \& Hakim(2024)McGreivy and Hakim]{mcgreivy2024weak}
+Nick McGreivy and Ammar Hakim.
+\newblock Weak baselines and reporting biases lead to overoptimism in machine
+  learning for fluid-related partial differential equations.
+\newblock \emph{Nature Machine Intelligence}, 6:\penalty0 1256--1269, 2024.
+\newblock \doi{10.1038/s42256-024-00897-5}.
+
+\bibitem[Mukherjee et~al.(2026)Mukherjee, Fitzsimmons, Del Rey~Fern{\'a}ndez,
+  and Liu]{mukherjee2026certification}
+Amartya Mukherjee, Maxwell Fitzsimmons, David~C. Del Rey~Fern{\'a}ndez, and Jun
+  Liu.
+\newblock Rigorous error certification for neural {PDE} solvers: From empirical
+  residuals to solution guarantees.
+\newblock \emph{arXiv preprint arXiv:2603.19165}, 2026.
+\newblock \doi{10.48550/arXiv.2603.19165}.
+
+\bibitem[Poliak et~al.(2018)Poliak, Naradowsky, Haldar, Rudinger, and
+  Van~Durme]{poliak2018hypothesis}
+Adam Poliak, Jason Naradowsky, Aparajita Haldar, Rachel Rudinger, and Benjamin
+  Van~Durme.
+\newblock Hypothesis only baselines in natural language inference.
+\newblock In \emph{Proceedings of the Seventh Joint Conference on Lexical and
+  Computational Semantics ({*SEM})}, pp.\  180--191, 2018.
+\newblock \doi{10.18653/v1/S18-2023}.
+\newblock arXiv:1805.01042.
+
+\bibitem[Queipo et~al.(2005)Queipo, Haftka, Shyy, Goel, Vaidyanathan, and
+  Tucker]{queipo2005surrogate}
+Nestor~V. Queipo, Raphael~T. Haftka, Wei Shyy, Tushar Goel, Rajkumar
+  Vaidyanathan, and P.~Kevin Tucker.
+\newblock Surrogate-based analysis and optimization.
+\newblock \emph{Progress in Aerospace Sciences}, 41\penalty0 (1):\penalty0
+  1--28, 2005.
+\newblock \doi{10.1016/j.paerosci.2005.02.001}.
+
+\bibitem[Raissi et~al.(2019)Raissi, Perdikaris, and
+  Karniadakis]{raissi2019pinn}
+Maziar Raissi, Paris Perdikaris, and George~E. Karniadakis.
+\newblock Physics-informed neural networks: A deep learning framework for
+  solving forward and inverse problems involving nonlinear partial differential
+  equations.
+\newblock \emph{Journal of Computational Physics}, 378:\penalty0 686--707,
+  2019.
+\newblock \doi{10.1016/j.jcp.2018.10.045}.
+
+\bibitem[Ranade et~al.(2025)Ranade, Nabian, Tangsali, Kamenev, Hennigh,
+  Cherukuri, and Choudhry]{ranade2025domino}
+Rishikesh Ranade, Mohammad~Amin Nabian, Kaustubh Tangsali, Alexey Kamenev,
+  Oliver Hennigh, Ram Cherukuri, and Sanjay Choudhry.
+\newblock {DoMINO}: A decomposable multi-scale iterative neural operator for
+  modeling large scale engineering simulations.
+\newblock \emph{arXiv preprint arXiv:2501.13350}, 2025.
+\newblock \doi{10.48550/arXiv.2501.13350}.
+\newblock NVIDIA.
+
+\bibitem[Rasp et~al.(2024)Rasp, Hoyer, Merose, Langmore, Battaglia, Russel,
+  Sanchez-Gonzalez, Yang, Carver, Agrawal, Chantry, Ben~Bouallegue, Dueben,
+  Bromberg, Sisk, Barrington, Bell, and Sha]{rasp2024weatherbench2}
+Stephan Rasp, Stephan Hoyer, Alexander Merose, Ian Langmore, Peter Battaglia,
+  Tyler Russel, Alvaro Sanchez-Gonzalez, Vivian Yang, Rob Carver, Shreya
+  Agrawal, Matthew Chantry, Zied Ben~Bouallegue, Peter Dueben, Carla Bromberg,
+  Jared Sisk, Luke Barrington, Aaron Bell, and Fei Sha.
+\newblock {WeatherBench 2}: A benchmark for the next generation of data-driven
+  global weather models.
+\newblock \emph{Journal of Advances in Modeling Earth Systems}, 16\penalty0
+  (6):\penalty0 e2023MS004019, 2024.
+\newblock \doi{10.1029/2023MS004019}.
+
+\bibitem[Rigotti et~al.(2026)Rigotti, Thumiger, and Frick]{rigotti2026gist}
+Mattia Rigotti, Nicholas Thumiger, and Thomas Frick.
+\newblock {GIST}: Gauge-invariant spectral transformers for scalable graph
+  neural operators.
+\newblock \emph{arXiv preprint arXiv:2603.16849}, 2026.
+\newblock \doi{10.48550/arXiv.2603.16849}.
+
+\bibitem[Scherz et~al.(2026)Scherz, Hines, and Bekemeyer]{scherz2026evaluation}
+Jan Scherz, Derrick Hines, and Philipp Bekemeyer.
+\newblock Evaluation of state-of-the-art deep learning architectures for
+  aerodynamical predictions.
+\newblock \emph{arXiv preprint arXiv:2607.13866}, 2026.
+\newblock \doi{10.48550/arXiv.2607.13866}.
+
+\bibitem[Wu et~al.(2024)Wu, Luo, Wang, Wang, and Long]{wu2024transolver}
+Haixu Wu, Huakun Luo, Haowen Wang, Jianmin Wang, and Mingsheng Long.
+\newblock Transolver: A fast transformer solver for {PDE}s on general
+  geometries.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, volume
+  235 of \emph{Proceedings of Machine Learning Research}, pp.\  53681--53705,
+  2024.
+\newblock arXiv:2402.02366.
+
+\bibitem[Zhang et~al.(2026)Zhang, Mallon, Luo, Thiyagalingam, Tzeferacos,
+  Bingham, and Gregori]{zhang2026phymgn}
+S.~Zhang, M.~Mallon, M.~Luo, J.~Thiyagalingam, P.~Tzeferacos, R.~Bingham, and
+  G.~Gregori.
+\newblock Data-driven modeling of shock physics by physics-informed
+  {MeshGraphNets}.
+\newblock \emph{arXiv preprint arXiv:2602.14918}, 2026.
+\newblock \doi{10.48550/arXiv.2602.14918}.
+\newblock Submitted 16 February 2026.
+
+\end{thebibliography}

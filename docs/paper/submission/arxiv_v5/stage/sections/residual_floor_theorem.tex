@@ -1,0 +1,628 @@
+% !TeX root = ../neuroforge_cfd.tex
+% ---------------------------------------------------------------------------
+% Residual-floor section. Self-contained \input section.
+% Needs amsmath/amsthm + \newtheorem{theorem} and \newtheorem{proposition}
+% (declared in the preamble).
+% Cross-refs OUT: sec:iters, tab:iters, sec:descent, sec:selective,
+%   sec:floor_ladder, sec:indist-ablation, sec:method.
+% Labels IN (referenced from body.tex -- do not rename):
+%   sec:residual_floor, thm:residual-floor.
+% New labels: thm:consistency-floor, prop:kernel, eq:rf-decomp, eq:rf-lower,
+%   eq:omitted-term.
+% Citations used: krishnapriyan2021failure, wang2022ntk, trefethenbau1997,
+%   beckerrannacher2001dwr, stetter1978defect, brandt2011multigrid,
+%   morin2000data, bochevgunzburger2009book, rhiechow1983, lei2026newtonkrylov,
+%   zhang2026phymgn.
+%
+% Structure: Theorem 1 (consistency floor, nonzero continuum limit, with the exact
+%   2-D identity |T| = sqrt2 ||S||_F |grad nu_t|); Theorem 2 (misplaced minimum,
+%   displaced minimiser, local divergence); Proposition 1 (kernel: counting bound,
+%   exact solid invisibility, diagonal nu_t block, Nyquist/Rhie-Chow mode).
+% The closure-omission term is ~4.5% of the floor and full stress repair moves it
+%   <0.1% (floor_resolution_decomposition.json) -- kept in proportion throughout.
+% ---------------------------------------------------------------------------
+
+\section{The residual floor: what an operator-inconsistent monitor can and cannot do}
+\label{sec:residual_floor}
+
+The iteration sweep of \autoref{sec:iters} (\autoref{tab:iters}) shows a dissociation:
+under iteration the monitored physics residual \emph{rises} ($0.113\to0.618$) while the
+field error \emph{falls} ($3.92\to2.29$, before rising again to $2.58$ at the largest
+caps). That is an anti-correlation along one trajectory of one checkpoint, not a causal
+claim; the causal experiment---descending $J=\tfrac12\|R_h\|^2$ directly, with no network
+in the loop---is \autoref{sec:descent}. This section supplies the mechanism common to
+both, and it is not ill-conditioning. It is that the monitored residual is
+\emph{self-consistent at a field that is not the truth}: the operator a deployed surrogate
+can afford to evaluate is not the operator whose root its training labels are, so the
+truth carries a floor and the objective's minimiser sits away from $u^\star$.
+
+The section is organised around the paper's three verbs. \textbf{Certify: only loosely},
+and this is the leg the theory settles---\autoref{thm:consistency-floor} shows the floor
+survives the continuum limit, and \autoref{thm:residual-floor} shows the truth is neither a
+minimiser nor a stationary point, so no \emph{threshold} on the residual norm implies a
+bound on the error. A calibrated bound is still available by conformalising the score
+against held-out data, and we report one; what the floor destroys is its tightness, since
+$86\%$ of a typical prediction's score is present at zero error and the resulting
+certificate is $6.5$--$7.9\times$ the quantity being certified (\autoref{sec:conformal}).
+\textbf{Descend: no}, by \autoref{thm:residual-floor}(iii)--(iv), measured in
+\autoref{sec:descent}. \textbf{Rank: yes}---nothing here contradicts that, and we are
+explicit below about why a floor that defeats certification leaves between-case triage
+intact, because the same monitor flags worst-decile drag error at AUROC $0.952$
+(\autoref{sec:selective}).
+
+\subsection{Setup: the monitored operator, stated exactly}
+\label{sec:rf_operator}
+
+Let $\Omega\subset\mathbb{R}^2$ be the crop domain itself (a $3c\times3c$ square about a
+unit chord here), $\Omega_h$ the uniform Cartesian grid on it, $h$ its spacing,
+$M\subset\Omega_h$ the fluid cells, $W\subset M$ the \emph{wall ring} (fluid cells with a
+$4$-neighbour in the solid), and $A:=M\setminus W$ the \textbf{active set}. We write
+$\Omega_f\subset\Omega$ for the open fluid region, so $|\Omega_f|<|\Omega|$. The state is
+$u=(u,v,p,\nu_t)$. The monitored operator $R_h$ evaluates, on physical (denormalised)
+fields with $\nu_{\mathrm{eff}}=\nu+\nu_t$ pointwise,
+\begin{equation}
+\begin{aligned}
+r_c&=D_xu+D_yv,\\
+r_x&=uD_xu+vD_yu+D_xp-\nu_{\mathrm{eff}}\Delta_hu,\\
+r_y&=uD_xv+vD_yv+D_yp-\nu_{\mathrm{eff}}\Delta_hv,
+\end{aligned}
+\label{eq:monitored}
+\end{equation}
+with $D_x,D_y$ second-order central in the interior and first-order one-sided at the two
+edges of each axis, and $\Delta_h$ the compact three-point second difference per axis. All
+three are set to zero on the solid and on $W$, then non-dimensionalised by $U/\ell$ (continuity)
+and $U^2/\ell$ (momentum), with $U$ the freestream speed and $\ell$ the reference length
+(we reserve $L$ for the Jacobian below). The scalar we write $\|R_h(\cdot)\|$ in this section is the deployed one,
+\texttt{Diagnostics.residual\_norm}: the root-mean-square over the \textbf{whole grid} of
+$\sqrt{r_c^2+r_x^2+r_y^2}$ after that non-dimensionalisation, with \textbf{no boundary term}.
+We name it because the paper also reports band-restricted norms over a region fixed in
+physical units when it studies refinement (\autoref{sec:floor_ladder}); the two are
+different scoring regions and their numbers are not interchangeable.
+
+Write $J(u)=\tfrac12\|R_h(u)\|^2$, let $u^\star$ be the discrete ground-truth field, define
+the \emph{residual floor} $r^\star:=R_h(u^\star)$, and for a prediction $\hat u$ write
+$e:=\hat u-u^\star$ with
+\begin{equation}
+R_h(\hat u)=r^\star+L\,e+o(\|e\|),\qquad L:=DR_h(u^\star),
+\label{eq:rf-decomp}
+\end{equation}
+where---here and throughout---$L$ denotes the Jacobian restricted to the fluid,
+$L:\mathbb{R}^{4|M|}\to\mathbb{R}^{3|A|}$.
+
+\subsection{The floor does not vanish in the continuum limit}
+
+The objection this theorem answers is the one a numerical analyst raises first: \emph{a
+discrete operator applied to a non-solution leaves a truncation error; refine the grid.}
+It does not apply, because $R_h$ is not a low-order discretisation of the RANS equations.
+It is a \emph{consistent} discretisation of a \emph{different} system. Recall that $R_h$ is
+consistent with a PDE system $F(u)=0$ if $R_h(u|_{\Omega_h})\to0$ pointwise as $h\to0$ for
+every sufficiently smooth solution $u$ of $F$.
+
+\begin{theorem}[Consistency floor: (H2) is a theorem, not an assumption]
+\label{thm:consistency-floor}
+Let $(u^\star,p^\star,\nu_t)$ solve the steady incompressible RANS system on the open fluid
+region $\Omega_f\subset\Omega$ of \autoref{sec:rf_operator}, with a \emph{linear
+(Boussinesq) eddy-viscosity closure}, in which the
+modelled deviatoric Reynolds stress is $-2\nu_tS$ with $S=\tfrac12(\nabla u+\nabla u^\top)$,
+and with the isotropic part absorbed into the modified pressure:
+\begin{equation}
+u_j\partial_ju_i+\partial_iP-\partial_j\!\left[\nu_{\mathrm{eff}}(\partial_ju_i+\partial_iu_j)\right]=0,
+\qquad \partial_ju_j=0 .
+\label{eq:rans}
+\end{equation}
+Let $K\subset\subset\Omega_f$ be compact with $u^\star\in C^4(K)$ and $\nu_t\in C^1(K)$.
+Then:
+\begin{enumerate}
+\item[\textup{(a)}] \emph{(The omitted term, in closed form.)} At every grid node in $K$,
+for the \emph{dimensional} residuals of \eqref{eq:monitored} evaluated on
+$u^\star|_{\Omega_h}$ (the per-equation scalings are reinstated in (c)),
+\begin{equation}
+\begin{gathered}
+r_c=O(h^2),\qquad r_i \;=\; T_i+O(h^2),\\[2pt]
+T_i:=(\partial_j\nu_t)(\partial_ju_i+\partial_iu_j)=2(S\nabla\nu_t)_i ,
+\end{gathered}
+\label{eq:omitted-term}
+\end{equation}
+and in two dimensions, where incompressibility makes $S$ symmetric and \emph{traceless},
+\begin{equation}
+\begin{gathered}
+|T| \;=\; 2\lambda_S\,|\nabla\nu_t| \;=\; \sqrt{2}\,\|S\|_F\,|\nabla\nu_t|
+\quad\text{\emph{exactly}},\\[2pt]
+\text{with }\lambda_S=\sqrt{(\partial_xu)^2+\tfrac14(\partial_yu+\partial_xv)^2}
+\end{gathered}
+\label{eq:2d-identity}
+\end{equation}
+the strain-rate eigenvalue (distinct from the no-slip weight $\lambda$ swept later in this
+section).
+\item[\textup{(b)}] \emph{(Non-degeneracy.)} $T(x)=0$ if and only if $S(x)=0$ or
+$\nabla\nu_t(x)=0$. In particular no orthogonality hypothesis is required.
+\item[\textup{(c)}] \emph{(The floor survives refinement.)} If
+$\bigl|\{x\in K: S(x)\neq0 \text{ and } \nabla\nu_t(x)\neq0\}\bigr|>0$, then
+\begin{equation}
+\liminf_{h\to0}\;\bigl\|R_h(u^\star|_{\Omega_h})\bigr\|
+\;\ge\;\Bigl(\tfrac{|K|}{|\Omega|}\Bigr)^{1/2}\frac{\ell}{U^2}
+\left(\frac{1}{|K|}\int_K |T|^2\,dx\right)^{1/2}\;>\;0 .
+\label{eq:floor-limit}
+\end{equation}
+where $|\Omega|$ is the area of the \emph{whole crop}, since $\|\cdot\|$ averages over the
+whole grid; the factor $(|K|/|\Omega|)^{1/2}\le1$ is the price of scoring a norm over
+$\Omega$ while bounding it only on $K$.
+Hence $R_h$ is \textbf{inconsistent} with \eqref{eq:rans}: hypothesis \textup{(H2)} of
+\autoref{thm:residual-floor} is a consequence, not an assumption, and no grid refinement
+removes the floor.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+(a) Expand the stress divergence in \eqref{eq:rans} using
+$\partial_j[\nu_{\mathrm{eff}}(\partial_ju_i+\partial_iu_j)]
+=\nu_{\mathrm{eff}}\nabla^2u_i+\nu_{\mathrm{eff}}\partial_i(\partial_ju_j)
++(\partial_j\nu_{\mathrm{eff}})(\partial_ju_i+\partial_iu_j)$.
+The middle term vanishes identically by incompressibility of the \emph{exact} solution,
+which is where this theorem lives; the discrete divergence of the rasterised field is a
+different quantity and is discussed separately below. Also
+$\nabla\nu_{\mathrm{eff}}=\nabla\nu_t$ because the laminar viscosity is constant. Substituting into \eqref{eq:rans} gives
+$u_j\partial_ju_i+\partial_iP-\nu_{\mathrm{eff}}\nabla^2u_i=T_i$, whose left-hand side is
+exactly the continuum form of the monitored $r_i$ in \eqref{eq:monitored}. Central first
+differences are $O(h^2)$ on $C^3$ fields and the compact second difference is $O(h^2)$ on
+$C^4$ fields, uniformly on the compact $K$; the products with the bounded coefficients
+$u,v,\nu_{\mathrm{eff}}$ preserve that order. Continuity is a consistent discretisation of
+$\nabla\!\cdot\!u^\star=0$, so $r_c=O(h^2)$ with no $O(1)$ term.
+For \eqref{eq:2d-identity}: in two dimensions incompressibility gives $\partial_yv=-\partial_xu$,
+so $S=\left(\begin{smallmatrix}a&b\\ b&-a\end{smallmatrix}\right)$ with $a=\partial_xu$,
+$b=\tfrac12(\partial_yu+\partial_xv)$. Then $\det S=-(a^2+b^2)$ and the eigenvalues are
+$\pm\lambda_S$, $\lambda_S=\sqrt{a^2+b^2}$. As $S$ is symmetric its singular values are
+$|{\pm}\lambda_S|=\lambda_S$, both equal, so $|Sx|=\lambda_S|x|$ for \emph{every} $x$; apply
+this to $x=\nabla\nu_t$ and use $\|S\|_F=\sqrt{2}\lambda_S$.
+(b) Immediate from $|T|=2\lambda_S|\nabla\nu_t|$: a product of non-negative scalars vanishes
+iff a factor does, and $\lambda_S=0$ iff $S=0$.
+(c) On $K$ the non-dimensionalised integrand converges uniformly to
+$(\ell/U^2)^2|T|^2$ by (a), so the Riemann sums of the mean square over $K\cap\Omega_h$
+converge to the stated integral. Writing $n_\Omega$ for the number of grid cells and $n_K$
+for those in $K$, and using that every discarded cell contributes non-negatively,
+\[
+\mathrm{MS}_\Omega=\frac{1}{n_\Omega}\sum_{\Omega_h}|R_h|^2
+\;\ge\;\frac{1}{n_\Omega}\sum_{K\cap\Omega_h}|R_h|^2
+\;=\;\frac{n_K}{n_\Omega}\,\mathrm{MS}_K ,
+\]
+and $n_K/n_\Omega\to|K|/|\Omega|$ as $h\to0$ since the grid is uniform on the crop. Taking
+square roots and then $\liminf$ gives \eqref{eq:floor-limit}. Positivity follows from (b)
+and the positive-measure hypothesis.
+\end{proof}
+
+\paragraph{Where the hypothesis fails, and why that is reassuring.}
+\autoref{thm:consistency-floor}(b) says the floor degenerates exactly when $S=0$ or
+$\nabla\nu_t=0$. Both hold for the uniform freestream, which is precisely the field that
+\autoref{thm:residual-floor}(i) shows has an exactly zero monitored residual. The theorem
+therefore predicts its own exception, and the exception is the spurious minimum. The
+non-degeneracy hypothesis is also weak and checkable rather than cosmetic: it asks only
+that the flow deform and the eddy viscosity vary somewhere in $K$, which is the definition
+of a turbulent boundary layer or wake.
+
+\paragraph{What this proves, and---emphatically---what it does not.}
+It proves that the floor is bounded away from zero as $h\to0$: the ``refine the grid''
+objection is closed \emph{in principle}. It does \textbf{not} explain the floor's measured
+size, and we do not claim it does. Measured on the same fields with the same stencils, the
+omitted term $T$ is $0.0016\to0.0048$ across the refinement ladder against a floor of
+$0.0459\to0.1074$---about $3.5$--$4.8\%$---and \emph{repairing the full symmetric stress
+divergence moves the floor by under $0.1\%$} ($0.10737\to0.10740$ at $512^2$;
+these four figures come from the $16$-case, five-rung study scored on the
+$0.1$-chord band, so they are not interchangeable with the $24$-case figures of
+\autoref{sec:floor_ladder}, which use a different exclusion radius; the two agree on
+the trend and on this fraction, which is what the argument uses;
+\texttt{results/certificates/floor\_resolution\_decomposition.json}). What sets the size is
+the mismatch between our Cartesian stencil and the body-fitted discrete balance the
+reference solver actually closed, and the evidence for that is
+\autoref{sec:floor_ladder}: continuity and momentum rise at the same rate in the same
+cases, which no single-term story predicts---a closure omission moves momentum alone, and
+lost divergence-freedom moves continuity alone. The two results are complementary and
+neither substitutes for the other: \textbf{the theorem closes refinement in principle, the
+ladder closes it in practice}, and the theorem's term is a small, separately provable
+component that guarantees the floor cannot be refined away even if every other source were
+eliminated. The algebraic identity of \eqref{eq:omitted-term} is verified numerically as a
+committed unit test, converging at order $1.93$.
+
+\paragraph{Why our own method-of-manufactured-solutions control cannot see this.}
+The refinement study gates on a manufactured potential flow and measures order
+$p=2.06$ in the interior band, which confirms the stencils are second-order and might be
+read as confirming the operator is consistent. It cannot: for a potential flow
+$u=\nabla\phi$ one has $\nabla^2u\equiv0$, so the monitored viscous term vanishes
+identically and the manufactured field is an exact solution of the monitored operator
+\emph{for any} $\nu_t$. The same artifact records this directly---multiplying $\nu_t$ by
+$50$ changes the monitored norm by $6.7\times10^{-6}$ relative. An MMS gate built on a
+field that annihilates the very term at issue measures truncation and is structurally
+blind to inconsistency. The gate certifies the discretisation; it cannot certify the
+operator, and we state the blind spot alongside it.
+
+\subsection{The truth is not a minimiser, and residual descent leaves it}
+
+\begin{theorem}[Residual floor: misplaced minimum, displaced minimiser, local divergence]
+\label{thm:residual-floor}
+Assume \textup{(H1)} $R_h$ is the monitored discrete operator of \eqref{eq:monitored}
+(continuity $+$ momentum, no-slip omitted); and \textup{(H2)} the floor is nonzero,
+$r^\star:=R_h(u^\star)\neq0$---which \autoref{thm:consistency-floor} supplies, and
+\autoref{sec:floor_ladder} measures. Write $L:=DR_h(u^\star)$, let $\sigma_{\max}$ be its
+largest singular value and $P:=P_{\operatorname{range}L}$. No injectivity is assumed; $L$
+has a large kernel (\autoref{prop:kernel}). Then:
+\begin{enumerate}
+\item[\textup{(i)}] \emph{(Misplaced minimum, exact, and at every $h$.)} The
+uniform-freestream field $u_\infty$ satisfies $R_h(u_\infty)=0$ exactly, so $\min_uJ=0$,
+whereas $J(u^\star)=\tfrac12\|r^\star\|^2>0$. Hence $u^\star$ is \textbf{not} a minimiser
+of $J$. This cannot be an artifact of the rasterisation or of the grid: a spatially
+constant field has identically zero finite differences at \emph{every} $h$ and for
+\emph{every} stencil in \eqref{eq:monitored}, one-sided edges included.
+\item[\textup{(ii)}] \emph{(Misplaced stationarity.)} $\nabla J(u^\star)=L^\top r^\star$,
+so $u^\star$ is stationary for $J$ iff $L^\top r^\star=0$; if $r^\star\notin\ker L^\top$,
+gradient flow on $J$ leaves $u^\star$.
+\item[\textup{(iii)}] \emph{(Displacement of the minimiser, bounded below.)} The
+minimisers of the linearised objective $\tfrac12\|r^\star+Le\|^2$ form the affine set
+$e_\infty+\ker L$ with $e_\infty=-L^{+}r^\star$ ($L^{+}$ the Moore--Penrose
+pseudoinverse). \textbf{Every} point $e$ of that set satisfies
+\begin{equation}
+\|e\|\;\ge\;\|e_\infty\|\;\ge\;\frac{\|P\,r^\star\|}{\sigma_{\max}},
+\label{eq:rf-lower}
+\end{equation}
+which is strictly positive whenever $r^\star$ has any component in $\operatorname{range}L$.
+\item[\textup{(iv)}] \emph{(Local divergence direction.)} Under residual-gradient flow
+$\dot e=-\nabla J(\hat u)$,
+$\frac{d}{dt}\tfrac12\|e\|^2\big|_0=-\|Le\|^2-(Le)\cdot r^\star$, which is positive on the
+open cone $(Le)\cdot r^\star<-\|Le\|^2$. The cone is non-empty whenever $Pr^\star\neq0$,
+and is reached by $Le=-\alpha\,Pr^\star/\|Pr^\star\|$ for $0<\alpha<\|Pr^\star\|$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+(i) Every stencil in \eqref{eq:monitored} annihilates a constant---central differences
+term-by-term, and the one-sided edge stencils $(f_1-f_0)/h$ and $(f_0-2f_1+f_2)/h^2$ by
+inspection---so $R_h(u_\infty)=0$ identically, giving $J(u_\infty)=0=\min J$ since $J\ge0$.
+By (H2), $J(u^\star)>0$.
+(ii) $\nabla J(u)=DR_h(u)^\top R_h(u)$; evaluate at $u^\star$ and use \eqref{eq:rf-decomp}.
+(iii) $\tfrac12\|r^\star+Le\|^2$ is convex, and its minimiser set is the solution set of the
+normal equations $L^\top Le=-L^\top r^\star$, namely $e_\infty+\ker L$ with
+$e_\infty=-L^{+}r^\star$; no injectivity is needed. Since $L^{+}$ maps into
+$\operatorname{range}(L^\top)=(\ker L)^\perp$, any minimiser is $e=e_\infty+k$ with
+$k\in\ker L$ orthogonal to $e_\infty$, so $\|e\|^2=\|e_\infty\|^2+\|k\|^2\ge\|e_\infty\|^2$:
+the bound holds uniformly over the minimiser set, not merely at the minimum-norm
+tie-break. For the second inequality, $LL^{+}=P$ gives $Le_\infty=-Pr^\star$, whence
+$\|Pr^\star\|=\|Le_\infty\|\le\sigma_{\max}\|e_\infty\|$.
+(iv) To first order $\dot e|_0=-L^\top(r^\star+Le)$, so
+$\frac{d}{dt}\tfrac12\|e\|^2|_0=-e^\top L^\top(r^\star+Le)=-\|Le\|^2-(Le)\cdot r^\star$,
+positive iff $(Le)\cdot r^\star<-\|Le\|^2$. Since $Le$ is confined to
+$\operatorname{range}L$, only the \emph{projected} floor is reachable, which gives the
+constant $\|Pr^\star\|$ and not $\|r^\star\|$.
+\end{proof}
+
+\paragraph{Scope of legs (iii) and (iv).}
+Legs (iii) and (iv) of \autoref{thm:residual-floor} are statements about the
+\emph{linearised} objective at $u^\star$ and
+about gradient flow; the deployed corrector is supervised toward truth and the acceptance
+gate uses the residual as a one-bit veto, so neither leg describes the deployed loop. They
+describe residual descent---which this paper does run, from the exact truth and with no
+network anywhere in the loop, and which behaves as (ii) and (iv) predict:
+$\nabla J(u^\star)\neq0$ while $\nabla\|e\|^2(u^\star)=0$ exactly, and $300$ steps cut the
+residual by $84\%$ in $24/24$ cases while taking the field error from zero to a median of
+$0.91$ (\autoref{sec:descent}). The nonlinear, non-asymptotic version of (iii)--(iv) is
+that measurement; the theorem is the local mechanism. We also do not report a number for
+\eqref{eq:rf-lower}: $\sigma_{\max}$ and $\|Pr^\star\|$ are not measured here, so (iii) is
+a strictly-positive-displacement result and we do not describe it as a quantified
+detection limit.
+
+\subsection{The kernel: what the monitor cannot see at all}
+
+The undetectable subspace is not a matter of a few isolated null modes. It is large, and
+its size is provable by counting.
+
+\begin{proposition}[Structure of the undetectable subspace]
+\label{prop:kernel}
+With $M$, $W$, $A=M\setminus W$ and $L:\mathbb{R}^{4|M|}\to\mathbb{R}^{3|A|}$ as above:
+\begin{enumerate}
+\item[\textup{(K1)}] \emph{(Counting.)}
+$\dim\ker L\;\ge\;4|M|-3|A|\;=\;|M|+3|W|\;\ge\;|M|$. At least \textbf{one quarter} of the
+fluid state space is invisible to the monitor at first order, for the structural reason
+that $R_h$ imposes three equations per cell on four unknowns per cell, plus three further
+dimensions for each wall-ring cell whose residuals are zeroed outright.
+\item[\textup{(K2)}] \emph{(Solid degrees of freedom, exactly and nonlinearly.)} If the
+body is at least three cells from the outer border of the crop, then every degree of
+freedom on a solid cell lies in $\ker R_h$ \emph{exactly}---not merely in $\ker L$:
+$R_h$ is unchanged by \emph{any} perturbation supported on the solid, of any size.
+\item[\textup{(K3)}] \emph{(The $\nu_t$ block is diagonal, in closed form, exactly.)}
+$R_h$ is \emph{affine} in $\nu_t$, which enters only as the pointwise multiplier
+$-\nu_{\mathrm{eff}}\Delta_hu$. Hence for any perturbation $\delta$ supported on the
+$\nu_t$ channel with $\nu+\nu_t+\delta\ge0$,
+\begin{equation}
+R_h(u^\star+\delta)-R_h(u^\star)
+=\bigl(0,\;-\delta\odot\Delta_hu^\star,\;-\delta\odot\Delta_hv^\star\bigr)\big|_A
+\quad\text{exactly},
+\end{equation}
+so $\|R_h(u^\star+\delta)-R_h(u^\star)\|^2=\sum_{k\in A}c_k^2\delta_k^2$ with
+$c_k=\frac{\ell}{U^2}\sqrt{(\Delta_hu^\star_k)^2+(\Delta_hv^\star_k)^2}$. Consequently, for
+$\Omega_\varepsilon:=\{k\in A:c_k\le\varepsilon\}$ and any $\delta$ supported in
+$\Omega_\varepsilon$, the monitor moves by at most $\varepsilon\|\delta\|$: the sublevel
+set $\{u:\|R_h(u)\|\le t\}$ contains a ball of radius $(t-\|r^\star\|)/\varepsilon$ inside
+a coordinate subspace of dimension $|\Omega_\varepsilon|$, for every $t>\|r^\star\|$.
+\item[\textup{(K4)}] \emph{(A Nyquist pressure mode the monitor barely registers.)} Let
+$p_\varepsilon(i,j)=\varepsilon(-1)^{i+j}$. Then $D_xp_\varepsilon=D_yp_\varepsilon=0$ at
+every \emph{interior} node, so an $O(1)$ checkerboard oscillation in the pressure changes
+the monitored residual at \emph{no} active cell except those on the outer border ring of
+the crop---an $O(1/N)$ fraction of the active set---and would be \emph{exactly} invisible
+were that ring excluded, as the wall ring already is.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+(K1) Rank--nullity, with $\operatorname{rank}L\le3|A|$ and $|A|=|M|-|W|$; the final
+inequality is $|M|+3|W|\ge|M|=\tfrac14\cdot4|M|$.
+(K2) Every interior stencil in \eqref{eq:monitored} reads only a cell's four neighbours
+($D_x$ reaches $(i\pm1,j)$ and $D_y$ reaches $(i,j\pm1)$; the compact $\Delta_h$ reaches both pairs).
+By definition of $W$, no active cell has a solid $4$-neighbour, so no active cell's stencil
+reads a solid value. The one-sided edge stencils reach two cells inward, which is why the
+three-cell separation from the outer border is required; it holds for the $3c\times3c$ crop
+about a unit chord used here. The statement is nonlinear because $R_h$ simply never
+evaluates those entries.
+(K3) $\nu_{\mathrm{eff}}=\nu+\nu_t$ multiplies $\Delta_hu$ pointwise and appears nowhere
+else in \eqref{eq:monitored}, so $R_h$ is affine in $\nu_t$ with the stated diagonal linear
+part; the clip $\max(\nu_{\mathrm{eff}},0)$ is inactive under the stated hypothesis, which
+holds on the reference data since $\nu_t\ge0$ there.
+(K4) $(-1)^{(i+1)+j}=(-1)^{(i-1)+j}$, so the central difference
+$(p_{i+1,j}-p_{i-1,j})/2h$ vanishes identically, and likewise in $y$; only the first-order
+one-sided stencils at the four borders return a nonzero value, $2\varepsilon/h$.
+\end{proof}
+
+\paragraph{Reading the kernel.} (K3) has a physical statement: \emph{eddy viscosity is
+unobservable from a momentum residual wherever there is nothing to diffuse}. In the
+freestream $\Delta_hu^\star\approx0$, so $c_k\approx0$ and $\nu_t$ may be set arbitrarily
+there without moving the monitor at all. This is why we never claim the residual certifies
+the $\nu_t$ channel. (K4) is the classical odd--even (checkerboard) decoupling of pressure
+on a collocated grid with central differencing, whose standard remedy is momentum
+interpolation \citep{rhiechow1983}; a surrogate-side monitor assembled from plain central
+differences inherits the pathology without the remedy, and we flag it rather than claim the
+checkerboard as an exact null mode---the border stencils mean it is not one.
+
+\subsection{Ranking survives; certification survives only to a floor-limited width}
+
+\paragraph{What the floor costs certification, and why it does not cost triage.}
+Certification \emph{from the residual norm alone} asks for a map from $\|R_h(\hat u)\|$ to
+a bound on $\|\hat u-u^\star\|$.
+The floor does \emph{not} make such a bound invalid---split conformal returns one
+whatever the score, and ours attains $0.901$--$0.903$ coverage against a $0.90$ target.
+What the floor leaves is a wide bound: $6.5$--$7.9\times$ the median drag error it
+certifies and $1.7\times$ the median field error (\autoref{sec:conformal}). We do
+\emph{not} attribute that width to the floor. Because $u^\star$ itself is rejected at
+every threshold below $\|r^\star\|$ (\autoref{thm:residual-floor}(i)) and the sublevel
+sets are unbounded in the directions of \autoref{prop:kernel}, a fixed part of every
+score is present at zero error---the median truth-to-prediction residual ratio on the
+deployed arm is $0.864$, so $86\%$ of a typical score is floor---but removing the floor
+\emph{exactly}, via the oracle field difference
+$\sigma'=\|R_h(\hat u)-R_h(u^\star)\|$ (a difference of norms is not a valid
+decomposition, and $\|R_h(\hat u)\|<\|r^\star\|$ on $2.5$--$4.0\%$ of cases), makes the
+bound \emph{wider}, $7.4\times\!\to\!11.3\times$ on $3/3$ seeds
+(\texttt{results/review/floor\_subtraction\_gate.json}). Floor subtraction improves the
+score's \emph{ranking} (Spearman $0.616/0.592/0.626\to0.681/0.703/0.601$) and degrades
+its use as a conformal \emph{scale}: the width tracks the dispersion of the
+nonconformity ratio $E/\sigma$ ($Q_{0.9}/\mathrm{median}$ of $15.1$ for an uninformative
+score, $6.3$ for the monitor, $10.5$ after floor subtraction). The width is the heavy
+tail of the drag-error distribution, not the floor---the marginal interval with no
+monitor at all is $17.2\times$, so the monitor already buys $2.3\times$---and since the
+oracle $r^\star$ dominates any predictor of it, no learned floor correction can improve
+this certificate either. An interval $1.7\times$ the median error is usable; one
+$8\times$ the median drag error is not a design tool. And refinement does not recover
+it: the floor does not decay under refinement, and the reconstruction the ladder
+differentiates is fixed independently of $h$, so the fitted order is a crossover slope
+rather than the exponent of a scaling law (\autoref{sec:floor_ladder}). The guarantee is
+marginal and rests on exchangeability of the calibration and test cases, here a random
+split of one pooled AirfRANS partition; it says nothing about the out-of-distribution
+regime in which a certificate is most wanted. Ranking asks something much
+weaker and \emph{between} cases: that a case whose prediction is worse tend to carry a
+larger monitored residual. Nothing above forbids that, and it is measured---$\rho=0.61$
+and AUROC $0.871$ on field error, $0.952$ on worst-decile drag error
+(\autoref{sec:selective}). We therefore make the ranking claim empirically and do
+\emph{not} derive it from \eqref{eq:rf-decomp}. In particular we do not argue it from a
+two-sided bound $\sigma_{\min}\|e\|\le\|Le\|\le\sigma_{\max}\|e\|$: $\sigma_{\min}$ is the
+smallest nonzero singular value of a $\sim\!4.7\times10^4$ by $6.6\times10^4$
+advection--diffusion Jacobian with a continuum of near-null directions, it is not
+separable from zero numerically, and a bound resting on it would be vacuous. Equation
+\eqref{eq:rf-decomp} offers only the heuristic that far from the truth $\|Le\|$ dominates
+$\|r^\star\|$; that is a regime intuition, not a guarantee, and the guarantee we do ship
+for the error bound is the distribution-free conformal one, not a residual bound.
+
+\paragraph{An apparent contradiction, and its resolution.} On the weak dropout-FNO
+backbone the prediction sits \emph{below} the floor in $80\%$ of cases
+($\|R_h(\hat u)\|=0.114$ against $\|r^\star\|=0.192$), which places it in the regime the
+decomposition calls floor-dominated---yet $\rho=0.61$ is measured there. We scope that
+figure deliberately: it does \emph{not} generalise. On the deployed Transolver the sign
+reverses, the prediction sits \emph{above} the floor at $0.212$--$0.215$, and the
+inversion rate is only $2.5$--$7.0\%$ across three seeds
+(\texttt{results/certificates/transolver\_inversion.json}). The contradiction is therefore
+only apparent on one backbone, but it is worth resolving because the resolution is the
+same in both. The two are statements about
+different things. The decoupling is \emph{within} a case: holding the case fixed, moving
+the field to lower residual need not move it toward the truth, which is exactly what
+\autoref{sec:descent} measures. The detector claim is \emph{between} cases, where both
+$r^\star$ and $Le$ vary. That raises the obvious worry---that the ranking is a difficulty
+proxy rather than an error detector---and we test it: conditioning on each case's own floor
+leaves a partial rank correlation of $0.561$ against a raw $0.610$
+(\autoref{sec:selective}). The detector survives the control, and should be read as
+between-case triage, never as evidence that residual descent within a case moves toward the
+truth.
+
+\paragraph{Empirical confirmation.} On $200/200$ real AirfRANS test cases the monitored
+residual of the ground-truth field is substantially nonzero: $\|r^\star\|$ has mean $0.192$
+(median $0.133$) when averaged over fluid cells, the convention of the cited artifact, and
+$0.191$ in the whole-grid norm named above---the two differ only by the geometric factor
+$(|\Omega_f|/|\Omega|)^{1/2}$, here $0.995$. Meanwhile the uniform-freestream field
+gives $\|R_h(u_\infty)\|=0$ in every case---the objective strictly prefers a physically
+wrong field to the truth (\texttt{results/certificates/residual\_floor\_realdata.json}).
+Because every field on a given case is scored against the same mask, that factor cancels in
+any comparison, so the counts below are identical under either convention. A
+trained backbone's prediction (the dropout-FNO of
+\texttt{checkpoints/certificates\_deq.pt}, distinct from the Transolver headline) sits
+\emph{below} the truth floor in $160/200$ cases. That is the flattering number, and it does
+not generalise: on the
+\emph{deployed} Transolver the same inversion occurs on only $2.5$--$7.0\%$ of cases
+across seeds ($8/5/5$ of $200$ for the backbone alone and $12/9/14$ for
+Transolver$+$DEQ, seeds $0,1,2$;
+\texttt{results/certificates/transolver\_inversion.json},
+\texttt{results/review/functional\_audit\_gate\_analysis.json}), so the
+truth is the best-scoring field on more than $93\%$ of them, and the median gap reverses
+sign ($+0.013$ to $+0.015$ \emph{above} the floor, against $-0.024$ below it for the
+dropout-FNO). Both backbones are scored with an identical ruler: the harness reproduces
+the published dropout-FNO row to all digits. The inversion is a property of that one
+backbone and we rest no claim on it. The obvious explanation does not survive
+measurement: the inversion is \emph{not} over-smoothing. The
+accurate backbone is not smoother than the truth---its velocity-gradient energy is
+$1.00\times$ the truth's in a near-body band---so smoothing cannot be what separates the
+two. (The dropout-FNO measures \emph{rougher} still, $1.75\times$ over the fluid, though we
+lean on that number only lightly: it is a grid-native field whereas the Transolver field is
+rasterised from the native cloud, so the cross-backbone gradient comparison carries a
+rasterisation confound that the inversion counts themselves do not.) What does separate
+them is that the dropout-FNO's monitored residual is nearly case-\emph{independent} (spread
+$0.034$ versus the truth's $0.162$ and the Transolver's $0.161$), so it neither tracks case
+difficulty nor clears the floor. That is what \eqref{eq:rf-decomp} predicts: a prediction
+falls below the floor only when its error is systematically anti-aligned with $r^\star$,
+whereas unbiased error of any magnitude \emph{raises} the monitored residual---which is why
+the accurate backbone sits above it. What does not depend
+on the backbone is the floor itself, which no model enters. The floor is not an artifact of the
+deployed grid: re-rasterised from the source point clouds at $128^2$--$512^2$ and scored on
+a region fixed in physical units it \emph{increases} by $2.6\times$, fitting
+$\|r^\star\|\sim h^p$ with $p=-0.64\pm0.29$ and decaying in $0/16$ cases, while a
+manufactured analytic solution converges on the same monitor at order $2.02\pm0.05$ per
+case ($2.06$ fitted on the rung means) and, pushed through the identical rasteriser, still
+\emph{falls} with refinement (fine/coarse $0.65$, rising in only $3/16$ cases) where the
+real truth's rises; and a $C^1$ re-rasterisation \emph{raises} rather than lowers the floor
+(\autoref{sec:floor_ladder}). The manufactured field is a potential flow, so the monitor is
+structurally blind to the inconsistency on it; these controls bound the pipeline's own
+error, and are not evidence that the monitored operator is consistent. Those band-restricted magnitudes are a different scoring
+region from the $0.192$ above and are not comparable to it; the refinement claim is a
+statement about the trend within one scoring policy.
+
+\paragraph{Robustness to the boundary term.} One might object that the monitored $R_h$
+omits the no-slip term, so the negative is merely an artifact of dropping the boundary
+constraint. We tested this with the \emph{framework's own} boundary-inclusive residual
+$\rho_{\rm res}=\sqrt{r_c^2+r_x^2+r_y^2+r_{bc}^2}$ (the trust-map definition, $r_{bc}$ the
+proximity-weighted no-slip penalty) along the correction sweep (dropout-FNO$+$DEQ, $n{=}10$,
+same regime as \autoref{tab:iters}; \texttt{results/control/bc\_inclusive\_sweep.json}). The
+negative \emph{survives}: as the corrector cuts field error ($\texttt{mse\_u}$
+$3.17\!\to\!2.32$), the boundary-\emph{inclusive} residual rises ($0.145\!\to\!0.811$) in
+lockstep with the boundary-excluded one ($0.125\!\to\!0.807$)---along the correction path the
+prediction and the truth both approximately satisfy no-slip, so $r_{bc}$ stays small and
+roughly constant and the interior floor dominates. The objection generalises---\emph{some}
+no-slip weight might rescue the residual---so we sweep it. Writing the weighted monitor
+$\rho_\lambda=\sqrt{\|R_h\|^2+\lambda\,\overline{r_{bc}^2}}$, both logged components are
+recoverable at every sweep point, so $\lambda$ can be swept post hoc at no computational
+cost (\texttt{scripts/bc\_weight\_sweep.py}, \texttt{results/control/bc\_weight\_sweep.json}).
+
+\textbf{(A)}~\emph{At the deployed resolution} the uniform field remains a spurious
+minimum: it has both a smaller interior residual and a smaller no-slip term than the truth
+($\overline{r_{bc}^2}=0.0053$ versus $0.0073$; the ordering holds in $14/16$ cases of the
+resolution study), hence $\rho_\lambda(u_\infty)<\rho_\lambda(u^\star)$ for all
+$\lambda\ge0$ \emph{at that resolution}. This leg is resolution-contingent and we claim no
+more. The framework's proximity weight decays over $3\min(dx,dy)$ and so
+scores a physically \emph{thinner} band as the grid refines, and the margin collapses
+monotonically---$+9.3\%$ at $128^2$, $+7.4\%$ at $181^2$, $+6.9\%$ at $256^2$, $+3.9\%$ at
+$362^2$, and $-2.8\%$ at $512^2$ in a $16$-case run, where it has crossed. A $24$-case run
+over $128^2/256^2/512^2$ agrees on the collapse but still has the truth above by $1.5\%$ at
+the finest rung (\texttt{results/floor\_resolution\_ladder.json}); a ${\pm}2\%$ disagreement
+between two subsets at a margin that has already collapsed to ${\sim}2\%$ is subset noise,
+and we take the cautious reading. Where it crosses, the crossover
+weight
+$\lambda^\star=\|R_h(u^\star)\|^2/(\overline{r_{bc}^2}(u_\infty)-\overline{r_{bc}^2}(u^\star))$
+has median $599$ at $512^2$, the rung where it crosses. Since the deployed trust map uses
+$\lambda=1$, a monitor that rescued the ordering would be one in which the no-slip term
+outweighs the entire PDE residual by two orders of magnitude---a real technical break, but
+not a practical rescue, because such an object is no longer a PDE monitor. Two further
+facts close off readings of (A) that would otherwise be live: the far-field ring
+contributes under $1\%$ of $\overline{r_{bc}^2}(u^\star)$, so the ordering is genuinely
+about the near-wall band and not an artifact of the crop's outer boundary; and the
+ordering was never universal, holding at all five rungs in only $11/16$ cases.
+
+\textbf{(B)}~Along the correction path, where field error falls ($3.17\!\to\!2.32$),
+\emph{both} increments are positive---the interior term by $+0.635$ and the no-slip term by
+$+0.0019$---so $\rho_\lambda$ rises for every $\lambda\ge0$; there is no crossover weight.
+Leg (B) does not depend on the truth-versus-uniform ordering of (A), and it is leg (B) that
+carries the argument for \autoref{tab:iters}: up-weighting the boundary condition cannot
+convert this residual into a usable correction objective, because the no-slip violation
+grows along the very path that reduces the error.
+
+\paragraph{Assumptions, stated plainly.} \autoref{thm:residual-floor} is about the
+\emph{monitored discrete} operator $R_h$, not the continuous PDE.
+\autoref{thm:consistency-floor} is the bridge between them, and it is where the smoothness
+hypotheses live: it holds on a compact subset of the open fluid domain on which the
+solution is $C^4$ and $\nu_t$ is $C^1$, which excludes a neighbourhood of the wall---the
+same methodological restriction the refinement ladder makes when it scores a region fixed
+in physical units. (H2) therefore holds here for a reason that is \emph{not} the deployed
+grid's resolution: the floor does not decay under refinement, the individually
+grid-converged convective and pressure-gradient terms
+($0.183\!\to\!0.199$ and $0.180\!\to\!0.181$) do not cancel under a discretisation
+different from the one that produced the labels, and restoring the omitted stress
+divergence moves the floor by under $0.1\%$. We do \emph{not} attribute the floor's
+\emph{growth} to operator provenance. Holding $h$ fixed and thinning the source point
+cloud by a factor of eight raises the floor in $16/16$ cases on every band and at both
+rungs tested (fitted $\mathrm{d}\log\|r^\star\|/\mathrm{d}\log s=+0.55\pm0.27$;
+\texttt{results/certificates/floor\_cloud\_decimation.json}), so the measured floor
+depends on the reconstruction of the label as well as on the operator, and no
+measurement we have separates the two contributions. One further bound: the measured
+$r^\star$ is evaluated on a \emph{rasterised} $u^\star$---a linear interpolant of an
+unstructured finite-volume solution---which is not $C^4$ and carries its own
+representation error, so the measured floor mixes the theorem's term with that error. The
+decimation experiment above bounds that mixing from below: at fixed $h$ the
+representation term is large enough to move the measured floor by $80\%$. That
+is why the theorem is stated as a limit on the exact solution and the magnitude is reported
+as a measurement, and why we never present one as evidence for the other.
+
+\paragraph{Relation to prior work.} \citet{krishnapriyan2021failure} tie ill-conditioning
+to the \emph{optimisation difficulty} of PINN losses, and \citet{wang2022ntk} analyse
+spectral bias and loss-term imbalance in PINN \emph{training dynamics}; both concern
+trainability, not a displacement of the residual minimiser from the truth. The
+forward-versus-backward error gap is classical \citep{trefethenbau1997}, and a-posteriori
+PINN bounds upper-bound error \emph{by} residual---the benign regime, and one calibrated by
+the identity $R(u^\star)=0$, which is exactly the premise our monitor lacks.
+
+The sharpest way to state where the novelty sits is through goal-oriented estimation.
+Dual-weighted-residual methods \citep{beckerrannacher2001dwr} exist precisely because
+residual magnitude is not an error estimate, and they work beautifully for reduced-order
+models---because there the residual is $r=A_{\rm FOM}(u_{\rm ROM})-b$, which vanishes at
+the truth \emph{by construction}, since the full-order operator is available and is the one
+whose root the reference is. A dataset-trained surrogate has no $A_{\rm FOM}$. The
+obstruction we report is therefore about \textbf{operator availability}, not about RANS,
+not about two dimensions and not about the grid: it appears whenever the operator one can
+afford to evaluate at deployment is not the operator that generated the labels. We do not
+claim that a dual-weighted estimate provably fails here---that would require constructing
+the adjoint $z$ and bounding $\langle z,r^\star\rangle$ from below, which we have not
+done---only that the identity it relies on acquires an uncontrolled $\langle z,r^\star\rangle$
+term, and that forming the adjoint needs a linearised solve on the deployed grid, which is
+the cost the surrogate exists to avoid.
+
+The nearest classical relatives are worth naming precisely, because each has the structure
+we need and none has the case. Defect correction \citep{stetter1978defect} and multigrid
+$\tau$-correction \citep{brandt2011multigrid} both drive one operator using the residual of
+\emph{another}, and both handle the resulting mismatch by carrying an explicit correction
+term---exactly the object a deployment-time monitor cannot form, since it would require the
+fine operator we are trying to avoid running. \citet{zhang2026phymgn} reach the same
+practical conclusion from the data side for shock physics, and their remedy---defining the
+loss relative to the residual present in the ground-truth data---likewise requires
+$R_h(u^\star)$, which a deployment-time monitor by definition does not have. In the
+finite-element a-posteriori literature, an error contribution the estimator cannot see and
+that does not vanish under refinement is \emph{data oscillation} \citep{morin2000data}; our
+floor is its analogue for an inconsistent monitored operator, with the difference that data
+oscillation is a property of the right-hand side's representation while ours is a property
+of the operator itself. Least-squares finite element methods
+\citep{bochevgunzburger2009book} obtain a residual functional that \emph{is}
+norm-equivalent to the error---the property our monitor lacks---by constructing the
+discretisation and the functional together, which is precisely the option a surrogate-side
+audit forgoes when it adopts a cheap operator after the fact. And where the monitored
+operator \emph{is} the solver's own, residual-driven correction works on steady CFD
+\citep{lei2026newtonkrylov}, which locates our negative rather than contradicting it.
+
+That a residual blind to certain modes makes the truth a non-minimiser is, in its bare
+form, elementary---the pressure gauge above. Our contribution is threefold.
+\textbf{(a)} A \emph{proof} that this floor has a
+nonzero continuum limit (\autoref{thm:consistency-floor}), so it is a property of operator
+provenance rather than of the mesh and cannot be refined away even in principle---the
+$\nu_{\mathrm{eff}}\nabla^2u$ simplification of the RANS momentum equation is the standard
+choice in physics-informed CFD surrogates, so this is a floor an entire practice has not
+accounted for. \textbf{(b)} An exact characterisation of the undetectable
+subspace (\autoref{prop:kernel})---a counting bound of at least a quarter of the fluid
+state, exact nonlinear invisibility of the solid, a diagonal $\nu_t$ block with closed-form
+entries, and the Nyquist pressure mode. \textbf{(c)} The demonstration on a learned neural-operator CFD
+corrector on AirfRANS that the resulting monitor can rank predictions, cannot be
+descended, and certifies them only at a width the floor rather than the model sets.

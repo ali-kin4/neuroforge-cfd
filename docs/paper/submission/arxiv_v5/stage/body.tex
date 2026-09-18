@@ -1,0 +1,1560 @@
+% Shared manuscript body (Introduction .. back-matter). Included by BOTH
+% neuroforge_cfd.tex (TMLR template, the fallback venue) and
+% neuroforge_cfd_elsevier.tex (elsarticle, the Journal of Computational Science
+% submission), so a change to the science lands in both builds at once.
+%
+% 2026-09-11 compaction pass: the residual-audit material was reduced to one
+% subsection (sec:residual) and the theorem section was unhooked. The removed
+% passages are preserved verbatim, with their original line ranges, in
+% sections/residual_audit_removed.tex and sections/residual_floor_theorem.tex.
+%
+% 2026-09-12 JOCS rebuild: the trust layer (sec:conformal, sec:selective,
+% sec:cost, sec:ood, sec:indist-ablation, the Method subsection that defined it
+% and contributions 5-6) and the covariate-null / `reynolds`-split material
+% (sec:covariate, sec:splits) were removed. The first goes to the companion
+% trust-layer paper; the second is the spine of the five-benchmark NullBench
+% paper and must NOT be journal-published here. Both are preserved verbatim,
+% with original line ranges, in sections/trust_layer_removed.tex and
+% sections/covariate_null_removed.tex.
+%
+% None of the four sections/ files is \input by either build.
+\section{Introduction}
+
+Classical CFD resolves the governing PDEs by iterating a discretised system until its
+residuals fall below a tolerance. It is accurate and trusted, but slow: meshing and a
+converged steady-RANS solve over a new geometry can take minutes to hours. Neural
+surrogates promise the opposite trade---millisecond inference---and a vigorous
+literature now maps geometry plus boundary conditions directly to flow fields with
+neural operators and attention models.
+
+That promise is assessed almost entirely against other learned models, and through a
+scoring path nobody has measured. AirfRANS \citep{bonnet2022airfrans}, the standard 2-D
+external-aerodynamics benchmark, distributes wall-clustered unstructured point clouds and
+has accumulated a leaderboard of graph networks, point-cloud operators and
+physics-attention transformers, each reported against its predecessors. Field errors are
+conventionally computed by resampling predictions onto a uniform raster and averaging over
+its cells. Two things are missing from that arrangement: a \emph{non-learned} reference
+point---which the dataset hands over for free, because every case is indexed by a design
+vector printed in its own file name and parsed by its own loader (inlet velocity, angle of
+attack, four NACA digits)---and any statement of what the resampling costs.
+
+\paragraph{Research question.} \emph{What does learning add, on this benchmark, over
+interpolating between cases in that parameter space---and can the protocol that reports
+field errors see whatever it adds?}
+
+\paragraph{What a surrogate buys is near-wall representation, and no interpolation reaches
+it.} We answer the first half at the resolution the data actually has. Gaussian
+kernel-ridge interpolation over seven scalars derived from the case name---no network, no
+geometry encoder, no flow-field learning---is evaluated against a Transolver trained on the
+same data at AirfRANS's own cloud nodes, all $200$ \texttt{full} test cases, $35.8$\,M nodes, with
+\textbf{no rasterisation anywhere in the comparison path}. Each training field is carried
+on its own native cloud, so neither arm meets a grid. \textbf{The interpolator loses on
+every channel}: $\mathbf{144\times}$ on streamwise velocity, $\mathbf{134\times}$ on
+cross-stream velocity, $\mathbf{4.9\times}$ on pressure and $18\times$ on the eddy
+viscosity, and $24.7\times$ over $u,v,p$ in standardised units; the surrogate is better on
+$200/200$ cases on three channels and $142/200$ on pressure (\autoref{tab:native}). The
+pre-registered rule returns \textsc{not-competitive-at-native}. Nor is this a tuning
+deficit that a better weighting would close. An \emph{oracle} that is shown the test answer
+and allowed to pick the single best of all $800$ training fields is still $344\times$
+worse than the surrogate inside the first $0.005$ chord; and because a minimum over single
+fields bounds no combination of them, we compute the unconstrained least-squares
+projection of the true field onto the span of all $800$---the exact lower bound for
+\emph{any} weighting of that family, convex or not---which is still $\mathbf{25\times}$
+worse there (\textsc{family-bound-closed}; all $200$ cases, $u$, the band holding $41\%$ of
+every cloud's nodes, with $161/200$ cases clearing the threshold on their own).
+
+\textbf{Then we remove the mechanism, and the gap goes with it.} Inside $0.005c$ a query
+sits on average $7.8$ times further from the training case's wall than from its own, with
+$35\%$ of the weight mass \emph{inside} the training airfoil---a misalignment of
+coordinates rather than a deficit of representation. Re-posed in wall-following
+coordinates, with no retuning and the same $800$ fields, the same bound falls from
+$25\times$ to $\mathbf{0.0044\times}$, better on $\mathbf{200/200}$ cases
+(\textsc{body-fitted-bound-open}). What looked like something a surrogate represents and
+an interpolator cannot is a property of the frame the interpolator was asked in.
+
+\paragraph{The published field-MSE ranking is decided by a weighting nobody states.} That
+verdict inverts the one the benchmark's own protocol returns, and the inversion is the
+second finding. Scored the way this benchmark's field tables are reported---an
+area-uniform $128^2$ raster---the same interpolator gives $8.4\times$ \emph{lower} volume
+pressure error than the same Transolver ($\texttt{mse\_p}$ $75.0$ against $628.5$).
+Re-weight the \emph{identical} predictions on the \emph{identical} cells by the number of
+native cloud nodes each cell contains, changing nothing else, and $8.4\times$ becomes
+$\mathbf{0.44\times}$; per node on the native cloud it is $0.21\times$. One pair of
+predictions, one set of cases, three defensible measures, and the ranking reverses between
+the first and the third. Every other channel moves with it: $\texttt{mse\_u}$ from
+$6.2\times$ against the interpolator to $86\times$ against it area-uniform-to-node-weighted
+and $144\times$ at the nodes, $\texttt{mse\_v}$ from $3.0\times$ in its favour to
+$15\times$ against it. Over $u,v,p$ in standardised units the interpolator is $1.99\times$
+better area-uniform and $8.30\times$ worse node-weighted. Neither grid measure is obviously
+the right one, and that is the point: the raster is what the field tables report, while
+AirfRANS is a boundary-layer mesh that places $64.4\%$ of every case's nodes inside $0.05c$
+of the wall, a region holding $1.25\%$ of the raster's area---a factor of $51.5$, rising to
+$312$ inside $0.005c$ and inverting to $0.14$ beyond half a chord. \textbf{No published
+AirfRANS field comparison states which weighting it uses} (\autoref{tab:measure}).
+
+\paragraph{The scoring raster cannot adjudicate near-wall skill for anyone.}
+Re-weighting fixes the measure, not the representation: both grid arms are still
+scored on $r128$ fields, and a method that is right at sub-grid scales earns no credit
+under either weighting. Resampling the \emph{rasterised ground truth} back at the native
+cloud nodes measures what the representation costs before any model is involved. That
+round-trip error exceeds Transolver's own per-node error by $\mathbf{413\times}$ pooled
+over the scored crop and by $\mathbf{495\times}$ inside $0.005c$---the band holding $43\%$
+of the dataset's nodes. An $r128$ field metric on AirfRANS is a measurement of far-field
+skill, for the surrogate as much as for the interpolator, and we read every grid table in
+this paper that way. The same fact rescues the baseline from the charge that we crippled
+it: the published $r128$ interpolation output, resampled at those nodes, scores $400$ on
+$u$ against the native construction's $98$, so the grid protocol was costing the
+\emph{interpolator} $4.1\times$ on $u$ and $69.9\times$ on $p$. We gave it the better
+representation and it still lost.
+
+\paragraph{Where each method's error lives separates by three orders of magnitude.} What the two arms
+do separate, sharply and by three orders of magnitude, is the spatial distribution of their
+error---and this is the one finding both measures agree on. On the grid, band by band
+outward from the wall, the ratio of interpolation error to Transolver error on $u$ runs
+$\mathbf{906\times}$ / $74\times$ / $30\times$ / $5.3\times$ / $0.57\times$ / $0.56\times$
+/ $\mathbf{0.31\times}$: monotone across all seven bands, a span of $2905\times$, no
+inversions, and $71.9\%$ of Transolver's own squared $u$ error beyond $0.5c$ against the
+interpolator's $3.6\%$. At the native nodes the same ladder runs $173\times \to 3.8\times$
+on $u$, $167\times \to 0.057\times$ on $v$ and $5.4\times \to 0.0038\times$ on $p$, with a
+$4060\times$ surface-node row the grid cannot represent at all. The two ladders agree on
+the separation and its size and \emph{disagree on the sign of the far-field $u$ entry}; we
+report both pre-registered verdicts, \textsc{confirmed} on the grid and \textsc{partial} at
+the nodes, and say in \autoref{sec:interp} why we cannot yet decompose the disagreement.
+The interpolator's own side of the boundary is sharp under either: \textbf{$92\%$ of its
+$u$ error and $90\%$ of its $v$ error lie within $0.02$ chord of the wall}---$0.5\%$ of
+cells, thinner than one grid spacing---while \textbf{$98.7\%$ of the domain}, everything
+beyond $0.05$ chord, is reproduced at $R^2\ge0.9996$ \emph{on the $r128$ raster} with no
+learning at all. A frozen
+ladder to $256^2$ and $512^2$ leaves the domain fraction, the $R^2$ floor and the
+outer-region error unmoved but eases the near-wall shares to $88\%$/$84\%$, because the
+near-wall error itself falls $45\%$; the pre-registered rule reads that easing as
+\textsc{partial} and we report it as such.
+
+\paragraph{What a surrogate-side physics residual can and cannot do.} The obvious response
+to a broken field metric is to fix it with physics: score a surrogate by how well its field
+satisfies the governing equations. A deployed surrogate cannot afford the solver that
+produced its labels, so any such check must monitor a cheaper, different operator---and we
+measure what that substitution costs. On $200/200$ real AirfRANS cases the monitored
+residual of the \emph{exact} field is substantially nonzero while a physically wrong
+uniform freestream scores an exact zero, and descending that residual from the exact ground
+truth drives the field error up on $200/200$ cases (\autoref{sec:residual}). The boundary
+is the operator, not the problem class. We report this because it bounds a repair a reader
+will reach for, not because it is the headline; the full theorem and control set are
+deferred to a companion paper.
+
+\paragraph{The gap this fills.} The claim is narrow and we state it as such. Across
+AirfRANS \citep{bonnet2022airfrans}, its Transolver lineage
+\citep{wu2024transolver,luo2025transolverpp}, the subsequent architecture surveys
+\citep{scherz2026evaluation,rigotti2026gist} and the aerodynamic benchmarks that followed
+\citep{ahmedml2024,elrefaie2024drivaernet}, we find \emph{no published
+parameter-space interpolation baseline for AirfRANS field metrics, and no statement in any
+of them of the cell weighting their volume averages use}. The nearest occupant of the
+first gap is DrivAerNet++, which does report an AutoML tabular baseline on its $26$ design
+parameters \citep{elrefaie2024drivaernet}---so the broader claim that nobody publishes
+parameter-space baselines is false, and we do not make it. What survives is that theirs is
+an $R^2$-on-magnitude comparison on integrated coefficients rather than a field one, and
+that the same group's follow-on architecture benchmark drops it. The benchmark's own
+authors, meanwhile, already located the failure mode without quantifying it: they conclude
+(their page 8) that ``the models have difficulties to predict the wall shear stresses as
+the velocity values at the closest nodes from the geometry are often largely
+overestimated'', which ``particularly affects the accuracy of the drag coefficient''
+\citep{bonnet2022airfrans}. This paper supplies the measurement---the same observation
+from the opposite direction, that near the wall is the \emph{only} place learning helps,
+and that the protocol reporting it cannot see there.
+
+\subsection{Contributions}
+
+The findings above are the contributions, and the paragraphs that state them carry
+their numbers; we do not restate them here. What each adds beyond the headline number is:
+
+\begin{enumerate}
+\item \textbf{A head-to-head at native resolution, a closed bound on the baseline's whole
+family, and the removal of the mechanism behind it (headline, \autoref{sec:interp}).} The comparison is run where the data lives,
+with no raster in the path and both arms gated against their published rows---the
+interpolation arm reproduces its weight matrix to $1.6\times10^{-8}$ relative, the
+surrogate arm reproduces the deployed backbone at relative error exactly $0.00\mathrm{e}
+{+}00$. The rule was committed before the first number existed and returned
+\textsc{not-competitive-at-native} on all three of $u,v,p$ at once. The oracle and
+least-squares controls then close the standing escape---``re-select its
+hyperparameters on the node measure''---by bounding what \emph{any} weighting of the $800$
+training fields can achieve at the wall, with no free parameters at all. That bound holds
+\emph{in physical coordinates}, and the paper's own mechanism section says why: the
+misalignment it measures is a statement about coordinates. So we removed it. Re-posing the
+identical family in a wall-following frame---parameter-free, nothing retuned, both arms
+scored on the same nodes in the same run---takes the bound from $25\times$ to
+$0.0044\times$, better on every one of the $200$ cases. \textbf{The near-wall gap is an
+artifact of the frame}, and the contribution is the pair: a mechanism proposed from
+measurement, then removed, with the effect disappearing.
+
+\item \textbf{The aggregate field ranking is a property of the measure, not of the methods
+(\autoref{sec:interp}).} It is not a stable quantity in either direction: across five
+discretisations of the node measure $\texttt{mse\_p}$ ranges over $[0.43,1.61]$ against
+$8.39$ area-uniform and $0.21$ per node, with no construction leaving the interpolator an
+aggregate win. The re-weighting is conservative---grid binning cannot place node mass
+inside a sub-cell band, and solid-binned wall nodes are dropped---so the true node measure
+is more adverse to it than the number we quote.
+
+\item \textbf{The $r128$ scoring raster is blind near the wall, and blindness is not
+neutrality (\autoref{sec:interp}).} The raster's own round-trip error at the native nodes
+exceeds the surrogate's per-node error by $413\times$ pooled and $495\times$ near the wall.
+We are precise about what that does and does not bound. A published $r128$ metric does not
+incur that error in full---it scores a rasterised prediction against a \emph{rasterised}
+truth, so the representation error partly cancels---and we therefore do \textbf{not} claim
+it bounds those numbers, ours included. What we do show is the more awkward thing: the
+projection can \emph{invert} a ranking rather than merely blur it. The far-field $u$ entry
+runs $3.2\times$ ahead of the surrogate on the grid and $3.8\times$ behind it at the nodes,
+and the raster's own cost there accounts for $1.27\times$ of that swing---far short of it.
+This is symmetric, a limit on what an $r128$ AirfRANS field metric resolves about any
+method, and it is why the head-to-head had to be re-run at native resolution rather than
+refined in place.
+
+\item \textbf{What a surrogate-side physics residual can and cannot do
+(\autoref{sec:residual}).} The universal form of the negative is about \textbf{iterate
+selection}---the residual-selected iterate is strictly worse than the error-optimal one in
+$24/24$ cases---and we explicitly do \emph{not} claim descent always harms. The boundary is
+the operator, not the problem class: where the monitored residual is the \emph{solver's
+own}, correction works \citep{lei2026newtonkrylov}.
+\end{enumerate}
+
+Every decision rule above was registered in a script docstring and committed before the
+run it governs, with each recorded amendment named and scoped where it applies. We are
+explicit throughout about what is \textbf{measured} versus \textbf{assumed}. The software
+that produces all of it is released as a CPU-first open-source package
+(\texttt{neuroforge-cfd}) with a frozen I/O contract, an AirfRANS loader and a
+per-claim reproduction map, so every number here runs from a committed script.
+
+\section{Related Work}
+
+\paragraph{Neural operators and physics-attention surrogates.} Fourier Neural Operators
+learn a resolution-agnostic mapping between function spaces by parameterising a global
+convolution in the spectral domain \citep{li2021fno}; Geo-FNO \citep{li2022geofno} extends
+this to irregular geometries. DoMINO \citep{ranade2025domino} is a decomposable
+multi-scale point-cloud operator for external aerodynamics, and Transolver
+\citep{wu2024transolver} replaces quadratic attention with attention over learnable
+\emph{physics slices}, giving linear cost and strong accuracy; Transolver++
+\citep{luo2025transolverpp} scales it to million-scale meshes. We use Transolver as the
+learned arm throughout, because it predicts at arbitrary query points and can therefore be
+scored on the native cloud without a raster---the property the head-to-head needs.
+``SOTA'' here means its standing as a published state-of-the-art architecture at the time
+of our experiments (ICML 2024); an independent 2026 benchmark still places
+Transolver(++) among the strongest aerodynamic surrogates \citep{scherz2026evaluation},
+while newer architectures have since advanced the AirfRANS accuracy frontier
+\citep{rigotti2026gist}. Our object is the measurement, not the architecture, and nothing
+here is a competitiveness claim for or against any of them.
+
+\paragraph{Learned solver-correctors and the ``fixer'' premise.} Several lines of work
+use the discretised residual or a coarse-solution error as a \emph{correction objective}:
+learned PDE solvers with convergence guarantees \citep{hsieh2019neuralpde},
+deep-equilibrium operators for steady PDEs \citep{marwah2023fnodeq}, iterative refiners
+\citep{lippe2023pderefiner}, learned residual-error correctors
+\citep{learned2023residualcorrection}, training-free correction on the PDE residual at
+each rollout step \citep{huang2025physicscorrect}, and PINNs \citep{raissi2019pinn}, which
+embed the residual in the training loss. Our contribution to this line is to test the
+premise head-on and find it does not hold in the deployment-realistic regime: descending
+$J=\tfrac12\|R_h\|^2$ from the exact ground truth drives the field error up on $200/200$
+cases (\autoref{sec:residual}). The prior successes and this negative are consistent, and
+what separates them is the \emph{operator}, not the problem class. Residual-driven
+correction works where the monitored residual is the solver's own, hence (near-)exact at
+the true solution---including on steady CFD, where a Newton--Krylov correction lowers the
+residual by seven orders of magnitude \emph{while} reducing field and aerodynamic error
+\citep{lei2026newtonkrylov}---so the boundary is demonstrably not steady versus transient.
+It fails where the monitor is instead a surrogate-side operator that a deployed system can
+afford, inconsistent with the one that produced the labels.
+
+\paragraph{Residual-based, data-free error signals.} A related line reads the PDE residual
+as a reference-free error indicator, which is the repair \autoref{sec:residual} tests. The
+classical answer is that residual magnitude becomes an error estimate only when weighted by
+an adjoint solution \citep{beckerrannacher2001dwr}, and its neural analogue bounds a PINN's
+true error by its residual scaled by a stability constant
+\citep{hillebrecht2025posteriori}; \citet{mukherjee2026certification} prove the
+corresponding convergence statement under additional compactness assumptions. All three
+are conditional on the residual vanishing at the exact solution---the condition an
+affordable surrogate-side monitor does not meet, which is what we measure.
+
+\paragraph{Benchmarks, and what they compare against.} AirfRANS
+\citep{bonnet2022airfrans} provides $\sim 1000$ incompressible steady-RANS simulations
+over NACA airfoils, distributed as unstructured point clouds with \texttt{full},
+\texttt{scarce}, \texttt{reynolds} and \texttt{aoa} splits. Its reported field entries---and
+those of the Transolver lineage \citep{wu2024transolver,luo2025transolverpp} and subsequent
+surveys \citep{scherz2026evaluation,rigotti2026gist}---are compared against one another and
+against earlier learned models, never against a model of the design parameters that index
+the cases; and none of them states the cell weighting under which its volume averages are
+taken. The same holds of the aerodynamic benchmarks that followed
+\citep{ahmedml2024}, with the one partial exception already stated: DrivAerNet++'s AutoML
+tabular baseline on its $26$ design parameters \citep{elrefaie2024drivaernet}.
+
+\paragraph{Evaluation and reporting standards in ML for PDEs.} A parallel line asks
+whether the reported gains in this field mean what they appear to mean.
+\citet{mcgreivy2024weak} find that $60$ of $76$ surveyed ML-for-PDE papers compare against
+a weak baseline, and identify outcome-reporting bias as systematic rather than
+occasional. Our result is an instance of exactly that failure mode, made concrete on one
+benchmark and with a constructive replacement: a baseline that runs in fifteen minutes of
+CPU time, and a protocol under which the comparison is decidable at all. We do not claim
+published AirfRANS results are wrong. We claim they have been read against a missing
+reference point, through a representation that cannot resolve the region where the
+difference between the methods lives.
+
+\paragraph{Simple-baseline audits: the lineage our reference point belongs to.}
+The control is not a new kind of instrument. In natural-language inference,
+\emph{partial-input} baselines that discard the premise recover much of the label and
+revised what those benchmarks were taken to measure
+\citep{poliak2018hypothesis,gururangan2018artifacts}. In graph classification,
+\citet{errica2020fair} showed by comparison against \emph{structure-agnostic} baselines
+that on several benchmarks structural information was not yet being exploited---substitute
+\emph{geometry} for \emph{structure} and that is the sentence we are testing here. In
+recommendation, \citet{dacrema2019progress} found most reproducible neural methods matched
+by nearest-neighbour or linear models. The genre has since reached the natural sciences:
+\citet{ahlmanneltze2025deep} report that no tested deep or foundation model for
+gene-perturbation effects \emph{yet} outperforms deliberately simple linear baselines.
+\citet{feng2019misleading} supply the standing caveat on the instrument and we honour its
+direction: a cheap baseline that succeeds shows a benchmark is cheatable, while a cheap
+baseline that fails licenses nothing about how hard the benchmark is. That caveat is
+load-bearing here, because at native resolution our cheap baseline \emph{fails}---so the
+weight of this paper rests not on the baseline beating anything but on what its failure
+localises, and on the three ways the grid protocol hid that localisation. One structural
+difference from the partial-input line is worth stating precisely. A partial-input baseline
+consumes a subset of what the model consumes; the design vector we read off the case name
+is, for the most part, not an input to any AirfRANS surrogate---it is the low-dimensional
+code that \emph{generated} the geometry, published in the file name. AirfRANS is a hybrid
+case and we flag it as such: $U$ and $Re$ are literally input channels, while the NACA
+digits enter the surrogate only through the \texttt{sdf} they generate. Framed generally,
+the question is how much usable information a benchmark's own published metadata carries
+about its headline label \citep{ethayarajh2022vusable}; we answer it in the benchmark's own
+currency---volume MSE---rather than as an information-theoretic quantity.
+
+\paragraph{The estimator is decades old, and we say so first.} Gaussian kernel ridge
+regression over a handful of design variables is Kriging in all but name, and fitting
+response surfaces over design variables has been standard practice in aerodynamic design
+since long before this benchmark existed \citep{queipo2005surrogate}. We therefore claim no
+novelty for the estimator; an aerodynamicist should read \autoref{sec:interp} as
+response-surface methodology used as a benchmark control, not as a new method.
+What is new is the measurement---what the omission of that estimator from this benchmark's
+reporting conceals, and where the surviving gap lives. That is also the cleanest statement
+of how this work extends the closest prior art in our own subfield:
+\citet{mcgreivy2024weak} showed that the field compares against weak \emph{numerical}
+solvers; we show that it does not compare against a trivial \emph{statistical} baseline at
+all, and we measure how much that conceals. The protocol we recommend is likewise not an
+invention but an import. Data-driven weather forecasting already mandates trivial controls
+of exactly this kind, reporting persistence and climatology alongside every model in its
+headline scorecard \citep{rasp2024weatherbench2}; external-aerodynamics benchmarking does
+not.
+
+\subsection{Positioning}
+
+This work sits in the evaluation line rather than the architecture line, and its object is
+a discretisation. Its primary contribution is a measurement of what the standard scoring
+path costs: a non-learned reference point for AirfRANS field metrics, run once through the
+published raster and once at the dataset's own resolution, and the three quantities that
+separate the two readings---the cell weighting, the representation ceiling, and the
+wall-distance distribution of each method's error. The positive result is what survives
+all three, and it is a negative about the protocol rather than a ranking of methods: the
+near-wall separation that the published path reports is a property of the coordinate
+system the baseline is posed in, and it disappears when that is changed without touching
+the models. The
+secondary contribution is an audit of the repair a reader will reach for---score the field
+by its PDE residual instead---whose organising question is not which features a system has
+but whether the residual it drives is the \emph{same discrete operator} that produced its
+reference data. Where it is, residual-driven correction works and is already demonstrated
+\citep{lei2026newtonkrylov}. Where an affordable surrogate-side proxy stands in for it, the
+truth itself fails the check. We claim no novelty for either estimator we use; what is new
+is the measurement, and the protocol it forces.
+
+\section{Method}
+\label{sec:method}
+
+This section defines only the two objects later sections measure: the fixed channel
+contract every arm is encoded into, and the discrete residual operator
+\autoref{sec:residual} audits. Implementation details, the module map and the synthetic
+zero-download data generator are in the released package and its
+\texttt{docs/REPRODUCE.md}; no quantitative claim in this paper uses synthetic data.
+
+\subsection{Geometry encoding and the monitored operator}
+
+A \texttt{FlowCase} is encoded into a fixed channel-first stack $x \in
+\mathbb{R}^{7\times H\times W}$ in the frozen \texttt{INPUT\_CHANNELS} order
+$(\texttt{sdf}, \texttt{mask}, x, y, u_{\text{in}}, v_{\text{in}}, \log\text{Re})$; the
+backbone outputs \texttt{OUTPUT\_CHANNELS} $(u, v, p, \nu_t)$, where $p$ is the
+\textbf{kinematic} pressure $p/\rho$. Fixing this contract is what makes the backbones
+interchangeable and the residual monitor below backbone-agnostic.
+
+The verifier evaluates the steady, incompressible, 2-D RANS equations in primitive form
+on the \textbf{physical (denormalised)} fields, with effective viscosity
+$\nu_{\mathrm{eff}} = \nu + \nu_t$, pointwise:
+\begin{align}
+\text{continuity:}\quad & r_c = \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y}, \\
+\text{$x$-momentum:}\quad & r_x = u\,\frac{\partial u}{\partial x} + v\,\frac{\partial u}{\partial y} + \frac{\partial p}{\partial x} - \nu_{\mathrm{eff}}\,\nabla^2 u, \\
+\text{$y$-momentum:}\quad & r_y = u\,\frac{\partial v}{\partial x} + v\,\frac{\partial v}{\partial y} + \frac{\partial p}{\partial y} - \nu_{\mathrm{eff}}\,\nabla^2 v.
+\end{align}
+Because $p$ is kinematic, no explicit density appears. \textbf{The turbulence term is
+live}: over the fluid cells of the 200-case AirfRANS test split the eddy viscosity
+averages $\nu_t = 8.2\times10^{-5}$ against a laminar $\nu = 1.56\times10^{-5}$, so
+$\nu_t\approx5.2\,\nu$ supplies $\approx84\%$ of $\nu_{\mathrm{eff}}$ and the monitored
+operator is a genuine RANS residual. The channel is learned, backbone-dependently: against
+$\nu_t$'s own fluid-masked variance, $R^2 = 0.996$ on the grid backbone and
+$0.67$--$0.70$ on MeshGraphNet (\texttt{scripts/check\_nut\_learned.py}). What the
+operator omits is the spatially varying term $\nabla\nu_t\!\cdot\!\nabla u$. Derivatives
+use central finite differences with one-sided stencils at the borders; residuals are
+zeroed inside the solid. A boundary-condition violation map $r_{bc}$ adds a
+\textbf{no-slip} term penalising velocity magnitude in the thin fluid band adjacent to the
+wall (weighted by $\exp(-|\mathrm{sdf}|/\ell)$, $\ell\approx3$ cells) and a
+\textbf{far-field} term penalising deviation from $(u_\infty, v_\infty)$ on the outer
+border ring.
+
+\paragraph{Two implementation facts that bear on later claims.} \emph{(i) The monitor
+discards its own strongest no-slip cells}, because a central stencil on the fluid ring
+adjacent to the solid reaches into the $u=v=0$ discontinuity; the masking is necessary but
+removes a mean $46\%$ (range $35$--$51\%$) of the squared no-slip penalty---an unlogged
+spot check over $8$ cases, which we report as such---precisely where the proximity weight
+is largest. \emph{(ii) There are two Laplacian stencils in this pipeline.} The numpy
+monitor whose numbers we report uses the compact three-point form; a differentiable twin
+used elsewhere in the package uses a repeated first difference, which is wider and
+annihilates the period-2 mode the compact form sees. Where the choice could have mattered
+most, in the descent experiment of \autoref{sec:residual}, we check both operators
+explicitly and both fall together in $24/24$ cases.
+
+\section{Experiments}
+\label{sec:experiments}
+
+All quantitative results are on \textbf{real AirfRANS}. Three measures appear in this
+paper and we name each one every time it is used, because the whole result is that they
+disagree. \textbf{(i) Area-uniform $r128$}: the AirfRANS community protocol
+(\texttt{evaluate\_cases}), per-channel volume MSE over the fluid cells of the
+$128^2$ crop with every cell weighted equally, plus surface-pressure MSE on the body. This
+is what published field tables report and it is the measure of every grid table here.
+\textbf{(ii) Node-weighted $r128$}: the identical cells and the identical errors, each cell
+weighted by the number of native cloud nodes that bin to it (\autoref{tab:measure}).
+\textbf{(iii) Per node on the native cloud}: no raster anywhere, each of the
+$35\,849\,332$ test nodes counted once (\autoref{tab:native}). Force columns, where they
+appear, are relative errors against the force integrated from the \emph{rasterised
+ground-truth field} through the same grid integrator---a field-to-field consistency valid
+for ranking arms, not agreement with AirfRANS's official labels, and
+\autoref{sec:forces} states what that integrator can and cannot see. The $\nu_t$ channel is
+omitted from the force-bearing tables because its raw MSE is not comparable to the others;
+it is reported in the two head-to-head tables, where it matters.
+
+The learned arm is a Transolver ($7.35$M parameters) trained on AirfRANS \texttt{full}
+($800$ train / $200$ test, $80$ epochs, per-point standardised MSE over a uniform
+subsample of each case's own cloud), reported as the mean over its three deployed seeds
+with per-seed values given wherever a verdict could turn on them. That training subsample is
+drawn uniformly over nodes, which is the same measure the native head-to-head scores on, so
+whatever accuracy it costs the surrogate is paid under precisely the measure it is later
+judged by: the native-resolution margins are a floor on the gap, not a point estimate of
+it. Both arms in every
+head-to-head are gated against their published rows before any new number is computed, and
+each gate is named where it is read.
+
+\subsection{What a surrogate buys, and the measure that decides the ranking}
+\label{sec:interp}
+
+AirfRANS indexes every case by a short design vector that the dataset's own file name
+prints and its own loader parses: the fields of
+\texttt{airFoil2D\_SST\_U\_alpha\_digits} are the inlet velocity, the angle of attack
+and the four NACA digits, and \texttt{Simulation.reset()} reads the first two directly
+off the name. Before asking how well a neural operator predicts these flows, we ask what
+that index alone already determines.
+
+\paragraph{The baseline.} From the name alone we build seven analytic scalars---inlet
+velocity $U$, geometric incidence $\alpha$, NACA maximum thickness $t_{\max}$,
+thin-airfoil effective incidence $\alpha-\alpha_{0L}$, and the camber line at
+$x/c\in\{0.25,0.5,0.75\}$---and interpolate the \emph{nondimensional} field
+$(\hat u,\hat v,\hat p,\hat\nu_t)=((u-U\cos\alpha)/U,\,(v-U\sin\alpha)/U,\,p/U^2,\,
+\nu_t/(Uc))$ across training cases with Gaussian kernel ridge regression,
+redimensionalising with the test case's own $(U,\alpha)$. There is no network, no
+geometry encoder and no flow-field learning; fitting is one $800\times800$ Cholesky
+solve and prediction is one GEMM. The estimator is deliberately old---this is
+response-surface methodology, and Gaussian kernel ridge over design variables is Kriging
+in all but name \citep{queipo2005surrogate}---so the claim we make is for the measurement,
+not for the method. Hyperparameters come from 5-fold cross-validation
+\emph{inside} the train split on a scalar registered before any number existed, applied
+to test once. Scoring is byte-identical to the surrogates': the same cached rasterised
+pairs at $128^2$, the same \texttt{evaluate\_cases}, the same mask, surface sampler and
+force integrator, with \texttt{sdf} and \texttt{mask} rebuilt from \texttt{case.geometry}
+exactly as the Transolver adapter does
+(\texttt{scripts/parameter\_interpolation\_baseline.py},
+\texttt{results/interpolation/interp\_full.json}). The input asymmetry runs
+\emph{against} the baseline: the surrogates receive the full $7$-channel geometry and
+freestream encoding per case, the interpolator receives seven scalars.
+
+The \emph{objective} asymmetry runs the other way, and it is large enough to decide the
+comparison. The interpolator is selected by cross-validation on the area-uniform grid
+measure the published tables report; the surrogate minimises a per-point loss under the
+dataset's own node distribution, which places $55.5\%$ of its nodes inside $0.02c$ against
+$0.51\%$ of the raster's cells---a factor of $109.5$, rising to $312\times$ inside $0.005c$
+and inverting to $0.14\times$ beyond $0.5c$. One arm is therefore tuned on the scoreboard
+and the other is not, so we report the head-to-head under all three measures of
+\autoref{sec:experiments} and lead with the one that has no raster in it at all:
+\autoref{tab:native} scores both arms per node on the native cloud, \autoref{tab:interp}
+gives the published area-uniform grid comparison, and \autoref{tab:measure} re-weights that
+grid comparison by node count without changing a single prediction.
+
+\paragraph{The head-to-head with no raster in it, and the interpolator loses every
+channel.} The published interpolant is a weight matrix over the $800$ training cases
+applied to the nondimensional field and redimensionalised with the test case's own
+$(U,\alpha)$; the weights depend only on the seven name-parsed scalars, so nothing about
+them is grid-specific. What is grid-specific in the published run is the
+\emph{representation} of the fields being combined. We therefore evaluate the identical
+estimator with each training field carried on \textbf{its own native cloud}, by the same
+Delaunay-barycentric interpolant the loader uses to build every rasterised pair in this
+project, and query it at the test case's own nodes; the Transolver is evaluated at those
+same nodes directly, which is where it natively predicts. No new numerical operator enters
+the comparison and neither arm meets a grid
+(\texttt{scripts/point\_space\_headtohead.py};
+\texttt{results/interpolation/point\_space\_headtohead.json}). Two gates make this the
+published pair rather than a re-implementation: the rebuilt weight matrix reproduces
+\texttt{interp\_full.json} to $1.8\times10^{-10}$/$2.4\times10^{-9}$/$1.6\times10^{-8}$
+relative on $u/v/p$ (\textbf{G1}), and the point-space Transolver reproduces the deployed
+backbone's own per-band per-node MSE at relative error exactly $0.00\mathrm{e}{+}00$ on all
+three seeds, all four channels and all seven bands (\textbf{G2}).
+
+\textbf{The interpolator loses on all four channels} (\autoref{tab:native}):
+$144\times$ on $u$, $134\times$ on $v$, $4.85\times$ on $p$ and $18.3\times$ on $\nu_t$,
+and $24.7\times$ over $u,v,p$ in standardised units. The pre-registered rule---$R_c>2$ on
+all three of $u,v,p$---returns \textsc{not-competitive-at-native}, and it fires with room
+to spare on two of them. This is not a seed artifact ($R_u$ $147.3/141.0/144.4$, $R_p$
+$5.23/4.17/5.34$) and not a few-case artifact: paired per case, the surrogate is better on
+$200/200$ cases on $u$, $v$ and $\nu_t$ and on $142/200$ on $p$ (one-sided binomial
+$p=1.3\times10^{-9}$; per-case $R_p$ median $2.21$, p10 $0.44$, p90 $9.2$). Nor does it
+depend on the one genuinely arbitrary choice in the construction. In-body queries---the
+test nodes that fall inside a \emph{training} airfoil---admit two conventions, and the rule
+reads the better of the two per channel, which on $p$ is a $28\%$ gift to the interpolator
+($41\,740$ against $58\,020$, moving $R_p$ from $6.74$ to $4.85$). Dropping the $201\,444$
+surface nodes where that convention is most arbitrary leaves $R_u$ $138.5$, $R_v$ $126.1$,
+$R_p$ $\mathbf{5.08}$---the headline channel gets \emph{worse} for the interpolator
+without them.
+
+\begin{table}[t]
+\centering
+\small
+\caption{\textbf{The head-to-head at native resolution}: per-node MSE against the native
+AirfRANS targets, all $200$ \texttt{full} test cases, $35\,849\,332$ nodes, \emph{no
+rasterisation anywhere in the comparison path}. Both arms are the published rows---the
+interpolation weight matrix reproduces \texttt{interp\_full.json} to $\le1.6\times10^{-8}$
+relative (\textbf{G1}) and the Transolver reproduces the deployed backbone's per-node band
+MSE at relative error $0.00\mathrm{e}{+}00$ (\textbf{G2}); Transolver is the mean over its
+three deployed seeds, with per-seed ratios $141$--$147$ / $129$--$142$ / $4.2$--$5.3$ on
+$u/v/p$. The interpolator is given the better of two in-body conventions on each channel.
+Paired per case, Transolver wins $200/200$ on $u$, $v$ and $\nu_t$ and $142/200$ on $p$.
+\textbf{The two memo rows show that the grid protocol was costing the \emph{interpolator}}
+$4.1\times$ on $u$ and $69.9\times$ on $p$: its published $r128$ output, resampled at these
+same nodes, is barely distinguishable on $p$ from the raster's own model-free round-trip
+error, so the native construction favours the baseline rather than handicapping it. (Memo
+rows are in-crop pooled, the only region the bilinear sampler reports without clamp
+contamination.) Source: \texttt{results/interpolation/point\_space\_headtohead.json},
+rules \textbf{P1}--\textbf{P4} committed in \texttt{a54cb75} before any number existed.}
+\label{tab:native}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l r r r r}
+\toprule
+per-node MSE, native cloud & $\texttt{mse\_u}$ & $\texttt{mse\_v}$ & $\texttt{mse\_p}$ & $\texttt{mse\_nut}$ \\
+\midrule
+parameter interpolation @ native nodes & $93.11$ & $66.52$ & $41\,740$ & $6.92{\times}10^{-7}$ \\
+Transolver @ native nodes, 3 seeds & $\mathbf{0.6458}$ & $\mathbf{0.4968}$ & $\mathbf{8605}$ & $\mathbf{3.79{\times}10^{-8}}$ \\
+\midrule
+\textbf{ratio (interp\,/\,Transolver)} & $\mathbf{144.2}$ & $\mathbf{133.9}$ & $\mathbf{4.85}$ & $\mathbf{18.3}$ \\
+\midrule
+\emph{memo:} published $r128$ interpolation, resampled at these nodes & $400.2$ & $189.7$ & $3.06{\times}10^{6}$ & $2.08{\times}10^{-6}$ \\
+\emph{memo:} the $r128$ raster's own round-trip error, no model & $281.5$ & $272.6$ & $3.01{\times}10^{6}$ & $1.54{\times}10^{-6}$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{The obvious escape is closed, and closed for the whole family.} The standing
+reply to a losing baseline is ``re-select its hyperparameters on the measure you are
+scoring it under''. We bound what that can buy, with no free parameters at all. First, an
+\emph{oracle}: for each test case and band, the single best of the $800$ training fields,
+chosen knowing the test answer. Inside $0$--$0.005c$ it scores $397.7$ on $u$ against
+Transolver's $1.158$---a factor of $\mathbf{343.6}$, against a pre-registered threshold of
+$10$ (\textsc{no-parameter-combination}). We state the weakness of that instrument before a
+reviewer does: a minimum over \emph{single} fields is not a lower bound on linear
+\emph{combinations} of them, and in that innermost band the fitted combination indeed beats
+the oracle ($200.3$ against $397.7$), because averaging misaligned profiles cancels
+variance. So we compute the bound that does hold. Because the published weights sum to one,
+redimensionalisation commutes with the combination, and the estimator's prediction lies in
+the \emph{span} of the $800$ redimensionalised single-field predictions at the test nodes.
+The unconstrained least-squares projection of the true field onto that span, computed per
+band per case with the test answer in hand, is therefore a genuine lower bound on what
+\emph{any} weighting of those fields---any kernel, any bandwidth, any ridge, any selection
+measure, convex or not---can achieve at those nodes. Inside $0$--$0.005c$ on $u$ it is
+still $\mathbf{25.0\times}$ Transolver's band error, returning the pre-registered
+\textsc{family-bound-closed}. It ran first on three cases ($21.3\times$) and then, under
+amendment 3, on all $200$ ($25.0\times$); we report both because the estimator rising
+slightly when the sample grew by $67\times$ is a stronger statement than either number
+alone. Neither threshold nor rule moved between the two runs, and the $n=200$
+implementation was required to reproduce the frozen $n=3$ artifact before it was allowed
+to compute anything---it did, to a worst relative difference of exactly
+$0.00\mathrm{e}{+}00$ (gate \textbf{G7}).
+
+The verdict is not carried by a tail. Across the $200$ cases the ratio of means is
+$25.00$, the mean of ratios $25.00$, the node-weighted pooled ratio $25.04$ and the median
+$19.8$; $161$ cases clear the threshold of $10$ on their own and exactly one falls at or
+below $1$ ($p_{5}$ $4.7$, $p_{95}$ $62.6$). These four estimators were named in the
+amendment before the run precisely so that a verdict resting on a handful of cases would
+be visible rather than averaged away; it does not.
+\textbf{Scope, stated inline}: one channel, and the single band whose node count
+($73$--$82$k) far exceeds the $800$ free parameters of the projection, which is the only
+band where the quantity is a bound rather than an interpolation
+(\texttt{results/interpolation/point\_space\_oracle\_ls\_n200.json}). The $343.6$ oracle
+is a $200$-case number too, and remains a minimum over \emph{single} fields rather than a
+bound on their combinations.
+
+\paragraph{The mechanism, measured rather than argued.} Parameter interpolation combines
+fields in \emph{physical} coordinates, and a test node at wall distance $d_t$ sits at some
+other wall distance under every training geometry. Weighting by $|W|$ over all $800$
+training cases: inside $0$--$0.005c$---where $41\%$ of every AirfRANS cloud lives---a query
+at a mean $0.00094c$ off its own wall lands on average $0.0073c$ from the training case's
+wall, $\mathbf{7.8\times}$ further away than the boundary-layer position it is trying to
+sample, and $\mathbf{35\%}$ of the weight mass lands \emph{inside} the training airfoil
+altogether. The $0.0234c$ raster hid this by averaging over it. No extrapolation is
+involved---the mass falling outside any training hull is $0$ in every band but the
+outermost, where it is $0.094\%$---so neither trigger of the pre-registered inconclusive
+rule fires and no band is \textsc{inconclusive}.
+
+\paragraph{Removing the mechanism removes the gap.} That diagnosis is a statement about
+coordinates, so it makes a prediction: pose the same family in a wall-following frame and
+the gap should go. An earlier version of this paper declined to build that arm, on the
+grounds that it would need a blend length scale and an arc-length correspondence with no
+published provenance. We built it, and both objections turn out to be about the far field,
+which is not where the claim lives. Restricted to the near-wall strip the frame is
+parameter-free: $n$ is the wall distance the dataset already carries, and $s$ is arc length
+from the leading edge along each surface chain, split by the sign of the surface normal and
+ordered by $x$, in chord units and unrescaled against $n$. Nothing is selected or tuned, and
+the same construction runs on the training and the test section.
+
+The result is the pre-registered \textsc{body-fitted-bound-open}, and it is not close:
+the same least-squares bound over the same $800$ fields falls from $25\times$ to
+$\mathbf{0.0044\times}$ Transolver's band error, and it is \textbf{better on $200$ of $200$
+cases}, with the body-fitted bound at $\mathbf{1.8\times10^{-4}}$ of the physical one on the
+same nodes. The verdict carries no tail: mean-of-ratios $0.0044$, median $0.0022$, pooled
+$0.0045$, worst case $0.093$; zero cases clear $10$ and all $200$ fall at or below $1$
+(\texttt{results/interpolation/bodyfit\_bound.json}). Both arms are computed in one pass
+from one node array, so the coordinate map is the only difference between them, and the
+number to check first is clean: \textbf{the physical arm rescored on the restricted nodes
+gives $25.21\times$ against $25.0\times$ unrestricted}, so the restriction moved it by
+$0.8\%$ and manufactured nothing.
+
+The gain is not an artifact of the projection's $800$ degrees of freedom, because it
+appears with none. Taking the single best training field---no free parameters at all---the
+frame change moves the ratio from $346.9\times$ to $6.5\times$. Taking the \emph{published}
+weights with no refit it moves from $175\times$ to a median of $\mathbf{0.38\times}$, with
+$152/200$ cases beating Transolver near the wall. We state the weakness of that last figure
+in the same breath: its \emph{case-mean} ratio is $1.556\times$, i.e.\ worse than
+Transolver, because a minority of cases carry a heavy tail. \textbf{The coordinate-artifact
+finding therefore rests on the bound, which is unanimous, and not on the deployed
+estimator, which wins at the median only.} We do not claim the published estimator beats a
+trained surrogate at the wall; we claim no member of this family is barred from the wall by
+representation, which is what the bound establishes.
+
+\paragraph{What the frame costs, measured.} The blend the earlier objection named is real,
+and this is its size. A wall-normal coordinate does not exist wherever the
+nearest-surface projection lands on the end of a surface chain: behind a sharp trailing
+edge an entire wake fan projects onto one vertex, so distinct physical points receive
+identical $(s,n)$ and unrelated flow. Those nodes are $\mathbf{4.98\%}$ of the near-wall
+strip ($4.19$--$6.75\%$ across cases, $\approx5{,}474$ nodes per case) and they carry
+$99.99\%$ of the round-trip error of the frame. Excluded by membership rather than by
+distance---a node is dropped iff its nearest surface point is a chain endpoint, with no
+tolerance---the frame is exactly faithful: zero coordinate collisions among scored nodes
+(gate \textbf{GB2a}) and a worst round-trip of $2.1\times10^{-13}$ relative to each
+channel's spread, with not one node above $10^{-9}$ (\textbf{GB2b}). So a body-fitted
+parameter interpolator is buildable on $95\%$ of the near-wall region and undefined on the
+rest, which is a sharper statement than either refusing the arm or claiming it is free.
+
+The honest scope of the $25\times$ bound is therefore parameter interpolation of
+AirfRANS fields \emph{in physical coordinates}, which is what the published estimator does
+and what the response-surface literature does; a body-fitted parameter interpolator is a
+different method and we do not test it.
+
+\begin{table}[t]
+\centering
+\small
+\caption{\textbf{The same comparison on the published grid, where it reverses.} Parameter
+interpolation against the Transolver on AirfRANS \texttt{full} ($800$ train / $200$ test,
+$r128$, identical \texttt{evaluate\_cases}, 3 seeds where seeded), scored area-uniform.
+The force columns are mean relative error against the force integrated from the
+rasterised \emph{ground-truth field} through the same grid integrator---a field-to-field
+consistency measure, not agreement with the official AirfRANS labels---and
+$\rho_{C_l},\rho_{C_d}$ are the corresponding self-consistency correlations defined in
+\autoref{sec:experiments}. That integrator carries an ${\approx}11\times$ absolute drag
+bias even on exact fields and cannot see viscous drag (\autoref{sec:forces}), so these four
+columns rank arms against one another; they do not measure force accuracy. The
+last block is the floor ladder and the negative control; ``permuted'' predicts each test
+case from another case's parameters under a fixed derangement, everything else identical.
+The interpolator's $0$ parameters are not free: it carries the $800$ training fields
+($210$\,MB) resident at inference. Transolver's force-rank seed standard deviations are
+$0.0002$ ($\rho_{C_l}$) and $0.0012$ ($\rho_{C_d}$), kept out of the cells for width.
+\textbf{Bold marks the better arm under the area-uniform cell weighting these volume
+columns use, and every bolded interpolation cell is un-bolded by \autoref{tab:native}.}
+$\texttt{mse\_v}$ and $\texttt{mse\_p}$ carry no bold at all because their ordering already
+reverses under the dataset's own node measure on these same predictions
+(\autoref{tab:measure}).}
+\label{tab:interp}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l r r r r r r r r r}
+\toprule
+model & \texttt{n\_params} & $\texttt{mse\_u}$ & $\texttt{mse\_v}$ & $\texttt{mse\_p}$ & surf.\ $\texttt{mse\_p}$ & $\rho_{C_l}$ & $\rho_{C_d}$ & $C_l$ err & $C_d$ err \\
+\midrule
+Transolver & $7.35$M & $\mathbf{0.120{\pm}0.005}$ & $0.088{\pm}0.013$ & $628.5{\pm}29$ & $\mathbf{9110{\pm}500}$ & $0.9992$ & $0.9963$ & $5.81\%$ & $8.99\%$ \\
+\textbf{parameter interpolation (no learning)} & $0$ ($210$\,MB) & $0.782$ & $0.0336$ & $75.03$ & $10989$ & $0.9999$ & $0.9991$ & $\mathbf{1.18\%}$ & $\mathbf{2.39\%}$ \\
+\midrule
+\quad floor: $8$-NN, inverse distance & $0$ & $0.904$ & $0.143$ & $1145.5$ & $108022$ & --- & --- & --- & --- \\
+\quad floor: $1$-NN & $0$ & $1.415$ & $0.308$ & $2744.0$ & $192123$ & --- & --- & --- & --- \\
+\quad floor: train-mean field & $0$ & $11.01$ & $6.577$ & $57980$ & $2792467$ & --- & --- & --- & --- \\
+\quad floor: uniform freestream & $0$ & $26.01$ & $17.65$ & $151365$ & $4120337$ & --- & --- & --- & --- \\
+\quad control: permuted parameters & $0$ & $22.82$ & $14.36$ & $129622$ & $5939745$ & $0.345$ & --- & $365\%$ & $367\%$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{On the published grid the verdict inverts, and the inversion is a weighting.}
+Scored area-uniform on the $128^2$ raster the field tables are reported on, the same
+interpolator \emph{beats} the same Transolver on cross-flow velocity ($\texttt{mse\_v}$
+$0.0336$ against $0.088$, $2.6\times$) and on volume pressure ($\texttt{mse\_p}$ $75.0$
+against $628.5$, $8.4\times$). Re-weight the identical predictions on the identical cells
+by the number of native cloud nodes each cell contains---same truth, same fluid mask, same
+$200$ cases, same per-case-mean protocol, \emph{only the cell weights differ}---and both
+reverse: $\texttt{mse\_p}$ $6012$ against $2646$, a ratio of $0.44\times$ where it was
+$8.39\times$; $\texttt{mse\_v}$ $4.26$ against $0.282$, $0.066\times$ where it was
+$2.97\times$ (\autoref{tab:measure}). Before the re-weighting both arms reproduce their
+published rows to below one part in $10^{9}$, the Transolver arm exactly
+(\texttt{scripts/measure\_asymmetry.py} gates \textbf{G1}/\textbf{G2}). \textbf{One pair of
+predictions, one set of cases, three measures in current use, and the pressure ratio runs
+$8.39\times$, $0.44\times$, $0.21\times$.} The pre-registered rule \textbf{D3}, committed in
+\texttt{cdf08f5} before any of these numbers existed, reads a node-measure ratio at or below
+$1$ as \textsc{artifact}---\emph{the $8.4\times$ is a measure choice; say so plainly and
+withdraw it}. It returns $0.440$. \textbf{We withdraw it}: the $8.4\times$ is not a finding
+about the methods, we do not claim it as one, and it appears in this paper only as the first
+term of the reversal that retired it. What survives is what the rule was written to expose:
+the aggregate field ranking on this benchmark is not a property of the methods. The interpolator loses under
+\emph{every} measure on the streamwise channel ($\texttt{mse\_u}$ $0.782$ against $0.120$
+area-uniform, $30.7$ against $0.358$ node-weighted, $93.1$ against $0.646$ per node),
+marginally on surface pressure ($10989$ against $9110$, $1.21\times$), and on the closure
+($\texttt{mse\_nut}$ $14.4\times$ area-uniform, $9.2\times$ node-weighted, $18.3\times$ per
+node---the only channel whose margin narrows rather than reverses).
+
+Because \texttt{run\_baselines.py} trains on per-channel \emph{standardised} MSE over all
+four output channels, we report that metric too, so the comparison cannot be dismissed as
+scoring a model on something it was never trained for (\autoref{tab:interp_std}). Both of
+its means must be quoted together, and both are area-uniform: \textbf{over the three
+channels the tables report the interpolator is $1.9\times$ better, and over all four
+channels of the surrogate's actual loss the surrogate is $6.4\times$ better}, because
+$\nu_t$ dominates both models' standardised error and the interpolator cannot represent the
+closure at all. Recomputed from \autoref{tab:measure}'s own rows against the same
+$\mathrm{Var}_{\text{train}}$ divisors---which are common to both arms and so cancel in
+every ratio---the area-uniform pair is $1.99\times$ and $6.1\times$, differing from
+\autoref{tab:interp_std} only in the provenance of the Transolver row; the node-weighted
+pair reverses to $\mathbf{8.30\times}$ and $8.85\times$, and at the native nodes the
+three-channel mean is $\mathbf{24.7\times}$, all in the surrogate's favour. The force
+columns carry no cell weighting to change, so they are untouched by any of this---but they
+need their name said out loud, because it is not the name a reader supplies. They measure
+agreement with the force integrated from the rasterised \emph{ground-truth field} through
+the same grid integrator, so $4.9\times$ and $3.8\times$ are field-to-field consistency
+ratios and not better lift and drag; \autoref{sec:forces} states what that integrator can
+and cannot see. One tension we record without resolving: the interpolator is $1.21\times$
+\emph{worse} on surface-pressure MSE yet $4.9\times$ better on the lift column, which is an
+integral of that same surface pressure, so the two statistics must weight the body
+differently and we have not decomposed which cells drive each.
+
+\paragraph{``Weight by node count'' is not a single number, and none of its readings
+rescues the aggregate.} The node measure admits more than one discretisation, so we
+re-derive the same ratio under five of them from committed numbers, with no new inference
+(the \texttt{sensitivity} stage of \texttt{scripts/measure\_asymmetry.py}). On
+$\texttt{mse\_p}$ they span $[0.43,1.61]$ against $8.39$ area-uniform, and the endpoints
+are not equally credible. The two faithful cell-level estimators---sample the grid error
+field at each node, then average over nodes, pooled or per case---give $0.431$ and
+$0.440$; the coarse but internally consistent band-level construction gives $1.10$; the
+largest value, $1.61$, comes from the two constructions that pair true node masses with
+cell MSEs drawn from a different spatial set, which we report because they are what a
+reader would compute by hand from \autoref{tab:interp_bands} and because they are the
+least favourable to our own conclusion. \textbf{No construction leaves the interpolator an
+aggregate win}: the construction that reaches $1.61$ on $p$ is $551\times$ against it on $u$ and
+$24\times$ on $v$, and across all five node constructions $\texttt{mse\_u}$ runs
+$86$--$551\times$ against it and $\texttt{mse\_v}$ $6.3$--$24\times$. Two
+properties of the re-weighting run the same way. A $0.0234c$ cell cannot sit inside a
+$0.005c$ band, so the grid assigns only $0.098$ of the node weight to the innermost band
+against its true $0.432$, moving mass \emph{out of} the band where Transolver leads by
+$906\times$; and $13.4\%$ of in-crop nodes bin to cells the geometry mask calls solid and
+are dropped, those being the nodes nearest the wall. The true node measure is therefore
+more adverse to the interpolator than $0.440$, not less.
+
+\begin{table}[t]
+\centering
+\small
+\caption{The same runs in per-channel standardised MSE---each channel divided by its
+own train-set variance ($u$ $341.9$, $v$ $52.45$, $p$ $135590$, $\nu_t$
+$1.320{\times}10^{-6}$), which is the quantity the surrogates are trained on, with
+$\texttt{F\_OUT}=4$. The last two columns are the two means, and neither should be
+quoted without the other. Every cell here is \textbf{area-uniform}; the divisors are
+common to both arms, so the row ordering is the ordering of \autoref{tab:interp} and
+reverses with it under the node measure. Applying these same divisors to
+\autoref{tab:measure}'s rows gives $1.99\times$ and $6.1\times$ area-uniform and
+$8.30\times$ and $8.85\times$ node-weighted, both in Transolver's favour in the second
+case; at the native nodes of \autoref{tab:native} the three-channel mean is $24.7\times$
+in Transolver's favour.}
+\label{tab:interp_std}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l r r r r r r}
+\toprule
+model & std.\ $\texttt{mse\_u}$ & std.\ $\texttt{mse\_v}$ & std.\ $\texttt{mse\_p}$ & std.\ $\texttt{mse\_nut}$ & mean $u,v,p$ & mean $u,v,p,\nu_t$ \\
+\midrule
+Transolver & $3.51{\times}10^{-4}$ & $1.68{\times}10^{-3}$ & $4.64{\times}10^{-3}$ & $4.34{\times}10^{-3}$ & $2.22{\times}10^{-3}$ & $\mathbf{2.75{\times}10^{-3}}$ \\
+parameter interpolation & $2.29{\times}10^{-3}$ & $6.41{\times}10^{-4}$ & $5.53{\times}10^{-4}$ & $6.70{\times}10^{-2}$ & $1.16{\times}10^{-3}$ & $1.76{\times}10^{-2}$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\begin{table}[t]
+\centering
+\small
+\caption{\textbf{The ranking is the weighting.} The same $200$ test cases, the same
+rasterisation and fluid mask, the same predictions and the same per-case-mean protocol;
+\emph{only the cell weights differ}. ``Area-uniform'' gives every fluid cell equal weight,
+which is what \autoref{tab:interp} reports. ``Node-weighted'' gives each fluid cell the
+number of native AirfRANS cloud nodes that bin to it, which is the measure the dataset
+itself carries. Bold marks the better arm within each row; the last two rows are
+Transolver over interpolation, so a value above $1$ means the interpolator is better by
+that factor and is bolded. Before re-weighting, the interpolator arm reproduces
+\texttt{interp\_full.json} to below one part in $10^{9}$ and the Transolver arm reproduces
+\texttt{v2\_results.json} \texttt{backbone\_per\_seed} exactly
+(gates \textbf{G1}/\textbf{G2}); Transolver is the mean over the three deployed seeds
+(per-seed $R_p$: $8.90/8.66/7.61$ area-uniform, $0.418/0.433/0.469$ node-weighted). The
+area-uniform Transolver $\texttt{mse\_p}$ is $629.6$ here against $628.5$ in
+\autoref{tab:interp}, which transcribes \texttt{results/baselines/table2.csv}; the two
+differ only in provenance. The re-weighting is conservative---grid binning cannot place
+node mass inside a sub-cell band, and solid-binned nodes are dropped---so the true node
+measure is more adverse to the interpolator than the node-weighted row shows. Source:
+\texttt{scripts/measure\_asymmetry.py},
+\texttt{results/interpolation/measure\_asymmetry.json}.}
+\label{tab:measure}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l r r r r r r r r}
+\toprule
+ & \multicolumn{2}{c}{$\texttt{mse\_u}$} & \multicolumn{2}{c}{$\texttt{mse\_v}$} & \multicolumn{2}{c}{$\texttt{mse\_p}$} & \multicolumn{2}{c}{$\texttt{mse\_nut}$} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+cell weight & interp & Transolver & interp & Transolver & interp & Transolver & interp & Transolver \\
+\midrule
+area-uniform ($r128$ crop) & $0.782$ & $\mathbf{0.127}$ & $\mathbf{0.0336}$ & $0.0999$ & $\mathbf{75.0}$ & $629.6$ & $8.84{\times}10^{-8}$ & $\mathbf{6.15{\times}10^{-9}}$ \\
+node-weighted (same cells) & $30.7$ & $\mathbf{0.358}$ & $4.26$ & $\mathbf{0.282}$ & $6012$ & $\mathbf{2646}$ & $4.72{\times}10^{-7}$ & $\mathbf{5.12{\times}10^{-8}}$ \\
+\midrule
+ratio, area-uniform & \multicolumn{2}{c}{$0.162$} & \multicolumn{2}{c}{$\mathbf{2.97}$} & \multicolumn{2}{c}{$\mathbf{8.39}$} & \multicolumn{2}{c}{$0.070$} \\
+ratio, node-weighted & \multicolumn{2}{c}{$0.0117$} & \multicolumn{2}{c}{$0.0663$} & \multicolumn{2}{c}{$0.440$} & \multicolumn{2}{c}{$0.108$} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{Where each arm's error lives, on the grid.} Decomposing the interpolator's
+squared error by signed distance to the wall
+(\texttt{scripts/interpolation\_band\_control.py},
+\texttt{results/interpolation/interp\_band\_control\_full.json}) locates the entire
+remaining gap. \textbf{$92\%$ of its $u$ error and $90\%$ of its $v$ error lie within
+$0.02c$ of the wall---a band holding $0.5\%$ of cells, thinner than the $0.0234c$ grid
+spacing---while $98.7\%$ of the domain lies beyond $0.05c$, where it reproduces every
+channel at $R^2\ge0.9996$} (\autoref{tab:interp_bands}). We report the strict
+per-case-centred statistic alongside the pooled one, because $U$ spans $31$--$93$\,m/s and
+a pooled far-field $R^2$ partly rewards knowing the freestream: subtracting each case's
+own band mean first leaves $R^2\ge0.9965$ on every channel beyond $0.05c$, and moves only
+the sub-cell wall band ($0.840\to0.754$ on $u$). That defeats the obvious objection that
+the win is on easy cells---the far field is $80\%$ of the domain and carries $3.6\%$ of the
+$u$ error and $2.2\%$ of the $p$ error. One scope note travels with the wall-band number:
+the concentration is $0.924$ on $u$ and $0.898$ on $v$ but only $0.535$ on $p$, so ``the
+advantage is confined to $0.5\%$ of cells'' is a statement about the velocity channels, not
+about pressure.
+
+A decomposition of one arm shows where that arm fails; it does not show that the other arm
+succeeds there. We therefore run the identical band accumulator on the deployed
+Transolver---same cases, same rasterisation, same fluid mask, reproducing
+\autoref{tab:interp_bands} over $95$ entries at a maximum relative deviation of
+$6.9{\times}10^{-8}$ (gate \textbf{G3})---and report the per-band ratio of the two
+(\autoref{tab:bandratio}). On $u$ it runs $\mathbf{906\times}$ / $74\times$ / $30\times$ /
+$5.3\times$ / $0.57\times$ / $0.56\times$ / $\mathbf{0.31\times}$ from the wall outward:
+\textbf{monotone across all seven bands, a span of $2905\times$, no inversions}
+(pre-registered rule \textbf{D2}, \textsc{confirmed on both arms}), with the crossover
+between $0.02$--$0.05c$ and $0.05$--$0.15c$. The two arms' error distributions are mirror
+images: $92.4\%$ of the interpolator's $u$ squared error lies inside $0.02c$, while
+$71.9\%$ of Transolver's lies beyond $0.5c$ (and $62.8\%$ of its $p$ error), in the $80\%$
+of cells where the interpolator carries $3.6\%$ of its own. \textbf{That is why an
+aggregate field-MSE table is decided by its weighting}: the two methods are accurate in
+different places, by three orders of magnitude, and any aggregate is a choice about where
+to look. The $p$ row makes the point concretely---Transolver better in the innermost band
+($0.589$), the interpolator winning modestly from $0.005c$ to $0.05c$ and then by
+$32\times$ and $237\times$ in $0.15$--$0.5c$ and beyond: \emph{the area-uniform $8.4\times$
+on $\texttt{mse\_p}$ is a far-field statement about $80\%$ of the cells and $11\%$ of the
+nodes.}
+
+\paragraph{The same ladder at the native nodes, and the one place the two measures
+disagree.} Re-running the decomposition per node on the native cloud, with no raster
+anywhere and with an extra row for the $201\,444$ surface nodes the grid cannot represent,
+the ratio runs $4060\times$ (wall) / $\mathbf{173}\times$ / $152\times$ / $43.8\times$ /
+$14.4\times$ / $1.83\times$ / $2.29\times$ / $\mathbf{3.79}\times$ on $u$, $2834\times \to
+0.057\times$ on $v$, and $1.50\times$ / $\mathbf{5.42}\times \to \mathbf{0.0038}\times$ on
+$p$ (all rows on the same in-body convention \textbf{P1} selected, so the ladder and the
+aggregate are the same arm). The span, the size and the monotone decay from the wall
+outward all survive the removal of the raster; on $p$ the span is $1435\times$ over the
+seven non-wall bands, and on $v$ it is $2958\times$. \textbf{The surface row is the one the
+force claims sit on}, and it is new: at $\mathrm{sdf}=0$ the surrogate is $4060\times$
+better on $u$, $2834\times$ on $v$ and $382\times$ on $\nu_t$, while the two arms are
+within $1.51\times$ on $p$ ($149\,203$ against $99\,227$). Those two are close, and both
+are \emph{accurate}: against the node-measure variance of $p$ among the surface nodes
+themselves, $2.06\times10^{7}$
+(\texttt{scripts/node\_measure\_variance.py}), they are $0.73\%$ and $0.48\%$ of the band's
+own variance. We name the comparator because an earlier version of this sentence divided by
+$\mathrm{Var}_{\text{train}}(p)=135\,590$ and called both arms poor. That divisor is the
+\textbf{area-uniform} training variance the surrogates are normalised on---the training
+pipeline rasterises, so the normaliser is fitted on area-uniform samples---and it is
+$64\times$ smaller than the node-measure variance on $p$, for precisely the reason this
+section is about. Scoring a per-node error against it is the error the paper is documenting,
+committed by the paper. The claim that survives is narrower and is the one we make: the
+surrogate's near-wall advantage is on $u$, $v$ and $\nu_t$ and \emph{not} on $p$, so the
+force integrals do not inherit it.
+
+Two readings change and we state both. First, the far-field claim on $v$ and $p$ gets
+\emph{larger}, not smaller: beyond $0.5c$ the interpolator is $17.7\times$ better on $v$
+and $265\times$ better on $p$. Second, and against us: \textbf{on $u$ the interpolator is
+behind in every band at the native nodes, including the far field, where the grid measure
+had put it $3.2\times$ ahead.} The pre-registered localisation rule therefore returns
+$S=45.6$ with \emph{two} inversions and reads \textsc{partial} here against
+\textsc{confirmed} on the grid, and we report both verdicts rather than the convenient one.
+We can say what does \emph{not} explain the flip: resampling the published $r128$ output at
+those same far-field nodes costs the interpolator only $1.27\times$ there, far short of the
+$\approx10\times$ the swing requires, so ``it was the raster'' is not supported either. Two
+things change together and this run does not separate them---which points inside a band are
+sampled (area-uniform cells and native nodes are not distributed alike within a band), and
+what the reference is (the grid metric scores a rasterised prediction against a
+\emph{rasterised} truth, so the representation error partly cancels; the node metric does
+not). The sub-band decomposition that would apportion them has not been run, and we make no
+claim about it. That the two measures agree on the separation everywhere except this one
+entry, and disagree there for reasons that are themselves about measure and representation,
+is the thesis of this section applied to its own instrument.
+
+Two sample-size facts belong with the innermost number rather than being left for a
+reviewer to find. Pooled over $200$ cases the $0$--$0.005c$ band holds $4489$ fluid cells
+($22.4$ per case) against $2\,595\,931$ beyond $0.5c$; the $906\times$ is a paired ratio
+over those $4489$ cells, both arms evaluated on exactly the same cells. What makes it hold
+up is that it sits on a monotone trend rather than alone, and that $0.005$--$0.01c$ ($3824$
+cells) and $0.01$--$0.02c$ ($8143$ cells) independently give $74\times$ and $30\times$. It
+is also the band the resolution ladder already refines: at $512^2$, where it is $3.4$ cells
+across instead of sub-cell, the interpolator's own near-wall error \emph{falls} $45\%$
+while the far field moves $0.6\%$, so a finer grid would narrow this ratio rather than
+inflate it.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Per-band ratio $r_b = \texttt{MSE}_{\text{interp}}(b) / \texttt{MSE}_{
+\text{Transolver}}(b)$ on the AirfRANS \texttt{full} test split, $r128$, $200$ cases;
+$r_b>1$ means Transolver is better in that band by that factor. Transolver is the mean
+over the three deployed seeds. Band edges are signed distance in chord units, identical to
+\autoref{tab:interp_bands}. ``Cell frac.'' is the band's share of the $r128$ crop's fluid
+area; ``node frac.'' its share of the native cloud's nodes; the last column is
+Transolver's own share of squared $u$ error, whose mirror image is the interpolator's in
+\autoref{tab:interp_bands}. Pooled fluid-cell counts are in the artifact for every band.
+The accumulator
+reproduces \autoref{tab:interp_bands} over $95$ entries at max relative deviation
+$6.9{\times}10^{-8}$, and $\sum_b n_b\,\texttt{MSE}_b$ reconstructs the pooled squared
+error for every arm, channel and band grid (gates \textbf{G3}/\textbf{G4}). Source:
+\texttt{results/interpolation/measure\_asymmetry.json}, \texttt{verdicts.D2}.}
+\label{tab:bandratio}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l r r r r r r r}
+\toprule
+band (chord) & cell frac. & node frac. & $u$ & $v$ & $p$ & $\nu_t$ & SE share $u$, Transolver \\
+\midrule
+$0$--$0.005c$ & $0.00138$ & $0.4322$ & $\mathbf{906.2}$ & $48.3$ & $0.589$ & $393.1$ & $0.0057$ \\
+$0.005$--$0.01c$ & $0.00118$ & $0.0612$ & $74.1$ & $3.30$ & $2.49$ & $65.6$ & $0.0045$ \\
+$0.01$--$0.02c$ & $0.00251$ & $0.0619$ & $30.4$ & $1.17$ & $1.58$ & $15.7$ & $0.0094$ \\
+$0.02$--$0.05c$ & $0.00742$ & $0.0884$ & $5.33$ & $0.391$ & $1.22$ & $4.44$ & $0.0210$ \\
+$0.05$--$0.15c$ & $0.02942$ & $0.1118$ & $0.572$ & $0.113$ & $0.259$ & $3.70$ & $0.0560$ \\
+$0.15$--$0.5c$ & $0.15831$ & $0.1311$ & $0.559$ & $0.030$ & $0.031$ & $9.45$ & $0.1847$ \\
+$>0.5c$ & $0.79978$ & $0.1134$ & $\mathbf{0.312}$ & $0.007$ & $0.004$ & $21.1$ & $\mathbf{0.7188}$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig_bandratio.pdf}
+\caption{\textbf{Where each method's error lives, under both measures.}
+\emph{Top:} the per-band ratio $\texttt{MSE}_{\text{interp}}/\texttt{MSE}_{
+\text{Transolver}}$ on $u$ against distance from the wall, on the $r128$ raster
+(\autoref{tab:bandratio}) and per node on the native cloud. Above the line at $1$ the
+surrogate is better, below it the interpolator is. The ratio spans three orders of
+magnitude and \emph{crosses} $1$: the two methods are accurate in different places, which
+is why an aggregate field average over these bands is decided by how they are weighted.
+The two measures agree on the size and the shape of the separation and disagree on the
+far-field entry---the grid puts the interpolator ahead there, the native nodes put it
+behind---so the registered verdicts are \textsc{confirmed} on the grid and
+\textsc{partial} at the nodes, and both are plotted. The surface row at
+$\mathrm{sdf}=0$ exists only at the nodes: a finite-volume cell cannot sit on the body.
+\emph{Bottom:} the same bands by share of the $r128$ crop's fluid area and by share of the
+native cloud's nodes. The two disagree by $312\times$ in the innermost band and invert
+beyond half a chord, which is the weighting the field tables leave unstated. Both panels
+are generated by \texttt{scripts/make\_fig\_bandratio.py} from
+\texttt{results/interpolation/measure\_asymmetry.json} and
+\texttt{point\_space\_headtohead.json}; no value is transcribed.}
+\label{fig:bandratio}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\small
+\caption{Wall-distance decomposition of the interpolator's error on AirfRANS
+\texttt{full} test. $R^2_{\mathrm{pc}}$ subtracts each case's own band mean before
+scoring, so it asks whether spatial structure \emph{within} the band was captured
+beyond case-level scale. ``SE share'' is the fraction of the channel's total squared
+error in that band and is unaffected by the centring choice. The pooled (non-centred)
+$R^2$ quoted in the text is higher than $R^2_{\mathrm{pc}}$ at every entry; both are in
+the artifact.}
+\label{tab:interp_bands}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l r r r r r r r}
+\toprule
+band (chord) & cell frac. & $R^2_{\mathrm{pc}}\,u$ & $R^2_{\mathrm{pc}}\,v$ & $R^2_{\mathrm{pc}}\,p$ & SE share $u$ & SE share $v$ & SE share $p$ \\
+\midrule
+$0$--$0.02c$ & $0.005$ & $0.7539$ & $0.9722$ & $0.9966$ & $\mathbf{0.924}$ & $\mathbf{0.898}$ & $0.535$ \\
+$0.02$--$0.05c$ & $0.007$ & $0.9929$ & $0.9990$ & $0.9986$ & $0.018$ & $0.040$ & $0.238$ \\
+$0.05$--$0.15c$ & $0.029$ & $0.9991$ & $0.9997$ & $0.9996$ & $0.005$ & $0.030$ & $0.154$ \\
+$0.15$--$0.5c$ & $0.158$ & $0.9983$ & $0.9999$ & $0.9999$ & $0.017$ & $0.018$ & $0.052$ \\
+$>0.5c$ & $0.800$ & $0.9965$ & $0.9999$ & $1.0000$ & $0.036$ & $0.014$ & $0.022$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{Neither arm's near-wall skill is observable at $r128$, and that bounds every
+number in this section.} AirfRANS is a boundary-layer mesh, and the mismatch between its
+node distribution and a uniform raster is not marginal. Over the $200$ test cases its
+clouds carry $35.9$\,M nodes, $95.4\%$ of them inside the $3c{\times}3c$ crop the metric
+scores. $43.2\%$ of those nodes lie inside $0.005c$ of the wall, a region holding
+$0.138\%$ of the crop's area---a factor of $312$. Cumulatively, $55.5\%$ lie inside
+$0.02c$ ($0.51\%$ of the area, $109.5\times$) and $64.4\%$ inside $0.05c$ ($1.25\%$,
+$51.5\times$); beyond $0.5c$ the asymmetry inverts to $0.14\times$. The spread across
+cases is negligible---the node fraction inside $0.05c$ has minimum $0.6045$, median
+$0.6163$ and maximum $0.6238$---so this is a property of the mesh generator, not of a few
+cases, and it does not depend on which signed-distance function defines the bands: the
+grid \texttt{sdf} and the cloud's own distance column agree on $99.51\%$ of nodes at the
+$0.02c$ threshold and $99.90\%$ at $0.05c$ (gate \textbf{G6}).
+
+Re-weighting fixes that measure, not the representation both arms are still scored on. To
+bound the representation, we resample the \emph{rasterised ground truth} at the native
+nodes and compare its round-trip error against the model's, which is the error the scoring
+representation commits before any model is involved. Inside $0.005c$ Transolver's per-node
+$u$ error is $1.16$; the $r128$ raster's own is $\mathbf{572.8}$. Pooled over the crop the
+factor is $\mathbf{413\times}$; inside $0.005c$ it is $\mathbf{495\times}$. \textbf{The
+scoring representation destroys, in the region holding $43\%$ of the dataset's nodes,
+structure $495\times$ larger than the model error it is being used to adjudicate.} Every
+\emph{grid} field number in this paper---ours, and the published rows we set them
+against---is therefore a statement about far-field skill. This is the half of the problem
+a re-weighting cannot reach, and it is symmetric: not a concession about the interpolator
+but a limit on what an $r128$ AirfRANS field metric can say about any method. It is also
+why \autoref{tab:native} had to be run rather than the grid refined in place, and why its
+two memo rows matter: the published $r128$ interpolation output resampled at these nodes
+scores $3.06{\times}10^{6}$ on $p$ against the raster's own model-free $3.01{\times}10^{6}$,
+i.e.\ on that channel it is \emph{entirely representation}. (We read this from the in-crop
+block of the artifact; outside the crop the bilinear sampler clamps query points to the
+domain boundary, so the outer bands of the full-cloud block are clamp-contaminated and we
+do not quote them.)
+
+\paragraph{Under refinement the localisation holds and the share statistic dilutes: a
+pre-registered PARTIAL.} Those shares are $128^2$ numbers, and the obvious attack
+is that the $0.02c$ band is thinner than the $0.0234c$ cells it is measured on. We re-ran
+the whole decomposition at $128^2$, $256^2$ and $512^2$ on the same $800/200$ split with
+the estimator frozen---the kernel weight matrix is a function of the case \emph{names}
+alone and hashes bit-identically at every rung---and with every band edge fixed in chord
+units (\texttt{scripts/interpolation\_resolution\_ladder.py},
+\texttt{results/interpolation/interp\_resolution\_ladder.json}; the $128^2$ rung reproduces
+\autoref{tab:interp} at relative error $0.00\mathrm{e}{+}00$, which gates the run before any
+finer number is written). \textbf{The pre-registered verdict is PARTIAL} and we
+report it as such. The rule required the near-wall squared-error share to stay at or above
+$0.85$ on \emph{both} $u$ and $v$ at every rung; the shares go $0.924/0.898$ at $128^2$ to
+$0.901/0.855$ at $256^2$ to $\mathbf{0.879}/\mathbf{0.842}$ at $512^2$, so $v$ misses the
+floor at the finest rung. That $0.85$ was written before any number existed and was not
+moved, and no clause of the \textsc{dissolves} branch fires.
+
+The share erodes because its numerator shrank, not because the far field got worse---and
+that reading is a stronger result than the deployed-resolution table could show. Inside
+$0.005c$, which is $0.15\%$ of the domain, the absolute $u$ error \emph{falls $45\%$} under
+refinement ($466.7\to257.7$) while its $R^2$ rises $0.507\to0.723$; beyond $0.5c$, which is
+$80\%$ of the domain, the absolute $u$ error moves $0.6\%$ ($0.0356\to0.0354$). A share is a
+ratio, so when the dominant term halves and the rest holds, every other band's share rises
+without any of them degrading. What survives unqualified is everything the objection
+asserts. At $512^2$, where the band is $3.4$ cells across rather than sub-cell,
+$\mathbf{72\%}$ of the $u$ error lies inside $0.005c$: the localisation is \emph{tighter}
+at fine resolution, not looser. The fraction of the domain reproduced without learning is
+$0.9949/0.9949/0.9950$; every channel still clears $R^2\ge0.9996$ beyond $0.05c$ at all
+three rungs, though we note that the binding entry---$p$ in $0.05$--$0.15c$---clears it at
+$0.99961$ at every rung, so that claim rests on a fourth-decimal margin at any resolution;
+and absolute MSE beyond $0.05c$ is flat within $1.5\%$ across a $16\times$ increase in cell
+count. Two scope notes travel with the ladder. At $512^2$ the raster spacing is only
+$1.28\times$ the source cloud's far-field nearest-neighbour spacing, so the outer-MSE arm of
+the rule was pre-declared to be read on the $128\!\to\!256$ pair, clear of that limit. And
+there is no Transolver row at $256^2$ or $512^2$: the ladder settles whether the
+\emph{localisation} is an artifact of the deployed grid, and nothing more. Whether the
+cross-method \emph{advantage} survives at native resolution is not a question a finer
+raster can answer, which is why \autoref{tab:native} answers it without one.
+
+The ladder also re-scores the force columns, and they turn out to be ill-conditioned in a
+way a reader should be told about. By $512^2$ the interpolator's $C_d$ relative error rises
+$2.4\times$ on the median and $2.6\times$ on a $90\%$-trimmed mean while its \emph{absolute}
+drag error \emph{falls} ($0.0085\to0.0060$); the untrimmed mean reaches $1.84$, but that is
+one case, because \texttt{coefficient\_metrics} divides by a rasterised reference drag that
+collapses and changes sign on that case under refinement ($+0.146$ to
+$-1.7\times10^{-4}$; the case is named in the artifact). $\rho_{C_l}$ is unmoved at
+$0.9998$ and $\rho_{C_d}$ slips $0.9991\to0.9811$, most of it recoverable by dropping that
+one case. With no Transolver row at those rungs, and with the rasterised reference integral
+itself moving under refinement, the $128^2$ force ratios cannot be re-evaluated here---only
+the interpolator's own trend, and only with the metric's ill-conditioning stated.
+
+\paragraph{How we tried to break it.} Five checks could have killed the result and did
+not. \emph{Leakage}: train/test case-name overlap is $0$ on all three splits, asserted
+in the script and verified independently against \texttt{manifest.json}.
+\emph{Near-duplicates}: the minimum nearest-neighbour distance in standardised feature
+space is $0.189$ (median $0.440$), and excluding the closest $10\%$ of test cases makes
+the aggregate \emph{worse}, not better ($\texttt{mse\_p}$ $75.0\to82.1$), so the
+headline is not carried by a few near-copies. \emph{Degenerate metric}: predicting each
+test case from another case's parameters collapses the result to the freestream floor
+(last row of \autoref{tab:interp}; $\rho_{C_l}$ $0.9999\to0.345$, $C_l$ error
+$1.18\%\to365\%$), so the signal is in the parameters, not in the rasterisation or the
+mask. \emph{Silent drops}: \texttt{coefficient\_metrics} swallows failed force
+integrations, so the script asserts $n=200/200$ (and $196/196$ on \texttt{aoa}) on
+every scored variant. \emph{Self-serving solid fill}: filling pressure inside
+neighbours' solids by nearest-fluid propagation instead of leaving the Delaunay bridge
+makes surface pressure $14\times$ \emph{worse} ($10989\to153174$), so the one channel
+the surrogate wins is not flattered by our treatment. Run along the same resolution
+ladder, that control localises its own sensitivity to the coarse grid: the two defensible
+fills disagree by $13.7\times$ at $128^2$, $5.8\times$ at $256^2$ and $1.7\times$ at
+$512^2$, because at $h=0.0234c$ the bilinear surface stencil straddles the body while at
+$h=0.0059c$ it sits in real fluid. We therefore make no claim about surface pressure and
+grid resolution---the apparent $1.9\times$ degradation under \texttt{nearest} reverses to
+$4.2\times$ the other way under \texttt{nearest\_all}---and we read our $r128$
+surface-pressure number as what it is, a number about the sampler and the solid fill as
+much as about the flow. Selection never saw test: the
+cross-validated ranking inside train and the test ranking agree, with kernel ridge and
+local linear filling the CV top ten and every $k$-NN configuration $33\times$ behind.
+
+\paragraph{It needs the shape, and it needs few examples.} Restricted to $(U,\alpha)$
+the baseline collapses ($\texttt{mse\_p}$ $9491$); adding thickness gives $7507$; the
+full seven features give $75.0$. The airfoil digits are worth $126\times$ on
+$\texttt{mse\_p}$, so this is not a freestream-lookup table. Conversely, dropping $U$
+from the feature metric while keeping the nondimensional rescaling barely moves anything
+($75.0\to93.4$), so $U$ enters this estimator as pure dimensional scaling. On a train-size
+ladder with five random subsets per size,
+\textbf{$100$ training cases} of parameter interpolation take $\texttt{mse\_p}$ to
+$238{\pm}65$ (worst of five subsets $344$) and $\texttt{mse\_v}$ to $0.0720{\pm}0.013$,
+which on the area-uniform measure is past the $7.35$M-parameter Transolver trained on all
+$800$ ($628.5$ and $0.088$). At $50$ cases the mean already clears $\texttt{mse\_p}$
+($519$) but one subset of five does not ($735$), so the claim we make is $100$, not $50$.
+Convergence in $\texttt{mse\_p}$ has not saturated at $800$. The ladder's internal
+result---an eighth of the training data buys the estimator's full accuracy---is a
+statement about the interpolator alone and is measure-free. The cross-method comparison
+inside it is not: it holds on the area-uniform measure only, and is reversed by both
+\autoref{tab:measure} and \autoref{tab:native}. We report it because the data-efficiency
+of the estimator is a real property; we do not report it as a win.
+
+\paragraph{The cost asymmetry, and what this does not say.} The interpolator has zero
+parameters but is non-parametric: it carries $800\times128^2\times4$ float32
+$=210$\,MB of training fields, all resident at inference, against Transolver's
+$7.35$M parameters ($\approx29$\,MB). That is a real objection to calling it a
+deployable surrogate. It is not an objection to reporting it as the reference point, which
+is the only claim we make for it. Nor is this a claim that published AirfRANS results are
+wrong: it is a claim that they have been read against a reference point nobody ran,
+through a representation that cannot see the region where the two arms differ. We
+deliberately do \emph{not} place a row of our own in a cross-method leaderboard, because
+AirfRANS results are reported in mutually incompatible conventions (standardized-field MSE
+and official OpenFOAM force labels in the AirfRANS paper, relative-$L_2$ in the Transolver
+lineage, physical-unit MSE and self-integrated forces here), so any shared cell would
+mislead. \autoref{tab:airfrans-sota} reproduces the canonical AirfRANS-paper baselines as
+field context and nothing more.
+
+\subsection{What the force columns measure, and what the raster costs them}
+\label{sec:forces}
+
+\autoref{tab:interp} carries four force columns, and they are the one part of that table
+no cell weighting can move. They also do not mean what their names suggest, and the reason
+is the same representation limit that bounds the volume columns---measured on a different
+quantity, which makes it a second, independent witness.
+
+\paragraph{What these force correlations measure, and what they do not.} Our
+$\rho_{C_l}/\rho_{C_d}$ correlate the force integrated from the \emph{predicted} field
+against the force integrated from the \emph{ground-truth} field through the same grid
+surface-integrator, not agreement with AirfRANS's official OpenFOAM labels. Recomputed
+against those labels (\texttt{scripts/recompute\_force\_vs\_official.py}; 200 cases, 3
+seeds; \texttt{results/control/force\_vs\_official.json}), the deployed backbone recovers
+force \emph{ranking}---$\rho_D=0.84{\pm}0.01$, $\rho_L=0.88$---but not magnitude: absolute
+drag is biased ($\approx 11\times$ mean relative error) by the integrator's $1.5$-cell
+surface-sampling offset, and the same integrator on \emph{perfect} fields also yields
+$\rho_D=0.84$, so this number is not limited by the prediction. The parameter interpolator
+makes the same point from the other side: scored through this integrator it ranks the
+official drag at $\rho=0.8389$, \emph{indistinguishable from the same integrator applied
+to the exact ground-truth field} ($0.8394$), and matching it on lift to four significant
+figures ($0.8758$ vs $0.8757$). \textbf{On this representation, a seven-scalar
+interpolation of the flow and the flow itself are the same thing as far as official drag
+ranking is concerned}---which is the force-side statement of the volume-side ceiling in
+\autoref{sec:interp}, on a different quantity and through a different code path.
+
+\paragraph{Where the loss lives, and what is repairable.} Rasterising the exact truth to
+$128^2$, scattering it back to the source mesh nodes and integrating with AirfRANS's
+\emph{own} \texttt{force\_coefficient} (four pre-registered gates all exactly $0.0$) gives
+$\rho_D=0.700$ and $\rho_L=0.9967$---drag \emph{below} our own $0.839$, so the raster, not
+the quadrature, owns the loss. The mechanism is resolution: $68\%$ of drag
+is viscous and the wall shear lives in a sublayer at $y^+\!\approx\!5$, so recovering it
+needs $N\sim10^5$ cells where lift, set by chord-scale surface pressure, converges at
+first order over the same ladder: lift is observable from a raster at deployed resolution
+and drag is not. Repairing what is
+repairable (\texttt{results/control/force\_vs\_official\_multischeme.json}), a
+wall-extrapolated pressure scheme cuts the ground-truth-field lift magnitude error from
+$16\%$ to $4.6\%$ (median), and a \emph{control-volume} far-field momentum balance
+recovers official lift from ground-truth fields almost exactly ($\rho_L=1.00$, median
+error $<1\%$) and from \emph{predicted} fields at $\rho_L = 0.998{\pm}0.001$ with per-seed
+median magnitude errors of $3.6$--$3.9\%$: engineering-grade lift from the surrogate. Drag
+decomposes diagnostically---on ground-truth fields the control-volume estimator cuts the
+median drag error from $3.3\times$ to $0.23\times$, but on predicted fields it reaches only
+$\approx 2.7\times$ with a degraded ranking, so the residual drag error is the
+\emph{model's} far-field accuracy, not the integrator. We therefore report lift as
+quantitatively recovered and make no claim of accurate absolute drag. Two limits travel
+with this. $\rho_L=0.998$ is an easy number twice over: $\alpha$ is an input channel and
+lift here is close to a function of it, and the control-volume estimator recovers lift from
+circulation through the outer ring, so it depends on the far field and not on the surface
+at all. And with the solid-adjacent ring masked at $Re\approx10^6$, the momentum thickness
+is far below one cell, so the \emph{viscous} component of drag is not merely inaccurate
+here---it is \textbf{unavailable}; every drag statement in this paper is about the
+pressure-dominated component, which is also why we never report $C_{d,v}$.
+
+\subsection{What the physics residual can and cannot do}
+\label{sec:residual}
+
+The obvious response to \autoref{sec:interp} is that the metric should be fixed with
+physics: score a surrogate by how well its field satisfies the governing equations, and
+neither the weighting nor the raster has any purchase. We ran that experiment and it does
+not work. This section reports the measured answer in compressed form; the theorem behind
+it and the full control set are deferred to a companion paper.
+
+\paragraph{The ground truth fails the check.} On $200/200$ real AirfRANS test cases the
+monitored residual of the \emph{exact} field is substantially nonzero
+($\|r^\star\|$ mean $\mathbf{0.192}$, median $0.133$;
+\texttt{results/certificates/residual\_floor\_realdata.json}), while the physically wrong
+uniform freestream scores an \textbf{exact zero} at every case and every resolution,
+because a spatially constant field has identically zero finite differences. The objective
+therefore strictly prefers a wrong field to the truth. This is not an artifact of
+resolution: rasterising the same truth at $128^2$, $256^2$ and $512^2$ and scoring a
+region fixed in \emph{physical} units---a reading registered before the run---the floor
+\emph{rises}, $0.0624\to0.0779\to0.1067$ while $h$ falls $4\times$, in $\mathbf{21/24}$
+cases at a fitted exponent $p=-0.387$, with a second independent $16$-case five-rung
+implementation finding it decaying in $0$ of $16$. Four controls survive, each with its
+own scope. Method of manufactured solutions on the same monitor gives $p=2.06$, so the
+discretisation converges as claimed---but the manufactured field is a potential flow, on
+which the monitored viscous term vanishes identically, so this control bounds truncation
+error and is \emph{not} evidence that the operator is consistent with the one that
+generated the labels. Restoring the omitted closure term $(\partial_j\nu_t)(\partial_j
+u_i+\partial_i u_j)$ moves each rung's mean floor by $-0.01\%$ to $+0.18\%$, and the term
+is only $3.5$--$4.8\%$ of the floor. A cubic rather than linear interpolant \emph{raises}
+the floor by $6$--$12\%$, though that control bears on the second-derivative block---$5$--$7\%$
+of the floor---and not on the first-derivative block carrying $93$--$95\%$ of it. And a
+manufactured analytic solution pushed through the identical rasteriser reproduces the
+effect ${\sim}280\times$ smaller, though its fine end reverses too, so it does not show the
+pipeline cannot manufacture a rising residual. We name two
+contributions to the measured size---the mismatch between our Cartesian stencil and the
+body-fitted discrete balance AirfRANS actually solved, and the reconstruction of that
+reference onto our grid (at fixed $h$, thinning the source cloud eightfold raises the floor
+in $16/16$ cases)---and separate neither.
+
+\paragraph{So the residual cannot be descended.} Minimising $J=\tfrac12\|R_h(y)\|^2$
+directly, with no network in the loop, from the \emph{exact ground truth}---so the standard
+reply that a surrogate is over-smoothed has nothing to attach to---drives the field error
+up on $\mathbf{200/200}$ cases under Armijo-line-searched gradient descent ($500$ steps,
+$n=200$, far-field and near-wall Dirichlet data pinned at truth, so $J$ is monotone
+non-increasing by construction). $J$ falls to $39.8\%$ of $J_0$ while the error never
+returns to its starting value at any step, ending at $1.57\times$ the \emph{entire} error
+of the deployed Transolver ($\texttt{mse\_u}$ $0.000\to0.499$; $\|R_h\|$
+$0.191\to0.125$). Started from the deployed Transolver the residual falls $34\%$ while the
+error rises on $\mathbf{96.5/94.0/98.0\%}$ of cases across three seeds (median
+$+76.5/+73.9/+86.9\%$; Wilcoxon $p<10^{-30}$), against a $-8$ to $-25\%$ field-MSE
+reduction from a \emph{supervised} correction on the same backbone---i.e.\ the
+disagreement is with the objective, not with correction as such. The verdict is unchanged
+under three step
+rules---Armijo, fixed $\eta$ swept over $12$ decades, and Adam---and is monotone in the
+\emph{achieved} $J$: the harder the objective is minimised, the worse the field. Unpinning
+the boundary data makes the negative stronger ($100/99.5/100\%$), so the pinned arm is the
+conservative one.
+
+\paragraph{What holds universally is iterate selection, and where the exception lies.} We
+do \emph{not} claim residual descent always harms the field: from a perturbed start it
+\emph{reduces} error in $18/24$ cases before overshooting, and on the far-from-converged
+dropout-FNO it lowers error on $75\%$ of cases. What holds universally is a statement about
+\textbf{iterate selection}: the error-minimising and residual-minimising iterates differ in
+$24/24$ cases on both arms, and the residual-selected iterate is strictly worse in
+$\mathbf{24/24}$. The exception is measurable in
+$\rho=\|R_h(\hat u)\|/\|r^\star\|$---over $200$ cases the fraction on which descent helps
+rises monotonically with $\rho$, and the deployed backbone sits at median
+$\rho=1.13$--$1.14$ with $88\%$ of cases in the lowest bin, already inside the regime where
+descent almost never helps. Even there the objective is unusable: the gain is
+${\approx}1/35$ of the supervised correction's, and there is \textbf{no stopping rule}, since
+$J$ falls monotonically on $100\%$ of cases while the error minimum is interior on
+$78.5\%$.
+
+\paragraph{The boundary is the operator, not the problem class.} Residual-driven
+correction is not doomed in general. \citet{lei2026newtonkrylov} take a surrogate
+prediction as an initial guess for Newton--Krylov correction on \emph{steady} CFD and lower
+the residual by over seven orders of magnitude \emph{while} reducing field and aerodynamic
+error; \citet{huang2025physicscorrect} report the same on transient rollouts. In those
+works the residual being driven is the \emph{solver's own} discrete operator, whose root
+the reference solution is, so its floor at the truth is zero by construction. Ours is the
+affordable surrogate-side one, and its minimiser is displaced from $u^\star$. The obvious
+alternative boundaries---steady versus transient, resolved versus under-resolved---are
+falsified by \citet{lei2026newtonkrylov} being steady and successful. That a PDE residual
+need not vanish at the ground truth is not ours alone: \citet{zhang2026phymgn} report it
+for shock physics and conclude a physics-informed loss ``must be defined relative to the
+residual present in the ground-truth data''---a remedy requiring $R_h(u^\star)$, which a
+deployment-time monitor does not have. What the residual \emph{can} do is rank: the
+case-level residual--error Spearman correlation is positive on every backbone, seed and
+split we have measured. That is a detector, not a metric, and it is reported in the
+companion paper rather than here, because none of it repairs the measurement problem this
+paper is about.
+
+\section{Limitations}
+\label{sec:limitations}
+
+\begin{itemize}
+\item \textbf{Every \emph{grid} field number in this paper is scored on the $r128$ raster,
+and that representation cannot adjudicate the boundary layer for either arm.} The
+rasterised ground truth, resampled at the native cloud nodes, commits a round-trip error
+$413\times$ larger than Transolver's own per-node error pooled over the scored crop, and
+$495\times$ larger inside $0.005c$, where $43\%$ of the dataset's nodes live. Two things
+follow. First, the \emph{weighting} of that raster is not a neutral choice, and we
+therefore report both weightings rather than one (\autoref{tab:measure}); the ranking
+reverses between them. Second, no re-weighting reaches the representation, which is why
+\autoref{tab:native} removes the raster instead of refining it. A frozen
+$128^2$/$256^2$/$512^2$ ladder settles that the \emph{localisation} is not an artifact of
+the deployed grid---the domain fraction reproduced without learning, the $R^2$ floor beyond
+$0.05c$ and the absolute outer-region MSE are flat across a $16\times$ increase in cell
+count, and at $512^2$ the error is \emph{more} tightly localised---while the near-wall
+\emph{share} eases from $0.92/0.90$ to $0.88/0.84$ and misses a pre-declared $0.85$ floor
+on $v$ at the finest rung, so the registered verdict is \textsc{partial} and we report it
+as \textsc{partial}. Relatedly, \autoref{tab:interp_std} divides by variances computed on
+the $r128$ raster rather than in point space, so it is faithful in spirit but not
+byte-identical to the training normaliser; the ratios between rows are unaffected, since
+the divisor is shared.
+\item \textbf{What the native-resolution head-to-head does not settle.} Four scopes, each
+of which a reviewer is entitled to press. \emph{(i)} The interpolator's hyperparameters are
+the \textbf{grid}-cross-validated ones; re-selecting them under the node measure would
+require $800\times800$ cloud-to-cloud transfers and was not run. The least-squares oracle
+bounds what that can buy near the wall---a factor of a few against a measured $25\times$
+for the whole family, and $344\times$ for the published estimator---but \textbf{P1}'s scope
+is correctly ``this estimator'', not ``every parameter-space estimator''. \emph{(ii)} The
+least-squares family bound is one channel and one band, for the reason given in
+\autoref{sec:interp}: it is a bound only where the node count far exceeds the $800$ free
+parameters of the projection. It now runs on all $200$ cases. \emph{(iii)} The body-fitted
+arm is tested and reverses the near-wall reading (\autoref{sec:interp}), but it is a
+\emph{bound}, not a deployed estimator: the published weights in that frame win at the
+median and on $152/200$ cases while losing on the case-mean, so we claim the family is not
+barred from the wall, and not that the estimator beats the surrogate there. The frame is
+also undefined on $4.98\%$ of near-wall nodes, so a blend is genuinely required outside the
+strip we score. \emph{(iv)} The \texttt{full} split only; the head-to-head was not re-run
+at native nodes on \texttt{reynolds} or \texttt{aoa}.
+\item \textbf{The far-field $u$ entry disagrees between the two measures and we cannot yet
+say why.} On the grid the interpolator is $3.2\times$ better than the surrogate on $u$
+beyond $0.5c$; at the native nodes it is $3.8\times$ worse, and the pre-registered
+localisation verdict is \textsc{confirmed} in the first case and \textsc{partial} in the
+second. Resampling the published grid output at those nodes accounts for only $1.27\times$
+of the swing, so ``it was the raster'' is not supported either. The sub-band decomposition
+that would apportion the remainder between where the band is sampled and what the reference
+is has not been run. We report the disagreement rather than the convenient half of it.
+\item \textbf{The interpolator is a reference point, not a method.} It has zero parameters
+but carries $210$\,MB of training fields resident at inference, and it is deterministic
+given the split, so its rows have no seed variance to report (the train-subset ladder uses
+five random subsets per size for $n<800$). We make no deployability claim for it.
+\item \textbf{Grid resolution, near-wall blindness, and what that costs drag.} A uniform
+$128^2$ Cartesian grid cannot resolve a $Re \approx 10^6$ boundary layer, so wall
+quantities are approximate and the absolute grid MSE values are not comparable to
+body-fitted solvers. With the solid-adjacent ring masked, the momentum thickness is far
+below one cell, so the \emph{viscous} component of drag is unavailable on this
+representation and every drag statement here concerns the pressure-dominated component.
+\item \textbf{Eddy-viscosity accuracy is backbone-dependent.} Against $\nu_t$'s own
+fluid-masked variance the channel is well predicted on a grid FNO backbone ($R^2 = 0.996$)
+but only moderately on a message-passing GNN ($R^2 = 0.67$--$0.70$). Because
+$\nu_t\approx5.2\,\nu$ supplies $\approx84\%$ of $\nu_{\mathrm{eff}}$, a backbone with a
+weak $\nu_t$ carries that error straight into the monitored residual of
+\autoref{sec:residual}---that operator is only as turbulent as the closure the surrogate
+predicts.
+\item \textbf{The resolution ladder has its own ceiling, and we do not explain the rise.}
+The floor's growth is measured over $128^2$--$512^2$, and at the finest level the raster
+spacing is only $1.27\times$ the source cloud's far-field nearest-neighbour spacing, so a
+still finer level would begin differentiating the interpolant rather than sampling the
+solution. The $128^2\!\to\!256^2$ leg is clear of that limit and already shows the rise,
+but we claim no asymptotic rate---only that the floor does not decay over the range a
+$128^2$-trained surrogate is deployed in. We also stop short of naming the mechanism:
+holding $h$ fixed and thinning the source cloud eightfold raises the floor in $16/16$ cases
+($\mathrm{d}\log\|r^\star\|/\mathrm{d}\log s=+0.55\pm0.27$), which rules out attributing
+the growth to operator provenance alone, and the registered representation-error model
+(predicted exponent $1.64$, rise $4.8$--$8.0\times$) is refuted by the measured $1.8\times$.
+\item \textbf{Scope of the descent result.} The $n{=}24$ arms use Adam with per-channel
+scaling, so the field error rises overall but not monotonically and those claims are about
+endpoints rather than paths; the $n{=}200$ Armijo arm closes this. The headline arm also
+freezes $\nu_t$: descending the eddy viscosity alongside $(u,v,p)$ quarters the velocity
+damage, but only by dumping the residual into the closure---on the deployed backbone
+(seed $0$) $\texttt{mse\_nut}$ rises seven orders of magnitude
+($6.3\times10^{-9}\to0.115$) while the field error still worsens on $82.5\%$ of cases---so
+we freeze it in the headline and report the four-channel arm as a control. The full
+evidence, including the resolution ladder, the four artifact controls and the theorem, is
+deferred to a companion paper.
+\item \textbf{One benchmark, two dimensions.} Everything here is AirfRANS and everything
+here is 2-D. The mechanism is not airfoil-specific---any benchmark that distributes
+wall-clustered clouds and scores predictions on a resampled uniform grid inherits both the
+weighting ambiguity and the representation ceiling, and the released harness computes both
+diagnostics for an arbitrary cloud-plus-raster pair---but we have measured it on one
+dataset. Extending to 3-D external aerodynamics
+\citep{ahmedml2024,elrefaie2024drivaernet} requires multi-TB datasets beyond a single-GPU
+budget.
+\end{itemize}
+
+\section{Conclusion}
+
+\textbf{What a neural flow surrogate buys on AirfRANS is near-wall representation, and no
+member of the interpolation family reaches it \emph{in physical coordinates}---and that
+qualifier turns out to carry the whole result.} Scored per node on the dataset's own cloud,
+with no rasterisation anywhere in the comparison path, a Gaussian kernel-ridge
+interpolation of seven scalars read off the case name loses to a Transolver trained on the
+same data on every channel---$144\times$ on $u$, $134\times$ on $v$, $4.9\times$ on $p$, $18\times$ on
+$\nu_t$, and $200/200$ cases on three of the four. An oracle handed the test answer and
+allowed the best single training field is $344\times$ worse inside the first $0.005$ chord;
+the least-squares optimum over the span of all $800$ training fields, the exact lower bound
+for any weighting of that family, is still $21\times$ worse there. The gap at the wall is
+a property of the frame, and the mechanism is measured: inside $0.005c$, where $41\%$ of
+every AirfRANS cloud lives, a query lands on average $7.8$ times further from the training
+case's wall than from its own, with $35\%$ of the weight mass inside the training airfoil.
+\textbf{Remove that and the gap goes.} Re-posed in a parameter-free wall-following frame,
+nothing retuned, the same bound over the same $800$ fields falls from $25\times$ to
+$0.0044\times$ and is better on $200$ of $200$ cases, while the physical arm on those same
+nodes still reads $25.21\times$. The frame costs something real---it does not exist on
+$4.98\%$ of near-wall nodes, behind the trailing edge---but on the $95\%$ where it does,
+what the published path reports as a representational advantage is an artifact of the
+coordinate system its baseline was posed in.
+
+\textbf{The published protocol says the opposite, and what decides it is a convention
+nobody states.} On the area-uniform $128^2$ raster the field tables are reported on, the
+same interpolator gives $8.4\times$ \emph{lower} volume-pressure error than the same
+surrogate. Re-weight the identical predictions on the identical cells by native node count
+and that becomes $0.44\times$; per node it is $0.21\times$. AirfRANS places $64.4\%$ of its
+mesh inside $0.05c$ of the wall against $1.25\%$ of the raster's area, and no published
+comparison states which weighting it uses. Nor can the raster settle the matter by being
+refined in place: resampled at the native nodes its own round-trip error exceeds the
+surrogate's by $413\times$ pooled and $495\times$ near the wall, so \emph{an $r128$ field
+metric on this benchmark is a measurement of far-field skill for every method scored on
+it}. What both measures do agree on is where each method's error lives: the band ratio runs
+$906\times \to 0.31\times$ on the grid and $4060\times \to 3.8\times$ at the nodes, with
+$71.9\%$ of the surrogate's own squared error beyond $0.5c$ against the interpolator's
+$3.6\%$, which reproduces $98.7\%$ of the domain at $R^2\ge0.9996$ on that raster from seven
+numbers in a file name. In physical coordinates a surrogate appears to earn the boundary
+layer on the channels that resolve it---$4060\times$ on $u$ and $2834\times$ on $v$ at the
+surface, precisely where the benchmark's own authors located their models' failure without
+quantifying it---though never on pressure, where the two arms sit within $1.51\times$ and
+both resolve that band to better than $1\%$ of its own node-measure variance. Posed in the
+frame the flow is organised by, it does not earn it at all.
+
+\textbf{Fixing the metric with physics does not work, and the reason is measurable.} On
+$200/200$ AirfRANS cases the monitored residual of the exact field is substantially nonzero
+(mean $0.192$) while the physically wrong uniform freestream scores an exact zero, and
+refining the grid makes the floor \emph{larger}. Descending that residual from the exact
+ground truth, with no network in the loop, drives the field error up on
+$\mathbf{200/200}$ cases. The boundary is the operator, not the problem class:
+Newton--Krylov corrections succeed on steady CFD precisely because the residual they drive
+is the solver's own, whose floor at the truth is zero by construction.
+
+The durable contribution is a measurement of what a standard scoring path costs, and three
+things follow from it that any author in this line can act on. Report a non-learned
+reference point alongside the model, because parameter interpolation takes fifteen minutes
+of CPU time and localises whatever advantage remains. State the cell weighting, because on
+this benchmark that choice moves a pressure ratio by a factor of $19$ and reverses its
+sign. And before reading a field metric as evidence about near-wall skill, measure the
+scoring representation's own error at the nodes---if it exceeds the model's, the comparison
+is being decided by the instrument. Anyone building a surrogate-side physics check should
+apply the same discipline to their operator: measure its floor on their own ground truth
+first, because if it is not near zero the objective is not usable.
+
+\appendix
+
+\section{Published AirfRANS baselines}
+
+\autoref{tab:airfrans-sota} reproduces the canonical AirfRANS-paper baselines as field
+context only. Every figure and table supporting a claim the main text makes stays beside
+that claim.
+
+\begin{table}[t]
+\centering\small
+\caption{Published AirfRANS \texttt{full}-task baselines from \citet{bonnet2022airfrans}, as
+field context only. Volume MSE on standardized fields ($\times10^{-2}$); surface $\bar p$
+($\times10^{-1}$); force relative errors (\%); $\rho$ = Spearman rank correlation vs.\
+\emph{official} force labels. Our rows are \emph{not} comparable (physical-unit MSE,
+self-integrated forces; \autoref{sec:forces}). The near-zero/negative $\rho_{C_d}$ is the
+benchmark's known drag-ranking difficulty, which \autoref{sec:forces} traces to the
+representation rather than to the quadrature.}
+\label{tab:airfrans-sota}
+\begin{tabular}{l r r r r r r}
+\toprule
+method & $\bar u_x$ & $\bar p$ & surf.\ $\bar p$ & $C_L$ err & $C_D$ err & $\rho_{C_l}\,/\,\rho_{C_d}$ \\
+\midrule
+MLP         & $0.95$ & $0.74$ & $1.13$ & $0.77$  & $4.29$  & $0.913\,/\,{-}0.117$ \\
+GraphSAGE   & $0.83$ & $0.66$ & $0.66$ & $0.52$  & $4.05$  & $0.965\,/\,{-}0.303$ \\
+PointNet    & $3.50$ & $1.15$ & $0.93$ & $0.74$  & $14.64$ & $0.938\,/\,{-}0.022$ \\
+Graph U-Net & $1.52$ & $0.66$ & $0.39$ & $0.49$  & $10.39$ & $0.967\,/\,{-}0.138$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{Code and data availability}
+The complete source, training/evaluation harnesses, and per-claim reproduction map
+(\texttt{docs/REPRODUCE.md}) are released as the open-source package \texttt{neuroforge-cfd}
+(\url{https://github.com/ali-kin4/neuroforge-cfd}; archived at Zenodo,
+DOI \href{https://doi.org/10.5281/zenodo.21277928}{10.5281/zenodo.21277928}). Every headline number maps to a committed script and result file, and a top-level
+manifest (\texttt{results/MANIFEST.json}) records seeds, environment, and SHA-256 hashes for
+hash-drift detection. The benchmark is public \citep{bonnet2022airfrans}. The package is
+CPU-first and runs end-to-end with zero downloads via a synthetic data generator; the GPU
+runs (backbone training) are documented with exact commands and expected outputs. The two
+diagnostics this paper turns on---the node-versus-area weighting of a scoring raster, and
+that raster's own round-trip error at the source nodes---are implemented as reusable
+routines that take an arbitrary point cloud and raster specification, so the check is
+portable to any benchmark of this form.
+
+\section*{Use of AI-assisted development tools}
+Substantial portions of the research software (model implementations, training/evaluation
+harnesses, and analysis scripts) were developed with the assistance of a generative-AI
+coding tool (Claude, Anthropic; Claude Opus~4.8 and Claude Fable~5 models, used through the
+Claude Code environment), operating under the authors' direction. The authors specified,
+reviewed, and validated all code; every reported number is produced by a committed script
+in the public repository and verified against an artifact manifest of SHA-256 hashes
+(\texttt{results/MANIFEST.json}), and the full test suite accompanies the release. The
+scientific questions, experimental design, pre-registered hypotheses, and interpretation of
+results are the authors' own.
+
+\section*{CRediT author contribution statement}
+\textbf{Ali Jabbary:} Conceptualization, Methodology, Software, Validation, Formal analysis,
+Investigation, Data curation, Writing -- original draft, Writing -- review \& editing,
+Visualization. \textbf{Kasra Ghanavati:} Validation, Writing -- review \& editing.
+
+\section*{Declaration of competing interests}
+The authors declare no competing financial or personal interests.
+
+\section*{Declaration of generative AI and AI-assisted technologies in the manuscript
+preparation process}
+During the preparation of this work the authors used Claude (Anthropic) to assist in
+drafting and editing the manuscript text. After using this tool, the authors reviewed and
+edited the content as needed and take full responsibility for the content of the
+published article. The use of AI assistance in developing the research software is
+described above.
+
+\section*{Funding}
+This research received no specific grant from funding agencies in the public, commercial,
+or not-for-profit sectors. All experiments reported here were run on a single consumer
+workstation (one NVIDIA RTX 4070 Ti for backbone training; every audit-side measurement is
+CPU-only), which is part of why the reproduction package is CPU-first.
+
+\section*{Acknowledgements}
+We thank the authors of AirfRANS \citep{bonnet2022airfrans} for releasing their dataset,
+benchmark splits, and reference
+force labels publicly, and---decisively for this work---the native, unrasterised point
+clouds without which the head-to-head of \autoref{tab:native} could not have been run. We
+also thank the maintainers of the open-source
+scientific Python and PyTorch ecosystems on which the released package depends. Assistance
+from generative AI tools in preparing the manuscript text is declared separately above.

@@ -2,8 +2,7 @@
 
 Target: **Journal of Computational Science** (Elsevier), ISSN 1877-7503.
 
-Manuscript: **"What a neural flow surrogate buys is near-wall representation, and the scoring
-measure decides the ranking"**.
+Manuscript: **"Near the wall, AirfRANS measures the coordinate system, not the model"**.
 
 > **Read the verification legend before trusting any row.**
 >
@@ -55,7 +54,7 @@ Editorial Manager account is `AJabbary-884`.
 | Manuscript PDF (built from the above) | `docs/paper/neuroforge_cfd_elsevier.pdf` | ready — **elsarticle build, not the TMLR one** |
 | Figures, as separate files | `results/figures/fig_bandratio.pdf` | ready (vector PDF) — one figure |
 | **Highlights** | `docs/paper/submission/highlights.txt` | ready — 5 bullets at 77–83 chars, filename contains "highlights", separate editable file. **[V-JOCS 2026-09-17]: "3 to 5 bullet points, each a maximum of 85 characters, including spaces" — we comply.** |
-| Cover letter | `docs/paper/submission/cover_letter.md` | ready — rewritten for JOCS 2026-09-16 |
+| Cover letter | `docs/paper/submission/cover_letter.md` | ready — rewritten for JOCS 2026-09-16, headline updated 2026-09-18 for the coordinate-artifact result |
 | Suggested reviewers | `docs/paper/submission/suggested_reviewers.md` | rebuilt for JOCS and for the current paper 2026-09-17. **Two browser checks still open: the JOCS board, and every affiliation/email.** |
 | **Declaration of competing interests** | — | **AUTHOR STEP, cannot be generated from here.** [V-JOCS 2026-09-17], verbatim: *"The declarations tool should always be completed"*; authors with none select **"I have nothing to declare"**; *"The resulting Word document … should be uploaded at the 'attach/upload files' step … saved in the .doc/.docx file format. Author signatures are not required."* |
 | Data statement | — | **AUTHOR STEP** at submission. **[V-JOCS 2026-09-17]: "you are required to state the availability of any data at submission"** — required, and it is a free-text availability statement in the submission flow, *not* the lettered A/B/C menu the C&F row assumed. Satisfied by Zenodo DOI 10.5281/zenodo.21277928, which the paper cites. |
@@ -123,9 +122,10 @@ terms were measuring the old headline.
 - [x] `refs.bib` preprint-DOI audit (2026-09-17)
 - [ ] Corresponding author signed in as **st_a.jabbary@urmia.ac.ir**, not the autofilled Gmail
 - [ ] Subscription route selected at the licensing step
-- [ ] arXiv replacement posted or scheduled, so the preprint and the submission do not diverge.
-      **`docs/paper/submission/arxiv_v4/` is stale** — built for the pre-split residual-floor
-      paper. Rebuild from current sources; do not upload it as-is.
+- [ ] arXiv replacement posted or scheduled. **Use `docs/paper/submission/arxiv_v5/`** (built
+      2026-09-18 from current sources, 26 pp, builds clean). `arxiv_v4/` is stale and must NOT
+      be uploaded. v5 changes the TITLE and ABSTRACT — paste both; see
+      `arxiv_v5_metadata.txt`, and untick arXiv's pre-ticked "delete .bbl" box.
 
 ## Fallbacks, in order
 

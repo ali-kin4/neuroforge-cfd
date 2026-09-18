@@ -2,27 +2,43 @@
 
 Dear Editors,
 
-I am pleased to submit **"What a neural flow surrogate buys is near-wall representation, and
-the scoring measure decides the ranking"** for consideration as an original research paper in
-the *Journal of Computational Science*.
+I am pleased to submit **"Near the wall, AirfRANS measures the coordinate system, not the
+model"** for consideration as an original research paper in the *Journal of Computational
+Science*.
 
 **What the paper reports.** Machine-learning surrogates for simulation are almost universally
 scored by resampling their predictions onto a uniform grid. We measure what that resampling
 costs, and the measurement changes the answer. On a standard external-aerodynamics benchmark,
 kernel interpolation over seven scalars parsed from the case file name — no network, no
-flow-field learning at all — gives 8.4x lower volume-pressure error than a matched-budget
-Transolver on an area-uniform 128^2 raster. Re-weighting the *identical* predictions by the
+flow-field learning at all — gives 8.4x lower volume-pressure error than a Transolver
+trained on the same data on an area-uniform 128^2 raster. Re-weighting the *identical* predictions by the
 dataset's own node measure takes that ratio to 0.44x, and scoring per node on the native
 point cloud with no rasterisation anywhere takes it to 0.21x. One pair of predictions, three
-defensible measures, and the ranking reverses.
+measures in current use, and the ranking reverses.
 
-Run where the data actually lives, the comparison is not close: the interpolator loses on
-every channel — 144x on streamwise velocity, 134x on cross-stream, 4.9x on pressure — and the
-result is not a tuning deficit. An oracle shown the test answer and allowed the single best of
-all 800 training fields is still 344x worse inside the first 0.005 chord, and a three-case
-probe of the exact least-squares bound over the whole family, with no free parameters
-remaining, still gives 21x. What the surrogate buys is the boundary layer, and no weighting of
-the training set reaches it.
+Run where the data actually lives the interpolator loses on every channel, and inside the
+first 0.005 chord the exact least-squares bound over the whole family — what *any* weighting
+of the 800 training fields can achieve, with no free parameters remaining — is 25x worse on
+all 200 cases. On the published reading, that is where the paper would have stopped: a
+surrogate earns the boundary layer and no interpolation reaches it.
+
+**We then measured why, and the explanation dissolved the result.** Inside that band a query
+lands 7.8x further from the training case's wall than from its own, and 35% of the kernel's
+weight falls *inside* the training airfoil. That is a statement about coordinates, not about
+representation, so it makes a prediction: pose the same family in a wall-following frame and
+the gap should go. It does. With nothing retuned and the same 800 fields, the identical bound
+falls from 25x to **0.0044x, better on 200 of 200 cases**, while the physical arm rescored on
+those same nodes still reads 25.2x. The near-wall advantage the published protocol reports is
+an artifact of the coordinate system its baseline is posed in.
+
+We are careful about what that does and does not claim, and the manuscript is explicit about
+it. The finding rests on the *bound*, which is unanimous and has no tail. The deployed
+estimator in the same frame improves by two orders of magnitude but wins only at the median
+(0.38x, 152/200 cases) and loses on the case-mean; we therefore claim that no member of this
+family is barred from the wall by representation, and **not** that parameter interpolation
+beats a trained surrogate there. The frame also has a measurable cost: a wall-normal
+coordinate does not exist on 4.98% of near-wall nodes, behind the trailing edge, where an
+entire wake fan projects onto a single vertex.
 
 The protocol that reports these numbers cannot see there. The scoring raster's own round-trip
 error at the native nodes exceeds the surrogate's per-node error by 413x pooled and 495x near
@@ -62,13 +78,23 @@ it appears to mean, which is precisely the question this paper asks of a widely 
   unstructured mesh scored on a uniform raster puts most of its nodes in a small fraction of
   the scoring area — and that is a property of the discretisation, checkable anywhere, not a
   property of this dataset. The paper states the limitation rather than hedging it.
-- *One of the paper's own headline numbers was withdrawn during preparation.* The 8.4x
-  advantage was at one stage the lead claim. We ran the measure it depended on, it reversed,
-  and it is now reported as the first term of a three-term reversal rather than as a finding.
-  Several other claims from earlier versions of this work are explicitly withdrawn in the text.
+- *This paper twice refuted its own headline, in public, using rules it had committed in
+  advance.* The 8.4x advantage was once the lead claim; the pre-registered rule that governed
+  it returned ARTIFACT and the manuscript withdraws it in those words. The near-wall
+  representational claim replaced it, and the body-fitted arm — named in an earlier version's
+  Limitations as deliberately untested — returned BODY-FITTED-BOUND-OPEN against it. Both
+  rules, both thresholds and both verdict strings were committed to a public repository before
+  the runs that read them. We regard that history as the strongest evidence we can offer that
+  the surviving claims were not selected after the fact, and we would rather the editor learn
+  it from us than infer it.
 
 **Reproducibility.** Every headline number maps to a committed script and result file through a
 per-claim reproduction map, with a manifest recording seeds, environment and SHA-256 hashes.
+The decisive comparison is gated rather than asserted: the body-fitted and physical arms are
+computed in one pass from one node array, so the coordinate map is the only difference between
+them; the frame is verified injective with zero coordinate collisions and a round-trip exact to
+2.1e-13; and the implementation was required to reproduce the frozen earlier artifact at a
+worst relative difference of exactly 0.00e+00 before it was permitted to compute a new number.
 The software is released as a CPU-first open-source package with a frozen I/O contract and an
 AirfRANS loader, and is permanently archived at Zenodo (DOI 10.5281/zenodo.21277928), which
 also serves as the deposited dataset the journal's data policy requires. Each decision rule in
