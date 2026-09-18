@@ -17,12 +17,12 @@ longer exists.
 --------------------------------------------------------------------
 NEW TITLE
 --------------------------------------------------------------------
-Near the wall, AirfRANS measures the coordinate system, not the model
+The near-wall barrier on AirfRANS is a coordinate artifact, and only on velocity
 
 --------------------------------------------------------------------
 NEW ABSTRACT
 --------------------------------------------------------------------
-(paste from docs/paper/abstract.tex, 237 words, stripping LaTeX
+(paste from docs/paper/abstract.tex, 243 words, stripping LaTeX
 markup -- do not retype it, and do not let the arXiv form's plain-text
 conversion drop the boldface numbers' digits)
 
@@ -64,15 +64,26 @@ WHAT CHANGED SINCE v3
    25x to 0.0044x, better on 200 of 200 cases
    (BODY-FITTED-BOUND-OPEN, pre-registered). The physical arm rescored
    on the same restricted nodes still reads 25.2x, so the restriction
-   manufactured nothing. The near-wall advantage is an artifact of the
-   coordinate system the baseline is posed in.
+   manufactured nothing. The BARRIER is an artifact of the coordinate
+   system the baseline is posed in -- not the gap: the deployed
+   estimator in that frame improves 114x and still loses on the
+   case-mean, and the paper claims only the former.
 
-5. THE FRAME'S COST, measured: a wall-normal coordinate does not exist
-   on 4.98% of near-wall nodes (4.19-6.75%), behind the sharp trailing
-   edge, where a wake fan projects onto a single vertex. Those nodes
-   carry 99.99% of the frame's round-trip error.
+5. THE CHANNEL SPLIT, and it is the sharper test of the mechanism. On
+   PRESSURE there was never a barrier: the physical-coordinate bound is
+   already 0.00103x Transolver inside 0.005c, and the wall-following
+   frame makes it 1.58x WORSE, better on only 15/200 cases. Velocity
+   varies steeply across a boundary layer and gains 5,665x; pressure is
+   nearly constant across it and gains nothing. The near-wall result is
+   a VELOCITY statement.
 
-6. THE REPRESENTATION CEILING is restated correctly. The r128 raster's
+6. THE FRAME'S COST, measured: a wall-normal coordinate does not exist
+   on 4.98% of near-wall nodes (4.19-6.75%), at the trailing edge and
+   the leading-edge stagnation region, where a fan of points projects
+   onto a single vertex. Those nodes carry 99.99% of the frame's
+   round-trip error.
+
+7. THE REPRESENTATION CEILING is restated correctly. The r128 raster's
    round-trip error at the native nodes exceeds the surrogate's by
    413x pooled and 495x near the wall. v3 and earlier drafts claimed
    this BOUNDS every published r128 field number; it does not, because
@@ -80,7 +91,7 @@ WHAT CHANGED SINCE v3
    rasterised truth and the representation error partly cancels. The
    claim is now blindness, plus a measured ranking INVERSION.
 
-7. SURROGATE COMPETENCE, new: in the AirfRANS paper's own convention
+8. SURROGATE COMPETENCE, new: in the AirfRANS paper's own convention
    (standardised volume MSE, node-measure divisor) our Transolver is
    0.073e-2 on u and 0.099e-2 on p, against a best published 0.83e-2
    and 0.66e-2.

@@ -1,4 +1,4 @@
-\begin{thebibliography}{31}
+\begin{thebibliography}{32}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -126,6 +126,15 @@ Prashant~K. Jha.
   419:\penalty0 116595, 2024.
 \newblock \doi{10.1016/j.cma.2023.116595}.
 \newblock arXiv:2306.12047.
+
+\bibitem[Kabalan et~al.(2024)Kabalan, Casenave, Bordeu, Ehrlacher, and
+  Ern]{kabalan2024morphing}
+Abbas Kabalan, Fabien Casenave, Felipe Bordeu, Virginie Ehrlacher, and
+  Alexandre Ern.
+\newblock Elasticity-based morphing technique and application to reduced-order
+  modeling.
+\newblock \emph{arXiv preprint arXiv:2407.02433}, 2024.
+\newblock \doi{10.48550/arXiv.2407.02433}.
 
 \bibitem[Lei et~al.(2026)Lei, Tang, Zhang, and Chen]{lei2026newtonkrylov}
 Mingcheng Lei, Weishao Tang, Yufei Zhang, and Haixin Chen.

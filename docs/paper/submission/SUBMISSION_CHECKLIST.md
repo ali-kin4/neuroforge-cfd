@@ -2,7 +2,7 @@
 
 Target: **Journal of Computational Science** (Elsevier), ISSN 1877-7503.
 
-Manuscript: **"Near the wall, AirfRANS measures the coordinate system, not the model"**.
+Manuscript: **"The near-wall barrier on AirfRANS is a coordinate artifact, and only on velocity"**.
 
 > **Read the verification legend before trusting any row.**
 >

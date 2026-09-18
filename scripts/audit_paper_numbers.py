@@ -918,6 +918,13 @@ def bfb_frame_undefined(root):
     return 100.0 * float(bfb(root)["frame_undefined_fraction"]["mean_frac"])
 
 
+
+def bfb_p(root, frame, est):
+    import numpy as _np
+    rows = bfb(root)["rows"]
+    return float(_np.mean([r["frames"][frame]["p"][est][1] for r in rows]))
+
+
 # ---- the claim table --------------------------------------------------------
 # (label, reader, manuscript value, absolute tolerance)
 CLAIMS = [
@@ -1300,6 +1307,12 @@ CLAIMS = [
     ("body-fitted median of per-case ratios",
      lambda r: bfb_diag(r, "median_of_ratios"), 0.0022, 0.0002),
     ("near-wall nodes with no wall-normal frame (%)", bfb_frame_undefined, 4.98, 0.02),
+    ("p bound, physical frame, casemean",
+     lambda r: bfb_p(r, "physical", "ls_mse"), 18.394, 0.01),
+    ("p bound, body-fitted frame, casemean",
+     lambda r: bfb_p(r, "bodyfit", "ls_mse"), 29.03, 0.02),
+    ("p deployed KRR, body-fitted casemean",
+     lambda r: bfb_p(r, "bodyfit", "krr_mse"), 78653, 20),
 ]
 
 

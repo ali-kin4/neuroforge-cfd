@@ -2,8 +2,8 @@
 
 Dear Editors,
 
-I am pleased to submit **"Near the wall, AirfRANS measures the coordinate system, not the
-model"** for consideration as an original research paper in the *Journal of Computational
+I am pleased to submit **"The near-wall barrier on AirfRANS is a coordinate artifact, and
+only on velocity"** for consideration as an original research paper in the *Journal of Computational
 Science*.
 
 **What the paper reports.** Machine-learning surrogates for simulation are almost universally
