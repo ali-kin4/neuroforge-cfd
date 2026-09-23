@@ -1,0 +1,183 @@
+{
+  "artifact": "paired_band_stats",
+  "band": "0-0.005c",
+  "note": "per-case paired ratios, interpolation over Transolver on identical nodes; diagnostic only, registered verdicts unchanged",
+  "S1": {
+    "status": "PASS",
+    "n_cases": 200
+  },
+  "channels": {
+    "u": {
+      "transolver_pooled_all_nodes": 1.1576490545626825,
+      "transolver_pooled_restricted_nodes": 1.054154995571774,
+      "restricted_over_all": 0.9105997982868782,
+      "casemean_ratio": {
+        "physical_bound_all_nodes": 25.002283690880375,
+        "physical_bound_restricted": 27.68350096188745,
+        "bodyfit_bound_restricted": 0.004886875003719563,
+        "krr_physical_restricted": 192.13036922156527,
+        "krr_bodyfit_restricted": 1.708452053786142
+      },
+      "paired": {
+        "physical_bound_all_nodes": {
+          "n": 200,
+          "median": 36.57223739741677,
+          "mean": 40.862611552144365,
+          "p05": 7.227693478044516,
+          "p95": 79.90402743109337,
+          "min": 3.1077395322895374,
+          "max": 102.83847271260615,
+          "n_above_10": 185,
+          "n_at_or_below_1": 0,
+          "n_below_1": 0
+        },
+        "physical_bound_restricted": {
+          "n": 200,
+          "median": 41.029244991516734,
+          "mean": 45.549372214104,
+          "p05": 8.86464423511254,
+          "p95": 90.10318955529262,
+          "min": 3.638908531134253,
+          "max": 109.97535705776853,
+          "n_above_10": 186,
+          "n_at_or_below_1": 0,
+          "n_below_1": 0
+        },
+        "bodyfit_bound_restricted": {
+          "n": 200,
+          "median": 0.004587969692701741,
+          "mean": 0.005482294367833745,
+          "p05": 0.0018172010649593895,
+          "p95": 0.011688707557180692,
+          "min": 0.0010133909371151518,
+          "max": 0.018306648684970697,
+          "n_above_10": 0,
+          "n_at_or_below_1": 200,
+          "n_below_1": 200
+        },
+        "krr_physical_restricted": {
+          "n": 200,
+          "median": 297.9724150979814,
+          "mean": 326.63531410970705,
+          "p05": 79.67957227037176,
+          "p95": 614.3853465746806,
+          "min": 35.311262431415166,
+          "max": 934.8557951798132,
+          "n_above_10": 200,
+          "n_at_or_below_1": 0,
+          "n_below_1": 0
+        },
+        "krr_bodyfit_restricted": {
+          "n": 200,
+          "median": 0.830392630504607,
+          "mean": 1.3030152366812138,
+          "p05": 0.2782450048630418,
+          "p95": 3.68409434442963,
+          "min": 0.1794738279635157,
+          "max": 10.481207429822298,
+          "n_above_10": 1,
+          "n_at_or_below_1": 115,
+          "n_below_1": 115
+        },
+        "bodyfit_over_physical_bound": {
+          "n": 200,
+          "median": 0.00010350827300930162,
+          "mean": 0.00019036437505962205,
+          "p05": 4.871819165861725e-05,
+          "p95": 0.0005005045437189367,
+          "min": 4.10538522570827e-05,
+          "max": 0.001972885666925746,
+          "n_above_10": 0,
+          "n_at_or_below_1": 200,
+          "n_below_1": 200
+        }
+      }
+    },
+    "p": {
+      "transolver_pooled_all_nodes": 17838.11185345716,
+      "transolver_pooled_restricted_nodes": 17925.55449923883,
+      "restricted_over_all": 1.0049020124158894,
+      "casemean_ratio": {
+        "physical_bound_all_nodes": 0.0010267074170266532,
+        "physical_bound_restricted": 0.0010261588830367456,
+        "bodyfit_bound_restricted": 0.0016194538415922172,
+        "krr_physical_restricted": 5.338964457556761,
+        "krr_bodyfit_restricted": 4.387766808392172
+      },
+      "paired": {
+        "physical_bound_all_nodes": {
+          "n": 200,
+          "median": 0.0005038494550277353,
+          "mean": 0.0010361246911723802,
+          "p05": 8.144572442349453e-05,
+          "p95": 0.0033745494474579085,
+          "min": 2.594021245714012e-05,
+          "max": 0.023165759997193974,
+          "n_above_10": 0,
+          "n_at_or_below_1": 200,
+          "n_below_1": 200
+        },
+        "physical_bound_restricted": {
+          "n": 200,
+          "median": 0.0004977139876914526,
+          "mean": 0.0010368701071662044,
+          "p05": 8.215426731728171e-05,
+          "p95": 0.0034831935469931807,
+          "min": 2.4858134400607632e-05,
+          "max": 0.023118934674008648,
+          "n_above_10": 0,
+          "n_at_or_below_1": 200,
+          "n_below_1": 200
+        },
+        "bodyfit_bound_restricted": {
+          "n": 200,
+          "median": 0.0029813284244387165,
+          "mean": 0.004165846325674773,
+          "p05": 0.0005155079598664111,
+          "p95": 0.011393992647632509,
+          "min": 0.0002516216661471335,
+          "max": 0.025365458130119097,
+          "n_above_10": 0,
+          "n_at_or_below_1": 200,
+          "n_below_1": 200
+        },
+        "krr_physical_restricted": {
+          "n": 200,
+          "median": 3.2668556414928487,
+          "mean": 6.949765913811364,
+          "p05": 0.5161950834194474,
+          "p95": 29.763356044672033,
+          "min": 0.11454172736579625,
+          "max": 130.41887232920087,
+          "n_above_10": 30,
+          "n_at_or_below_1": 31,
+          "n_below_1": 31
+        },
+        "krr_bodyfit_restricted": {
+          "n": 200,
+          "median": 2.7535955435608463,
+          "mean": 6.343897925202099,
+          "p05": 0.300374979168341,
+          "p95": 23.67051210148033,
+          "min": 0.11466523689270568,
+          "max": 120.56574636860118,
+          "n_above_10": 31,
+          "n_at_or_below_1": 41,
+          "n_below_1": 41
+        },
+        "bodyfit_over_physical_bound": {
+          "n": 200,
+          "median": 6.063920167303569,
+          "mean": 8.550010323910115,
+          "p05": 0.9113838604541744,
+          "p95": 24.608527726058945,
+          "min": 0.17452872408413453,
+          "max": 71.57305073408709,
+          "n_above_10": 49,
+          "n_at_or_below_1": 15,
+          "n_below_1": 15
+        }
+      }
+    }
+  }
+}
