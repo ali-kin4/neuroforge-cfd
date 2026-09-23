@@ -286,8 +286,7 @@ who knows it will assume you don't. Two things to write:
 **Why not general ML.** The whole asset is the 0.10–0.97 spread, and it is measured entirely
 inside one subfield. A general-ML framing requires a measurement outside CFD that you do not
 have, and a general-ML reviewer will ask for one within the first paragraph of review. You would
-be claiming a universal and showing a local. That is exactly the kind of overclaim this project
-has twice been rejected for.
+be claiming a universal and showing a local. That is exactly the kind of overclaim to avoid.
 
 **Why not CFD benchmarking.** Framed as "AirfRANS and DrivAerML have a reporting gap," the
 audience is ~200 people and the natural venue is Computers & Fluids, which caps the reach at the

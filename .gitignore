@@ -73,3 +73,34 @@ results/control/_cache/inference_cost_progress.jsonl
 
 # Paper-2 PDF build scratch (the .md is the source; the PDF is committed)
 docs/paper2/_build/
+
+# Internal submission and review notes (venue history, reviewer strategy, cover
+# letters, personal details). They stay on the author's machine and are never
+# published; everything the paper's claims rest on is tracked elsewhere.
+docs/paper/submission/*
+!docs/paper/submission/highlights.txt
+!docs/paper/submission/arxiv_v5/
+docs/paper/submission/arxiv_v5/arxiv_v5_metadata.txt
+docs/paper2/review/meta_decision.md
+docs/paper/review/FINDINGS.md
+docs/paper/review/REFRAME_PLAN.md
+docs/paper/review/RESOLUTION.md
+docs/paper/review/bibliography_audit.md
+docs/paper/review/consistency_audit.md
+docs/paper/review/domain_expert.md
+docs/paper/review/field_scan_sept2026.md
+docs/paper/review/idea_portfolio.md
+docs/paper/review/journal_shortlist.md
+docs/paper/review/novelty_hunt.md
+docs/paper/review/r2_holes.md
+docs/paper/review/r2_round2.md
+docs/paper/review/r2_round3.md
+docs/paper/review/r2_round4.md
+docs/paper/review/strongest_design.md
+docs/paper/review/theorem_audit.md
+docs/paper/review/theorem_targets.md
+docs/paper/review/venue_plan.md
+docs/paper/review/venue_taste.md
+docs/paper/review/whitespace.md
+docs/paper2/submission/SUBMISSION_CHECKLIST.md
+docs/paper2/submission/suggested_reviewers.md

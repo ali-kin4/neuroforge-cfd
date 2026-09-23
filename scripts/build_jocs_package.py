@@ -35,7 +35,8 @@ Guarantees, each enforced rather than assumed:
 * The cover letter is everything in ``cover_letter.md`` above its ``---`` rule. The
   script refuses to build it unless the "Notes to self" heading is below that rule, and
   checks that the letter names the manuscript's exact title.
-* No upload file contains a string in FORBIDDEN (private notes, the private address).
+* No upload file contains a private string (the list is kept in the untracked
+  ``private_strings.txt``, because it names what it protects).
 * Highlights: 3-5 bullets, each at most 85 characters including spaces.
 * Vitae: at most 100 words each; unfilled ``[[FILL: ...]]`` markers are reported as
   NOT READY rather than silently shipped.
@@ -67,8 +68,11 @@ SOURCES = [f"{MAIN}.tex", "preamble.tex", "abstract.tex", "body.tex", "refs.bib"
 EXPECTED_INPUTS = {"preamble", "abstract", "body"}
 HIGHLIGHT_MAX_CHARS = 85
 VITAE_MAX_WORDS = 100
-FORBIDDEN = [r"Notes to self", r"kasraghanavati", r"icloud\.com", r"Kasra \(Ali\)",
-             r"desk[- ]?reject", r"CMAME", r"Computers & Fluids", r"\bC&F\b"]
+# Strings that must never reach an upload file. The full list names private things,
+# so it lives in the untracked submission folder (one regular expression per line,
+# private_strings.txt); the default below always applies on top of it.
+FORBIDDEN_DEFAULT = [r"Notes to self"]
+FORBIDDEN_FILE = os.path.join(SUBMISSION, "private_strings.txt")
 BUILD_JUNK = (".aux", ".log", ".out", ".blg", ".toc", ".lof", ".lot", ".fls",
               ".fdb_latexmk", ".synctex.gz", ".spl")
 ZIP_DATE = (1980, 1, 1, 0, 0, 0)
@@ -525,7 +529,15 @@ def main(argv: list[str] | None = None) -> int:
                for n in SOURCES}
     scanned.update({"Cover_letter": letter, "Highlights": highlights,
                     "Author_biographies": vitae})
-    hits = [(n, p) for n, t in scanned.items() for p in FORBIDDEN if re.search(p, t)]
+    forbidden = list(FORBIDDEN_DEFAULT)
+    private = os.path.join(root, FORBIDDEN_FILE)
+    if os.path.isfile(private):
+        forbidden += [l.strip() for l in open(private, encoding="utf-8")
+                      if l.strip() and not l.startswith("#")]
+    else:
+        problems.append(f"{FORBIDDEN_FILE} is missing: only the default private-"
+                        "string check ran")
+    hits = [(n, p) for n, t in scanned.items() for p in forbidden if re.search(p, t)]
     if hits:
         raise SystemExit(f"forbidden strings in upload files: {hits}")
     print(f"  no forbidden strings in {len(scanned)} upload texts")

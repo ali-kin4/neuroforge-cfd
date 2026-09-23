@@ -35,7 +35,7 @@ Everything below is a step toward that, or a measured limit on it.
 - **No pay-to-publish.** Subscription/hybrid venues only; take the subscription
   licence. (See memory: `no-apc-venues-only`.)
 - **Paper 2 venue: Computers & Fluids** (Elsevier, hybrid, subscription route).
-  Decided 2026-08-31; see `PLANS.md` §0 for why not CMAME.
+  Decided 2026-08-31; see `PLANS.md` §0.
 - **Frozen contracts**: `core/types.py`, `core/config.py`, `models/base.py`,
   `CONVENTIONS.md`. The 7-in/4-out channel spec is load-bearing for Paper 1 and
   must not move while it is under review.
@@ -50,7 +50,7 @@ Everything below is a step toward that, or a measured limit on it.
 
 | Goal | Evidence |
 |---|---|
-| A working CPU-first neural CFD engine with physics residuals, UQ and a correction loop | Paper 1, submitted to JCP 2026-08-25 |
+| A working CPU-first neural CFD engine with physics residuals, UQ and a correction loop | Paper 1 (arXiv:2607.10333) |
 | A calibrated trust signal with conformal coverage | Paper 1 |
 | The residual-floor theorem | Paper 1 |
 | **A real classical solver in the loop** — OpenFOAM v2606 driven from WSL2, body-fitted meshes we generate ourselves, at AirfRANS Reynolds | `solver/{openfoam,ogrid,cgrid}.py`, ~360 tests |
@@ -232,11 +232,10 @@ Re-1e4 result is the solid one.
 
 ## Venue thinking
 
-- Paper 1 → **JCP**, submitted 2026-08-25. TMLR fallback. CMAME desk-rejected it
-  as not-new-methodology; do not resubmit there.
-- Paper 2 → **CMAME**. It is new computational methodology — a criterion for
-  surrogate architecture derived from a solver-side measurement, a recipe, and a
-  certificate — which is exactly what CMAME said Paper 1 lacked. JCP alternative.
+- Paper 1 → **Journal of Computational Science** (see `PLANS.md` top).
+- Paper 2 → **Computers & Fluids** (`PLANS.md` §0). It is new computational
+  methodology — a criterion for surrogate architecture derived from a
+  solver-side measurement, a recipe, and a certificate.
 - The paper is now **positive-led**: a trained model accelerating a production
   solver on total drag, with a guarantee. The negatives support it rather than
   carrying it, which is the framing that survives review.

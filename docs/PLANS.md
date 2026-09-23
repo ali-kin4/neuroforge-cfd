@@ -3,7 +3,7 @@
 **Living document. Update it at the end of every working session**, before the
 machine can lose power. Companion: `docs/GOALS.md` (why), this file (what next).
 
-Last updated: **2026-09-23** · branch `paper1/reframe-after-jcp` · pushed to
+Last updated: **2026-09-23** · the paper-1 branch · pushed to
 `origin` (github.com/ali-kin4/neuroforge-cfd); `main` is a strict ancestor, so it
 fast-forwards.
 
@@ -13,16 +13,15 @@ fast-forwards.
 
 Title: *The near-wall barrier to parameter interpolation on AirfRANS is a
 coordinate artifact.* Venue: Journal of Computational Science, subscription
-route. **Read `docs/paper/submission/SUBMISSION_CHECKLIST.md` first**; it
-carries the upload map and the blocking steps.
+route. **Read `docs/paper/submission/SUBMISSION_CHECKLIST.md` first** (local
+only, untracked); it carries the upload map and the blocking steps.
 
 **Blocking, in order. The release is irreversible, so it goes last:**
 1. **Title**: keep it or revert it. It was changed without sign-off; the approved
    wording was "Near the wall, AirfRANS measures the coordinate system, not the
    model".
-2. **The cited snapshot**: 33 tracked files name the desk rejections, and the repo
-   is public. Either strip them before tagging or disclose the rejections in one
-   line of the letter.
+2. **The cited snapshot**: done 2026-09-23. Internal submission and review notes
+   are untracked (see `.gitignore`) and stay on the author's machine only.
 3. **Vitae and postal addresses**: fill the `[[FILL]]` markers in
    `submission/vitae.md` (positions, degrees, the second author's interests), then
    run `python scripts/build_jocs_package.py` until it prints `READY`.
@@ -606,7 +605,7 @@ with `oracle_mesh` at +92.2%. The rig is sound.
    `docs/paper2/abstract_draft.md`.
 3. **The submission blocker:** the data-availability statement names the repo
    root and `main` has none of this work. Fix with a **tag + Zenodo DOI**, never
-   a merge — Paper 1 is under review at JCP and describes `main`.
+   a merge — Paper 1 describes `main`.
 4. Phase E, the adversarial reviewer panel, has not been run.
 
 ---
@@ -750,18 +749,14 @@ transferable statement and it does not depend on any readability verdict.
 **subscription** route, which is free (`no-apc-venues-only`); the ~$3,860 APC
 applies only to the optional open-access route.
 
-Why not CMAME, which this line used to name: its **median time to first decision
-is 3 days**, i.e. it mostly desk-rejects, and a desk rejection returns *no
-reviewer reports*. It already desk-rejected Paper 1. The gamble costs weeks and
-teaches nothing. C&F's scope statement asks for exactly this paper — *"machine
+C&F's scope statement asks for exactly this paper — *"machine
 learning approaches applied to fluid flow modeling… with a focus on scientific
 rigor and comparison with traditional numerical methods"* — and its reviewers
 accept careful empirical CFD, where our real vulnerabilities (2-D, one turbulence
 model, a modest +18.4%) are ordinary rather than fatal.
 
 2025 JIFs, released June 2026: **C&F 3.0**, JCP 3.8 (28% acceptance, official),
-CMAME 7.6. If a higher-tier attempt is ever wanted, it should be **JCP, not
-CMAME** — at least it returns reviews.
+CMAME 7.6.
 
 ---
 
@@ -779,7 +774,7 @@ mechanism is measured, not argued — any 16,384-value grid projection of the
 gradient, which is the quantity viscous drag integrates.
 
 Nothing here touches Paper 1, the frozen contracts, or `ClassicalFallback`
-(still `NotImplementedError` for `'openfoam'`, exactly as the JCP submission
+(still `NotImplementedError` for `'openfoam'`, exactly as Paper 1
 states).
 
 ---
@@ -1323,8 +1318,8 @@ already written to be honest either way.
    recipe is not an artifact of Spalart-Allmaras. If no, the paper states
    single-turbulence-model as a limitation and ships sooner.
 2. **Title.** Three candidates are in `docs/paper2/DRAFT.md` §0. Not chosen.
-3. **CMAME still the target?** Not re-checked since Paper 1. The paper is now
-   *new computational methodology*, which is the gap CMAME named — but the
+3. **CMAME still the target?** Not re-checked. The paper is now
+   *new computational methodology*, which is in CMAME's scope — but the
    headline misses our own pre-registered bar (§0), so the venue call should be
    made with that in view.
 4. **New: is +18.4% at 13/13 with p = 0.0002 the paper you want to submit?** It
@@ -1532,8 +1527,8 @@ words means choosing which of the five contributions survives the abstract. On
 the framing decided today it should be the representation failure and the
 criterion; the +18.4% is a sentence, not a paragraph.
 
-**Do this only after the venue is chosen** — the table above is CMAME's, and JCP
-differs (250-word cap, no YPYW, see `jcp-submission-state`). Formatting to the
+**Do this only after the venue is chosen** — the table above is CMAME's, and other
+venues differ (check the guide at source). Formatting to the
 wrong template is the one part of this work that can be wasted.
 
 ### Phase F — write it

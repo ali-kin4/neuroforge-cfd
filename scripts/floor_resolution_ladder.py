@@ -5,7 +5,7 @@ rests on (H2), the floor ``r* := R_h(u*) != 0``. The theorem file itself
 attributes part of the floor to the ``128^2`` grid under-resolving the boundary
 layer. If ``||r*|| -> 0`` as ``h -> 0`` the floor is a discretisation artifact;
 if it plateaus, the claim is about the *operator* and not the grid, which is a
-far stronger and far less desk-rejectable paper.
+far stronger paper.
 
 Read the pre-registration below before the numbers. It was committed before the
 run -- see this file's first commit in the git log.

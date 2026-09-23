@@ -522,5 +522,5 @@ reliability benchmark exists in the field as of 2026-08; accuracy leaderboards d
   Paper-1 floor theorem constructive). High risk, high theory payoff.
 
 ## Venue
-CMAME first (this is the "new computational methodology" they asked for),
-JCP alternative. Cite Paper 1 for the audit machinery.
+CMAME or JCP; the current choice is in `PLANS.md` §0. Cite Paper 1 for the
+audit machinery.

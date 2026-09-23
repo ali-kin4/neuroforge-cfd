@@ -1,10 +1,7 @@
 """Verify the mechanical submission requirements the target journal imposes.
 
-TARGET VENUE, changed 2026-09-12: the Journal of Computational Science
-(Elsevier, IF 4.0, hybrid with a free subscription route, single anonymized).
-Computers & Fluids was withdrawn on an editorial conflict -- an author of the
-benchmark this paper audits is editorially active there -- which is recorded in
-docs/paper/review/journal_shortlist.md Sec. 4.
+TARGET VENUE: the Journal of Computational Science (Elsevier, IF 4.0, hybrid
+with a free subscription route, single anonymized).
 
     abstract    <= 250 words
     keywords    1-7, and the guide discourages multi-word keywords joined by
