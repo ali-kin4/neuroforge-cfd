@@ -1,4 +1,4 @@
-\begin{thebibliography}{32}
+\begin{thebibliography}{34}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 \providecommand{\url}[1]{\texttt{#1}}
 \providecommand{\href}[2]{#2}
@@ -20,8 +20,10 @@
   dynamics dataset for approximating reynolds-averaged navier-stokes
   solutions},
 \newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
-  Systems (NeurIPS) Datasets and Benchmarks Track}, \bibinfo{year}{2022}.
-  \bibinfo{note}{ArXiv:2212.07564}.
+  Systems (NeurIPS) Datasets and Benchmarks Track},
+  volume~\bibinfo{volume}{35}, \bibinfo{year}{2022}, pp.
+  \bibinfo{pages}{23463--23478}. \DOIprefix\doi{10.52202/068431-1705},
+  \bibinfo{note}{arXiv:2212.07564}.
 %Type = Inproceedings
 \bibitem[{Wu et~al.(2024)Wu, Luo, Wang, Wang, and Long}]{wu2024transolver}
 \bibinfo{author}{H.~Wu}, \bibinfo{author}{H.~Luo}, \bibinfo{author}{H.~Wang},
@@ -76,8 +78,10 @@
 \newblock \bibinfo{title}{{DrivAerNet++}: A large-scale multimodal car dataset
   with computational fluid dynamics simulations and deep learning benchmarks},
 \newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
-  Systems (NeurIPS) Datasets and Benchmarks Track}, \bibinfo{year}{2024}.
-  \bibinfo{note}{ArXiv:2406.09624}.
+  Systems (NeurIPS) Datasets and Benchmarks Track},
+  volume~\bibinfo{volume}{37}, \bibinfo{year}{2024}, pp.
+  \bibinfo{pages}{499--536}. \DOIprefix\doi{10.52202/079017-0016},
+  \bibinfo{note}{arXiv:2406.09624}.
 %Type = Article
 \bibitem[{Lei et~al.(2026)Lei, Tang, Zhang, and Chen}]{lei2026newtonkrylov}
 \bibinfo{author}{M.~Lei}, \bibinfo{author}{W.~Tang},
@@ -87,18 +91,16 @@
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2608.04400}
   (\bibinfo{year}{2026}). \DOIprefix\doi{10.48550/arXiv.2608.04400},
   \bibinfo{note}{submitted 5 August 2026}.
-%Type = Inproceedings
+%Type = Misc
 \bibitem[{Li et~al.(2021)Li, Kovachki, Azizzadenesheli, Liu, Bhattacharya,
   Stuart, and Anandkumar}]{li2021fno}
 \bibinfo{author}{Z.~Li}, \bibinfo{author}{N.~Kovachki},
   \bibinfo{author}{K.~Azizzadenesheli}, \bibinfo{author}{B.~Liu},
   \bibinfo{author}{K.~Bhattacharya}, \bibinfo{author}{A.~Stuart},
-  \bibinfo{author}{A.~Anandkumar},
-\newblock \bibinfo{title}{Fourier neural operator for parametric partial
-  differential equations},
-\newblock in: \bibinfo{booktitle}{International Conference on Learning
-  Representations (ICLR)}, \bibinfo{year}{2021}.
-  \bibinfo{note}{ArXiv:2010.08895}.
+  \bibinfo{author}{A.~Anandkumar}, \bibinfo{title}{Fourier neural operator for
+  parametric partial differential equations},
+  \bibinfo{howpublished}{International Conference on Learning Representations
+  (ICLR)}, \bibinfo{year}{2021}. \bibinfo{note}{ArXiv:2010.08895}.
 %Type = Article
 \bibitem[{Li et~al.(2023)Li, Huang, Liu, and Anandkumar}]{li2022geofno}
 \bibinfo{author}{Z.~Li}, \bibinfo{author}{D.~Z. Huang},
@@ -120,16 +122,14 @@
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2501.13350}
   (\bibinfo{year}{2025}). \DOIprefix\doi{10.48550/arXiv.2501.13350},
   \bibinfo{note}{nVIDIA}.
-%Type = Inproceedings
+%Type = Misc
 \bibitem[{Hsieh et~al.(2019)Hsieh, Zhao, Eismann, Mirabella, and
   Ermon}]{hsieh2019neuralpde}
 \bibinfo{author}{J.-T. Hsieh}, \bibinfo{author}{S.~Zhao},
   \bibinfo{author}{S.~Eismann}, \bibinfo{author}{L.~Mirabella},
-  \bibinfo{author}{S.~Ermon},
-\newblock \bibinfo{title}{Learning neural {PDE} solvers with convergence
-  guarantees},
-\newblock in: \bibinfo{booktitle}{International Conference on Learning
-  Representations (ICLR)}, \bibinfo{year}{2019}.
+  \bibinfo{author}{S.~Ermon}, \bibinfo{title}{Learning neural {PDE} solvers
+  with convergence guarantees}, \bibinfo{howpublished}{International Conference
+  on Learning Representations (ICLR)}, \bibinfo{year}{2019}.
   \bibinfo{note}{ArXiv:1906.01200}.
 %Type = Inproceedings
 \bibitem[{Marwah et~al.(2023)Marwah, Pokle, Kolter, Lipton, Lu, and
@@ -140,7 +140,9 @@
 \newblock \bibinfo{title}{Deep equilibrium based neural operators for
   steady-state {PDE}s},
 \newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
-  Systems (NeurIPS)}, \bibinfo{year}{2023}. \bibinfo{note}{ArXiv:2312.00234}.
+  Systems (NeurIPS)}, volume~\bibinfo{volume}{36}, \bibinfo{year}{2023}, pp.
+  \bibinfo{pages}{15716--15737}. \DOIprefix\doi{10.52202/075280-0691},
+  \bibinfo{note}{arXiv:2312.00234}.
 %Type = Inproceedings
 \bibitem[{Lippe et~al.(2023)Lippe, Veeling, Perdikaris, Turner, and
   Brandstetter}]{lippe2023pderefiner}
@@ -150,7 +152,9 @@
 \newblock \bibinfo{title}{{PDE}-refiner: Achieving accurate long rollouts with
   neural {PDE} solvers},
 \newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
-  Systems (NeurIPS)}, \bibinfo{year}{2023}. \bibinfo{note}{ArXiv:2308.05732}.
+  Systems (NeurIPS)}, volume~\bibinfo{volume}{36}, \bibinfo{year}{2023}, pp.
+  \bibinfo{pages}{67398--67433}. \DOIprefix\doi{10.52202/075280-2946},
+  \bibinfo{note}{arXiv:2308.05732}.
 %Type = Article
 \bibitem[{Jha(2024)}]{learned2023residualcorrection}
 \bibinfo{author}{P.~K. Jha},
@@ -238,16 +242,14 @@
   North American Chapter of the Association for Computational Linguistics
   ({NAACL})}, \bibinfo{year}{2018}, pp. \bibinfo{pages}{107--112}.
   \DOIprefix\doi{10.18653/v1/N18-2017}, \bibinfo{note}{arXiv:1803.02324}.
-%Type = Inproceedings
+%Type = Misc
 \bibitem[{Errica et~al.(2020)Errica, Podda, Bacciu, and
   Micheli}]{errica2020fair}
 \bibinfo{author}{F.~Errica}, \bibinfo{author}{M.~Podda},
-  \bibinfo{author}{D.~Bacciu}, \bibinfo{author}{A.~Micheli},
-\newblock \bibinfo{title}{A fair comparison of graph neural networks for graph
-  classification},
-\newblock in: \bibinfo{booktitle}{International Conference on Learning
-  Representations (ICLR)}, \bibinfo{year}{2020}.
-  \bibinfo{note}{ArXiv:1912.09893}.
+  \bibinfo{author}{D.~Bacciu}, \bibinfo{author}{A.~Micheli}, \bibinfo{title}{A
+  fair comparison of graph neural networks for graph classification},
+  \bibinfo{howpublished}{International Conference on Learning Representations
+  (ICLR)}, \bibinfo{year}{2020}. \bibinfo{note}{ArXiv:1912.09893}.
 %Type = Inproceedings
 \bibitem[{Ferrari~Dacrema et~al.(2019)Ferrari~Dacrema, Cremonesi, and
   Jannach}]{dacrema2019progress}
@@ -256,8 +258,9 @@
 \newblock \bibinfo{title}{Are we really making much progress? {A} worrying
   analysis of recent neural recommendation approaches},
 \newblock in: \bibinfo{booktitle}{Proceedings of the 13th ACM Conference on
-  Recommender Systems (RecSys)}, \bibinfo{year}{2019}. \bibinfo{note}{Best Long
-  Paper; arXiv:1907.06902}.
+  Recommender Systems (RecSys)}, \bibinfo{year}{2019}, pp.
+  \bibinfo{pages}{101--109}. \DOIprefix\doi{10.1145/3298689.3347058},
+  \bibinfo{note}{best Long Paper; arXiv:1907.06902}.
 %Type = Article
 \bibitem[{Ahlmann-Eltze et~al.(2025)Ahlmann-Eltze, Huber, and
   Anders}]{ahlmanneltze2025deep}
@@ -318,6 +321,14 @@
   \bibinfo{volume}{16} (\bibinfo{year}{2024}) \bibinfo{pages}{e2023MS004019}.
   \DOIprefix\doi{10.1029/2023MS004019}.
 %Type = Article
+\bibitem[{Amsallem and Farhat(2008)}]{amsallem2008interpolation}
+\bibinfo{author}{D.~Amsallem}, \bibinfo{author}{C.~Farhat},
+\newblock \bibinfo{title}{Interpolation method for adapting reduced-order
+  models and application to aeroelasticity},
+\newblock \bibinfo{journal}{AIAA Journal} \bibinfo{volume}{46}
+  (\bibinfo{year}{2008}) \bibinfo{pages}{1803--1813}.
+  \DOIprefix\doi{10.2514/1.35374}.
+%Type = Article
 \bibitem[{Kabalan et~al.(2024)Kabalan, Casenave, Bordeu, Ehrlacher, and
   Ern}]{kabalan2024morphing}
 \bibinfo{author}{A.~Kabalan}, \bibinfo{author}{F.~Casenave},
@@ -327,6 +338,12 @@
   to reduced-order modeling},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2407.02433}
   (\bibinfo{year}{2024}). \DOIprefix\doi{10.48550/arXiv.2407.02433}.
+%Type = Book
+\bibitem[{Schlichting and Gersten(2017)}]{schlichting2017boundary}
+\bibinfo{author}{H.~Schlichting}, \bibinfo{author}{K.~Gersten},
+  \bibinfo{title}{Boundary-Layer Theory}, \bibinfo{publisher}{Springer},
+  \bibinfo{address}{Berlin, Heidelberg}, \bibinfo{year}{2017}.
+  \DOIprefix\doi{10.1007/978-3-662-52919-5}.
 %Type = Article
 \bibitem[{Zhang et~al.(2026)Zhang, Mallon, Luo, Thiyagalingam, Tzeferacos,
   Bingham, and Gregori}]{zhang2026phymgn}

@@ -925,6 +925,91 @@ def bfb_p(root, frame, est):
     return float(_np.mean([r["frames"][frame]["p"][est][1] for r in rows]))
 
 
+
+# ---- paired, matched-node statistics (scripts/paired_band_stats.py) ---------
+# The registered verdicts (25.0, 0.0044) are read on the pooled all-node denominator,
+# as registered. Every per-case figure the text quotes is PAIRED on identical nodes, and
+# the case-mean comparisons of the deployed and best-single arms use the matched
+# (restricted-node) Transolver error. These rows keep the text on that convention.
+
+def pbs(root):
+    return load(os.path.join(root, "results/interpolation/paired_band_stats.json"))
+
+
+def pbs_paired(root, chan, arm, key):
+    return float(pbs(root)["channels"][chan]["paired"][arm][key])
+
+
+def pbs_cm(root, chan, arm):
+    return float(pbs(root)["channels"][chan]["casemean_ratio"][arm])
+
+
+def pbs_restricted_drop_pct(root):
+    return 100.0 * (1.0 - float(pbs(root)["channels"]["u"]["restricted_over_all"]))
+
+
+def ls_n200_ridge_ratio(root):
+    import numpy as _np
+    d = ls_n200(root)
+    t = float(d["P3_LS"]["transolver_band_mse_u"])
+    return float(_np.mean([r["channels"]["u"]["ls_mse_ridge"][1] for r in d["rows"]])) / t
+
+
+def band1_exclusion_pct(root):
+    b = bfb(root)
+    ref = {r["name"]: r for r in ls_n200(root)["rows"]}
+    full = sum(ref[r["name"]]["n_band"][1] for r in b["rows"])
+    kept = sum(r["n_band"][1] for r in b["rows"])
+    return 100.0 * (1.0 - kept / full)
+
+
+def bfb_frame_range(root, which):
+    return 100.0 * float(bfb(root)["frame_undefined_fraction"][which])
+
+
+def bfb_nodes_excluded(root):
+    return float(bfb(root)["frame_undefined_fraction"]["mean_nodes_excluded"])
+
+
+def p_physical_factor(root):
+    import numpy as _np
+    b = bfb(root)
+    ref = {r["name"]: r for r in ls_n200(root)["rows"]}
+    v = _np.mean([ref[r["name"]]["channels"]["p"]["ls_mse"][1] for r in b["rows"]])
+    t = float(pbs(root)["channels"]["p"]["transolver_pooled_all_nodes"])
+    return t / v
+
+
+def bfb_b2_inverse(root):
+    return 1.0 / bfb_b2(root)
+
+
+def krr_improvement(root):
+    return pbs_cm(root, "u", "krr_physical_restricted") / pbs_cm(root, "u", "krr_bodyfit_restricted")
+
+
+def nmv_claim3(root, which):
+    return float(nmv(root)["claim3_native_standardised_mean"][which]["ratio"])
+
+
+def nmv_competence_factor(root, chan):
+    c2 = nmv(root)["claim2_competence_vs_published"]["vs_best_published"]
+    return float(c2["u_factor_better" if chan == "u" else "p_factor_better"])
+
+
+def training_diff_pct(root, chan):
+    import csv as _csv
+    import numpy as _np
+    t2 = {}
+    with open(os.path.join(root, "results/baselines/table2.csv"), encoding="utf-8") as fh:
+        for row in _csv.DictReader(fh):
+            if row["model"] == "transolver":
+                t2[row["metric"]] = float(row["mean"])
+    v2 = load(os.path.join(root, "results/v2/v2_results.json"))["backbone_per_seed"]
+    dep = float(_np.mean([s["mse_" + chan] for s in v2]))
+    return 100.0 * (dep / t2["mse_" + chan] - 1.0)
+
+
 # ---- the claim table --------------------------------------------------------
 # (label, reader, manuscript value, absolute tolerance)
 CLAIMS = [
@@ -1293,19 +1378,50 @@ CLAIMS = [
     ("our Transolver, AirfRANS convention, p (x1e-2)",
      lambda r: nmv_competence(r, "p"), 0.0991, 0.0005),
     ("LS family bound, n=200, u inside 0.005c", ls_n200_ratio, 25.0, 0.05),
-    ("LS bound n=200, median of per-case ratios",
-     lambda r: ls_n200_diag(r, "median_of_ratios"), 19.8, 0.05),
-    ("LS bound n=200, node-weighted pooled ratio",
-     lambda r: ls_n200_diag(r, "pooled_node_weighted_ratio"), 25.04, 0.05),
-    ("LS bound n=200, cases individually above 10",
-     lambda r: ls_n200_diag(r, "n_cases_above_10"), 161, 0.5),
+    ("LS bound n=200 at lambda=1e-6 tr/n", ls_n200_ridge_ratio, 25.2, 0.05),
+    ("paired physical bound: median ratio",
+     lambda r: pbs_paired(r, "u", "physical_bound_all_nodes", "median"), 36.6, 0.05),
+    ("paired physical bound: cases above 10",
+     lambda r: pbs_paired(r, "u", "physical_bound_all_nodes", "n_above_10"), 185, 0.5),
+    ("paired physical bound: cases at or below 1",
+     lambda r: pbs_paired(r, "u", "physical_bound_all_nodes", "n_at_or_below_1"), 0, 0.5),
+    ("paired physical bound: p5",
+     lambda r: pbs_paired(r, "u", "physical_bound_all_nodes", "p05"), 7.2, 0.05),
+    ("paired physical bound: p95",
+     lambda r: pbs_paired(r, "u", "physical_bound_all_nodes", "p95"), 79.9, 0.05),
     ("body-fitted bound B1, u inside 0.005c", bfb_b1, 0.0044, 0.0002),
     ("physical arm on the SAME restricted nodes", bfb_physical_same_nodes, 25.21, 0.05),
     ("B2 body-fitted / physical, same nodes", bfb_b2, 1.765e-4, 5e-6),
     ("cases where body-fitted is better", bfb_cases_improved, 200, 0.5),
-    ("body-fitted cases at or below 1", lambda r: bfb_diag(r, "n_cases_at_or_below_1"), 200, 0.5),
-    ("body-fitted median of per-case ratios",
-     lambda r: bfb_diag(r, "median_of_ratios"), 0.0022, 0.0002),
+    ("paired body-fitted bound: cases below the surrogate",
+     lambda r: pbs_paired(r, "u", "bodyfit_bound_restricted", "n_below_1"), 200, 0.5),
+    ("paired body-fitted bound: median",
+     lambda r: pbs_paired(r, "u", "bodyfit_bound_restricted", "median"), 0.0046, 0.00005),
+    ("paired body-fitted bound: worst case",
+     lambda r: pbs_paired(r, "u", "bodyfit_bound_restricted", "max"), 0.018, 0.0005),
+    ("B1 with the matched-node denominator",
+     lambda r: pbs_cm(r, "u", "bodyfit_bound_restricted"), 0.0049, 0.00005),
+    ("Transolver band error drop on the restricted set (%)", pbs_restricted_drop_pct, 9.0, 0.5),
+    ("B2 inverse: gain of the frame on the bound", bfb_b2_inverse, 5665, 5),
+    ("best single field, physical, matched case-mean",
+     lambda r: pbs_cm(r, "u", "best_single_physical_restricted"), 381, 0.5),
+    ("best single field, body-fitted, matched case-mean",
+     lambda r: pbs_cm(r, "u", "best_single_bodyfit_restricted"), 7.2, 0.05),
+    ("deployed estimator, physical, paired median",
+     lambda r: pbs_paired(r, "u", "krr_physical_restricted", "median"), 298, 0.5),
+    ("deployed estimator, body-fitted, paired median",
+     lambda r: pbs_paired(r, "u", "krr_bodyfit_restricted", "median"), 0.83, 0.005),
+    ("deployed estimator, body-fitted, cases below the surrogate",
+     lambda r: pbs_paired(r, "u", "krr_bodyfit_restricted", "n_below_1"), 115, 0.5),
+    ("deployed estimator, physical, matched case-mean",
+     lambda r: pbs_cm(r, "u", "krr_physical_restricted"), 192, 0.5),
+    ("deployed estimator, body-fitted, matched case-mean",
+     lambda r: pbs_cm(r, "u", "krr_bodyfit_restricted"), 1.71, 0.005),
+    ("deployed estimator improvement factor", krr_improvement, 112, 0.5),
+    ("verdict-band nodes with no wall-normal frame (%)", band1_exclusion_pct, 1.36, 0.005),
+    ("frame undefined, lowest case (%)", lambda r: bfb_frame_range(r, "min_frac"), 4.19, 0.005),
+    ("frame undefined, highest case (%)", lambda r: bfb_frame_range(r, "max_frac"), 6.75, 0.006),
+    ("frame-undefined nodes per case", bfb_nodes_excluded, 5474, 1),
     ("near-wall nodes with no wall-normal frame (%)", bfb_frame_undefined, 4.98, 0.02),
     ("p bound, physical frame, casemean",
      lambda r: bfb_p(r, "physical", "ls_mse"), 18.394, 0.01),
@@ -1313,6 +1429,31 @@ CLAIMS = [
      lambda r: bfb_p(r, "bodyfit", "ls_mse"), 29.03, 0.02),
     ("p deployed KRR, body-fitted casemean",
      lambda r: bfb_p(r, "bodyfit", "krr_mse"), 78653, 20),
+    ("p: physical bound beats the surrogate by (matched nodes)",
+     lambda r: 1.0 / pbs_cm(r, "p", "physical_bound_restricted"), 974, 1),
+    ("p: physical bound, matched case-mean ratio",
+     lambda r: pbs_cm(r, "p", "physical_bound_restricted"), 0.00103, 0.000005),
+    ("p: body-fitted bound, matched case-mean ratio",
+     lambda r: pbs_cm(r, "p", "bodyfit_bound_restricted"), 0.00162, 0.000005),
+    ("p: paired physical bound, cases below the surrogate",
+     lambda r: pbs_paired(r, "p", "physical_bound_all_nodes", "n_below_1"), 200, 0.5),
+    ("p: paired body-fitted/physical median", lambda r: pbs_paired(r, "p",
+     "bodyfit_over_physical_bound", "median"), 6.1, 0.05),
+    ("p: cases the frame improves the bound",
+     lambda r: pbs_paired(r, "p", "bodyfit_over_physical_bound", "n_below_1"), 15, 0.5),
+    ("p: deployed estimator, physical, matched case-mean",
+     lambda r: pbs_cm(r, "p", "krr_physical_restricted"), 5.34, 0.005),
+    ("p: deployed estimator, body-fitted, matched case-mean",
+     lambda r: pbs_cm(r, "p", "krr_bodyfit_restricted"), 4.39, 0.005),
+    ("native standardised mean, area-uniform divisors",
+     lambda r: nmv_claim3(r, "area_uniform_VAR_TRAIN"), 24.7, 0.05),
+    ("native standardised mean, node-measure divisors",
+     lambda r: nmv_claim3(r, "node_measure_train_var"), 80.0, 0.5),
+    ("competence: better than best published on u", lambda r: nmv_competence_factor(r, "u"), 11.3, 0.05),
+    ("competence: better than best published on p", lambda r: nmv_competence_factor(r, "p"), 6.7, 0.05),
+    ("two trainings differ on u (%)", lambda r: training_diff_pct(r, "u"), 5.0, 0.5),
+    ("two trainings differ on p (%)", lambda r: training_diff_pct(r, "p"), 0.2, 0.05),
+    ("two trainings differ on v (%)", lambda r: training_diff_pct(r, "v"), 13.0, 0.51),
 ]
 
 
