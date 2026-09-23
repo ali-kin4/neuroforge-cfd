@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-23T09:06:33.280022+00:00",
-  "git_head": "7edea90b1d8f7ddf5660138339012ec18fefd543",
-  "git_head_short": "7edea90",
+  "generated_utc": "2026-09-23T09:10:01.201238+00:00",
+  "git_head": "733dffd51c61e849ddd803e693ebc3b478fd6072",
+  "git_head_short": "733dffd",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -964,7 +964,7 @@
       "sha256": "e3254b3499735c5aef71ea9ffad2e6bff2c771070bad1c9dae4409770e584a86",
       "bytes": 4427,
       "git_tracked": true,
-      "last_commit": "943f667"
+      "last_commit": "733dffd"
     },
     {
       "path": "results/interpolation/transolver_percase_bands.json",
@@ -981,8 +981,8 @@
       "script": "scripts/paired_band_stats.py",
       "tier": "cpu",
       "claims": "paired per-case statistics for the near-wall bounds, each case against its own Transolver error on identical nodes (gate S1). Physical bound: median 36.6, 185/200 above 10, none at or below 1. Body-fitted bound: 200/200 below 1, worst 0.018; B1 on matched nodes 0.0049. Deployed estimator in the body-fitted frame: median 0.83, 115/200 below Transolver, case-mean 1.71. Diagnostic only; the registered verdicts are read on the pooled denominator",
-      "sha256": "b27ab2701ab347b01d9f7245b065569c0e94da70ad78de3f8f179393c5c4b52d",
-      "bytes": 5973,
+      "sha256": "e15ff6be826afccda343f492025dc3ec132b56cbeb0f48a7170a256541d467a8",
+      "bytes": 7758,
       "git_tracked": true,
       "last_commit": "7edea90"
     },
@@ -994,7 +994,7 @@
       "sha256": "91853b0fdd06fb32b90be7fa2b4e8dcbef3c454c15da58dc614b8d0ed5375e73",
       "bytes": 44518,
       "git_tracked": true,
-      "last_commit": "1b4e932"
+      "last_commit": "733dffd"
     }
   ]
 }

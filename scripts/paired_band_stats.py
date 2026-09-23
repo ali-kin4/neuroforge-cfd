@@ -96,6 +96,9 @@ def main() -> int:
         ls_bf = np.array([BFr[nm]["frames"]["bodyfit"][c]["ls_mse"][BAND] for nm in names])
         krr_phys_res = np.array([BFr[nm]["frames"]["physical"][c]["krr_mse"][BAND] for nm in names])
         krr_bf = np.array([BFr[nm]["frames"]["bodyfit"][c]["krr_mse"][BAND] for nm in names])
+        bs_phys_res = np.array([BFr[nm]["frames"]["physical"][c]["best_single_mse"][BAND]
+                                for nm in names])
+        bs_bf = np.array([BFr[nm]["frames"]["bodyfit"][c]["best_single_mse"][BAND] for nm in names])
 
         # pooled denominators, node-weighted exactly as the registered constant is
         T_pool_all = float(np.sum(t_all * n_all) / np.sum(n_all))
@@ -112,6 +115,8 @@ def main() -> int:
                 "bodyfit_bound_restricted": float(ls_bf.mean() / T_pool_res),
                 "krr_physical_restricted": float(krr_phys_res.mean() / T_pool_res),
                 "krr_bodyfit_restricted": float(krr_bf.mean() / T_pool_res),
+                "best_single_physical_restricted": float(bs_phys_res.mean() / T_pool_res),
+                "best_single_bodyfit_restricted": float(bs_bf.mean() / T_pool_res),
             },
             # the paired per-case distributions
             "paired": {
@@ -120,6 +125,8 @@ def main() -> int:
                 "bodyfit_bound_restricted": summary(ls_bf / t_res),
                 "krr_physical_restricted": summary(krr_phys_res / t_res),
                 "krr_bodyfit_restricted": summary(krr_bf / t_res),
+                "best_single_physical_restricted": summary(bs_phys_res / t_res),
+                "best_single_bodyfit_restricted": summary(bs_bf / t_res),
                 "bodyfit_over_physical_bound": summary(ls_bf / ls_phys_res),
             },
         }

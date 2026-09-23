@@ -16,7 +16,9 @@
         "physical_bound_restricted": 27.68350096188745,
         "bodyfit_bound_restricted": 0.004886875003719563,
         "krr_physical_restricted": 192.13036922156527,
-        "krr_bodyfit_restricted": 1.708452053786142
+        "krr_bodyfit_restricted": 1.708452053786142,
+        "best_single_physical_restricted": 381.0108740112198,
+        "best_single_bodyfit_restricted": 7.184660099909001
       },
       "paired": {
         "physical_bound_all_nodes": {
@@ -79,6 +81,30 @@
           "n_at_or_below_1": 115,
           "n_below_1": 115
         },
+        "best_single_physical_restricted": {
+          "n": 200,
+          "median": 629.4801578647055,
+          "mean": 678.7160181170553,
+          "p05": 114.14308193974007,
+          "p95": 1383.4890274021168,
+          "min": 34.24566118515423,
+          "max": 1884.68045500058,
+          "n_above_10": 200,
+          "n_at_or_below_1": 0,
+          "n_below_1": 0
+        },
+        "best_single_bodyfit_restricted": {
+          "n": 200,
+          "median": 7.687848739731836,
+          "mean": 8.552436474693172,
+          "p05": 2.425127540460537,
+          "p95": 16.947851899825523,
+          "min": 0.7678577838524326,
+          "max": 33.07096023205239,
+          "n_above_10": 69,
+          "n_at_or_below_1": 2,
+          "n_below_1": 2
+        },
         "bodyfit_over_physical_bound": {
           "n": 200,
           "median": 0.00010350827300930162,
@@ -102,7 +128,9 @@
         "physical_bound_restricted": 0.0010261588830367456,
         "bodyfit_bound_restricted": 0.0016194538415922172,
         "krr_physical_restricted": 5.338964457556761,
-        "krr_bodyfit_restricted": 4.387766808392172
+        "krr_bodyfit_restricted": 4.387766808392172,
+        "best_single_physical_restricted": 7.2416147434347256,
+        "best_single_bodyfit_restricted": 6.125004490079633
       },
       "paired": {
         "physical_bound_all_nodes": {
@@ -164,6 +192,30 @@
           "n_above_10": 31,
           "n_at_or_below_1": 41,
           "n_below_1": 41
+        },
+        "best_single_physical_restricted": {
+          "n": 200,
+          "median": 12.661475318771764,
+          "mean": 18.20400157020151,
+          "p05": 1.6218765890745837,
+          "p95": 50.77602797529402,
+          "min": 0.20118974581215612,
+          "max": 104.90077990563731,
+          "n_above_10": 123,
+          "n_at_or_below_1": 5,
+          "n_below_1": 5
+        },
+        "best_single_bodyfit_restricted": {
+          "n": 200,
+          "median": 11.201835699839652,
+          "mean": 15.185832903904156,
+          "p05": 1.49050727261867,
+          "p95": 41.612657193782304,
+          "min": 0.21514078116706642,
+          "max": 126.50990432932933,
+          "n_above_10": 113,
+          "n_at_or_below_1": 6,
+          "n_below_1": 6
         },
         "bodyfit_over_physical_bound": {
           "n": 200,
