@@ -1067,7 +1067,7 @@ $>0.5c$ & $0.79978$ & $0.1134$ & $\mathbf{0.312}$ & $0.007$ & $0.004$ & $21.1$ &
 \end{adjustbox}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure}[tbp]
 \centering
 \includegraphics[width=0.85\textwidth]{../../results/figures/fig_bandratio.pdf}
 \caption{\textbf{Where each method's error lives, under both measures.}
@@ -1632,8 +1632,10 @@ Graph U-Net & $1.52$ & $0.66$ & $0.39$ & $0.49$  & $10.39$ & $0.967\,/\,{-}0.138
 \section*{Code and data availability}
 The complete source, training/evaluation harnesses, and per-claim reproduction map
 (\texttt{docs/REPRODUCE.md}) are released as the open-source package \texttt{neuroforge-cfd}
-(\url{https://github.com/ali-kin4/neuroforge-cfd}; archived at Zenodo,
-DOI \href{https://doi.org/10.5281/zenodo.21277928}{10.5281/zenodo.21277928}). Every headline number maps to a committed script and result file, and a top-level
+(\url{https://github.com/ali-kin4/neuroforge-cfd}). The snapshot matching this manuscript is
+release \texttt{v1.1.0}, archived at Zenodo \citep{jabbary2026neuroforgecfd} (DOI
+\href{https://doi.org/10.5281/zenodo.21277928}{10.5281/zenodo.21277928}). Every headline
+number maps to a committed script and result file, and a top-level
 manifest (\texttt{results/MANIFEST.json}) records seeds, environment, and SHA-256 hashes for
 hash-drift detection. The benchmark is public \citep{bonnet2022airfrans}. The package is
 CPU-first and runs end-to-end with zero downloads via a synthetic data generator; the GPU

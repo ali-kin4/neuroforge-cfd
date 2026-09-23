@@ -32,6 +32,17 @@
 \makeatother
 
 
+% elsarticle's \appendix relabels tables and figures "A.n" but never resets their
+% counters, so the one appendix table printed as "Table A.7"; the guide numbers them
+% Table A.1, Fig. A.1. Reset both, and give hyperref anchors that cannot collide with
+% the main text's table.1.
+\makeatletter
+\g@addto@macro\appendix{%
+  \setcounter{table}{0}\setcounter{figure}{0}%
+  \gdef\theHtable{app.\Alph{section}.\arabic{table}}%
+  \gdef\theHfigure{app.\Alph{section}.\arabic{figure}}}
+\makeatother
+
 \journal{Journal of Computational Science}
 
 \begin{document}
