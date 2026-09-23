@@ -3,8 +3,53 @@
 **Living document. Update it at the end of every working session**, before the
 machine can lose power. Companion: `docs/GOALS.md` (why), this file (what next).
 
-Last updated: **2026-09-07** · branch `paper2/openfoam-warm-start` · pushed to
-`origin` (github.com/ali-kin4/neuroforge-cfd), ~35 commits ahead of `main`.
+Last updated: **2026-09-23** · branch `paper1/reframe-after-jcp` · pushed to
+`origin` (github.com/ali-kin4/neuroforge-cfd); `main` is a strict ancestor, so it
+fast-forwards.
+
+---
+
+## 0.00001 PAPER 1 — BUILT AND VERIFIED FOR JOCS; THREE AUTHOR STEPS LEFT (2026-09-23)
+
+Title: *The near-wall barrier to parameter interpolation on AirfRANS is a
+coordinate artifact.* Venue: Journal of Computational Science, subscription
+route. **Read `docs/paper/submission/SUBMISSION_CHECKLIST.md` first**; it
+carries the upload map and the blocking steps.
+
+**Blocking, in order:**
+1. **Release `v1.1.0`** (fast-forward `main`, tag, publish the GitHub release;
+   the Zenodo webhook archives it). The paper and letter cite it by name. Until
+   it exists the concept DOI 10.5281/zenodo.21277928 resolves to v1.0.5, which
+   has none of the headline scripts. `.zenodo.json` is already updated.
+2. **Vitae**: fill the `[[FILL]]` markers in `submission/vitae.md` (positions,
+   degrees, the second author's interests), then
+   `python scripts/build_jocs_package.py` until it prints `READY`.
+3. **Declaration of interest** from Elsevier's own tool; the guide requires the
+   tool, so no look-alike is generated.
+
+**Verified on 2026-09-23:** both builds have 0 errors, warnings, over/underfull
+boxes and undefined references. The flat upload copy reproduces a reference build
+label for label, with a byte-identical bibliography. The auditor matches every
+number with 0 SKIP. The fast tests pass. `make_manifest --check` passes on a
+fresh checkout (98/98).
+
+**Gotchas this pass found, all fixed; check for them again next time:**
+- Editorial Manager builds in a flat folder, so the repository's
+  `../../results/figures` path would not build. The packager renames the figure
+  to `Figure_1.pdf`.
+- A `[t]`-only figure too tall for elsarticle's top fraction drifts past the
+  references with no warning. Use `[tbp]`.
+- elsarticle's `\appendix` never resets the table counter (it printed "Table
+  A.7"). The fix lives in the Elsevier wrapper only.
+- The guide requires LTWA journal abbreviations.
+- `preamble.tex`'s `pdftitle` still carried the old title.
+- The manifest had recorded a CRLF hash, so it drifted on a clean clone. Always
+  run `--check` in a fresh worktree, not in place.
+
+**After submission:** the one experiment that could turn "barrier, not gap" into
+a positive estimator result is body-fitted KRR with its kernel re-selected by CV
+in the new frame. It is 1.71× from parity on the case-mean. Save it for revision.
+Then Paper 2 (§0.0001 onward, below).
 
 ---
 

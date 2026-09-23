@@ -3,7 +3,19 @@
 **Living document. Update whenever a goal is reached, dropped, or reframed.**
 Companion: `docs/PLANS.md` (what next), this file (why, and what has been won).
 
-Last updated: **2026-08-30**
+Last updated: **2026-09-23**
+
+> **Paper 1 (2026-09-23): ready for the Journal of Computational Science**,
+> pending three author steps (see `PLANS.md` top). The outcome worth claiming:
+> **on AirfRANS the near-wall barrier to parameter interpolation is a coordinate
+> artifact.** The exact least-squares bound over all 800 training fields is 25×
+> worse than Transolver inside 0.005c in physical coordinates. In a
+> parameter-free wall-following frame it is 0.0044×, below the surrogate on
+> 200/200 paired cases. Both verdicts were pre-registered.
+> The deployed estimator improves 112× and still trails on the case-mean
+> (1.71×), so the claim is the barrier, not the gap. Second finding: the
+> published field ranking reverses with the unstated cell weighting (8.4× →
+> 0.44× → 0.21×).
 
 ---
 
