@@ -7,6 +7,10 @@
 
 \input{preamble}
 
+% tmlr.sty declares \flushbottom, which stretched 7 float-heavy pages into
+% underfull vboxes; a preprint does not need flush page bottoms.
+\raggedbottom
+
 \title{The near-wall barrier to parameter interpolation on AirfRANS\\ is a coordinate artifact}
 
 \author{Ali Jabbary \\

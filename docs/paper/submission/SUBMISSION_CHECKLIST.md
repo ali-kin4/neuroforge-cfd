@@ -108,7 +108,10 @@ where the fee is triggered. See `no-apc-venues-only`.
 - [ ] **Blocking 1–3 above are done**, and `build_jocs_package.py` prints `READY`
 - [x] `python scripts/check_submission.py` — all mechanical requirements satisfied (2026-09-23)
 - [x] `python scripts/audit_paper_numbers.py` — every checked number matches, 0 SKIP (2026-09-23)
-- [x] Both PDFs rebuilt from current source: 0 errors, warnings, over/underfull, undefined (2026-09-23)
+- [x] Both PDFs rebuilt from current source: 0 errors, warnings, over/underfull, undefined
+      (2026-09-23) — **at LaTeX's default \hbadness/\vbadness**. An earlier preamble raised
+      both to 10000, which hid 19 loose lines in this build; that silencing is gone and the
+      cause (unbreakable monospace paths) is fixed. The packager's "clean" means the same.
 - [x] `pytest` — fast suite passes, exit 0 (2026-09-23)
 - [x] Editorial board screened against the suggested reviewers (2026-09-17; EiC is Valeria Krzhizhanovskaya)
 - [ ] Signed in as **st_a.jabbary@urmia.ac.ir** (EM account `AJabbary-884`), **not** the

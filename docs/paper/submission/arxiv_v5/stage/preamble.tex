@@ -21,13 +21,18 @@
 \definecolor{lab}{HTML}{6B7280}
 
 \emergencystretch=3em
-\hbadness=10000
-\vbadness=10000
+\makeatletter
+\def\nf@pathbreak{\penalty\exhyphenpenalty\hskip\z@\@plus.25em\relax}
+\DeclareRobustCommand{\_}{%
+  \ifmmode\nfss@text{\textunderscore}\else\textunderscore\nf@pathbreak\fi}
+\DeclareRobustCommand{\slash}{/\nf@pathbreak}
+\makeatother
 
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue,
   pdftitle={The near-wall barrier to parameter interpolation on AirfRANS is a coordinate artifact},
   pdfauthor={Ali Jabbary, Kasra Ghanavati}}
+\Urlmuskip=0mu plus 1mu
 
 \providecommand{\propositionautorefname}{Proposition}
 \providecommand{\theoremautorefname}{Theorem}

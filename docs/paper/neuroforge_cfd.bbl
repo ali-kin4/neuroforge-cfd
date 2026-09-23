@@ -40,11 +40,11 @@ Roland Becker and Rolf Rannacher.
   Gallinari]{bonnet2022airfrans}
 Florent Bonnet, Jocelyn~Ahmed Mazari, Paola Cinnella, and Patrick Gallinari.
 \newblock {AirfRANS}: High fidelity computational fluid dynamics dataset for
-  approximating reynolds-averaged navier-stokes solutions.
+  approximating {R}eynolds-averaged {N}avier--{S}tokes solutions.
 \newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)
   Datasets and Benchmarks Track}, volume~35, pp.\  23463--23478, 2022.
 \newblock \doi{10.52202/068431-1705}.
-\newblock arXiv:2212.07564.
+\newblock {arXiv}:2212.07564.
 
 \bibitem[Elrefaie et~al.(2024)Elrefaie, Morar, Dai, and
   Ahmed]{elrefaie2024drivaernet}
@@ -54,13 +54,13 @@ Mohamed Elrefaie, Florin Morar, Angela Dai, and Faez Ahmed.
 \newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)
   Datasets and Benchmarks Track}, volume~37, pp.\  499--536, 2024.
 \newblock \doi{10.52202/079017-0016}.
-\newblock arXiv:2406.09624.
+\newblock {arXiv}:2406.09624.
 
 \bibitem[Errica et~al.(2020)Errica, Podda, Bacciu, and Micheli]{errica2020fair}
 Federico Errica, Marco Podda, Davide Bacciu, and Alessio Micheli.
 \newblock A fair comparison of graph neural networks for graph classification.
 \newblock International Conference on Learning Representations (ICLR), 2020.
-\newblock arXiv:1912.09893.
+\newblock {arXiv}:1912.09893.
 
 \bibitem[Ethayarajh et~al.(2022)Ethayarajh, Choi, and
   Swayamdipta]{ethayarajh2022vusable}
@@ -70,7 +70,7 @@ Kawin Ethayarajh, Yejin Choi, and Swabha Swayamdipta.
 \newblock In \emph{International Conference on Machine Learning (ICML)}, volume
   162 of \emph{Proceedings of Machine Learning Research}, pp.\  5988--6008,
   2022.
-\newblock Outstanding Paper; arXiv:2110.08420.
+\newblock {arXiv}:2110.08420.
 
 \bibitem[Feng et~al.(2019)Feng, Wallace, and Boyd-Graber]{feng2019misleading}
 Shi Feng, Eric Wallace, and Jordan Boyd-Graber.
@@ -78,7 +78,7 @@ Shi Feng, Eric Wallace, and Jordan Boyd-Graber.
 \newblock In \emph{Proceedings of the 57th Annual Meeting of the Association
   for Computational Linguistics ({ACL})}, pp.\  5533--5538, 2019.
 \newblock \doi{10.18653/v1/P19-1554}.
-\newblock arXiv:1905.05778.
+\newblock {arXiv}:1905.05778.
 
 \bibitem[Ferrari~Dacrema et~al.(2019)Ferrari~Dacrema, Cremonesi, and
   Jannach]{dacrema2019progress}
@@ -88,7 +88,7 @@ Maurizio Ferrari~Dacrema, Paolo Cremonesi, and Dietmar Jannach.
 \newblock In \emph{Proceedings of the 13th ACM Conference on Recommender
   Systems (RecSys)}, pp.\  101--109, 2019.
 \newblock \doi{10.1145/3298689.3347058}.
-\newblock Best Long Paper; arXiv:1907.06902.
+\newblock {arXiv}:1907.06902.
 
 \bibitem[Gururangan et~al.(2018)Gururangan, Swayamdipta, Levy, Schwartz,
   Bowman, and Smith]{gururangan2018artifacts}
@@ -99,7 +99,7 @@ Suchin Gururangan, Swabha Swayamdipta, Omer Levy, Roy Schwartz, Samuel~R.
   Chapter of the Association for Computational Linguistics ({NAACL})}, pp.\
   107--112, 2018.
 \newblock \doi{10.18653/v1/N18-2017}.
-\newblock arXiv:1803.02324.
+\newblock {arXiv}:1803.02324.
 
 \bibitem[Hillebrecht \& Unger(2025)Hillebrecht and
   Unger]{hillebrecht2025posteriori}
@@ -115,7 +115,7 @@ Jun-Ting Hsieh, Shengjia Zhao, Stephan Eismann, Lucia Mirabella, and Stefano
   Ermon.
 \newblock Learning neural {PDE} solvers with convergence guarantees.
 \newblock International Conference on Learning Representations (ICLR), 2019.
-\newblock arXiv:1906.01200.
+\newblock {arXiv}:1906.01200.
 
 \bibitem[Huang \& Perdikaris(2025)Huang and
   Perdikaris]{huang2025physicscorrect}
@@ -124,7 +124,7 @@ Xinquan Huang and Paris Perdikaris.
   simulations.
 \newblock \emph{arXiv preprint arXiv:2507.02227}, 2025.
 \newblock \doi{10.48550/arXiv.2507.02227}.
-\newblock AAAI 2026.
+\newblock {AAAI} 2026.
 
 \bibitem[Jabbary \& Ghanavati(2026)Jabbary and
   Ghanavati]{jabbary2026neuroforgecfd}
@@ -140,7 +140,7 @@ Prashant~K. Jha.
   boundary-value problems.
 \newblock \emph{Comput. Methods Appl. Mech. Eng.}, 419:\penalty0 116595, 2024.
 \newblock \doi{10.1016/j.cma.2023.116595}.
-\newblock arXiv:2306.12047.
+\newblock {arXiv}:2306.12047.
 
 \bibitem[Kabalan et~al.(2024)Kabalan, Casenave, Bordeu, Ehrlacher, and
   Ern]{kabalan2024morphing}
@@ -166,14 +166,14 @@ Zongyi Li, Nikola Kovachki, Kamyar Azizzadenesheli, Burigede Liu, Kaushik
 \newblock Fourier neural operator for parametric partial differential
   equations.
 \newblock International Conference on Learning Representations (ICLR), 2021.
-\newblock arXiv:2010.08895.
+\newblock {arXiv}:2010.08895.
 
 \bibitem[Li et~al.(2023)Li, Huang, Liu, and Anandkumar]{li2022geofno}
 Zongyi Li, Daniel~Zhengyu Huang, Burigede Liu, and Anima Anandkumar.
-\newblock Fourier neural operator with learned deformations for pdes on general
-  geometries.
+\newblock Fourier neural operator with learned deformations for {PDEs} on
+  general geometries.
 \newblock \emph{J. Mach. Learn. Res.}, 24\penalty0 (388):\penalty0 1--26, 2023.
-\newblock arXiv:2207.05209.
+\newblock {arXiv}:2207.05209.
 
 \bibitem[Lippe et~al.(2023)Lippe, Veeling, Perdikaris, Turner, and
   Brandstetter]{lippe2023pderefiner}
@@ -184,7 +184,7 @@ Phillip Lippe, Bastiaan~S. Veeling, Paris Perdikaris, Richard~E. Turner, and
 \newblock In \emph{Advances in Neural Information Processing Systems
   (NeurIPS)}, volume~36, pp.\  67398--67433, 2023.
 \newblock \doi{10.52202/075280-2946}.
-\newblock arXiv:2308.05732.
+\newblock {arXiv}:2308.05732.
 
 \bibitem[Luo et~al.(2025)Luo, Wu, Zhou, Xing, Di, Wang, and
   Long]{luo2025transolverpp}
@@ -203,7 +203,7 @@ Tanya Marwah, Ashwini Pokle, J.~Zico Kolter, Zachary~C. Lipton, Jianfeng Lu,
 \newblock In \emph{Advances in Neural Information Processing Systems
   (NeurIPS)}, volume~36, pp.\  15716--15737, 2023.
 \newblock \doi{10.52202/075280-0691}.
-\newblock arXiv:2312.00234.
+\newblock {arXiv}:2312.00234.
 
 \bibitem[McGreivy \& Hakim(2024)McGreivy and Hakim]{mcgreivy2024weak}
 Nick McGreivy and Ammar Hakim.
@@ -229,7 +229,7 @@ Adam Poliak, Jason Naradowsky, Aparajita Haldar, Rachel Rudinger, and Benjamin
 \newblock In \emph{Proceedings of the Seventh Joint Conference on Lexical and
   Computational Semantics ({*SEM})}, pp.\  180--191, 2018.
 \newblock \doi{10.18653/v1/S18-2023}.
-\newblock arXiv:1805.01042.
+\newblock {arXiv}:1805.01042.
 
 \bibitem[Queipo et~al.(2005)Queipo, Haftka, Shyy, Goel, Vaidyanathan, and
   Tucker]{queipo2005surrogate}
@@ -256,7 +256,6 @@ Rishikesh Ranade, Mohammad~Amin Nabian, Kaustubh Tangsali, Alexey Kamenev,
   modeling large scale engineering simulations.
 \newblock \emph{arXiv preprint arXiv:2501.13350}, 2025.
 \newblock \doi{10.48550/arXiv.2501.13350}.
-\newblock NVIDIA.
 
 \bibitem[Rasp et~al.(2024)Rasp, Hoyer, Merose, Langmore, Battaglia, Russel,
   Sanchez-Gonzalez, Yang, Carver, Agrawal, Chantry, Ben~Bouallegue, Dueben,
@@ -299,7 +298,7 @@ Haixu Wu, Huakun Luo, Haowen Wang, Jianmin Wang, and Mingsheng Long.
 \newblock In \emph{International Conference on Machine Learning (ICML)}, volume
   235 of \emph{Proceedings of Machine Learning Research}, pp.\  53681--53705,
   2024.
-\newblock arXiv:2402.02366.
+\newblock {arXiv}:2402.02366.
 
 \bibitem[Zhang et~al.(2026)Zhang, Mallon, Luo, Thiyagalingam, Tzeferacos,
   Bingham, and Gregori]{zhang2026phymgn}

@@ -17,13 +17,13 @@
 \bibinfo{author}{F.~Bonnet}, \bibinfo{author}{J.~A. Mazari},
   \bibinfo{author}{P.~Cinnella}, \bibinfo{author}{P.~Gallinari},
 \newblock \bibinfo{title}{{AirfRANS}: High fidelity computational fluid
-  dynamics dataset for approximating reynolds-averaged navier-stokes
+  dynamics dataset for approximating {R}eynolds-averaged {N}avier--{S}tokes
   solutions},
 \newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
   Systems (NeurIPS) Datasets and Benchmarks Track},
   volume~\bibinfo{volume}{35}, \bibinfo{year}{2022}, pp.
   \bibinfo{pages}{23463--23478}. \DOIprefix\doi{10.52202/068431-1705},
-  \bibinfo{note}{arXiv:2212.07564}.
+  \bibinfo{note}{{arXiv}:2212.07564}.
 %Type = Inproceedings
 \bibitem[{Wu et~al.(2024)Wu, Luo, Wang, Wang, and Long}]{wu2024transolver}
 \bibinfo{author}{H.~Wu}, \bibinfo{author}{H.~Luo}, \bibinfo{author}{H.~Wang},
@@ -33,7 +33,7 @@
 \newblock in: \bibinfo{booktitle}{International Conference on Machine Learning
   (ICML)}, volume \bibinfo{volume}{235} of \textit{\bibinfo{series}{Proceedings
   of Machine Learning Research}}, \bibinfo{year}{2024}, pp.
-  \bibinfo{pages}{53681--53705}. \bibinfo{note}{ArXiv:2402.02366}.
+  \bibinfo{pages}{53681--53705}. \bibinfo{note}{{arXiv}:2402.02366}.
 %Type = Article
 \bibitem[{Luo et~al.(2025)Luo, Wu, Zhou, Xing, Di, Wang, and
   Long}]{luo2025transolverpp}
@@ -81,7 +81,7 @@
   Systems (NeurIPS) Datasets and Benchmarks Track},
   volume~\bibinfo{volume}{37}, \bibinfo{year}{2024}, pp.
   \bibinfo{pages}{499--536}. \DOIprefix\doi{10.52202/079017-0016},
-  \bibinfo{note}{arXiv:2406.09624}.
+  \bibinfo{note}{{arXiv}:2406.09624}.
 %Type = Article
 \bibitem[{Lei et~al.(2026)Lei, Tang, Zhang, and Chen}]{lei2026newtonkrylov}
 \bibinfo{author}{M.~Lei}, \bibinfo{author}{W.~Tang},
@@ -100,16 +100,16 @@
   \bibinfo{author}{A.~Anandkumar}, \bibinfo{title}{Fourier neural operator for
   parametric partial differential equations},
   \bibinfo{howpublished}{International Conference on Learning Representations
-  (ICLR)}, \bibinfo{year}{2021}. \bibinfo{note}{ArXiv:2010.08895}.
+  (ICLR)}, \bibinfo{year}{2021}. \bibinfo{note}{{arXiv}:2010.08895}.
 %Type = Article
 \bibitem[{Li et~al.(2023)Li, Huang, Liu, and Anandkumar}]{li2022geofno}
 \bibinfo{author}{Z.~Li}, \bibinfo{author}{D.~Z. Huang},
   \bibinfo{author}{B.~Liu}, \bibinfo{author}{A.~Anandkumar},
 \newblock \bibinfo{title}{Fourier neural operator with learned deformations for
-  pdes on general geometries},
+  {PDEs} on general geometries},
 \newblock \bibinfo{journal}{J. Mach. Learn. Res.} \bibinfo{volume}{24}
   (\bibinfo{year}{2023}) \bibinfo{pages}{1--26}.
-  \bibinfo{note}{ArXiv:2207.05209}.
+  \bibinfo{note}{{arXiv}:2207.05209}.
 %Type = Article
 \bibitem[{Ranade et~al.(2025)Ranade, Nabian, Tangsali, Kamenev, Hennigh,
   Cherukuri, and Choudhry}]{ranade2025domino}
@@ -120,8 +120,7 @@
 \newblock \bibinfo{title}{{DoMINO}: A decomposable multi-scale iterative neural
   operator for modeling large scale engineering simulations},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2501.13350}
-  (\bibinfo{year}{2025}). \DOIprefix\doi{10.48550/arXiv.2501.13350},
-  \bibinfo{note}{nVIDIA}.
+  (\bibinfo{year}{2025}). \DOIprefix\doi{10.48550/arXiv.2501.13350}.
 %Type = Misc
 \bibitem[{Hsieh et~al.(2019)Hsieh, Zhao, Eismann, Mirabella, and
   Ermon}]{hsieh2019neuralpde}
@@ -130,7 +129,7 @@
   \bibinfo{author}{S.~Ermon}, \bibinfo{title}{Learning neural {PDE} solvers
   with convergence guarantees}, \bibinfo{howpublished}{International Conference
   on Learning Representations (ICLR)}, \bibinfo{year}{2019}.
-  \bibinfo{note}{ArXiv:1906.01200}.
+  \bibinfo{note}{{arXiv}:1906.01200}.
 %Type = Inproceedings
 \bibitem[{Marwah et~al.(2023)Marwah, Pokle, Kolter, Lipton, Lu, and
   Risteski}]{marwah2023fnodeq}
@@ -142,7 +141,7 @@
 \newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
   Systems (NeurIPS)}, volume~\bibinfo{volume}{36}, \bibinfo{year}{2023}, pp.
   \bibinfo{pages}{15716--15737}. \DOIprefix\doi{10.52202/075280-0691},
-  \bibinfo{note}{arXiv:2312.00234}.
+  \bibinfo{note}{{arXiv}:2312.00234}.
 %Type = Inproceedings
 \bibitem[{Lippe et~al.(2023)Lippe, Veeling, Perdikaris, Turner, and
   Brandstetter}]{lippe2023pderefiner}
@@ -154,7 +153,7 @@
 \newblock in: \bibinfo{booktitle}{Advances in Neural Information Processing
   Systems (NeurIPS)}, volume~\bibinfo{volume}{36}, \bibinfo{year}{2023}, pp.
   \bibinfo{pages}{67398--67433}. \DOIprefix\doi{10.52202/075280-2946},
-  \bibinfo{note}{arXiv:2308.05732}.
+  \bibinfo{note}{{arXiv}:2308.05732}.
 %Type = Article
 \bibitem[{Jha(2024)}]{learned2023residualcorrection}
 \bibinfo{author}{P.~K. Jha},
@@ -163,7 +162,8 @@
   variational boundary-value problems},
 \newblock \bibinfo{journal}{Comput. Methods Appl. Mech. Eng.}
   \bibinfo{volume}{419} (\bibinfo{year}{2024}) \bibinfo{pages}{116595}.
-  \DOIprefix\doi{10.1016/j.cma.2023.116595}, \bibinfo{note}{arXiv:2306.12047}.
+  \DOIprefix\doi{10.1016/j.cma.2023.116595},
+  \bibinfo{note}{{arXiv}:2306.12047}.
 %Type = Article
 \bibitem[{Huang and Perdikaris(2025)}]{huang2025physicscorrect}
 \bibinfo{author}{X.~Huang}, \bibinfo{author}{P.~Perdikaris},
@@ -171,7 +171,7 @@
   neural {PDE} simulations},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2507.02227}
   (\bibinfo{year}{2025}). \DOIprefix\doi{10.48550/arXiv.2507.02227},
-  \bibinfo{note}{aAAI 2026}.
+  \bibinfo{note}{{AAAI} 2026}.
 %Type = Article
 \bibitem[{Raissi et~al.(2019)Raissi, Perdikaris, and
   Karniadakis}]{raissi2019pinn}
@@ -228,7 +228,7 @@
 \newblock in: \bibinfo{booktitle}{Proceedings of the Seventh Joint Conference
   on Lexical and Computational Semantics ({*SEM})}, \bibinfo{year}{2018}, pp.
   \bibinfo{pages}{180--191}. \DOIprefix\doi{10.18653/v1/S18-2023},
-  \bibinfo{note}{arXiv:1805.01042}.
+  \bibinfo{note}{{arXiv}:1805.01042}.
 %Type = Inproceedings
 \bibitem[{Gururangan et~al.(2018)Gururangan, Swayamdipta, Levy, Schwartz,
   Bowman, and Smith}]{gururangan2018artifacts}
@@ -240,7 +240,7 @@
 \newblock in: \bibinfo{booktitle}{Proceedings of the 2018 Conference of the
   North American Chapter of the Association for Computational Linguistics
   ({NAACL})}, \bibinfo{year}{2018}, pp. \bibinfo{pages}{107--112}.
-  \DOIprefix\doi{10.18653/v1/N18-2017}, \bibinfo{note}{arXiv:1803.02324}.
+  \DOIprefix\doi{10.18653/v1/N18-2017}, \bibinfo{note}{{arXiv}:1803.02324}.
 %Type = Misc
 \bibitem[{Errica et~al.(2020)Errica, Podda, Bacciu, and
   Micheli}]{errica2020fair}
@@ -248,7 +248,7 @@
   \bibinfo{author}{D.~Bacciu}, \bibinfo{author}{A.~Micheli}, \bibinfo{title}{A
   fair comparison of graph neural networks for graph classification},
   \bibinfo{howpublished}{International Conference on Learning Representations
-  (ICLR)}, \bibinfo{year}{2020}. \bibinfo{note}{ArXiv:1912.09893}.
+  (ICLR)}, \bibinfo{year}{2020}. \bibinfo{note}{{arXiv}:1912.09893}.
 %Type = Inproceedings
 \bibitem[{Ferrari~Dacrema et~al.(2019)Ferrari~Dacrema, Cremonesi, and
   Jannach}]{dacrema2019progress}
@@ -259,7 +259,7 @@
 \newblock in: \bibinfo{booktitle}{Proceedings of the 13th ACM Conference on
   Recommender Systems (RecSys)}, \bibinfo{year}{2019}, pp.
   \bibinfo{pages}{101--109}. \DOIprefix\doi{10.1145/3298689.3347058},
-  \bibinfo{note}{best Long Paper; arXiv:1907.06902}.
+  \bibinfo{note}{{arXiv}:1907.06902}.
 %Type = Article
 \bibitem[{Ahlmann-Eltze et~al.(2025)Ahlmann-Eltze, Huber, and
   Anders}]{ahlmanneltze2025deep}
@@ -278,7 +278,7 @@
 \newblock in: \bibinfo{booktitle}{Proceedings of the 57th Annual Meeting of the
   Association for Computational Linguistics ({ACL})}, \bibinfo{year}{2019}, pp.
   \bibinfo{pages}{5533--5538}. \DOIprefix\doi{10.18653/v1/P19-1554},
-  \bibinfo{note}{arXiv:1905.05778}.
+  \bibinfo{note}{{arXiv}:1905.05778}.
 %Type = Inproceedings
 \bibitem[{Ethayarajh et~al.(2022)Ethayarajh, Choi, and
   Swayamdipta}]{ethayarajh2022vusable}
@@ -289,8 +289,7 @@
 \newblock in: \bibinfo{booktitle}{International Conference on Machine Learning
   (ICML)}, volume \bibinfo{volume}{162} of \textit{\bibinfo{series}{Proceedings
   of Machine Learning Research}}, \bibinfo{year}{2022}, pp.
-  \bibinfo{pages}{5988--6008}. \bibinfo{note}{Outstanding Paper;
-  arXiv:2110.08420}.
+  \bibinfo{pages}{5988--6008}. \bibinfo{note}{{arXiv}:2110.08420}.
 %Type = Article
 \bibitem[{Queipo et~al.(2005)Queipo, Haftka, Shyy, Goel, Vaidyanathan, and
   Tucker}]{queipo2005surrogate}

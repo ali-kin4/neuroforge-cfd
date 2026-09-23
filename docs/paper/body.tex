@@ -398,7 +398,7 @@ This section defines only the two objects later sections measure: the fixed chan
 contract every arm is encoded into, and the discrete residual operator
 \autoref{sec:residual} audits. Implementation details, the module map and the synthetic
 zero-download data generator are in the released package and its
-\texttt{docs/REPRODUCE.md}; no quantitative claim in this paper uses synthetic data.
+\texttt{docs\slash{}REPRODUCE.md}; no quantitative claim in this paper uses synthetic data.
 
 \subsection{Geometry encoding and the monitored operator}
 
@@ -423,7 +423,7 @@ averages $\nu_t = 8.2\times10^{-5}$ against a laminar $\nu = 1.56\times10^{-5}$,
 $\nu_t\approx5.2\,\nu$ supplies $\approx84\%$ of $\nu_{\mathrm{eff}}$ and the monitored
 operator is a genuine RANS residual. The channel is learned, backbone-dependently: against
 $\nu_t$'s own fluid-masked variance, $R^2 = 0.996$ on the grid backbone and
-$0.67$--$0.70$ on MeshGraphNet (\texttt{scripts/check\_nut\_learned.py}). What the
+$0.67$--$0.70$ on MeshGraphNet (\texttt{scripts\slash{}check\_nut\_learned.py}). What the
 operator omits is the spatially varying term $\nabla\nu_t\!\cdot\!\nabla u$. Derivatives
 use central finite differences with one-sided stencils at the borders; residuals are
 zeroed inside the solid. A boundary-condition violation map $r_{bc}$ adds a
@@ -502,8 +502,8 @@ to test once. Scoring is byte-identical to the surrogates': the same cached rast
 pairs at $128^2$, the same \texttt{evaluate\_cases}, the same mask, surface sampler and
 force integrator, with \texttt{sdf} and \texttt{mask} rebuilt from \texttt{case.geometry}
 exactly as the Transolver adapter does
-(\texttt{scripts/parameter\_interpolation\_baseline.py},
-\texttt{results/interpolation/interp\_full.json}). The input asymmetry runs
+(\texttt{scripts\slash{}parameter\_interpolation\_baseline.py},
+\texttt{results\slash{}interpolation\slash{}interp\_full.json}). The input asymmetry runs
 \emph{against} the baseline: the surrogates receive the full $7$-channel geometry and
 freestream encoding per case, the interpolator receives seven scalars. The body-fitted arm
 introduced below relaxes that austerity, and we say so where it enters: it also reads each
@@ -532,8 +532,8 @@ Delaunay-barycentric interpolant the loader uses to build every rasterised pair 
 project, and query it at the test case's own nodes; the Transolver is evaluated at those
 same nodes directly, which is where it natively predicts. No new numerical operator enters
 the comparison and neither arm meets a grid
-(\texttt{scripts/point\_space\_headtohead.py};
-\texttt{results/interpolation/point\_space\_headtohead.json}). Two gates make this the
+(\texttt{scripts\slash{}point\_space\_headtohead.py};
+\texttt{results\slash{}interpolation\slash{}point\_space\_headtohead.json}). Two gates make this the
 published pair rather than a re-implementation: the rebuilt weight matrix reproduces
 \texttt{interp\_full.json} to $1.8\times10^{-10}$/$2.4\times10^{-9}$/$1.6\times10^{-8}$
 relative on $u/v/p$ (\textbf{G1}), and the point-space Transolver reproduces the deployed
@@ -544,7 +544,7 @@ three seeds, all four channels and all seven bands (\textbf{G2}).
 $144\times$ on $u$, $134\times$ on $v$, $4.85\times$ on $p$ and $18.3\times$ on $\nu_t$.
 Averaged over $u,v,p$ in standardised units it is $24.7\times$ with the grid pipeline's
 area-uniform variances as divisors and $80\times$ with node-measure ones, which are the
-consistent choice for a per-node comparison (\texttt{scripts/node\_measure\_variance.py}). The pre-registered rule---$R_c>2$ on
+consistent choice for a per-node comparison (\texttt{scripts\slash{}node\_measure\_variance.py}). The pre-registered rule---$R_c>2$ on
 all three of $u,v,p$---returns \textsc{not-competitive-at-native}, and it fires with room
 to spare on two of them. This is not a seed artifact ($R_u$ $147.3/141.0/144.4$, $R_p$
 $5.23/4.17/5.34$) and not a few-case artifact: paired per case, the surrogate is better on
@@ -575,7 +575,7 @@ $4.1\times$ on $u$ and $69.9\times$ on $p$: its published $r128$ output, resampl
 same nodes, is barely distinguishable on $p$ from the raster's own model-free round-trip
 error, so the native construction favours the baseline rather than handicapping it. (Memo
 rows are in-crop pooled, the only region the bilinear sampler reports without clamp
-contamination.) Source: \texttt{results/interpolation/point\_space\_headtohead.json},
+contamination.) Source: \texttt{results\slash{}interpolation\slash{}point\_space\_headtohead.json},
 rules \textbf{P1}--\textbf{P4} committed in \texttt{a54cb75} before any number existed.}
 \label{tab:native}
 \begin{adjustbox}{max width=\textwidth}
@@ -627,7 +627,7 @@ Transolver's band error pooled over the $200$ cases, so the case-mean ratio is t
 registered statistic; dividing each case by that same constant would rescale the
 interpolator's residual without comparing it with anything. Paired instead---each case's
 bound against that case's own Transolver error on the same nodes, a diagnostic added
-afterwards (\texttt{scripts/paired\_band\_stats.py})---the ratio has median $36.6$, exceeds
+afterwards (\texttt{scripts\slash{}paired\_band\_stats.py})---the ratio has median $36.6$, exceeds
 $10$ on $185$ of the $200$ cases and falls at or below $1$ on none ($p_{5}$ $7.2$, $p_{95}$
 $79.9$), so pairing makes the barrier stronger rather than weaker. Nor does it depend on how
 the projection is regularised: $25.0\times$ at $\lambda=10^{-10}\,\bar t$ and $25.2\times$
@@ -636,7 +636,7 @@ at $\lambda=10^{-6}\,\bar t$, where $\bar t$ is the mean diagonal of the Gram ma
 reported below), and the single band whose node count
 ($73$--$82$k) far exceeds the $800$ free parameters of the projection, which is the only
 band where the quantity is a bound rather than an interpolation
-(\texttt{results/interpolation/point\_space\_oracle\_ls\_n200.json}). The $343.6$ oracle
+(\texttt{results\slash{}interpolation\slash{}point\_space\_oracle\_ls\_n200.json}). The $343.6$ oracle
 is a $200$-case number too, and remains a minimum over \emph{single} fields rather than a
 bound on their combinations.
 
@@ -673,7 +673,7 @@ The result is the pre-registered \textsc{body-fitted-bound-open}, and it is not 
 the same least-squares bound over the same $800$ fields falls from $25\times$ to
 $\mathbf{0.0044\times}$ Transolver's pooled band error, and it is \textbf{lower than the
 physical bound on $200$ of $200$ cases}, at $\mathbf{1.8\times10^{-4}}$ of it on the same
-nodes (\texttt{results/interpolation/bodyfit\_bound.json}). Paired per case on identical
+nodes (\texttt{results\slash{}interpolation\slash{}bodyfit\_bound.json}). Paired per case on identical
 nodes it is below that case's own Transolver error on all $200$ (median $0.0046$, worst
 $0.018$), and with the denominator taken on exactly the restricted nodes B1 reads $0.0049$
 rather than $0.0044$---the same verdict by a factor of two hundred. Both arms are computed
@@ -754,7 +754,7 @@ is exactly what this representation cannot see.
 \caption{\textbf{The same comparison on the published grid, where it reverses.} Parameter
 interpolation against Transolver on AirfRANS \texttt{full} ($800$ train / $200$ test,
 $r128$, identical \texttt{evaluate\_cases}), scored area-uniform. The Transolver row is the
-baselines run (\texttt{results/baselines/table2.csv}, three seeds, mean $\pm$ s.d.), a
+baselines run (\texttt{results\slash{}baselines\slash{}table2.csv}, three seeds, mean $\pm$ s.d.), a
 separate training of the same $7.35$M-parameter architecture from the deployed checkpoints
 that every other table uses; the two agree to $5\%$ on $u$ and $0.2\%$ on $p$ ($0.120$
 against $0.127$, $628.5$ against $629.6$) and differ by $13\%$ on $v$ ($0.088$ against
@@ -807,7 +807,7 @@ reverse: $\texttt{mse\_p}$ $6012$ against $2646$, a ratio of $0.44\times$ where 
 $8.39\times$; $\texttt{mse\_v}$ $4.26$ against $0.282$, $0.066\times$ where it was
 $2.97\times$ (\autoref{tab:measure}). Before the re-weighting both arms reproduce their
 published rows to below one part in $10^{9}$, the Transolver arm exactly
-(\texttt{scripts/measure\_asymmetry.py} gates \textbf{G1}/\textbf{G2}). \textbf{One pair of
+(\texttt{scripts\slash{}measure\_asymmetry.py} gates \textbf{G1}/\textbf{G2}). \textbf{One pair of
 predictions, one set of cases, three measures in current use, and the pressure ratio runs
 $8.39\times$, $0.44\times$, $0.21\times$.} The pre-registered rule \textbf{D3}, committed in
 \texttt{cdf08f5} before any of these numbers existed, reads a node-measure ratio at or below
@@ -852,7 +852,7 @@ differently and we have not decomposed which cells drive each.
 \paragraph{``Weight by node count'' is not a single number, and none of its readings
 rescues the aggregate.} The node measure admits more than one discretisation, so we
 re-derive the same ratio under five of them from committed numbers, with no new inference
-(the \texttt{sensitivity} stage of \texttt{scripts/measure\_asymmetry.py}). On
+(the \texttt{sensitivity} stage of \texttt{scripts\slash{}measure\_asymmetry.py}). On
 $\texttt{mse\_p}$ they span $[0.43,1.61]$ against $8.39$ area-uniform, and the endpoints
 are not equally credible. The two faithful cell-level estimators---sample the grid error
 field at each node, then average over nodes, pooled or per case---give $0.431$ and
@@ -914,13 +914,13 @@ that factor and is bolded. Before re-weighting, the interpolator arm reproduces
 (gates \textbf{G1}/\textbf{G2}); Transolver is the mean over the three deployed seeds
 (per-seed $R_p$: $8.90/8.66/7.61$ area-uniform, $0.418/0.433/0.469$ node-weighted). The
 Transolver columns here are the deployed checkpoints; \autoref{tab:interp} transcribes a
-separate training of the same architecture (\texttt{results/baselines/table2.csv}); the
+separate training of the same architecture (\texttt{results\slash{}baselines\slash{}table2.csv}); the
 two agree to $5\%$ on $u$ and $0.2\%$ on $p$ ($0.120$ against $0.127$, $628.5$ against
 $629.6$) and differ by $13\%$ on $v$ ($0.088$ against $0.0999$). The re-weighting is conservative---grid binning cannot place
 node mass inside a sub-cell band, and solid-binned nodes are dropped---so the true node
 measure is more adverse to the interpolator than the node-weighted row shows. Source:
-\texttt{scripts/measure\_asymmetry.py},
-\texttt{results/interpolation/measure\_asymmetry.json}.}
+\texttt{scripts\slash{}measure\_asymmetry.py},
+\texttt{results\slash{}interpolation\slash{}measure\_asymmetry.json}.}
 \label{tab:measure}
 \begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{l r r r r r r r r}
@@ -941,8 +941,8 @@ ratio, node-weighted & \multicolumn{2}{c}{$0.0117$} & \multicolumn{2}{c}{$0.0663
 
 \paragraph{Where each arm's error lives, on the grid.} Decomposing the interpolator's
 squared error by signed distance to the wall
-(\texttt{scripts/interpolation\_band\_control.py},
-\texttt{results/interpolation/interp\_band\_control\_full.json}) locates the entire
+(\texttt{scripts\slash{}interpolation\_band\_control.py},
+\texttt{results\slash{}interpolation\slash{}interp\_band\_control\_full.json}) locates the entire
 remaining gap. \textbf{$92\%$ of its $u$ error and $90\%$ of its $v$ error lie within
 $0.02c$ of the wall---a band holding $0.5\%$ of cells, thinner than the $0.0234c$ grid
 spacing---while $98.7\%$ of the domain lies beyond $0.05c$, where it reproduces every
@@ -993,7 +993,7 @@ better on $u$, $2834\times$ on $v$ and $382\times$ on $\nu_t$, while the two arm
 within $1.51\times$ on $p$ ($149\,203$ against $99\,227$). Those two are close, and both
 are \emph{accurate}: against the node-measure variance of $p$ among the surface nodes
 themselves, $2.06\times10^{7}$
-(\texttt{scripts/node\_measure\_variance.py}), they are $0.73\%$ and $0.48\%$ of the band's
+(\texttt{scripts\slash{}node\_measure\_variance.py}), they are $0.73\%$ and $0.48\%$ of the band's
 own variance. We name the comparator because an earlier version of this sentence divided by
 $\mathrm{Var}_{\text{train}}(p)=135\,590$ and called both arms poor. That divisor is the
 \textbf{area-uniform} variance of the rasterised training fields, the grid pipeline's
@@ -1048,7 +1048,7 @@ The accumulator
 reproduces \autoref{tab:interp_bands} over $95$ entries at max relative deviation
 $6.9{\times}10^{-8}$, and $\sum_b n_b\,\texttt{MSE}_b$ reconstructs the pooled squared
 error for every arm, channel and band grid (gates \textbf{G3}/\textbf{G4}). Source:
-\texttt{results/interpolation/measure\_asymmetry.json}, \texttt{verdicts.D2}.}
+\texttt{results\slash{}interpolation\slash{}measure\_asymmetry.json}, \texttt{verdicts.D2}.}
 \label{tab:bandratio}
 \begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{l r r r r r r r}
@@ -1085,8 +1085,8 @@ $\mathrm{sdf}=0$ exists only at the nodes: a finite-volume cell cannot sit on th
 \emph{Bottom:} the same bands by share of the $r128$ crop's fluid area and by share of the
 native cloud's nodes. The two disagree by $312\times$ in the innermost band and invert
 beyond half a chord, which is the weighting the field tables leave unstated. Both panels
-are generated by \texttt{scripts/make\_fig\_bandratio.py} from
-\texttt{results/interpolation/measure\_asymmetry.json} and
+are generated by \texttt{scripts\slash{}make\_fig\_bandratio.py} from
+\texttt{results\slash{}interpolation\slash{}measure\_asymmetry.json} and
 \texttt{point\_space\_headtohead.json}; no value is transcribed.}
 \label{fig:bandratio}
 \end{figure}
@@ -1157,8 +1157,8 @@ is that the $0.02c$ band is thinner than the $0.0234c$ cells it is measured on. 
 the whole decomposition at $128^2$, $256^2$ and $512^2$ on the same $800/200$ split with
 the estimator frozen---the kernel weight matrix is a function of the case \emph{names}
 alone and hashes bit-identically at every rung---and with every band edge fixed in chord
-units (\texttt{scripts/interpolation\_resolution\_ladder.py},
-\texttt{results/interpolation/interp\_resolution\_ladder.json}; the $128^2$ rung reproduces
+units (\texttt{scripts\slash{}interpolation\_resolution\_ladder.py},
+\texttt{results\slash{}interpolation\slash{}interp\_resolution\_ladder.json}; the $128^2$ rung reproduces
 \autoref{tab:interp} at relative error $0.00\mathrm{e}{+}00$, which gates the run before any
 finer number is written). \textbf{The pre-registered verdict is PARTIAL} and we
 report it as such. The rule required the near-wall squared-error share to stay at or above
@@ -1268,7 +1268,7 @@ strawman?} The answer does not require a shared cell, because the AirfRANS conve
 recoverable---standardised MSE is physical MSE over the train-set variance, and since
 AirfRANS is a point-cloud benchmark that divisor is the \textbf{node-measure} training
 variance, which we measure directly from the $800$ cached training fields
-(\texttt{scripts/node\_measure\_variance.py}). In those units our Transolver is
+(\texttt{scripts\slash{}node\_measure\_variance.py}). In those units our Transolver is
 $0.073\times10^{-2}$ on $u$ and $0.099\times10^{-2}$ on $p$, against a best published
 $0.83\times10^{-2}$ and $0.66\times10^{-2}$ across the four baselines of
 \autoref{tab:airfrans-sota}: better by $11.3\times$ and $6.7\times$. We report this as
@@ -1288,8 +1288,8 @@ quantity, which makes it a second, independent witness.
 $\rho_{C_l}/\rho_{C_d}$ correlate the force integrated from the \emph{predicted} field
 against the force integrated from the \emph{ground-truth} field through the same grid
 surface-integrator, not agreement with AirfRANS's official OpenFOAM labels. Recomputed
-against those labels (\texttt{scripts/recompute\_force\_vs\_official.py}; 200 cases, 3
-seeds; \texttt{results/control/force\_vs\_official.json}), the deployed backbone recovers
+against those labels (\texttt{scripts\slash{}recompute\_force\_vs\_official.py}; 200 cases, 3
+seeds; \texttt{results\slash{}control\slash{}force\_vs\_official.json}), the deployed backbone recovers
 force \emph{ranking}---$\rho_D=0.84{\pm}0.01$, $\rho_L=0.88$---but not magnitude: absolute
 drag is biased ($\approx 11\times$ mean relative error) by the integrator's $1.5$-cell
 surface-sampling offset, and the same integrator on \emph{perfect} fields also yields
@@ -1311,7 +1311,7 @@ is viscous and the wall shear lives in a sublayer at $y^+\!\approx\!5$, so recov
 needs $N\sim10^5$ cells where lift, set by chord-scale surface pressure, converges at
 first order over the same ladder: lift is observable from a raster at deployed resolution
 and drag is not. Repairing what is
-repairable (\texttt{results/control/force\_vs\_official\_multischeme.json}), a
+repairable (\texttt{results\slash{}control\slash{}force\_vs\_official\_multischeme.json}), a
 wall-extrapolated pressure scheme cuts the ground-truth-field lift magnitude error from
 $16\%$ to $4.6\%$ (median), and a \emph{control-volume} far-field momentum balance
 recovers official lift from ground-truth fields almost exactly ($\rho_L=1.00$, median
@@ -1338,18 +1338,18 @@ physics: score a surrogate by how well its field satisfies the governing equatio
 neither the weighting nor the raster has any purchase. We ran that experiment and it does
 not work. This section reports the measured answer in compressed form; a formal statement
 of the floor and the extended control set are in the public repository
-(\texttt{docs/paper/sections/residual\_floor\_theorem.tex}).
+(\texttt{docs\slash{}paper\slash{}sections\slash{}residual\_floor\_theorem.tex}).
 
 \paragraph{The ground truth fails the check.} On $200/200$ real AirfRANS test cases the
 monitored PDE residual---continuity and momentum---of the \emph{exact} field is
 substantially nonzero ($\|r^\star\|$ mean $\mathbf{0.192}$, median $0.133$;
-\texttt{results/certificates/residual\_floor\_realdata.json}), while the physically wrong
+\texttt{results\slash{}certificates\slash{}residual\_floor\_realdata.json}), while the physically wrong
 uniform freestream scores an \textbf{exact zero} at every case and every resolution,
 because a spatially constant field has identically zero finite differences. The objective
 therefore strictly prefers a wrong field to the truth, and the monitor's no-slip term does
 not rescue it at any weight: on the masked wall ring the truth incurs the \emph{larger}
 no-slip penalty, so the uniform field stays preferred for every $\lambda\ge0$ (closed form,
-$10$ cases; \texttt{results/control/bc\_weight\_sweep.json}). This is not an artifact of
+$10$ cases; \texttt{results\slash{}control\slash{}bc\_weight\_sweep.json}). This is not an artifact of
 resolution: rasterising the same truth at $128^2$, $256^2$ and $512^2$ and scoring a
 region fixed in \emph{physical} units---a reading registered before the run---the floor
 \emph{rises}, $0.0624\to0.0779\to0.1067$ while $h$ falls $4\times$, in $\mathbf{21/24}$
@@ -1513,7 +1513,7 @@ damage, but only by dumping the residual into the closure---on the deployed back
 we freeze it in the headline and report the four-channel arm as a control. Every number
 quoted here is in \autoref{sec:residual}; a formal statement of the floor and the extended
 control set are in the public repository
-(\texttt{docs/paper/sections/residual\_floor\_theorem.tex}).
+(\texttt{docs\slash{}paper\slash{}sections\slash{}residual\_floor\_theorem.tex}).
 \item \textbf{One benchmark, two dimensions.} Everything here is AirfRANS and everything
 here is 2-D. The mechanism is not airfoil-specific---any benchmark that distributes
 wall-clustered clouds and scores predictions on a resampled uniform grid inherits both the
@@ -1630,13 +1630,14 @@ Graph U-Net & $1.52$ & $0.66$ & $0.39$ & $0.49$  & $10.39$ & $0.967\,/\,{-}0.138
 \end{table}
 
 \section*{Code and data availability}
-The complete source, training/evaluation harnesses, and per-claim reproduction map
-(\texttt{docs/REPRODUCE.md}) are released as the open-source package \texttt{neuroforge-cfd}
+The complete source, training and evaluation harnesses, and per-claim reproduction map
+are released as the open-source package \texttt{neuroforge-cfd}
 (\url{https://github.com/ali-kin4/neuroforge-cfd}). The snapshot matching this manuscript is
 release \texttt{v1.1.0}, archived at Zenodo \citep{jabbary2026neuroforgecfd} (DOI
 \href{https://doi.org/10.5281/zenodo.21277928}{10.5281/zenodo.21277928}). Every headline
-number maps to a committed script and result file, and a top-level
-manifest (\texttt{results/MANIFEST.json}) records seeds, environment, and SHA-256 hashes for
+number maps to a committed script and result file through that map
+(\texttt{docs\slash{}REPRODUCE.md}), and a top-level
+manifest (\texttt{results\slash{}MANIFEST.json}) records seeds, environment, and SHA-256 hashes for
 hash-drift detection. The benchmark is public \citep{bonnet2022airfrans}. The package is
 CPU-first and runs end-to-end with zero downloads via a synthetic data generator; the GPU
 runs (backbone training) are documented with exact commands and expected outputs. Two of
@@ -1652,7 +1653,7 @@ coding tool (Claude, Anthropic; Claude Opus~4.8, Opus~5, Opus~5.5 and Fable~5 mo
 through the Claude Code environment), operating under the authors' direction. The authors specified,
 reviewed, and validated all code; every reported number is produced by a committed script
 in the public repository and verified against an artifact manifest of SHA-256 hashes
-(\texttt{results/MANIFEST.json}), and the full test suite accompanies the release. The
+(\texttt{results\slash{}MANIFEST.json}), and the full test suite accompanies the release. The
 scientific questions, experimental design, pre-registered hypotheses, and interpretation of
 results are the authors' own.
 

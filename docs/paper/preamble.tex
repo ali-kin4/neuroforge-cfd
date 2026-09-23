@@ -35,17 +35,24 @@
 \definecolor{noGood}{HTML}{DC2626}
 \definecolor{lab}{HTML}{6B7280}
 
-% Typesetting tolerance. Overfull boxes (text bleeding into the margin) are the
-% warnings that matter and we keep ZERO of them. The only residual warnings were
-% UNDERFULL boxes: cosmetically invisible loose spacing on lines that end in
-% unbreakable monospace file-paths (e.g. \texttt{benchmarks/ablation.py}) and the
-% justified bibliography. The TMLR style already declares \sloppy (it accepts
-% loose lines by design); we make \hbadness/\vbadness consistent with that so the
-% build log is warning-free, rather than hyphenating file-paths (which reads
-% worse). \emergencystretch keeps overfull at zero.
+% Typesetting tolerance. Long monospace file paths used to be unbreakable, which
+% forced loose lines around them; an earlier revision hid those by raising
+% \hbadness/\vbadness to 10000. That is gone: the paths now break after "/" (the
+% body writes \slash{} inside \texttt) and after "\_" (below, at the same penalty
+% \slash uses, with no hyphen inserted), so both builds are free of overfull AND underfull boxes
+% at LaTeX's default thresholds. \emergencystretch keeps overfull at zero.
 \emergencystretch=3em
-\hbadness=10000
-\vbadness=10000
+% (The kernel's own definition, plus the break; \let-ing the old \_ would recurse,
+% because \DeclareRobustCommand also replaces the internal command it points to.)
+% Each break point also carries a little stretch, as url.sty's \Urlmuskip does:
+% monospace text has none of its own, so without it the spaces around a long path
+% absorb all of a line's stretch. The glue vanishes when the line breaks there.
+\makeatletter
+\def\nf@pathbreak{\penalty\exhyphenpenalty\hskip\z@\@plus.25em\relax}
+\DeclareRobustCommand{\_}{%
+  \ifmmode\nfss@text{\textunderscore}\else\textunderscore\nf@pathbreak\fi}
+\DeclareRobustCommand{\slash}{/\nf@pathbreak}
+\makeatother
 
 % hyperref is loaded last, per TMLR convention. natbib is already loaded by tmlr.sty;
 % do NOT load it again.
@@ -53,6 +60,8 @@
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue,
   pdftitle={The near-wall barrier to parameter interpolation on AirfRANS is a coordinate artifact},
   pdfauthor={Ali Jabbary, Kasra Ghanavati}}
+% URLs get the same small stretch as the monospace paths above (url.sty's own knob).
+\Urlmuskip=0mu plus 1mu
 
 % \autoref names for amsthm environments (hyperref does not define these by default).
 \providecommand{\propositionautorefname}{Proposition}

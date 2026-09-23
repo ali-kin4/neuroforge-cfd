@@ -45,6 +45,15 @@ fresh checkout (98/98).
 - `preamble.tex`'s `pdftitle` still carried the old title.
 - The manifest had recorded a CRLF hash, so it drifted on a clean clone. Always
   run `--check` in a fresh worktree, not in place.
+- "0 underfull" was partly cosmetic. The preamble set `\hbadness=\vbadness=10000`,
+  which hid 19 loose lines in the Elsevier build and 17 in the TMLR build. That
+  setting is gone. Monospace paths now break after `/` and `_`, with url-style
+  stretch, and TMLR is `\raggedbottom`. Both builds have 0 loose lines at the
+  default thresholds.
+- elsarticle's bibliography style re-cases the first letter of `note` fields and
+  sentence-cases titles. In the built PDF this produced "nVIDIA", "aAAI",
+  "navier-stokes" and "pdes". Brace-protect them, and read the reference pages
+  as rendered.
 
 **After submission:** the one experiment that could turn "barrier, not gap" into
 a positive estimator result is body-fitted KRR with its kernel re-selected by CV

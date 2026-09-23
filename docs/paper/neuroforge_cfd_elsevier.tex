@@ -12,11 +12,11 @@
 \input{preamble}
 
 
-% tmlr.sty declares \sloppy (see the typesetting-tolerance note above, which the
-% shared preamble inherits); elsarticle does not. Without it the long
-% \texttt{path/to/result.json} tokens in the body overflow the narrower
-% single-column measure. Declaring it here reproduces the TMLR build's
-% zero-overfull guarantee rather than hyphenating file paths.
+% tmlr.sty declares \sloppy; elsarticle does not. The single-column 12pt measure is
+% narrow for this math-dense text, and without \sloppy the default tolerance leaves
+% more loose lines, not fewer (measured: 10 against 0). File paths also break after
+% "/" and "_" (see the shared preamble), so this build is free of overfull AND
+% underfull boxes at LaTeX's default \hbadness.
 \sloppy
 \emergencystretch=4em
 
