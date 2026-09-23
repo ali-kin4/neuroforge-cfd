@@ -43,6 +43,12 @@
   \gdef\theHfigure{app.\Alph{section}.\arabic{figure}}}
 \makeatother
 
+% With full postal addresses the preprint front matter no longer fit on page 1 and
+% the last keyword spilled onto page 2 alone. Halve the class's 36pt gap below the
+% addresses (title page only) so the front matter stays on one page.
+\patchcmd{\pprintMaketitle}{\elsaddress\par\vskip36pt}{\elsaddress\par\vskip18pt}{}%
+  {\PackageWarning{neuroforge}{title-page spacing patch did not apply}}
+
 \journal{Journal of Computational Science}
 
 \begin{document}
@@ -56,14 +62,18 @@
 \ead{st\_a.jabbary@urmia.ac.ir}
 \affiliation[urmia]{organization={Department of Mechanical Engineering,
                                   Urmia University},
+                    addressline={11th km of Sero Boulevard, P.O. Box 165},
                     city={Urmia},
+                    postcode={5756151818},
                     country={Iran}}
 
 \author[gre]{Kasra Ghanavati}
 \ead{kg1111r@gre.ac.uk}
 \affiliation[gre]{organization={School of Computing and Mathematical Sciences,
                                 University of Greenwich},
+                  addressline={Old Royal Naval College, Park Row},
                   city={London},
+                  postcode={SE10 9LS},
                   country={United Kingdom}}
 
 \cortext[cor1]{Corresponding author.}
