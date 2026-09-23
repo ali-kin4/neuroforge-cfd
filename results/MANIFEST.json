@@ -1,8 +1,8 @@
 {
   "_comment": "Top-level artifact-evaluation manifest of every headline result file the paper cites. Hashes are real SHA-256 of the committed files. Regenerate with scripts/make_manifest.py; verify with --check. See docs/REPRODUCE.md for the full claim->command->file map.",
-  "generated_utc": "2026-09-23T09:10:01.201238+00:00",
-  "git_head": "733dffd51c61e849ddd803e693ebc3b478fd6072",
-  "git_head_short": "733dffd",
+  "generated_utc": "2026-09-23T09:52:46.079937+00:00",
+  "git_head": "4aebe7b8208450dd97ed7f4639ee69d3bba6be61",
+  "git_head_short": "4aebe7b",
   "environment_that_produced_numbers": {
     "git_commit": "d2c5556",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -961,8 +961,8 @@
       "script": "scripts/node_measure_variance.py",
       "tier": "cpu",
       "claims": "node-measure variance of the AirfRANS fields, per band, test and train. Corrects a comparator: the surface-band node-measure Var(p) is 2.06e7, not the area-uniform 135,590, so the two arms' surface p MSEs are 0.73% and 0.48% of the band's own variance. Competence calibration in the AirfRANS paper's own convention (standardised volume MSE, node-measure train variance): Transolver 0.073e-2 on u and 0.099e-2 on p against a best published 0.83e-2 and 0.66e-2",
-      "sha256": "e3254b3499735c5aef71ea9ffad2e6bff2c771070bad1c9dae4409770e584a86",
-      "bytes": 4427,
+      "sha256": "e1f3ff96eba99299bf3954d1592361ff5a4fa03b4e6a1f027799cabd8746dbcd",
+      "bytes": 4242,
       "git_tracked": true,
       "last_commit": "733dffd"
     },
@@ -984,7 +984,7 @@
       "sha256": "e15ff6be826afccda343f492025dc3ec132b56cbeb0f48a7170a256541d467a8",
       "bytes": 7758,
       "git_tracked": true,
-      "last_commit": "7edea90"
+      "last_commit": "ee3d1b5"
     },
     {
       "path": "results/figures/fig_bandratio.pdf",
