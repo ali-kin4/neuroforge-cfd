@@ -16,16 +16,22 @@ coordinate artifact.* Venue: Journal of Computational Science, subscription
 route. **Read `docs/paper/submission/SUBMISSION_CHECKLIST.md` first**; it
 carries the upload map and the blocking steps.
 
-**Blocking, in order:**
-1. **Release `v1.1.0`** (fast-forward `main`, tag, publish the GitHub release;
-   the Zenodo webhook archives it). The paper and letter cite it by name. Until
-   it exists the concept DOI 10.5281/zenodo.21277928 resolves to v1.0.5, which
-   has none of the headline scripts. `.zenodo.json` is already updated.
-2. **Vitae**: fill the `[[FILL]]` markers in `submission/vitae.md` (positions,
-   degrees, the second author's interests), then
-   `python scripts/build_jocs_package.py` until it prints `READY`.
-3. **Declaration of interest** from Elsevier's own tool; the guide requires the
+**Blocking, in order. The release is irreversible, so it goes last:**
+1. **Title**: keep it or revert it. It was changed without sign-off; the approved
+   wording was "Near the wall, AirfRANS measures the coordinate system, not the
+   model".
+2. **The cited snapshot**: 33 tracked files name the desk rejections, and the repo
+   is public. Either strip them before tagging or disclose the rejections in one
+   line of the letter.
+3. **Vitae and postal addresses**: fill the `[[FILL]]` markers in
+   `submission/vitae.md` (positions, degrees, the second author's interests), then
+   run `python scripts/build_jocs_package.py` until it prints `READY`.
+4. **Declaration of interest** from Elsevier's own tool. The guide requires the
    tool, so no look-alike is generated.
+5. **Release `v1.1.0`**: fast-forward `main`, tag it, and publish the GitHub
+   release; the Zenodo webhook archives it. The paper and letter cite it by name.
+   Until it exists, the concept DOI 10.5281/zenodo.21277928 resolves to v1.0.5,
+   which has none of the headline scripts. Then submit.
 
 **Verified on 2026-09-23:** both builds have 0 errors, warnings, over/underfull
 boxes and undefined references. The flat upload copy reproduces a reference build

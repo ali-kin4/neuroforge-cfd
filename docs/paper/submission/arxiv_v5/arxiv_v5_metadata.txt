@@ -35,7 +35,7 @@ https://github.com/ali-kin4/neuroforge-cfd, archived at
 https://doi.org/10.5281/zenodo.21277928
 
 (Post this only after release v1.1.0 exists -- see
-SUBMISSION_CHECKLIST.md, Blocking 1.)
+SUBMISSION_CHECKLIST.md, Blocking 5.)
 
 --------------------------------------------------------------------
 WHY v5 EXISTS

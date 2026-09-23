@@ -98,8 +98,8 @@ which is precisely the question this paper asks of a widely used benchmark.
 per-claim reproduction map, with a manifest recording seeds, environment and SHA-256 hashes.
 The decisive comparison is gated rather than asserted. Before it could compute a body-fitted
 number, the implementation run in physical coordinates was required to reproduce the
-registered physical-coordinate bound, and did so at a worst relative difference of exactly
-0.000e+00. The two arms are then computed in one pass from one node array, so the coordinate
+registered physical-coordinate bound on the first 20 test cases, and did so at a worst
+relative difference of exactly 0.000e+00. The two arms are then computed in one pass from one node array, so the coordinate
 map is the only difference between them; the frame has zero coordinate collisions among the
 scored nodes and a worst round-trip of 2.1e-13 relative to each channel's spread; and
 rescoring the physical arm on the restricted node set moves it by 0.8%, so the restriction

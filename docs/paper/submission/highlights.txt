@@ -10,7 +10,7 @@ moved to the companion NullBench paper, with the native-resolution result that i
 now the manuscript's lead claim.
 
 - The near-wall barrier to parameter interpolation is a coordinate artifact
-- Wall-following coordinates take that bound from 25x to 0.0044x, on 200/200 cases
+- Wall-following coordinates cut the interpolation bound from 25x to 0.0044x, 200/200
 - The AirfRANS field ranking flips with the cell weighting: 8.4x to 0.44x on pressure
 - 64% of scored AirfRANS nodes sit inside 0.05 chord, 1.2% of the raster's area
 - No wall-normal frame exists on 5% of near-wall nodes, at leading and trailing edges
