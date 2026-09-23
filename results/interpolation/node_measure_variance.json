@@ -163,5 +163,24 @@
       "best_published_u": 0.83,
       "best_published_p": 0.66
     }
+  },
+  "claim3_native_standardised_mean": {
+    "note": "u,v,p mean of per-channel standardised per-node MSE at the native nodes; the interpolator arm is the one P1 read on each channel",
+    "interp_arm_used": {
+      "u": "nearfill",
+      "v": "nearfill",
+      "p": "nearfill",
+      "nut": "nearfill"
+    },
+    "area_uniform_VAR_TRAIN": {
+      "interp": 0.6161290346484173,
+      "transolver": 0.024940558908552207,
+      "ratio": 24.703898453420162
+    },
+    "node_measure_train_var": {
+      "interp": 0.060093906138096585,
+      "transolver": 0.0007483369567037501,
+      "ratio": 80.30327194155456
+    }
   }
 }

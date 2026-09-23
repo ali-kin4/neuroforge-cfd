@@ -198,8 +198,7 @@ HEADLINE: list[dict] = [
     {"path": "results/interpolation/point_space_transolver.json",
      "script": "scripts/point_space_headtohead.py --stage transolver", "tier": "gpu",
      "claims": "the Transolver arm of the point-space head-to-head: the three "
-               "deployed v2 backbones loaded with their own point_norm (which the "
-               "manuscript wrongly states the checkpoints do not carry) and "
+               "deployed v2 backbones loaded with their own point_norm and "
                "inferred on the native clouds, per-node per-band squared error "
                "plus an explicit wall row for the 201,444 surface nodes the "
                "seven-band grid drops. Reproduces measure_asymmetry's "
@@ -683,8 +682,80 @@ HEADLINE: list[dict] = [
                "nullbench_release.md Sec 2.4/3 for the explicit scope decision. No published "
                "comparison in this view by design (published_comparison: null in the JSON "
                "itself, with the reason stated in published_comparison_note)."},
+    {"path": "results/interpolation/point_space_oracle_ls.json",
+     "script": "scripts/point_space_headtohead.py --stage oracle_ls", "tier": "cpu",
+     "claims": "AMENDMENT 2, superseded in sample size but still quoted: the "
+               "unconstrained least-squares projection of the true u field onto the "
+               "span of all 800 transferred training fields, inside 0.005c, on THREE "
+               "test cases: 21.3x Transolver's band error, FAMILY-BOUND-CLOSED. The "
+               "manuscript reports it beside the n=200 figure to show the estimator "
+               "did not drift as the sample grew 67x"},
+    {"path": "results/interpolation/point_space_oracle_ls_n200.json",
+     "script": "scripts/point_space_headtohead.py --stage oracle_ls_n200 --n-ls 200", "tier": "cpu",
+     "claims": "AMENDMENT 3, the physical-coordinate family bound on all 200 test "
+               "cases: case-mean least-squares residual inside 0.005c on u is 25.0x "
+               "Transolver's pooled band error, FAMILY-BOUND-CLOSED (rule and "
+               "thresholds unchanged from amendment 2, committed in b0d42d7 before the "
+               "run). Gate G7: the memory-bounded rewrite reproduces the frozen n=3 "
+               "artifact at a worst relative difference of 0.00e+00 before computing "
+               "anything. Regularisation: 25.0 at lambda=1e-10 tr/n and 25.2 at "
+               "1e-6 tr/n. Paired per-case statistics are in paired_band_stats.json. "
+               "~5.5 h on 18 CPU processes"},
+    {"path": "results/interpolation/bodyfit_bound.json",
+     "script": "scripts/bodyfit_bound.py --stage run --n-ls 200", "tier": "cpu",
+     "claims": "THE HEADLINE: the same least-squares bound with each training field "
+               "transferred through a parameter-free wall-following frame (s = arc "
+               "length along each surface chain, n = wall distance) instead of "
+               "physical coordinates, both arms computed in one pass on one node "
+               "array. B1 (registered in 94db42d): 0.0044x Transolver's pooled band "
+               "error on u inside 0.005c, BODY-FITTED-BOUND-OPEN; 200/200 cases "
+               "improve on the physical arm (body-fitted/physical 1.8e-4). The "
+               "physical arm rescored on the same restricted nodes reads 25.21x. "
+               "Amendment B-1: the frame is undefined on 4.98% of near-wall strip "
+               "nodes (1.36% of the verdict band), whose nearest-surface projection "
+               "is a chain endpoint; excluded from both arms; gates GB2a (0 "
+               "coordinate collisions) and GB2b (worst scaled round trip 2.06e-13). "
+               "Pressure, computed in the same run but not registered: the physical "
+               "bound is already 0.00103x Transolver and the frame makes it 1.58x "
+               "worse. ~9.6 h on 18 CPU processes"},
+    {"path": "results/interpolation/bodyfit_bound_physical.json",
+     "script": "scripts/bodyfit_bound.py --stage run --frame physical --n-ls 20 "
+               "(version committed in 94db42d; the switch was removed by amendment B-1)",
+     "tier": "cpu",
+     "claims": "gate GB1 of the body-fitted arm: run in its identity frame on the "
+               "first 20 test cases, the script reproduces point_space_oracle_ls_n200 "
+               "on bands 0-4 at a worst relative difference of exactly 0.000e+00, so "
+               "the two arms are one code path differing only in the coordinate map"},
+    {"path": "results/interpolation/node_measure_variance.json",
+     "script": "scripts/node_measure_variance.py", "tier": "cpu",
+     "claims": "node-measure variance of the AirfRANS fields, per band, test and "
+               "train. Corrects a comparator: the surface-band node-measure Var(p) "
+               "is 2.06e7, not the area-uniform 135,590, so the two arms' surface p "
+               "MSEs are 0.73% and 0.48% of the band's own variance. Competence "
+               "calibration in the AirfRANS paper's own convention (standardised "
+               "volume MSE, node-measure train variance): Transolver 0.073e-2 on u "
+               "and 0.099e-2 on p against a best published 0.83e-2 and 0.66e-2"},
+    {"path": "results/interpolation/transolver_percase_bands.json",
+     "script": "scripts/transolver_percase_bands.py", "tier": "gpu",
+     "claims": "per-case, per-band Transolver squared-error sums at the native nodes "
+               "(three deployed seeds), on all band nodes and on the body-fitted "
+               "arm's restricted node set. Gate T1: pooled back, reproduces "
+               "point_space_transolver.json at 2.46e-13. ~5 min on one GPU"},
+    {"path": "results/interpolation/paired_band_stats.json",
+     "script": "scripts/paired_band_stats.py", "tier": "cpu",
+     "claims": "paired per-case statistics for the near-wall bounds, each case "
+               "against its own Transolver error on identical nodes (gate S1). "
+               "Physical bound: median 36.6, 185/200 above 10, none at or below 1. "
+               "Body-fitted bound: 200/200 below 1, worst 0.018; B1 on matched nodes "
+               "0.0049. Deployed estimator in the body-fitted frame: median 0.83, "
+               "115/200 below Transolver, case-mean 1.71. Diagnostic only; the "
+               "registered verdicts are read on the pooled denominator"},
+    {"path": "results/figures/fig_bandratio.pdf",
+     "script": "scripts/make_fig_bandratio.py", "tier": "cpu-verify",
+     "claims": "Figure 1: per-band error ratio on u, grid and native, and the "
+               "cell-versus-node share of each band; every value read from "
+               "measure_asymmetry.json and point_space_headtohead.json"},
 ]
-
 
 def sha256(path: Path) -> str:
     h = hashlib.sha256()

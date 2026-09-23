@@ -181,30 +181,28 @@ def make_fig(ma, ps):
 
     ax1.plot(x_native, n_native_full, color=CB["vermillion"], marker="s",
               ms=5.5, mfc="white", mew=1.4, ls="--", lw=1.6, zorder=3,
-              label=f"native cloud nodes (P2 {native_verdict(ps)})")
+              label="native cloud nodes")
     ax1.plot(x_grid, g, color=CB["blue"], marker="o", ms=5.5, ls="-",
-              lw=1.8, zorder=4, label=f"r128 raster (D2 {grid_verdict(ma)})")
+              lw=1.8, zorder=4, label=r"$r128$ raster")
 
     # Wall point gets its own marker style + annotation: the raster cannot
     # represent sdf=0, so only the native measure has a point there.
     ax1.plot([0], [n_wall], color=CB["vermillion"], marker="*", ms=13,
               mec="black", mew=0.6, zorder=5)
     ax1.annotate("surface (sdf=0):\nno raster equivalent",
-                 xy=(0, n_wall), xytext=(0.9, 0.055),
+                 xy=(0, n_wall), xytext=(0.3, 9.0e3),
                  fontsize=7.4, color=CB["vermillion"], ha="left", va="center",
                  arrowprops={"arrowstyle": "-", "color": CB["vermillion"],
                               "lw": 0.8, "shrinkA": 2, "shrinkB": 6})
 
     ax1.set_ylabel(r"error ratio, channel $u$" "\n" r"(interpolator MSE / Transolver MSE)")
     ax1.set_ylim(2e-3, 2e4)
-    ax1.text(7.35, 3.2, "surrogate\nwins", fontsize=8, ha="left", va="bottom",
-              color=CB["black"])
-    ax1.text(7.35, 0.30, "interpolator\nwins", fontsize=8, ha="left", va="top",
-              color=CB["black"])
+    ax1.text(2.0, 1.35, r"surrogate better $\uparrow$", fontsize=8, ha="center",
+              va="bottom", color=CB["black"])
+    ax1.text(2.0, 0.74, r"interpolator better $\downarrow$", fontsize=8, ha="center",
+              va="top", color=CB["black"])
     ax1.legend(loc="upper right", fontsize=8.3, handlelength=2.4,
                bbox_to_anchor=(1.0, 0.98))
-    ax1.set_title("Per-band error ratio, wall to far field (AirfRANS full test)",
-                  fontsize=11)
 
     # --- Panel B: what each band is worth in cells vs. native nodes -----
     width = 0.36
@@ -214,11 +212,8 @@ def make_fig(ma, ps):
     ax2.bar(x_grid + width / 2, node_frac, width=width, color=CB["vermillion"],
              edgecolor="black", linewidth=0.5, hatch="///", label="native node fraction")
     ax2.set_ylabel("fraction of\ndomain (log)")
-    ax2.set_ylim(5e-4, 1.5)
-    ax2.legend(loc="upper left", fontsize=8, handlelength=1.6, ncol=1)
-    ax2.annotate("no wall row here: a finite-volume\ncell cannot sit at sdf=0",
-                 xy=(-0.55, 5e-4), fontsize=6.6, color=CB["grey"],
-                 ha="left", va="bottom", style="italic")
+    ax2.set_ylim(5e-4, 8.0)
+    ax2.legend(loc="upper center", fontsize=8, handlelength=1.6, ncol=2)
 
     ax2.set_xticks(x_native)
     ax2.set_xticklabels(["wall"] + BAND_LABELS7, fontsize=7.6)
@@ -231,7 +226,8 @@ def make_fig(ma, ps):
 def save(fig, name):
     for ext in ("pdf", "png"):
         path = os.path.join(OUT, f"{name}.{ext}")
-        fig.savefig(path, bbox_inches="tight")
+        meta = {"CreationDate": None} if ext == "pdf" else None
+        fig.savefig(path, bbox_inches="tight", metadata=meta)
         print(f"  wrote {path}")
     plt.close(fig)
 

@@ -201,6 +201,28 @@ def main(argv=None) -> int:
     log(f"  best published: u {best_u:.2f}, p {best_p:.2f} "
         f"-> ours is {best_u/ou:.1f}x better on u and {best_p/op:.1f}x better on p")
 
+    # ---- CLAIM 3: the native standardised mean, under each divisor -----------
+    # The native head-to-head reports a three-channel standardised mean (24.7x) whose
+    # divisors are VAR_TRAIN -- the area-uniform r128 variances. Those are the wrong
+    # divisors for a per-node comparison by this paper's own argument, so the same mean
+    # is computed with the node-measure train variances beside it.
+    p1_arm = hh["P1"]["interp_arm_used"]
+    tabs = hh["tables"]
+    claim3 = {"note": ("u,v,p mean of per-channel standardised per-node MSE at the native "
+                       "nodes; the interpolator arm is the one P1 read on each channel"),
+              "interp_arm_used": p1_arm}
+    for label, V in (("area_uniform_VAR_TRAIN",
+                      {c: P.VAR_TRAIN[c] for c in ("u", "v", "p")}),
+                     ("node_measure_train_var",
+                      {c: float(var_tr[IDX[c]]) for c in ("u", "v", "p")})):
+        si = float(np.mean([float(tabs["interp_" + p1_arm[c]]["full"][c]["pooled"]) / V[c]
+                            for c in ("u", "v", "p")]))
+        st = float(np.mean([float(tabs["transolver_mean"]["full"][c]["pooled"]) / V[c]
+                            for c in ("u", "v", "p")]))
+        claim3[label] = {"interp": si, "transolver": st, "ratio": si / st}
+        log(f"CLAIM 3  native standardised u,v,p mean, {label}: "
+            f"interp {si:.5g}, Transolver {st:.5g}, ratio {si / st:.4g}x")
+
     out = {"artifact": "node_measure_variance",
            "question": ("the node-measure variance of the AirfRANS fields, and the two "
                         "claims that used an area-uniform variance against a node-measure "
@@ -214,7 +236,8 @@ def main(argv=None) -> int:
            "n_nodes_test": allp.n, "n_nodes_train": trp.n,
            "var_train_area_uniform": P.VAR_TRAIN,
            "claim1_surface_pressure": claim1,
-           "claim2_competence_vs_published": claim2}
+           "claim2_competence_vs_published": claim2,
+           "claim3_native_standardised_mean": claim3}
     os.makedirs(a.out_dir, exist_ok=True)
     dest = os.path.join(a.out_dir, a.out)
     with open(dest, "w", encoding="utf-8") as fh:
