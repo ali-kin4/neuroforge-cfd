@@ -90,7 +90,7 @@ cited in the article. The AirfRANS dataset used is public (Bonnet et al., NeurIP
 
 | Item | Rule | Verified | Ours |
 |---|---|---|---|
-| Length | **None for regular articles**; caps only for Communications (6 pp) and Correspondence (4 pp) | [V-JOCS 2026-09-12] | 45 pp elsarticle preprint; 17,936 words incl. tables and captions (`check_submission.py`) |
+| Length | **None for regular articles**; caps only for Communications (6 pp) and Correspondence (4 pp) | [V-JOCS 2026-09-12] | 45 pp elsarticle preprint; 17,997 words incl. tables and captions (`check_submission.py`, 2026-09-23) |
 | Abstract | ≤ 250 words, no citations | [V-JOCS 2026-09-12] | **245**, no citations |
 | Keywords | 1–7, avoid multi-word "and"/"of" | [V-JOCS 2026-09-12] | 7 |
 | Highlights | 3–5 bullets, ≤ 85 chars incl. spaces, separate editable file named "highlights" | [V-JOCS 2026-09-17] | 5, at 73–83 chars, `Highlights.docx` |
