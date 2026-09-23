@@ -3,9 +3,12 @@
 arXiv compiles from a flat-ish archive, so the figures move from
 ``results/figures/`` (where the repository keeps them, alongside the scripts that
 produce them) to ``figures/`` inside the archive, and ``body.tex``'s
-``\\includegraphics`` paths are rewritten to match. Nothing else is modified: the
-staged ``.tex`` files are byte-identical to the committed ones apart from that
-one substitution, so the preprint cannot drift from the paper.
+``\\includegraphics`` paths are rewritten to match. The only other change is that
+full-line ``%`` comments are dropped from the staged ``.tex`` files: they are working
+notes, arXiv publishes the source, and TeX discards such a line together with its
+end-of-line, so removing it cannot change the output. The staged build must reproduce
+the in-place build's every label, number and page, which is what shows the preprint
+cannot drift from the paper.
 
 Two things this script enforces because getting either wrong wastes a
 replacement slot:
@@ -15,7 +18,8 @@ replacement slot:
   untested for this manuscript. The staged tarball therefore contains the
   ``.bbl`` built here, and the script verifies it is newer than ``refs.bib``.
 * **Only figures the manuscript actually includes** are staged, so an unused
-  file cannot silently change what arXiv builds.
+  file cannot silently change what arXiv builds. No ``sections/`` file is staged:
+  none is ``\\input`` by either build.
 
 The staged tree is compiled before the tarball is written, so a package that
 does not build cannot be produced.
@@ -23,7 +27,7 @@ does not build cannot be produced.
 Usage
 -----
     python scripts/build_arxiv_package.py
-    python scripts/build_arxiv_package.py --out docs/paper/submission/arxiv_v4
+    python scripts/build_arxiv_package.py --version v5 --out docs/paper/submission/arxiv_v5
 """
 
 from __future__ import annotations
@@ -41,9 +45,21 @@ FIG_SRC = os.path.join("results", "figures")
 MAIN = "neuroforge_cfd"          # the TMLR build is the preprint build
 TOP_LEVEL = ["abstract.tex", "body.tex", "preamble.tex", f"{MAIN}.tex",
              f"{MAIN}.bbl", "refs.bib", "tmlr.sty", "tmlr.bst", "fancyhdr.sty"]
-SECTIONS = [os.path.join("sections", "residual_floor_theorem.tex")]
+SECTIONS: list[str] = []
 OLD_FIG_PREFIX = "../../results/figures/"
 NEW_FIG_PREFIX = "figures/"
+
+
+def strip_comment_lines(text: str) -> str:
+    """Drop lines that are entirely a comment (TeX ignores them with their newline)."""
+    return "".join(l for l in text.splitlines(keepends=True)
+                   if not re.match(r"[ \t]*%", l))
+
+
+def labels(aux_path: str) -> dict:
+    aux = open(aux_path, encoding="utf-8", errors="replace").read()
+    return {m.group(1): (m.group(2), m.group(3)) for m in re.finditer(
+        r"\\newlabel\{([^}]*)\}\{\{([^}]*)\}\{([^}]*)\}", aux)}
 
 
 def figures_used(body: str) -> list[str]:
@@ -56,12 +72,15 @@ def stage(root: str, out: str) -> tuple[str, list[str]]:
     stage_dir = os.path.join(out, "stage")
     if os.path.isdir(stage_dir):
         shutil.rmtree(stage_dir)
-    os.makedirs(os.path.join(stage_dir, "sections"), exist_ok=True)
     os.makedirs(os.path.join(stage_dir, "figures"), exist_ok=True)
 
     for name in TOP_LEVEL:
         shutil.copy2(os.path.join(root, TEX_ROOT, name),
                      os.path.join(stage_dir, name))
+        if name.endswith(".tex"):
+            path = os.path.join(stage_dir, name)
+            text = open(path, encoding="utf-8").read()
+            open(path, "w", encoding="utf-8", newline="\n").write(strip_comment_lines(text))
     for rel in SECTIONS:
         shutil.copy2(os.path.join(root, TEX_ROOT, rel),
                      os.path.join(stage_dir, rel))
@@ -95,6 +114,9 @@ def build(stage_dir: str) -> None:
                 "There were undefined references"):
         if bad in log:
             raise SystemExit(f"staged build reports: {bad}")
+    for bad in ("Overfull", "Underfull", "LaTeX Warning"):
+        if bad in log:
+            raise SystemExit(f"staged build reports: {bad}")
     pages = re.search(r"Output written on .*?\((\d+) pages", log)
     print(f"  staged build OK: {pages.group(1) if pages else '?'} pages")
 
@@ -118,9 +140,9 @@ def make_tarball(stage_dir: str, out: str, version: str) -> str:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--root", default=".")
-    ap.add_argument("--version", default="v4")
+    ap.add_argument("--version", default="v5")
     ap.add_argument("--out", default=os.path.join("docs", "paper", "submission",
-                                                  "arxiv_v4"))
+                                                  "arxiv_v5"))
     args = ap.parse_args(argv)
 
     out = os.path.join(args.root, args.out)
@@ -137,6 +159,12 @@ def main(argv: list[str] | None = None) -> int:
     stage_dir, used = stage(args.root, out)
     print(f"  {len(used)} figures: {', '.join(used)}")
     build(stage_dir)
+    ref = os.path.join(args.root, TEX_ROOT, f"{MAIN}.aux")
+    if labels(os.path.join(stage_dir, f"{MAIN}.aux")) != labels(ref):
+        print("  ! the staged build's labels differ from the in-place build's -- "
+              "rebuild the paper in place, then package again")
+        return 1
+    print(f"  labels and pages identical to the in-place build ({len(labels(ref))} labels)")
     path = make_tarball(stage_dir, out, args.version)
     size = os.path.getsize(path) / 1024
     print(f"  wrote {path} ({size:.0f} KB)")

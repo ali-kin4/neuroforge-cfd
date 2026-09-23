@@ -8,20 +8,28 @@ sections have been cut. The list below is built for the claim the manuscript now
 ## What a referee has to be able to check
 
 > Machine-learning surrogates for simulation are scored by resampling onto a uniform
-> grid, and that choice decides the ranking. On AirfRANS the same pair of predictions
-> gives 8.4x, 0.44x and 0.21x under three measures in current use. At native resolution
-> the surrogate wins on every channel, and no weighting of the training set reaches the
-> near-wall region in physical coordinates. The scoring raster cannot adjudicate it: its
-> own round-trip error at the nodes is far above either arm's.
+> grid, and that choice decides the ranking: on AirfRANS one pair of predictions gives
+> 8.4x, 0.44x and 0.21x under three measures in current use. At native resolution the
+> surrogate wins on every channel, and in physical coordinates no weighting of the
+> training set reaches it near the wall (25x, worse on all 200 cases). Re-posed in a
+> parameter-free wall-following frame, the same bound falls to 0.0044x, below the
+> surrogate on all 200: the near-wall barrier is a coordinate artifact. The deployed
+> estimator improves 112x there but still trails on the case-mean (1.71x), so the claim
+> is the barrier, not the gap. The scoring raster cannot adjudicate any of this: its own
+> round-trip error at the nodes is 413x the surrogate's.
+>
+> *(Updated 2026-09-23 for the coordinate-artifact headline; the group structure below
+> was built before it and still holds, with the frame added to group 2.)*
 
 That is **three different referee competencies**, and the previous list had none of
 them:
 
 1. **ML-for-CFD benchmarking and metric design** — is the measure-dependence result a
    real gap in how the field reports, or a restatement that different metrics differ?
-2. **Unstructured-mesh discretisation and interpolation error** — is the
-   representation-ceiling argument sound, and is the round-trip error the right
-   instrument?
+2. **Unstructured-mesh discretisation, interpolation error and body-fitted coordinates**
+   — is the representation-ceiling argument sound, is the round-trip error the right
+   instrument, and is the wall-following (s, n) frame, with its exclusion of the nodes
+   whose nearest surface point is a chain endpoint, a faithful relabelling?
 3. **Classical parametric surrogates (Kriging / response surfaces / ROM)** — is the
    baseline a fair and competently-tuned member of its family, or a strawman?
 

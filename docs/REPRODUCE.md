@@ -61,7 +61,7 @@ deployed checkpoints; **VERIFY** = read off committed files.
 | Claim | Command | Output file | Tier |
 |---|---|---|---|
 | test-surface cache the frame needs | `python scripts/bodyfit_bound.py --stage surfcache` | scratch only | CPU |
-| **B1 = 0.0044×**, `BODY-FITTED-BOUND-OPEN`; body-fitted/physical 1.8×10⁻⁴, better on 200/200; physical arm on the same restricted nodes 25.21×; frame undefined on 4.98% of the strip (1.36% of the verdict band); GB2a 0 collisions, GB2b 2.06×10⁻¹³; pressure: physical 0.00103×, body-fitted 0.00163× | `python scripts/bodyfit_bound.py --stage run --n-ls 200 --n-proc 18` | `results/interpolation/bodyfit_bound.json` | CPU (~9.6 h) |
+| **B1 = 0.0044×**, `BODY-FITTED-BOUND-OPEN`; body-fitted/physical 1.8×10⁻⁴, better on 200/200; physical arm on the same restricted nodes 25.21×; frame undefined on 4.98% of the strip (1.36% of the verdict band); GB2a 0 collisions, GB2b 2.06×10⁻¹³; pressure bounds and deployed-estimator errors in both frames (ratios on matched nodes: next table) | `python scripts/bodyfit_bound.py --stage run --n-ls 200 --n-proc 18` | `results/interpolation/bodyfit_bound.json` | CPU (~9.6 h) |
 | gate GB1: identity frame reproduces the n=200 artifact at 0.000e+00 (20 cases) | `git checkout 94db42d -- scripts/bodyfit_bound.py && python scripts/bodyfit_bound.py --stage run --frame physical --n-ls 20` | `results/interpolation/bodyfit_bound_physical.json` | CPU |
 
 ### Paired per-case statistics (§4.1)
@@ -69,7 +69,7 @@ deployed checkpoints; **VERIFY** = read off committed files.
 | Claim | Command | Output file | Tier |
 |---|---|---|---|
 | Transolver per-case, per-band error on all nodes and on the restricted set; gate T1 pools back to `point_space_transolver.json` at 2.5×10⁻¹³ | `PYTHONPATH=src python scripts/transolver_percase_bands.py` | `results/interpolation/transolver_percase_bands.json` | GPU† (~5 min) |
-| paired physical bound: median 36.6, 185/200 above 10, none ≤ 1; paired body-fitted bound: 200/200 below 1; B1 on matched nodes 0.0049; deployed estimator body-fitted: median 0.83, 115/200, case-mean 1.71; gate S1 | `python scripts/paired_band_stats.py` | `results/interpolation/paired_band_stats.json` | VERIFY |
+| paired physical bound: median 36.6, 185/200 above 10, none ≤ 1; paired body-fitted bound: 200/200 below 1; B1 on matched nodes 0.0049; deployed estimator body-fitted: median 0.83, 115/200, case-mean 1.71 (improvement 112×); pressure on matched nodes: physical bound 0.00103× (974×), body-fitted 0.00162×, frame worse on 185/200, deployed 5.34× → 4.39×; gate S1 | `python scripts/paired_band_stats.py` | `results/interpolation/paired_band_stats.json` | VERIFY |
 
 ### The measure reversal and the grid comparison (§4.1)
 

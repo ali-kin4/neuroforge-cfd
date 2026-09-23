@@ -1,20 +1,15 @@
 # Journal of Computational Science — Submission Checklist
 
-Target: **Journal of Computational Science** (Elsevier), ISSN 1877-7503.
+Target: **Journal of Computational Science** (Elsevier), ISSN 1877-7503. Article type:
+**regular research article** (not Communication or Correspondence, which carry page caps).
 
-Manuscript: **"The near-wall barrier on AirfRANS is a coordinate artifact, and only on velocity"**.
+Manuscript: **"The near-wall barrier to parameter interpolation on AirfRANS is a coordinate
+artifact"**.
 
-> **Read the verification legend before trusting any row.**
->
-> - **[V-JOCS]** — read at source from the *Journal of Computational Science* guide for
->   authors, in a real browser, on the date given. Trustworthy.
-> - **[GEN]** — Elsevier-wide policy, journal-independent.
->
-> **ALL [V-CF] ROWS ARE CLOSED as of 2026-09-17.** The whole guide was read at source in a
-> browser the author cleared the CAPTCHA in, and every rule previously inherited from
-> Computers & Fluids has now been confirmed or corrected against the JOCS text. Nothing in
-> this file is a hypothesis about JOCS any more. The raw guide is saved at
-> `scratchpad/jocs_guide.txt` for the session that read it.
+> **Verification legend.** **[V-JOCS]** — read at source from the JOCS guide for authors, in a
+> real browser, on the date given (the raw guide was saved as `jocs_guide.txt` in the session
+> scratchpad on 2026-09-17). **[GEN]** — Elsevier-wide policy. Nothing in this file is a
+> hypothesis about JOCS any more.
 
 ## History — read before writing anything to the editor
 
@@ -26,106 +21,109 @@ Manuscript: **"The near-wall barrier on AirfRANS is a coordinate artifact, and o
 | 2026-09-12 | Computers & Fluids | **Withdrawn by us before filing, on conflict.** Its ML special-issue editorial is authored by Ashton, Dwight and Cinnella — authors of benchmarks this paper audits. |
 | — | **Journal of Computational Science** | Current target |
 
-Both rejections were desk screens, on the same axis, without review. The paper was therefore
-**reframed and then split**, not reformatted: see `docs/paper/review/RESOLUTION.md` and
-`jocs_rebuild.md`. The cover letter deliberately does **not** disclose the rejections; see the
-notes at the foot of `cover_letter.md` for the reasoning and how to reverse it.
+The paper was reframed and then split, not reformatted (`docs/paper/review/RESOLUTION.md`,
+`jocs_rebuild.md`). The cover letter deliberately does **not** disclose the rejections; see the
+notes at the foot of `cover_letter.md`. Nothing is under consideration anywhere else.
 
-## The two things most likely to go wrong
+## Blocking — do these first, in this order
 
-**1. The source-files rule — RESOLVED, and the safe default was right.** [V-JOCS 2026-09-17],
-verbatim:
+1. **Publish release `v1.1.0` so the availability statement is true.** The manuscript and
+   the cover letter say the snapshot matching the paper is release `v1.1.0`, archived at
+   Zenodo under the concept DOI 10.5281/zenodo.21277928. Until that release exists, the DOI
+   resolves to **v1.0.5 (2026-08-20), which archives the old trust-layer paper and none of
+   the headline scripts**, and `main` on GitHub is several hundred commits behind the branch
+   that has them. A reviewer following either link today finds the wrong paper's code.
+   Steps (needs the author's go-ahead; a minted DOI cannot be retracted):
+   fast-forward `main` to `paper1/reframe-after-jcp`; tag `v1.1.0`; publish the GitHub
+   release (the Zenodo webhook fires on `release` events; `.zenodo.json` already carries
+   the new title, keywords and description); then confirm on Zenodo that the concept DOI
+   resolves to v1.1.0.
+2. **Fill the vitae.** `vitae.md` has `[[FILL]]` markers for each author's position and
+   degree and the second author's research interests — facts not recorded anywhere in the
+   repository. Fill them, then rebuild the bundle until it prints `READY`.
+3. **Declaration of interest via Elsevier's tool.** [V-JOCS 2026-09-17]: *"The declarations
+   tool should always be completed."* Select **"I have nothing to declare"**, save as
+   .docx, upload at "attach files". Deliberately **not** generated here.
 
-> "We encourage you use our LaTeX template when preparing a LaTeX submission. You will be
-> asked to provide all relevant editable source files **upon submission or revision**."
+## The upload bundle
 
-So JOCS may ask at submission. **Upload the sources with the PDF.** JCP's "not until revision"
-rule does not carry over, which is exactly the trap this row existed to catch.
+Build it with `python scripts/build_jocs_package.py` → `docs/paper/submission/jocs_upload/`.
+The script builds the unmodified sources and the flat upload copy side by side. It checks
+that the two match in every label, number and page, with a byte-identical bibliography.
+It also checks that both builds have zero errors, warnings, overfull/underfull boxes and
+undefined references. Then it scans every upload text for private strings. It prints
+`READY` only when nothing needs the author.
 
-**2. The wrong Elsevier identity.** Chrome autofills `light.knight32@gmail.com`, which would
-file the paper under a second Elsevier identity. Sign in as **st_a.jabbary@urmia.ac.ir**;
-Editorial Manager account is `AJabbary-884`.
+| Editorial Manager item | File in `jocs_upload/` |
+|---|---|
+| Manuscript (LaTeX source) | `neuroforge_cfd_elsevier.tex` |
+| LaTeX source files | `preamble.tex`, `abstract.tex`, `body.tex`, `refs.bib`, `neuroforge_cfd_elsevier.bbl`, `Figure_1.pdf` (or `LaTeX_sources.zip` if a zip item is offered) |
+| Figure | `Figure_1.pdf` (vector PDF, fonts embedded, no Type 3, no title on the artwork) |
+| Highlights | `Highlights.docx` |
+| Cover letter | `Cover_letter.pdf` (or paste `Cover_letter.txt`) |
+| Author biographies | `Author_biographies.docx` — **after** filling `vitae.md` |
+| Declaration of interest | from Elsevier's tool (see Blocking 3) |
+| Reference PDF | `neuroforge_cfd_elsevier.pdf` — Editorial Manager builds its own from the sources |
 
-## Required files
+**Never upload `cover_letter.md`**: its "Notes to self" discuss the desk rejections. The
+packager builds the letter from the text above the `---` rule only, and refuses to build if
+that heading moves.
 
-| File | Where | Status |
-|---|---|---|
-| Manuscript source (LaTeX) | `neuroforge_cfd_elsevier.tex` + `preamble.tex`, `abstract.tex`, `body.tex`, `sections/residual_floor_theorem.tex`, `refs.bib`, `.bbl` | ready |
-| Manuscript PDF (built from the above) | `docs/paper/neuroforge_cfd_elsevier.pdf` | ready — **elsarticle build, not the TMLR one** |
-| Figures, as separate files | `results/figures/fig_bandratio.pdf` | ready (vector PDF) — one figure |
-| **Highlights** | `docs/paper/submission/highlights.txt` | ready — 5 bullets at 77–83 chars, filename contains "highlights", separate editable file. **[V-JOCS 2026-09-17]: "3 to 5 bullet points, each a maximum of 85 characters, including spaces" — we comply.** |
-| Cover letter | `docs/paper/submission/cover_letter.md` | ready — rewritten for JOCS 2026-09-16, headline updated 2026-09-18 for the coordinate-artifact result |
-| Suggested reviewers | `docs/paper/submission/suggested_reviewers.md` | rebuilt for JOCS and for the current paper 2026-09-17. **Two browser checks still open: the JOCS board, and every affiliation/email.** |
-| **Declaration of competing interests** | — | **AUTHOR STEP, cannot be generated from here.** [V-JOCS 2026-09-17], verbatim: *"The declarations tool should always be completed"*; authors with none select **"I have nothing to declare"**; *"The resulting Word document … should be uploaded at the 'attach/upload files' step … saved in the .doc/.docx file format. Author signatures are not required."* |
-| Data statement | — | **AUTHOR STEP** at submission. **[V-JOCS 2026-09-17]: "you are required to state the availability of any data at submission"** — required, and it is a free-text availability statement in the submission flow, *not* the lettered A/B/C menu the C&F row assumed. Satisfied by Zenodo DOI 10.5281/zenodo.21277928, which the paper cites. |
+**Data statement** (free text at submission, [V-JOCS 2026-09-17]; research-data Option C).
+Paste: *"The code, result files, pre-registered decision rules and per-claim reproduction
+map are archived at Zenodo as release v1.1.0 (https://doi.org/10.5281/zenodo.21277928) and
+cited in the article. The AirfRANS dataset used is public (Bonnet et al., NeurIPS 2022)."*
 
-## Requirements
+## Requirements, and where the manuscript stands
 
-| Item | Value | Verified | Ours |
+| Item | Rule | Verified | Ours |
 |---|---|---|---|
-| **Manuscript length limit** | **None for regular articles.** Limits exist only for *Communications* (6 double-spaced pages, ≤20 refs, ≤4 figures/tables) and *Correspondence* (4 pages, ≤15 refs, ≤3). | **[V-JOCS 2026-09-12]** | **15,476 words** — no rule against it, but see the note below |
-| Abstract | ≤ **250 words** | **[V-JOCS 2026-09-12]** | **246**, measured by `check_submission.py` |
-| Keywords | **1–7** | **[V-JOCS 2026-09-12]** | 7 |
-| Highlights | **3–5 bullets, max 85 chars incl. spaces**; separate editable file, "highlights" in filename | **[V-JOCS 2026-09-17]** | 5, at 77–83 |
-| Article type | Original research paper (**not** Communication/Correspondence — those carry the caps above) | [V-JOCS] | Yes |
-| Peer review | **Single anonymized**; editors screen first, then **a minimum of two reviewers** | **[V-JOCS 2026-09-17]** | No anonymisation work. Preprint, system name, GitHub and Zenodo links all stay. |
-| References | No strict format at submission; must be internally consistent | [V-JOCS 2026-09-17] | BibTeX, consistent |
-| Preprint policy | **[V-JOCS 2026-09-17]:** *"Sharing preprints, such as on a preprint server, will not count as prior publication."* arXiv:2607.10333 is safe to disclose, and the cover letter does. | **[V-JOCS]** | ✓ refs audited 2026-09-17: 52 entries, every arXiv-only preprint names the server AND carries its 10.48550 DOI; no entry lacks a venue field |
-| CRediT | Required | [GEN] | present |
-| AI-use declaration | Required, titled section before the reference list | [GEN] | present |
-| Funding statement | Required; use the "no specific grant" sentence if none | [GEN] | present — `body.tex` \section*{Funding}, "no specific grant" wording ✓ (checked 2026-09-17) |
-| Self-archiving embargo | 24 months (C&F figure, journal-specific — **still unconfirmed for JOCS**, and it only bites after acceptance) | [V-CF] | arXiv preprint unaffected |
-
-**On length.** 15,476 words is long, and it grew during the September rework as controls were
-added. There is no rule against it at this venue, but length is an editorial signal even where
-it is not a limit, and this paper has been desk-screened twice. That is a judgement call, not a
-gate — `check_submission.py` reports the count and does not block on it. If it is ever cut, cut
-evidence last: the two desk rejections were about originality, never about length.
+| Length | **None for regular articles**; caps only for Communications (6 pp) and Correspondence (4 pp) | [V-JOCS 2026-09-12] | 45 pp elsarticle preprint; 17,936 words incl. tables and captions (`check_submission.py`) |
+| Abstract | ≤ 250 words, no citations | [V-JOCS 2026-09-12] | **245**, no citations |
+| Keywords | 1–7, avoid multi-word "and"/"of" | [V-JOCS 2026-09-12] | 7 |
+| Highlights | 3–5 bullets, ≤ 85 chars incl. spaces, separate editable file named "highlights" | [V-JOCS 2026-09-17] | 5, at 73–83 chars, `Highlights.docx` |
+| Title page | title, authors, affiliations with country, corresponding author's email | [V-JOCS 2026-09-17] | ✓ (street addresses optional; not invented) |
+| References | numbered in square brackets in order of first citation; journal names abbreviated per **LTWA**; DOIs where available | [V-JOCS 2026-09-17] | ✓ 35 refs in first-citation order (checked from `.aux` vs `.bbl`); 13 journal titles abbreviated to ISO 4 on 2026-09-23; 0 BibTeX warnings |
+| Research data | Option C: deposit, **cite and link** in the article | [V-JOCS 2026-09-17] | ✓ Zenodo archive cited as a `[software]` reference and linked in "Code and data availability" (true once Blocking 1 is done) |
+| Figures | separate files named Figure_1…; caption title not on the artwork; vector with embedded fonts | [V-JOCS 2026-09-17] | ✓ one figure, placed on p. 26 beside its table (was drifting to p. 45 until 2026-09-23) |
+| Tables | editable, cited, numbered in order, **no vertical rules** | [V-JOCS 2026-09-17] | ✓ booktabs, all cited |
+| Appendices | A, B…; Table A.1, Eq. (A.1) | [V-JOCS 2026-09-17] | ✓ the appendix table is **Table A.1** (printed "A.7" until 2026-09-23) |
+| CRediT | required | [V-JOCS] | present |
+| Generative-AI declaration | titled section before the references | [V-JOCS 2026-09-17] | present |
+| Funding | state it, or the "no specific grant" sentence | [V-JOCS 2026-09-17] | present |
+| Vitae | ≤ 100 words per author, editable format | [V-JOCS 2026-09-17] | drafted; **markers to fill** (Blocking 2) |
+| Declaration of interest | Elsevier tool, .doc/.docx | [V-JOCS 2026-09-17] | **author step** (Blocking 3) |
+| Peer review | single anonymized; editor screen, then ≥ 2 reviewers | [V-JOCS 2026-09-17] | no anonymisation needed; preprint and links stay |
+| Preprint | *"will not count as prior publication"* | [V-JOCS 2026-09-17] | arXiv:2607.10333 disclosed in the letter |
+| Graphical abstract | encouraged, not required | [V-JOCS 2026-09-17] | none |
 
 ## Publishing route — the hard constraint
 
-**Take the SUBSCRIPTION route.** Under Elsevier's hybrid model the subscription route carries
-**no publication fee**, and the choice has no effect on peer review or acceptance. The
-open-access APC for *this* journal has **not** been read at source — the USD 3890 figure in
-earlier revisions of this file is **the Computers & Fluids APC** and must not be quoted for
-JOCS. Whatever the number is, do not let an acceptance flow silently flip the licence to open
-access at the licensing step: that is exactly where the fee is triggered. See
-`no-apc-venues-only`.
-
-## Scope fit — why this venue
-
-Unlike C&F, the case here is **not** a scope-paragraph mapping; it is the published record.
-JOCS has run this genre four times in five months (details and queries in
-`docs/paper/review/journal_shortlist.md` §2.2–2.4):
-
-| Paper | Date | Genre |
-|---|---|---|
-| *When simpler models win: a large-scale computational benchmark…* | 2026-08-27 | simple-baseline-beats-deep-model benchmark |
-| *Accuracy vs efficiency: benchmarking GNNs on edge GPU hardware* | 2026-07-30 | head-to-head benchmark |
-| *Benchmarking atom-level explainability against pharmacophore-computed labels* | 2026-07-08 | benchmark against computed reference |
-| *Exploring the limitations of transformer models for metocean forecasting* | 2026-06-03 | limitations of a model class, in fluids |
-
-The control matters as much as the hits: the inherited critique query returns **zero** on JOCS,
-and the C&F record shows **zero** papers of this genre in seven years. The previous sweep's
-terms were measuring the old headline.
+**Take the SUBSCRIPTION route.** It carries no publication fee and has no effect on review.
+Do not let an acceptance flow flip the licence to open access at the licensing step; that is
+where the fee is triggered. See `no-apc-venues-only`.
 
 ## Before you click submit
 
-- [x] **JOCS guide read at source 2026-09-17; every [V-CF] row closed** (one exception: the self-archiving embargo, which only matters after acceptance)
-- [ ] `python scripts/check_submission.py` passes
-- [ ] `python scripts/audit_paper_numbers.py` passes with no SKIP rows
-- [ ] Both PDFs rebuilt from current source; no undefined references in the log
-- [ ] `pytest -q` passes
-- [ ] Editorial board of **the Journal of Computational Science** checked against the
-      suggested-reviewer list — the current list was built for C&F and is stale
-- [x] Funding statement present (2026-09-17)
-- [x] `refs.bib` preprint-DOI audit (2026-09-17)
-- [ ] Corresponding author signed in as **st_a.jabbary@urmia.ac.ir**, not the autofilled Gmail
+- [ ] **Blocking 1–3 above are done**, and `build_jocs_package.py` prints `READY`
+- [x] `python scripts/check_submission.py` — all mechanical requirements satisfied (2026-09-23)
+- [x] `python scripts/audit_paper_numbers.py` — every checked number matches, 0 SKIP (2026-09-23)
+- [x] Both PDFs rebuilt from current source: 0 errors, warnings, over/underfull, undefined (2026-09-23)
+- [x] `pytest` — fast suite passes, exit 0 (2026-09-23)
+- [x] Editorial board screened against the suggested reviewers (2026-09-17; EiC is Valeria Krzhizhanovskaya)
+- [ ] Signed in as **st_a.jabbary@urmia.ac.ir** (EM account `AJabbary-884`), **not** the
+      Chrome-autofilled `light.knight32@gmail.com`
+- [ ] Article type: regular research article
+- [ ] Authors entered in the manuscript's order; Kasra Ghanavati will receive an EM email to
+      confirm co-authorship. The letter says both authors approved — make that true first.
+- [ ] Suggested reviewers entered from `suggested_reviewers.md`, with emails taken from each
+      person's institutional page at entry time
+- [ ] Data statement pasted (text above)
 - [ ] Subscription route selected at the licensing step
-- [ ] arXiv replacement posted or scheduled. **Use `docs/paper/submission/arxiv_v5/`** (built
-      2026-09-18 from current sources, 26 pp, builds clean). `arxiv_v4/` is stale and must NOT
-      be uploaded. v5 changes the TITLE and ABSTRACT — paste both; see
-      `arxiv_v5_metadata.txt`, and untick arXiv's pre-ticked "delete .bbl" box.
+- [ ] arXiv replacement: upload `docs/paper/submission/arxiv_v5/` (28 pp, rebuilt 2026-09-23
+      with comments stripped and labels checked against the in-place build). It changes the
+      title and abstract; paste both from `arxiv_v5_metadata.txt` and untick arXiv's
+      pre-ticked "delete .bbl" box. `arxiv_v4/` is stale and must **not** be uploaded.
 
 ## Fallbacks, in order
 

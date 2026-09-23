@@ -1,4 +1,4 @@
-\begin{thebibliography}{34}
+\begin{thebibliography}{35}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -10,7 +10,7 @@
 Constantin Ahlmann-Eltze, Wolfgang Huber, and Simon Anders.
 \newblock Deep-learning-based gene perturbation effect prediction does not yet
   outperform simple linear baselines.
-\newblock \emph{Nature Methods}, 22\penalty0 (8):\penalty0 1657--1661, 2025.
+\newblock \emph{Nat. Methods}, 22\penalty0 (8):\penalty0 1657--1661, 2025.
 \newblock \doi{10.1038/s41592-025-02772-6}.
 
 \bibitem[Amsallem \& Farhat(2008)Amsallem and
@@ -18,7 +18,7 @@ Constantin Ahlmann-Eltze, Wolfgang Huber, and Simon Anders.
 David Amsallem and Charbel Farhat.
 \newblock Interpolation method for adapting reduced-order models and
   application to aeroelasticity.
-\newblock \emph{AIAA Journal}, 46\penalty0 (7):\penalty0 1803--1813, 2008.
+\newblock \emph{AIAA J.}, 46\penalty0 (7):\penalty0 1803--1813, 2008.
 \newblock \doi{10.2514/1.35374}.
 
 \bibitem[Ashton et~al.(2024)Ashton, Maddix, Gundry, and
@@ -33,7 +33,7 @@ Neil Ashton, Danielle~C. Maddix, Samuel Gundry, and Parisa~M. Shabestari.
 Roland Becker and Rolf Rannacher.
 \newblock An optimal control approach to a posteriori error estimation in
   finite element methods.
-\newblock \emph{Acta Numerica}, 10:\penalty0 1--102, 2001.
+\newblock \emph{Acta Numer.}, 10:\penalty0 1--102, 2001.
 \newblock \doi{10.1017/S0962492901000010}.
 
 \bibitem[Bonnet et~al.(2022)Bonnet, Mazari, Cinnella, and
@@ -105,8 +105,8 @@ Suchin Gururangan, Swabha Swayamdipta, Omer Levy, Roy Schwartz, Samuel~R.
   Unger]{hillebrecht2025posteriori}
 Birgit Hillebrecht and Benjamin Unger.
 \newblock Rigorous a posteriori error bounds for {PDE}-defined {PINNs}.
-\newblock \emph{IEEE Transactions on Neural Networks and Learning Systems},
-  36\penalty0 (1):\penalty0 1583--1593, 2025.
+\newblock \emph{IEEE Trans. Neural Netw. Learn. Syst.}, 36\penalty0
+  (1):\penalty0 1583--1593, 2025.
 \newblock \doi{10.1109/TNNLS.2023.3335837}.
 
 \bibitem[Hsieh et~al.(2019)Hsieh, Zhao, Eismann, Mirabella, and
@@ -126,13 +126,19 @@ Xinquan Huang and Paris Perdikaris.
 \newblock \doi{10.48550/arXiv.2507.02227}.
 \newblock AAAI 2026.
 
+\bibitem[Jabbary \& Ghanavati(2026)Jabbary and
+  Ghanavati]{jabbary2026neuroforgecfd}
+Ali Jabbary and Kasra Ghanavati.
+\newblock {neuroforge-cfd} v1.1.0: code, result files and reproduction map
+  [software].
+\newblock Zenodo, 2026.
+
 \bibitem[Jha(2024)]{learned2023residualcorrection}
 Prashant~K. Jha.
 \newblock Residual-based error corrector operator to enhance accuracy and
   reliability of neural operator surrogates of nonlinear variational
   boundary-value problems.
-\newblock \emph{Computer Methods in Applied Mechanics and Engineering},
-  419:\penalty0 116595, 2024.
+\newblock \emph{Comput. Methods Appl. Mech. Eng.}, 419:\penalty0 116595, 2024.
 \newblock \doi{10.1016/j.cma.2023.116595}.
 \newblock arXiv:2306.12047.
 
@@ -166,8 +172,7 @@ Zongyi Li, Nikola Kovachki, Kamyar Azizzadenesheli, Burigede Liu, Kaushik
 Zongyi Li, Daniel~Zhengyu Huang, Burigede Liu, and Anima Anandkumar.
 \newblock Fourier neural operator with learned deformations for pdes on general
   geometries.
-\newblock \emph{Journal of Machine Learning Research}, 24\penalty0
-  (388):\penalty0 1--26, 2023.
+\newblock \emph{J. Mach. Learn. Res.}, 24\penalty0 (388):\penalty0 1--26, 2023.
 \newblock arXiv:2207.05209.
 
 \bibitem[Lippe et~al.(2023)Lippe, Veeling, Perdikaris, Turner, and
@@ -204,7 +209,7 @@ Tanya Marwah, Ashwini Pokle, J.~Zico Kolter, Zachary~C. Lipton, Jianfeng Lu,
 Nick McGreivy and Ammar Hakim.
 \newblock Weak baselines and reporting biases lead to overoptimism in machine
   learning for fluid-related partial differential equations.
-\newblock \emph{Nature Machine Intelligence}, 6:\penalty0 1256--1269, 2024.
+\newblock \emph{Nat. Mach. Intell.}, 6:\penalty0 1256--1269, 2024.
 \newblock \doi{10.1038/s42256-024-00897-5}.
 
 \bibitem[Mukherjee et~al.(2026)Mukherjee, Fitzsimmons, Del Rey~Fern{\'a}ndez,
@@ -231,8 +236,7 @@ Adam Poliak, Jason Naradowsky, Aparajita Haldar, Rachel Rudinger, and Benjamin
 Nestor~V. Queipo, Raphael~T. Haftka, Wei Shyy, Tushar Goel, Rajkumar
   Vaidyanathan, and P.~Kevin Tucker.
 \newblock Surrogate-based analysis and optimization.
-\newblock \emph{Progress in Aerospace Sciences}, 41\penalty0 (1):\penalty0
-  1--28, 2005.
+\newblock \emph{Prog. Aerosp. Sci.}, 41\penalty0 (1):\penalty0 1--28, 2005.
 \newblock \doi{10.1016/j.paerosci.2005.02.001}.
 
 \bibitem[Raissi et~al.(2019)Raissi, Perdikaris, and
@@ -241,8 +245,7 @@ Maziar Raissi, Paris Perdikaris, and George~E. Karniadakis.
 \newblock Physics-informed neural networks: A deep learning framework for
   solving forward and inverse problems involving nonlinear partial differential
   equations.
-\newblock \emph{Journal of Computational Physics}, 378:\penalty0 686--707,
-  2019.
+\newblock \emph{J. Comput. Phys.}, 378:\penalty0 686--707, 2019.
 \newblock \doi{10.1016/j.jcp.2018.10.045}.
 
 \bibitem[Ranade et~al.(2025)Ranade, Nabian, Tangsali, Kamenev, Hennigh,
@@ -264,8 +267,8 @@ Stephan Rasp, Stephan Hoyer, Alexander Merose, Ian Langmore, Peter Battaglia,
   Jared Sisk, Luke Barrington, Aaron Bell, and Fei Sha.
 \newblock {WeatherBench 2}: A benchmark for the next generation of data-driven
   global weather models.
-\newblock \emph{Journal of Advances in Modeling Earth Systems}, 16\penalty0
-  (6):\penalty0 e2023MS004019, 2024.
+\newblock \emph{J. Adv. Model. Earth Syst.}, 16\penalty0 (6):\penalty0
+  e2023MS004019, 2024.
 \newblock \doi{10.1029/2023MS004019}.
 
 \bibitem[Rigotti et~al.(2026)Rigotti, Thumiger, and Frick]{rigotti2026gist}

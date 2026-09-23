@@ -1,6 +1,7 @@
 {
-    "title": "NeuroForge: Self-Auditing Neural CFD Surrogates with Calibrated Physics-Residual Trust",
+    "title": "neuroforge-cfd: code, result files and reproduction map for \"The near-wall barrier to parameter interpolation on AirfRANS is a coordinate artifact\"",
     "upload_type": "software",
+    "description": "<p>Source code, committed result files, pre-registered decision rules and the per-claim reproduction map (<code>docs/REPRODUCE.md</code>) for the manuscript <em>The near-wall barrier to parameter interpolation on AirfRANS is a coordinate artifact</em> (A. Jabbary, K. Ghanavati). Every headline number maps to a committed script and result file, and <code>results/MANIFEST.json</code> records seeds, environment and SHA-256 hashes. The package is CPU-first and runs end-to-end with zero downloads via a synthetic data generator; it also loads the public AirfRANS dataset.</p>",
     "license": "MIT",
     "creators": [
         {
@@ -15,16 +16,23 @@
         }
     ],
     "keywords": [
-        "computational fluid dynamics",
+        "surrogate models",
+        "evaluation metrics",
+        "benchmarking",
+        "body-fitted coordinates",
+        "discretisation error",
         "neural operators",
-        "physics residuals",
-        "uncertainty quantification",
-        "conformal prediction",
+        "computational fluid dynamics",
         "AirfRANS"
     ],
     "related_identifiers": [
         {
             "identifier": "https://github.com/ali-kin4/neuroforge-cfd",
+            "relation": "isSupplementTo",
+            "scheme": "url"
+        },
+        {
+            "identifier": "https://arxiv.org/abs/2607.10333",
             "relation": "isSupplementTo",
             "scheme": "url"
         }

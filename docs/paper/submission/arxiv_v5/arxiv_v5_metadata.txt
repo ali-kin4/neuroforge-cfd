@@ -1,30 +1,41 @@
 arXiv v5 REPLACE -- arXiv:2607.10333
 ====================================================================
-Upload: arxiv_v5_source.tar.gz (TMLR build, 26 pp, 1 figure, builds
-clean -- scripts/build_arxiv_package.py refuses to emit a tarball that
-does not compile).
+Upload: arxiv_v5_source.tar.gz (TMLR build, 28 pp, 1 figure, 7 tables,
+builds clean). scripts/build_arxiv_package.py refuses to emit a tarball
+that does not compile, strips full-line comments (arXiv publishes the
+source), and checks that the staged build reproduces the in-place
+build's every label and page. Rebuilt 2026-09-23.
 
 v3 is what is currently live, announced 2026-08-25. THERE IS NO v4:
 a v4 package was prepared on 2026-09-07 and never posted, and it is
 now stale -- it was built for the pre-split residual-floor manuscript.
 Do not upload docs/paper/submission/arxiv_v4/. This is the replacement.
 
-**THIS REPLACEMENT CHANGES THE TITLE AND THE ABSTRACT.** Both strings
-are given in full below and must be pasted into the arXiv metadata
-form. The live record still describes a trust-layer paper that no
-longer exists.
+**THIS REPLACEMENT CHANGES THE TITLE AND THE ABSTRACT.** Both must be
+pasted into the arXiv metadata form. The live record still describes a
+trust-layer paper that no longer exists.
 
 --------------------------------------------------------------------
 NEW TITLE
 --------------------------------------------------------------------
-The near-wall barrier on AirfRANS is a coordinate artifact, and only on velocity
+The near-wall barrier to parameter interpolation on AirfRANS is a coordinate artifact
 
 --------------------------------------------------------------------
 NEW ABSTRACT
 --------------------------------------------------------------------
-(paste from docs/paper/abstract.tex, 243 words, stripping LaTeX
+(paste from docs/paper/abstract.tex, 245 words, stripping LaTeX
 markup -- do not retype it, and do not let the arXiv form's plain-text
 conversion drop the boldface numbers' digits)
+
+--------------------------------------------------------------------
+COMMENTS FIELD (suggested)
+--------------------------------------------------------------------
+28 pages, 1 figure, 7 tables. Code and result files: release v1.1.0 of
+https://github.com/ali-kin4/neuroforge-cfd, archived at
+https://doi.org/10.5281/zenodo.21277928
+
+(Post this only after release v1.1.0 exists -- see
+SUBMISSION_CHECKLIST.md, Blocking 1.)
 
 --------------------------------------------------------------------
 WHY v5 EXISTS
@@ -39,9 +50,10 @@ that has been withdrawn twice over by its own authors.
 WHAT CHANGED SINCE v3
 
 1. THE PAPER WAS SPLIT. The calibrated trust layer and the
-   force-coefficient/covariate-null material are REMOVED. The latter is
-   the spine of a separate paper and will carry its own preprint under
-   its own identifier; it must not be journal-published here. See
+   force-coefficient covariate-null material are REMOVED; the residual
+   audit is reduced to one subsection. The covariate null is the spine
+   of a separate paper and will carry its own preprint under its own
+   identifier; it must not be journal-published here. See
    docs/paper/sections/trust_layer_removed.tex and
    covariate_null_removed.tex.
 
@@ -53,35 +65,43 @@ WHAT CHANGED SINCE v3
 
 3. THE FAMILY BOUND, at n=200 (was n=3): the least-squares projection
    onto the span of all 800 transferred training fields is 25.0x
-   Transolver's band error inside 0.005c. The n=200 implementation was
+   Transolver's band error inside 0.005c, worse on all 200 cases paired
+   (median 36.6x, above 10x on 185). The n=200 implementation was
    required to reproduce the frozen n=3 artifact at a worst relative
-   difference of exactly 0.00e+00 before computing anything new.
+   difference of exactly 0.00e+00 (gate G7) before computing anything
+   new.
 
 4. THE HEADLINE REVERSAL, which is new in this version and is the
    reason for the title change. Re-posing the identical family in a
    parameter-free wall-following frame -- nothing retuned, both arms
    computed in one pass from one node array -- takes that bound from
-   25x to 0.0044x, better on 200 of 200 cases
-   (BODY-FITTED-BOUND-OPEN, pre-registered). The physical arm rescored
-   on the same restricted nodes still reads 25.2x, so the restriction
-   manufactured nothing. The BARRIER is an artifact of the coordinate
-   system the baseline is posed in -- not the gap: the deployed
-   estimator in that frame improves 114x and still loses on the
-   case-mean, and the paper claims only the former.
+   25x to 0.0044x (BODY-FITTED-BOUND-OPEN, pre-registered); paired per
+   case it is below the surrogate on all 200 (median 0.0046, worst
+   0.018). The physical arm rescored on the same restricted nodes
+   reads 25.21x, so the restriction manufactured nothing. The BARRIER
+   is an artifact of the coordinate system the baseline is posed in --
+   not the gap: the deployed estimator in that frame improves 112x on
+   the case-mean and still trails there (1.71x), with a paired median
+   of 0.83x and 115/200 cases below the surrogate. The paper claims
+   only the former.
 
-5. THE CHANNEL SPLIT, and it is the sharper test of the mechanism. On
-   PRESSURE there was never a barrier: the physical-coordinate bound is
-   already 0.00103x Transolver inside 0.005c, and the wall-following
-   frame makes it 1.58x WORSE, better on only 15/200 cases. Velocity
-   varies steeply across a boundary layer and gains 5,665x; pressure is
-   nearly constant across it and gains nothing. The near-wall result is
-   a VELOCITY statement.
+5. THE CHANNEL SPLIT, read post hoc (no rule was registered for
+   pressure). On PRESSURE there was never a barrier: the physical bound
+   is already 0.00103x Transolver on matched nodes (974x better), and
+   the wall-following frame makes it 1.58x worse on the case-mean,
+   better on only 15/200 cases. Velocity varies steeply across a
+   boundary layer and gains 5,665x; pressure is nearly constant across
+   it and gains nothing. The near-wall result is a statement about u.
 
 6. THE FRAME'S COST, measured: a wall-normal coordinate does not exist
-   on 4.98% of near-wall nodes (4.19-6.75%), at the trailing edge and
-   the leading-edge stagnation region, where a fan of points projects
-   onto a single vertex. Those nodes carry 99.99% of the frame's
-   round-trip error.
+   on 4.98% of near-wall nodes (4.19-6.75% across cases; 1.36% of the
+   verdict band), at the trailing edge and the leading-edge stagnation
+   point, where distinct points project onto a single surface vertex.
+   Those nodes carry 99.99% of the frame's round-trip error. The
+   exclusion criterion (amendment B-1) was derived from a failed gate
+   and committed after a two-case smoke test while the 200-case run was
+   executing; the rule and thresholds are those registered before any
+   body-fitted run, and the manuscript states that provenance.
 
 7. THE REPRESENTATION CEILING is restated correctly. The r128 raster's
    round-trip error at the native nodes exceeds the surrogate's by
