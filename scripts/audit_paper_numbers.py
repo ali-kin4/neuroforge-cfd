@@ -1379,6 +1379,8 @@ CLAIMS = [
      lambda r: nmv_competence(r, "p"), 0.0991, 0.0005),
     ("LS family bound, n=200, u inside 0.005c", ls_n200_ratio, 25.0, 0.05),
     ("LS bound n=200 at lambda=1e-6 tr/n", ls_n200_ridge_ratio, 25.2, 0.05),
+    ("published estimator vs Transolver, band 1, all nodes",
+     lambda r: float(load(os.path.join(r, "results/interpolation/point_space_headtohead.json"))["tables"]["interp_nearfill"]["full"]["u"]["band"][1]) / float(ls_n200(r)["P3_LS"]["transolver_band_mse_u"]), 173, 0.5),
     ("paired physical bound: median ratio",
      lambda r: pbs_paired(r, "u", "physical_bound_all_nodes", "median"), 36.6, 0.05),
     ("paired physical bound: cases above 10",

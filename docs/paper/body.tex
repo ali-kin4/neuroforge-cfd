@@ -79,8 +79,8 @@ was never a barrier to begin with---the physical bound already beats the surroga
 $974\times$---and the wall-following frame makes it worse on $185$ of $200$ cases, which is
 consistent with pressure being nearly constant across a boundary layer.
 
-\paragraph{The published field-MSE ranking is decided by a weighting nobody states.} That
-verdict inverts the one the benchmark's own protocol returns, and the inversion is the
+\paragraph{The published field-MSE ranking is decided by a weighting nobody states.} The
+native verdict inverts the one the benchmark's own protocol returns, and the inversion is the
 second finding. Scored the way this benchmark's field tables are reported---an
 area-uniform $128^2$ raster---the same interpolator gives $8.4\times$ \emph{lower} volume
 pressure error than the same Transolver ($\texttt{mse\_p}$ $75.0$ against $629.6$).
@@ -91,10 +91,9 @@ predictions, one set of cases, three measures in current use, and the ranking re
 the first and the third. Every other channel moves with it: $\texttt{mse\_u}$ from
 $6.2\times$ against the interpolator to $86\times$ against it area-uniform-to-node-weighted
 and $144\times$ at the nodes, $\texttt{mse\_v}$ from $3.0\times$ in its favour to
-$15\times$ against it. Over $u,v,p$ in standardised units the interpolator is $1.99\times$
-better area-uniform and $8.30\times$ worse node-weighted. Neither grid measure is obviously
+$15\times$ against it. Neither grid measure is obviously
 the right one, and that is the point: the raster is what the field tables report, while
-AirfRANS is a boundary-layer mesh that places $64.4\%$ of every case's nodes inside $0.05c$
+AirfRANS is a boundary-layer mesh that places $64.4\%$ of the scored crop's nodes inside $0.05c$
 of the wall, a region holding $1.25\%$ of the raster's area---a factor of $51.5$, rising to
 $312$ inside $0.005c$ and inverting to $0.14$ beyond half a chord. \textbf{No published
 AirfRANS field comparison states which weighting it uses} (\autoref{tab:measure}).
@@ -141,7 +140,7 @@ near-wall error itself falls $45\%$; the pre-registered rule reads that easing a
 to a broken field metric is to fix it with physics: score a surrogate by how well its field
 satisfies the governing equations. A deployed surrogate cannot afford the solver that
 produced its labels, so any such check must monitor a cheaper, different operator---and we
-measure what that substitution costs. On $200/200$ real AirfRANS cases the monitored
+measure what that substitution costs. On $200/200$ real AirfRANS cases the monitored PDE
 residual of the \emph{exact} field is substantially nonzero while a physically wrong
 uniform freestream scores an exact zero, and descending that residual from the exact ground
 truth drives the field error up on $200/200$ cases (\autoref{sec:residual}). The boundary
@@ -172,8 +171,7 @@ necessary is a property of the coordinates the non-learned reference is posed in
 
 \subsection{Contributions}
 
-The findings above are the contributions, and the paragraphs that state them carry
-their numbers; we do not restate them here. What each adds beyond the headline number is:
+The findings above are the contributions; what each adds beyond its headline number is:
 
 \begin{enumerate}
 \item \textbf{A head-to-head at native resolution, a closed bound on the baseline's whole
@@ -514,8 +512,8 @@ section's surface and wall distance.
 The \emph{objective} asymmetry runs the other way, and it is large enough to decide the
 comparison. The interpolator is selected by cross-validation on the area-uniform grid
 measure the published tables report; the surrogate minimises a per-point loss under the
-dataset's own node distribution, which places $55.5\%$ of its nodes inside $0.02c$ against
-$0.51\%$ of the raster's cells---a factor of $109.5$, rising to $312\times$ inside $0.005c$
+dataset's own node distribution, which places $55.5\%$ of the scored crop's nodes inside
+$0.02c$ against $0.51\%$ of the raster's cells---a factor of $109.5$, rising to $312\times$ inside $0.005c$
 and inverting to $0.14\times$ beyond $0.5c$. One arm is therefore tuned on the scoreboard
 and the other is not, so we report the head-to-head under all three measures of
 \autoref{sec:experiments} and lead with the one that has no raster in it at all:
@@ -634,7 +632,8 @@ $10$ on $185$ of the $200$ cases and falls at or below $1$ on none ($p_{5}$ $7.2
 $79.9$), so pairing makes the barrier stronger rather than weaker. Nor does it depend on how
 the projection is regularised: $25.0\times$ at $\lambda=10^{-10}\,\bar t$ and $25.2\times$
 at $\lambda=10^{-6}\,\bar t$, where $\bar t$ is the mean diagonal of the Gram matrix.
-\textbf{Scope, stated inline}: one channel, and the single band whose node count
+\textbf{Scope, stated inline}: one channel for the verdict ($u$; the run also computed $p$,
+reported below), and the single band whose node count
 ($73$--$82$k) far exceeds the $800$ free parameters of the projection, which is the only
 band where the quantity is a bound rather than an interpolation
 (\texttt{results/interpolation/point\_space\_oracle\_ls\_n200.json}). The $343.6$ oracle
@@ -1100,8 +1099,8 @@ are generated by \texttt{scripts/make\_fig\_bandratio.py} from
 scoring, so it asks whether spatial structure \emph{within} the band was captured
 beyond case-level scale. ``SE share'' is the fraction of the channel's total squared
 error in that band and is unaffected by the centring choice. The pooled (non-centred)
-$R^2$ quoted in the text is higher than $R^2_{\mathrm{pc}}$ at every entry; both are in
-the artifact.}
+$R^2$ quoted in \autoref{sec:interp} is higher than $R^2_{\mathrm{pc}}$ at every entry;
+both are in the artifact.}
 \label{tab:interp_bands}
 \begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{l r r r r r r r}
@@ -1126,14 +1125,14 @@ scores. $43.2\%$ of those nodes lie inside $0.005c$ of the wall, a region holdin
 $0.138\%$ of the crop's area---a factor of $312$. Cumulatively, $55.5\%$ lie inside
 $0.02c$ ($0.51\%$ of the area, $109.5\times$) and $64.4\%$ inside $0.05c$ ($1.25\%$,
 $51.5\times$); beyond $0.5c$ the asymmetry inverts to $0.14\times$. The spread across
-cases is negligible---the node fraction inside $0.05c$ has minimum $0.6045$, median
-$0.6163$ and maximum $0.6238$---so this is a property of the mesh generator, not of a few
+cases is negligible---the per-case fraction of each whole cloud inside $0.05c$ has minimum
+$0.6045$, median $0.6163$ and maximum $0.6238$---so this is a property of the mesh generator, not of a few
 cases, and it does not depend on which signed-distance function defines the bands: the
 grid \texttt{sdf} and the cloud's own distance column agree on $99.51\%$ of nodes at the
 $0.02c$ threshold and $99.90\%$ at $0.05c$ (gate \textbf{G6}).
 
 Re-weighting fixes that measure, not the representation both arms are still scored on. To
-bound the representation, we resample the \emph{rasterised ground truth} at the native
+measure what the representation costs, we resample the \emph{rasterised ground truth} at the native
 nodes and compare its round-trip error against the model's, which is the error the scoring
 representation commits before any model is involved. Inside $0.005c$ Transolver's per-node
 $u$ error is $1.16$; the $r128$ raster's own is $\mathbf{572.8}$. Pooled over the crop the
@@ -1239,7 +1238,7 @@ ladder with five random subsets per size,
 \textbf{$100$ training cases} of parameter interpolation take $\texttt{mse\_p}$ to
 $238{\pm}65$ (worst of five subsets $344$) and $\texttt{mse\_v}$ to $0.0720{\pm}0.013$,
 which on the area-uniform measure is past the $7.35$M-parameter Transolver trained on all
-$800$ ($628.5$ and $0.088$). At $50$ cases the mean already clears $\texttt{mse\_p}$
+$800$ ($628.5$ and $0.088$, the separately trained row of \autoref{tab:interp}). At $50$ cases the mean already clears $\texttt{mse\_p}$
 ($519$) but one subset of five does not ($735$), so the claim we make is $100$, not $50$.
 Convergence in $\texttt{mse\_p}$ has not saturated at $800$. The ladder's internal
 result---an eighth of the training data buys the estimator's full accuracy---is a
@@ -1451,9 +1450,9 @@ divisors the native three-channel mean is $80\times$ rather than $24.7\times$.
 \item \textbf{What the native-resolution head-to-head does not settle.} Four scopes, each
 of which a reviewer is entitled to press. \emph{(i)} The interpolator's hyperparameters are
 the \textbf{grid}-cross-validated ones; re-selecting them under the node measure would
-require $800\times800$ cloud-to-cloud transfers and was not run. The least-squares oracle
-bounds what that can buy near the wall---a factor of a few against a measured $25\times$
-for the whole family, and $175\times$ for the published estimator ($344\times$ is the
+require $800\times800$ cloud-to-cloud transfers and was not run. The least-squares bound
+limits what that can buy near the wall in physical coordinates to about a factor of seven,
+from the published estimator's $173\times$ to the family's $25\times$ ($344\times$ is the
 single-field oracle, which is not that estimator)---but \textbf{P1}'s scope is correctly
 ``this estimator'', not ``every parameter-space estimator''. \emph{(ii)} The
 least-squares family bound is one band, registered on $u$ and also computed on $p$; $v$ and
@@ -1556,8 +1555,8 @@ artifact of the coordinate system the baseline was posed in.
 convention nobody states.} On the area-uniform $128^2$ raster the field tables are reported on, the
 same interpolator gives $8.4\times$ \emph{lower} volume-pressure error than the same
 surrogate. Re-weight the identical predictions on the identical cells by native node count
-and that becomes $0.44\times$; per node it is $0.21\times$. AirfRANS places $64.4\%$ of its
-mesh inside $0.05c$ of the wall against $1.25\%$ of the raster's area, and no published
+and that becomes $0.44\times$; per node it is $0.21\times$. AirfRANS places $64.4\%$ of the
+scored mesh inside $0.05c$ of the wall against $1.25\%$ of the raster's area, and no published
 comparison states which weighting it uses. Nor can the raster settle the matter by being
 refined in place: resampled at the native nodes its own round-trip error exceeds the
 surrogate's by $413\times$ pooled and $495\times$ near the wall, so \emph{an $r128$ field
@@ -1638,8 +1637,8 @@ DOI \href{https://doi.org/10.5281/zenodo.21277928}{10.5281/zenodo.21277928}). Ev
 manifest (\texttt{results/MANIFEST.json}) records seeds, environment, and SHA-256 hashes for
 hash-drift detection. The benchmark is public \citep{bonnet2022airfrans}. The package is
 CPU-first and runs end-to-end with zero downloads via a synthetic data generator; the GPU
-runs (backbone training) are documented with exact commands and expected outputs. The two
-diagnostics this paper turns on---the node-versus-area weighting of a scoring raster, and
+runs (backbone training) are documented with exact commands and expected outputs. Two of
+the diagnostics this paper turns on---the node-versus-area weighting of a scoring raster, and
 that raster's own round-trip error at the source nodes---are implemented as reusable
 routines that take an arbitrary point cloud and raster specification, so the check is
 portable to any benchmark of this form.

@@ -9,11 +9,11 @@ The 2026-09-12 rebuild replaced bullet 5 (the case-name force-rank null), which
 moved to the companion NullBench paper, with the native-resolution result that is
 now the manuscript's lead claim.
 
-- The near-wall barrier on AirfRANS is a coordinate artifact, and only on velocity
-- Wall-following coordinates take the velocity bound from 25x to 0.0044x, 200/200
+- The near-wall barrier to parameter interpolation is a coordinate artifact
+- Wall-following coordinates take that bound from 25x to 0.0044x, on 200/200 cases
 - The AirfRANS field ranking flips with the cell weighting: 8.4x to 0.44x on pressure
-- 64% of AirfRANS nodes sit inside 0.05 chord, which is 1.2% of the raster's area
-- No wall-normal frame exists on 5.0% of near-wall nodes, behind the trailing edge
+- 64% of scored AirfRANS nodes sit inside 0.05 chord, 1.2% of the raster's area
+- No wall-normal frame exists on 5% of near-wall nodes, at leading and trailing edges
 
 The 2026-09-18 rebuild replaced bullets 1, 2 and 5 after the body-fitted arm
 returned BODY-FITTED-BOUND-OPEN. Bullet 1 is the paper's new headline; bullet 2 is
