@@ -1570,6 +1570,8 @@ def main(argv=None) -> int:
         stage_r128resample(a)
     elif a.stage == "oracle_ls":
         stage_oracle_ls(a)
+    elif a.stage == "oracle_ls_n200":
+        stage_oracle_ls_n200(a)
     elif a.stage == "reduce":
         stage_reduce(a)
     log(f"stage {a.stage} total {time.time()-t0:.0f}s")
