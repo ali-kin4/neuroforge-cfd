@@ -104,3 +104,6 @@ docs/paper/review/venue_taste.md
 docs/paper/review/whitespace.md
 docs/paper2/submission/SUBMISSION_CHECKLIST.md
 docs/paper2/submission/suggested_reviewers.md
+
+# Local run logs (stdout of long experiment runs)
+logs/

@@ -5,8 +5,8 @@ Companion: `docs/PLANS.md` (what next), this file (why, and what has been won).
 
 Last updated: **2026-09-23**
 
-> **Paper 1 (2026-09-23): ready for the Journal of Computational Science**,
-> pending three author steps (see `PLANS.md` top). The outcome worth claiming:
+> **Paper 1: submitted to the Journal of Computational Science on 2026-09-24**
+> (see `PLANS.md` top). The outcome worth claiming:
 > **on AirfRANS the near-wall barrier to parameter interpolation is a coordinate
 > artifact.** The exact least-squares bound over all 800 training fields is 25×
 > worse than Transolver inside 0.005c in physical coordinates. In a
