@@ -9,7 +9,15 @@ fast-forwards.
 
 ---
 
-## 0.00001 PAPER 1 — BUILT AND VERIFIED FOR JOCS; THREE AUTHOR STEPS LEFT (2026-09-23)
+## 0.00001 PAPER 1 — SUBMITTED TO JOCS (2026-09-24)
+
+Submitted 2026-09-24 via Elsevier's new submission system (Full Length Article, subscription
+route, release v1.1.0 archived at Zenodo 10.5281/zenodo.22925007). Next: replace arXiv
+2607.10333 with `submission/arxiv_v5/`; co-author confirms by email; while under review,
+run the one positive follow-up (body-fitted KRR with its kernel re-selected by CV).
+The history below is how it got there.
+
+### (history) BUILT AND VERIFIED FOR JOCS (2026-09-23)
 
 Title: *The near-wall barrier to parameter interpolation on AirfRANS is a
 coordinate artifact.* Venue: Journal of Computational Science, subscription
