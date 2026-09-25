@@ -9,7 +9,19 @@ fast-forwards.
 
 ---
 
-## 0.00001 PAPER 1 — SUBMITTED TO JOCS (2026-09-24)
+## 0.000001 PAPER 1 — PARKED AS A STANDALONE PAPER (2026-09-25)
+
+The one remaining positive route was tested under a pre-registered rule
+(`scripts/wallframe_estimator.py`, rule `d5f5ac9`, selection `398cd05`): re-selecting the
+interpolator for the wall-following frame, by leave-one-out on the 800 training cases over
+`config_grid('nd')`, picks the configuration already in use, and the registered verdict is
+**WALL-FRAME-ESTIMATOR-TRAILS**, R = 1.7085 (`results/interpolation/wallframe_estimator.json`).
+Descriptive: paired median 0.83 on u (115/200 below 1); nu_t case-mean 0.86 (152/200);
+v 2.73, p 4.39. Per the agreed stop rule, Paper 1 does not continue as a standalone
+paper; its measure-dependence finding is to be folded into the multi-benchmark evaluation
+paper. Focus moves to Paper 2.
+
+## 0.00001 PAPER 1 — SUBMISSION (2026-09-24)
 
 Submitted 2026-09-24 via Elsevier's new submission system (Full Length Article, subscription
 route, release v1.1.0 archived at Zenodo 10.5281/zenodo.22925007). Next: replace arXiv
