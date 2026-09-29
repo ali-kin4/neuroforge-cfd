@@ -1,0 +1,51 @@
+{
+ "n_test": 1154,
+ "var_test_ddof0": 0.0004148894458569654,
+ "rows": [
+  {
+   "model": "GCNN",
+   "source": "DrivAerNet++ Table 4",
+   "mse": 0.000171,
+   "r2_reported": 0.596,
+   "r2_implied_by_mse": 0.5878420101846773,
+   "mse_implied_by_r2": 0.00016761533612621402,
+   "abs_r2_gap": 0.008157989815322675
+  },
+  {
+   "model": "RegDGCNN",
+   "source": "DrivAerNet++ Table 4",
+   "mse": 0.000142,
+   "r2_reported": 0.641,
+   "r2_implied_by_mse": 0.6577401488083285,
+   "mse_implied_by_r2": 0.00014894531106265056,
+   "abs_r2_gap": 0.016740148808328525
+  },
+  {
+   "model": "PointNet",
+   "source": "DrivAerNet++ Table 4",
+   "mse": 0.000149,
+   "r2_reported": 0.643,
+   "r2_implied_by_mse": 0.6408681843129644,
+   "mse_implied_by_r2": 0.00014811553217093665,
+   "abs_r2_gap": 0.0021318156870355764
+  },
+  {
+   "model": "TripNet",
+   "source": "arXiv:2503.17400 Table 5",
+   "mse": 9.1e-05,
+   "r2_reported": 0.957,
+   "r2_implied_by_mse": 0.7806644615602669,
+   "mse_implied_by_r2": 1.7840246171849526e-05,
+   "abs_r2_gap": 0.17633553843973304
+  },
+  {
+   "model": "PointNet2D+BiLSTM",
+   "source": "arXiv:2601.02112 Table 1",
+   "mse": 6.5e-05,
+   "r2_reported": 0.9528,
+   "r2_implied_by_mse": 0.8433317582573335,
+   "mse_implied_by_r2": 1.9582781844448775e-05,
+   "abs_r2_gap": 0.10946824174266645
+  }
+ ]
+}
